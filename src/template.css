@@ -1,0 +1,38 @@
+/**
+ * (c) jTools Template renderer
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Template renderer
+ */
+
+.jtemplate-pagination {
+    display:flex;
+    cursor:pointer;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.jtemplate-pagination div {
+    padding:6px;
+    min-width:30px;
+    text-align:center;
+    font-size:0.8em;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+.jtemplate-pagination div:hover {
+    background-color:#eee;
+}
+
+.jtemplate-results {
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+

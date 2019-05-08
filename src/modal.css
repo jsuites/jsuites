@@ -1,0 +1,64 @@
+/**
+ * (c) jTools Modal page
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Modal page
+ */
+
+.jmodal {
+    position:fixed;
+    top:50%;
+    left:50%;
+    width:60%;
+    height:60%;
+    -webkit-box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    -moz-box-shadow: 0 2px 10px rgba(0,0,0,.2);
+    border:1px solid #ccc;
+    background-color:#fff;
+    transform: translate(-50%, -50%);
+    box-sizing: border-box;
+    padding-top:50px;
+    z-index:1100;
+    display:none;
+}
+
+.jmodal:before {
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    content:attr(title);
+    padding:15px;
+    box-sizing: border-box;
+    background: #e3e3e3;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#e3e3e3');
+    background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#e3e3e3));
+    background: -moz-linear-gradient(top,  #ededed,  #e3e3e3);
+    font-size:1.2em;
+}
+
+.jmodal > div {
+    padding:20px;
+    overflow-y:auto;
+    max-height:100%;
+}
+.jmodal.no-title {
+    padding-top:0px;
+}
+
+.jmodal.no-title:before {
+    display:none;
+}
+
+.jmodal:after {
+    position:absolute;
+    top:0;
+    right:0;
+    margin:14px;
+    content:'close';
+    font-family:'Material icons';
+    font-size:24px;
+    cursor:pointer;
+    text-shadow: 0px 0px 5px #fff;
+}
