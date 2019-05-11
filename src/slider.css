@@ -86,8 +86,3 @@
     vertical-align:middle;
     display:none;
 }
-
-.jslider-remove {
-    opacity: 0.2;
-    filter: alpha(opacity=20);
-}

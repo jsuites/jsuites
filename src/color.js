@@ -16,7 +16,7 @@ jApp.color = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        placeholder:'COLOR',
+        placeholder:'',
         value:null,
         onclose:null,
         onchange:null,
@@ -319,7 +319,7 @@ jApp.color = (function(el, options) {
     obj.open = function() {
         if (jApp.color.current) {
             if (jApp.color.current != obj) {
-                jApp.color.current.close(true);
+                jApp.color.current.close();
             }
         }
 
@@ -330,7 +330,7 @@ jApp.color = (function(el, options) {
             container.classList.add('jcolor-focus');
             // Position of the colorpicker is based on the parent container
             const rect = el.getBoundingClientRect();
-            content.style.top += rect.height + 2;
+            content.style.top += rect.height + 1;
             container.focus();
         }
     }
@@ -338,10 +338,10 @@ jApp.color = (function(el, options) {
     /**
      * Close color pallete
      */
-    obj.close = function(event) {
+    obj.close = function(ignoreEvents) {
         if (jApp.color.current) {
             jApp.color.current = null;
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
             container.classList.remove('jcolor-focus');
@@ -392,24 +392,28 @@ jApp.color = (function(el, options) {
     container.addEventListener("click", function(e) {
         if (e.target.tagName == 'TD') {
             jApp.color.current.setValue(e.target.getAttribute('data-value'));
-            jApp.color.current.close(true);
+            jApp.color.current.close();
         }
     });
 
     // Possible to focus the container
-    container.setAttribute('tabindex', '100');
+    container.setAttribute('tabindex', '900');
     // Append to the table
     content.appendChild(table);
     container.appendChild(content);
     container.onblur = function(e) {
         if (jApp.color.current) {
-            jApp.color.current.close(true);
+            jApp.color.current.close();
         }
     }
     // Insert picker after the element
     el.parentNode.insertBefore(container, el);
     // Keep object available thought the node
     el.color = obj;
+
+    if (obj.options.placeholder) {
+        el.setAttribute('placeholder', obj.options.placeholder);
+    }
 
     return obj;
 });

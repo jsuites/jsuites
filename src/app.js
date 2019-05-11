@@ -53,5 +53,109 @@ var jApp = function(options) {
         return [ x, y ];
     }
 
+    obj.click = function(el) {
+        // Create our event (with options)
+        var evt = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        // If cancelled, don't dispatch our event
+        var canceled = !el.dispatchEvent(evt);
+    }
+
+    obj.getFiles = function(element) {
+        if (! element) {
+            console.error('No element defined in the arguments of your method');
+        }
+        // Clear current data
+        var inputs = element.querySelectorAll('input');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].remove();
+        }
+
+        // Get attachments
+        var files = element.querySelectorAll('.jfile');
+
+        if (files.length > 0) {
+            for (var i = 0; i < files.length; i++) {
+                var extension = files[i].getAttribute('data-name').toLowerCase().split('.');
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][name]');
+                input.value = files[i].getAttribute('data-name').toLowerCase()
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][extension]');
+                input.value = extension[1];
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][size]');
+                input.value = files[i].getAttribute('data-size');
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][lastmodified]');
+                input.value = files[i].getAttribute('data-lastmodified');
+                files[i].parentNode.appendChild(input);
+
+                if (files[i].getAttribute('data-cover')) {
+                    var input = document.createElement('input');
+                    input.setAttribute('type', 'hidden');
+                    input.setAttribute('name', 'files[' + i + '][cover]');
+                    input.value = 1;
+                    files[i].parentNode.appendChild(input);
+                }
+
+                // File thumbs
+                var content = files[i].getAttribute('data-thumbs');
+
+                if (content) {
+                    if (content.substr(0,4) == 'data') {
+                        var content = files[i].getAttribute('data-thumbs').split(',');
+
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][thumbs]');
+                        input.value = content[1];
+                        files[i].parentNode.appendChild(input);
+                    } else {
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][thumbs]');
+                        input.value = content;
+                        files[i].parentNode.appendChild(input);
+                    }
+                }
+
+                // File content
+                var content = files[i].getAttribute('src');
+
+                if (content.substr(0,4) == 'data') {
+                    var content = files[i].getAttribute('src').split(',');
+
+                    var input = document.createElement('input');
+                    input.setAttribute('type', 'hidden');
+                    input.setAttribute('name', 'files[' + i + '][content]');
+                    input.value = content[1];
+                    files[i].parentNode.appendChild(input);
+                } else {
+                    if (files[i].classList.contains('jremove')) {
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][remove]');
+                        input.value = 1;
+                        files[i].parentNode.appendChild(input);
+                    }
+                }
+            }
+        }
+    }
+
     return obj;
 }();

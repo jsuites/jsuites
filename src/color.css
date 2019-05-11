@@ -7,6 +7,7 @@
 .jcolor {
     position:relative;
     display:none;
+    outline:none;
 }
 
 .jcolor-content {

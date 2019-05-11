@@ -7,7 +7,7 @@
 jApp.contextmenu = (function(el, options) {
     var obj = {};
     obj.options = {};
-    obj.options.items = {};
+    obj.options.items = options.items && options.items.length ? options.items : {};
 
     obj.menu = document.createElement('ul');
     obj.menu.classList.add('jcontextmenu');

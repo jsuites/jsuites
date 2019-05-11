@@ -22,6 +22,11 @@ jApp.modal = (function(el, options) {
     }
     el.appendChild(container);
 
+    // Title
+    if (! el.getAttribute('title')) {
+        el.classList.add('no-title');
+    }
+
     if (! obj.options.closed) {
         el.style.display = 'block';
     }

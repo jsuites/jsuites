@@ -59,6 +59,11 @@
     display:none;
 }
 
+.jremove {
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+}
+
 /** Animations **/
 
 .slide-left-in

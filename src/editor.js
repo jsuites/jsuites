@@ -112,7 +112,7 @@ jApp.editor = (function(el, options) {
                         }
                     }
                 },
-                {
+                /*{
                     type:'select',
                     items: ['Verdana','Arial','Courier New'],
                     onchange: function() {
@@ -124,7 +124,7 @@ jApp.editor = (function(el, options) {
                     onchange: function() {
                     }
                 },
-                /*{
+                {
                     icon:'format_align_left',
                     onclick: function() {
                         document.execCommand('JustifyLeft');

@@ -27,11 +27,14 @@ jApp.dropdown = (function(el, options) {
         multiple: false,
         autocomplete: false,
         type:null,
-        width: 200,
+        width:'200px',
         opened:false,
         onchange:null,
+        onopen:null,
+        onclose:null,
         onblur:null,
         value:null,
+        placeholder:'',
     };
 
     // Loop through our object
@@ -70,6 +73,11 @@ jApp.dropdown = (function(el, options) {
     // Header
     var header = document.createElement('input');
     header.className = 'jdropdown-header';
+    if (typeof(obj.options.onblur) == 'function') {
+        header.onblur = function() {
+            obj.options.onblur(el);
+        }
+    }
 
     // Container
     var container = document.createElement('div');
@@ -103,10 +111,6 @@ jApp.dropdown = (function(el, options) {
     // Place holder
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
-    } else {
-        if (obj.options.autocomplete == true) {
-            header.setAttribute('placeholder', 'Search...');
-        }
     }
 
     // Append elements
@@ -200,7 +204,9 @@ jApp.dropdown = (function(el, options) {
                 }
 
                 // Set content
-                var node = document.createTextNode(v.name);
+                var node = document.createElement('div');
+                node.className = 'jdropdown-description';
+                node.innerHTML = v.name;
                 items[k].appendChild(node);
 
                 // Title
@@ -208,7 +214,7 @@ jApp.dropdown = (function(el, options) {
                     var title = document.createElement('div');
                     title.className = 'jdropdown-title';
                     title.innerHTML = v.title;
-                    items[k].appendChild(title);
+                    node.appendChild(title);
                 }
 
                 // Append to the container
@@ -322,7 +328,7 @@ jApp.dropdown = (function(el, options) {
             obj.items[index].classList.add('jdropdown-selected');
             obj.items[index].classList.add('jdropdown-cursor');
             // Close
-            obj.close(true);
+            obj.close();
         } else {
             // Toggle option
             if (obj.items[index].classList.contains('jdropdown-selected')) {
@@ -436,7 +442,7 @@ jApp.dropdown = (function(el, options) {
     obj.open = function() {
         if (jApp.dropdown.current != el) {
             if (jApp.dropdown.current) {
-                jApp.dropdown.current.dropdown.close(true);
+                jApp.dropdown.current.dropdown.close();
             }
             jApp.dropdown.current = el;
         }
@@ -479,6 +485,10 @@ jApp.dropdown = (function(el, options) {
                     container.style.bottom = rect.height + 1;
                 } 
             }
+
+            if (obj.options.type == 'searchbar') {
+                container.style.height = (document.body.offsetHeight) + 'px';
+            }
         }
 
         // Events
@@ -487,7 +497,7 @@ jApp.dropdown = (function(el, options) {
         }
     }
 
-    obj.close = function(event) {
+    obj.close = function(ignoreEvents) {
         if (jApp.dropdown.current) {
             // Remove controller
             jApp.dropdown.current = null
@@ -499,7 +509,7 @@ jApp.dropdown = (function(el, options) {
             // Update labels
             obj.updateLabel();
             // Events
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
             // Reset
@@ -640,7 +650,11 @@ jApp.dropdown.onclick = function(e) {
     if (element) {
         dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
-            dropdown.open();
+            if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
+                dropdown.close();
+            } else {
+                dropdown.open();
+            }
         } else if (e.target.classList.contains('jdropdown-group-name')) {
             var items = e.target.parentNode.classList.contains('.jdropdown-item');
             for (var x = 0; x < items.length; i++) {
@@ -662,18 +676,20 @@ jApp.dropdown.onclick = function(e) {
             dropdown.selectItem(e.target);
         } else if (e.target.classList.contains('jdropdown-image')) {
             dropdown.selectIndex(e.target.parentNode.getAttribute('data-index'));
-        } else if (e.target.classList.contains('jdropdown-title')) {
+        } else if (e.target.classList.contains('jdropdown-description')) {
             dropdown.selectIndex(e.target.parentNode.getAttribute('data-index'));
+        } else if (e.target.classList.contains('jdropdown-title')) {
+            dropdown.selectIndex(e.target.parentNode.parentNode.getAttribute('data-index'));
         } else if (e.target.classList.contains('jdropdown-close') || e.target.classList.contains('jdropdown-backdrop')) {
             // Close
-            dropdown.close(true);
+            dropdown.close();
         }
 
         e.stopPropagation();
         e.preventDefault();
     } else {
         if (jApp.dropdown.current) {
-            jApp.dropdown.current.dropdown.close(true);
+            jApp.dropdown.current.dropdown.close();
         }
     }
 }

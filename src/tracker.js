@@ -1,75 +1,86 @@
 jApp.tracker = (function(el, options) {
-    if (! options) {
-        options = {};
+    var obj = {};
+    obj.options = {};
+    
+    if (options) {
+        obj.options = options;
     }
 
-    // Set options
-    el.options = options;
-
     // Do not ignore changes
-    el.options.ignore = false;
+    obj.options.ignore = false;
+
+    // Default message. Depending on the browser, the message can be customized.
+    if (obj.options.message) {
+        obj.options.message = 'Are you sure? There are unsaved information in your form';
+    }
 
     // Return the form hash
-    el.setHash = function() {
-        return el.getHash(el.getElements());
+    obj.setHash = function() {
+        return obj.getHash(obj.getElements());
     }
 
     // Get the form hash
-    el.getHash = function(str) {
+    obj.getHash = function(str) {
         return str.split('').reduce((prevHash, currVal) => ((prevHash << 5) - prevHash) + currVal.charCodeAt(0), 0);
     }
 
     // Is there any change in the form since start tracking?
-    el.isChanged = function() {
-        var hash = el.setHash();
-        return (el.options.currentHash != hash);
+    obj.isChanged = function() {
+        var hash = obj.setHash();
+        return (obj.options.currentHash != hash);
     }
 
     // Change the ignore flag
-    el.setIgnore = function(option) {
-        el.options.ignore = option;
+    obj.setIgnore = function(option) {
+        obj.options.ignore = option;
     }
 
     // Restart tracking
-    el.resetTracker = function() {
-        el.options.currentHash = el.setHash();
-        el.options.ignore = false;
+    obj.resetTracker = function() {
+        obj.options.currentHash = obj.setHash();
+        obj.options.ignore = false;
+    }
+
+    // Ignore flag
+    obj.setIgnore = function(ignoreFlag) {
+        obj.options.ignore = ignoreFlag ? true : false;
     }
 
     // Get form elements
-    el.getElements = function() {
-        var obj = {};
+    obj.getElements = function() {
+        var ret = {};
         var elements = el.querySelectorAll("input, select, textarea");
-        for( var i = 0; i < elements.length; ++i ) {
+
+        for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
             var name = element.name;
             var value = element.value;
 
             if (name) {
-                obj[name] = value;
+                ret[name] = value;
             }
         }
 
-        return JSON.stringify(obj);
+        return JSON.stringify(ret);
     }
 
     // Start tracking in one second
     setTimeout(function() {
-        el.options.currentHash = el.setHash();
+        obj.options.currentHash = obj.setHash();
     }, 1000);
 
     // Alert
     window.addEventListener("beforeunload", function (e) {
-        if (el.isChanged()) {
-            var confirmationMessage =  el.options.message? el.options.message : "\o/";
+        if (obj.isChanged() && obj.options.ignore == false) {
+            var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
 
-            if (confirmationMessage && el.options.ignore == false) {
+            if (confirmationMessage) {
                 if (typeof e == 'undefined') {
                     e = window.event;
                 }
 
                 if (e) {
-                    e.returnValue = message;
+                    e.returnValue = confirmationMessage;
                 }
 
                 return confirmationMessage;
@@ -79,5 +90,7 @@ jApp.tracker = (function(el, options) {
         }
     });
 
-    return el;
+    el.tracker = obj;
+
+    return obj;
 });

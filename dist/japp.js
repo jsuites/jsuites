@@ -53,6 +53,110 @@ var jApp = function(options) {
         return [ x, y ];
     }
 
+    obj.click = function(el) {
+        // Create our event (with options)
+        var evt = new MouseEvent('click', {
+            bubbles: true,
+            cancelable: true,
+            view: window
+        });
+        // If cancelled, don't dispatch our event
+        var canceled = !el.dispatchEvent(evt);
+    }
+
+    obj.getFiles = function(element) {
+        if (! element) {
+            console.error('No element defined in the arguments of your method');
+        }
+        // Clear current data
+        var inputs = element.querySelectorAll('input');
+        for (var i = 0; i < inputs.length; i++) {
+            inputs[i].remove();
+        }
+
+        // Get attachments
+        var files = element.querySelectorAll('.jfile');
+
+        if (files.length > 0) {
+            for (var i = 0; i < files.length; i++) {
+                var extension = files[i].getAttribute('data-name').toLowerCase().split('.');
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][name]');
+                input.value = files[i].getAttribute('data-name').toLowerCase()
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][extension]');
+                input.value = extension[1];
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][size]');
+                input.value = files[i].getAttribute('data-size');
+                files[i].parentNode.appendChild(input);
+
+                var input = document.createElement('input');
+                input.setAttribute('type', 'hidden');
+                input.setAttribute('name', 'files[' + i + '][lastmodified]');
+                input.value = files[i].getAttribute('data-lastmodified');
+                files[i].parentNode.appendChild(input);
+
+                if (files[i].getAttribute('data-cover')) {
+                    var input = document.createElement('input');
+                    input.setAttribute('type', 'hidden');
+                    input.setAttribute('name', 'files[' + i + '][cover]');
+                    input.value = 1;
+                    files[i].parentNode.appendChild(input);
+                }
+
+                // File thumbs
+                var content = files[i].getAttribute('data-thumbs');
+
+                if (content) {
+                    if (content.substr(0,4) == 'data') {
+                        var content = files[i].getAttribute('data-thumbs').split(',');
+
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][thumbs]');
+                        input.value = content[1];
+                        files[i].parentNode.appendChild(input);
+                    } else {
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][thumbs]');
+                        input.value = content;
+                        files[i].parentNode.appendChild(input);
+                    }
+                }
+
+                // File content
+                var content = files[i].getAttribute('src');
+
+                if (content.substr(0,4) == 'data') {
+                    var content = files[i].getAttribute('src').split(',');
+
+                    var input = document.createElement('input');
+                    input.setAttribute('type', 'hidden');
+                    input.setAttribute('name', 'files[' + i + '][content]');
+                    input.value = content[1];
+                    files[i].parentNode.appendChild(input);
+                } else {
+                    if (files[i].classList.contains('jremove')) {
+                        var input = document.createElement('input');
+                        input.setAttribute('type', 'hidden');
+                        input.setAttribute('name', 'files[' + i + '][remove]');
+                        input.value = 1;
+                        files[i].parentNode.appendChild(input);
+                    }
+                }
+            }
+        }
+    }
+
     return obj;
 }();
 
@@ -275,7 +379,7 @@ jApp.calendar = (function(el, options) {
     obj.open = function (value) {
         if (jApp.calendar.current) {
             if (jApp.calendar.current != obj) {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             }
         }
 
@@ -290,8 +394,14 @@ jApp.calendar = (function(el, options) {
                 calendarSelectHour.value = obj.date[3];
                 calendarSelectMin.value = obj.date[4];
             }
+
             // Get the position of the corner helper
-            if (screen.width > 800 && ! obj.options.fullscreen) {
+            if (jApp.getWindowWidth() < 800 || obj.options.fullscreen) {
+                // Full
+                calendar.classList.add('jcalendar-fullsize');
+                // Animation
+                calendarContent.classList.add('slide-bottom-in');
+            } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
                 if (window.innerHeight < rect.bottom + rectContent.height) {
@@ -299,16 +409,11 @@ jApp.calendar = (function(el, options) {
                 } else {
                     calendarContainer.style.top = '2px';
                 } 
-            } else {
-                // Full
-                calendar.classList.add('jcalendar-fullsize');
-                // Animation
-                calendarContent.classList.add('slide-bottom-in');
             }
         }
     }
 
-    obj.close = function (event, update) {
+    obj.close = function (ignoreEvents, update) {
         if (jApp.calendar.current) {
             jApp.calendar.current =  null;
 
@@ -316,7 +421,7 @@ jApp.calendar = (function(el, options) {
                 obj.setValue(obj.getValue());
             }
 
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
 
@@ -418,7 +523,7 @@ jApp.calendar = (function(el, options) {
         obj.date[2] = element.innerText;
 
         if (! obj.options.time) {
-            obj.close(true);
+            obj.close();
         } else {
             obj.date[3] = calendarSelectHour.value;
             obj.date[4] = calendarSelectMin.value;
@@ -440,7 +545,7 @@ jApp.calendar = (function(el, options) {
         // Reset element
         el.value = '';
         // Close calendar
-        obj.close(true);
+        obj.close();
     }
 
     /**
@@ -818,7 +923,7 @@ jApp.calendar.getElement = function(element) {
 jApp.calendar.mouseDownControls = function(e) {
     if (! jApp.calendar.getElement(e.target)) {
         if (jApp.calendar.current) {
-            jApp.calendar.current.close(true, false);
+            jApp.calendar.current.close(false, false);
         }
     } else {
         if (jApp.calendar.current) {
@@ -840,9 +945,9 @@ jApp.calendar.mouseDownControls = function(e) {
                 jApp.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
                 jApp.calendar.current.getDays();
             } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             } else if (action == 'jcalendar-close') {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             } else if (action == 'jcalendar-reset') {
                 jApp.calendar.current.reset();
             } else if (e.target.classList.contains('jcalendar-set-day')) {
@@ -876,7 +981,7 @@ jApp.color = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        placeholder:'COLOR',
+        placeholder:'',
         value:null,
         onclose:null,
         onchange:null,
@@ -1179,7 +1284,7 @@ jApp.color = (function(el, options) {
     obj.open = function() {
         if (jApp.color.current) {
             if (jApp.color.current != obj) {
-                jApp.color.current.close(true);
+                jApp.color.current.close();
             }
         }
 
@@ -1190,7 +1295,7 @@ jApp.color = (function(el, options) {
             container.classList.add('jcolor-focus');
             // Position of the colorpicker is based on the parent container
             const rect = el.getBoundingClientRect();
-            content.style.top += rect.height + 2;
+            content.style.top += rect.height + 1;
             container.focus();
         }
     }
@@ -1198,10 +1303,10 @@ jApp.color = (function(el, options) {
     /**
      * Close color pallete
      */
-    obj.close = function(event) {
+    obj.close = function(ignoreEvents) {
         if (jApp.color.current) {
             jApp.color.current = null;
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
             container.classList.remove('jcolor-focus');
@@ -1252,24 +1357,28 @@ jApp.color = (function(el, options) {
     container.addEventListener("click", function(e) {
         if (e.target.tagName == 'TD') {
             jApp.color.current.setValue(e.target.getAttribute('data-value'));
-            jApp.color.current.close(true);
+            jApp.color.current.close();
         }
     });
 
     // Possible to focus the container
-    container.setAttribute('tabindex', '100');
+    container.setAttribute('tabindex', '900');
     // Append to the table
     content.appendChild(table);
     container.appendChild(content);
     container.onblur = function(e) {
         if (jApp.color.current) {
-            jApp.color.current.close(true);
+            jApp.color.current.close();
         }
     }
     // Insert picker after the element
     el.parentNode.insertBefore(container, el);
     // Keep object available thought the node
     el.color = obj;
+
+    if (obj.options.placeholder) {
+        el.setAttribute('placeholder', obj.options.placeholder);
+    }
 
     return obj;
 });
@@ -1347,7 +1456,7 @@ jApp.combo = (function(el, options) {
 jApp.contextmenu = (function(el, options) {
     var obj = {};
     obj.options = {};
-    obj.options.items = {};
+    obj.options.items = options.items && options.items.length ? options.items : {};
 
     obj.menu = document.createElement('ul');
     obj.menu.classList.add('jcontextmenu');
@@ -1561,11 +1670,14 @@ jApp.dropdown = (function(el, options) {
         multiple: false,
         autocomplete: false,
         type:null,
-        width: 200,
+        width:'200px',
         opened:false,
         onchange:null,
+        onopen:null,
+        onclose:null,
         onblur:null,
         value:null,
+        placeholder:'',
     };
 
     // Loop through our object
@@ -1604,6 +1716,11 @@ jApp.dropdown = (function(el, options) {
     // Header
     var header = document.createElement('input');
     header.className = 'jdropdown-header';
+    if (typeof(obj.options.onblur) == 'function') {
+        header.onblur = function() {
+            obj.options.onblur(el);
+        }
+    }
 
     // Container
     var container = document.createElement('div');
@@ -1637,10 +1754,6 @@ jApp.dropdown = (function(el, options) {
     // Place holder
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
-    } else {
-        if (obj.options.autocomplete == true) {
-            header.setAttribute('placeholder', 'Search...');
-        }
     }
 
     // Append elements
@@ -1734,7 +1847,9 @@ jApp.dropdown = (function(el, options) {
                 }
 
                 // Set content
-                var node = document.createTextNode(v.name);
+                var node = document.createElement('div');
+                node.className = 'jdropdown-description';
+                node.innerHTML = v.name;
                 items[k].appendChild(node);
 
                 // Title
@@ -1742,7 +1857,7 @@ jApp.dropdown = (function(el, options) {
                     var title = document.createElement('div');
                     title.className = 'jdropdown-title';
                     title.innerHTML = v.title;
-                    items[k].appendChild(title);
+                    node.appendChild(title);
                 }
 
                 // Append to the container
@@ -1856,7 +1971,7 @@ jApp.dropdown = (function(el, options) {
             obj.items[index].classList.add('jdropdown-selected');
             obj.items[index].classList.add('jdropdown-cursor');
             // Close
-            obj.close(true);
+            obj.close();
         } else {
             // Toggle option
             if (obj.items[index].classList.contains('jdropdown-selected')) {
@@ -1970,7 +2085,7 @@ jApp.dropdown = (function(el, options) {
     obj.open = function() {
         if (jApp.dropdown.current != el) {
             if (jApp.dropdown.current) {
-                jApp.dropdown.current.dropdown.close(true);
+                jApp.dropdown.current.dropdown.close();
             }
             jApp.dropdown.current = el;
         }
@@ -2013,6 +2128,10 @@ jApp.dropdown = (function(el, options) {
                     container.style.bottom = rect.height + 1;
                 } 
             }
+
+            if (obj.options.type == 'searchbar') {
+                container.style.height = (document.body.offsetHeight) + 'px';
+            }
         }
 
         // Events
@@ -2021,7 +2140,7 @@ jApp.dropdown = (function(el, options) {
         }
     }
 
-    obj.close = function(event) {
+    obj.close = function(ignoreEvents) {
         if (jApp.dropdown.current) {
             // Remove controller
             jApp.dropdown.current = null
@@ -2033,7 +2152,7 @@ jApp.dropdown = (function(el, options) {
             // Update labels
             obj.updateLabel();
             // Events
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
             // Reset
@@ -2174,7 +2293,11 @@ jApp.dropdown.onclick = function(e) {
     if (element) {
         dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
-            dropdown.open();
+            if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
+                dropdown.close();
+            } else {
+                dropdown.open();
+            }
         } else if (e.target.classList.contains('jdropdown-group-name')) {
             var items = e.target.parentNode.classList.contains('.jdropdown-item');
             for (var x = 0; x < items.length; i++) {
@@ -2196,18 +2319,20 @@ jApp.dropdown.onclick = function(e) {
             dropdown.selectItem(e.target);
         } else if (e.target.classList.contains('jdropdown-image')) {
             dropdown.selectIndex(e.target.parentNode.getAttribute('data-index'));
-        } else if (e.target.classList.contains('jdropdown-title')) {
+        } else if (e.target.classList.contains('jdropdown-description')) {
             dropdown.selectIndex(e.target.parentNode.getAttribute('data-index'));
+        } else if (e.target.classList.contains('jdropdown-title')) {
+            dropdown.selectIndex(e.target.parentNode.parentNode.getAttribute('data-index'));
         } else if (e.target.classList.contains('jdropdown-close') || e.target.classList.contains('jdropdown-backdrop')) {
             // Close
-            dropdown.close(true);
+            dropdown.close();
         }
 
         e.stopPropagation();
         e.preventDefault();
     } else {
         if (jApp.dropdown.current) {
-            jApp.dropdown.current.dropdown.close(true);
+            jApp.dropdown.current.dropdown.close();
         }
     }
 }
@@ -2370,7 +2495,7 @@ jApp.editor = (function(el, options) {
                         }
                     }
                 },
-                {
+                /*{
                     type:'select',
                     items: ['Verdana','Arial','Courier New'],
                     onchange: function() {
@@ -2382,7 +2507,7 @@ jApp.editor = (function(el, options) {
                     onchange: function() {
                     }
                 },
-                /*{
+                {
                     icon:'format_align_left',
                     onclick: function() {
                         document.execCommand('JustifyLeft');
@@ -3322,6 +3447,11 @@ jApp.modal = (function(el, options) {
     }
     el.appendChild(container);
 
+    // Title
+    if (! el.getAttribute('title')) {
+        el.classList.add('no-title');
+    }
+
     if (! obj.options.closed) {
         el.style.display = 'block';
     }
@@ -3409,14 +3539,37 @@ jApp.slider = (function(el, options) {
         obj.options = options;
     }
 
+    // Items
+    obj.options.items = [];
+
     if (! el.classList.contains('jslider')) {
         el.classList.add('jslider');
 
         // Create container
         var container = document.createElement('div');
         container.className = 'jslider-container';
-        el.appendChild(container);
+        // Move children inside
+        if (el.children.length > 0) {
+            // Keep children items
+            for (var i = 0; i < el.children.length; i++) {
+                obj.options.items.push(el.children[i]);
+            }
+        }
+        if (obj.options.items.length > 0) {
+            for (var i = 0; i < obj.options.items.length; i++) {
+                obj.options.items[i].classList.add('jfile');
+                var index = obj.options.items[i].src.lastIndexOf('/');
+                if (index < 0) {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src);
+                } else {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src.substr(index + 1));
+                }
+                var index = obj.options.items[i].src.lastIndexOf('/');
 
+                container.appendChild(obj.options.items[i]);
+            }
+        }
+        el.appendChild(container);
         // Add close buttom
         var close = document.createElement('div');
         close.className = 'jslider-close';
@@ -3499,7 +3652,7 @@ jApp.slider = (function(el, options) {
         attachmentIcon.innerHTML = 'attachment';
         attachmentIcon.className = 'jslider-attach material-icons';
         attachmentIcon.onclick = function() {
-            $(attachmentInput).click();
+            jApp.click(attachmentInput);
         }
 
         el.appendChild(attachmentInput);
@@ -3508,6 +3661,11 @@ jApp.slider = (function(el, options) {
 
     obj.open = function() {
         obj.show();
+
+        // Event
+        if (typeof(obj.options.onopen) == 'function') {
+            obj.options.onopen(el);
+        }
     }
 
     obj.close = function() {
@@ -3522,6 +3680,11 @@ jApp.slider = (function(el, options) {
         close.style.display = '';
 
         obj.currentImage = null;
+
+        // Event
+        if (typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
     }
 
     obj.addFile = function(v) {
@@ -3532,6 +3695,12 @@ jApp.slider = (function(el, options) {
         img.setAttribute('src', v.file);
         img.className = 'jfile';
         container.appendChild(img);
+        obj.options.items.push(img);
+
+        // Onchange
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, v);
+        }
     }
 
     obj.addFiles = function(files) {
@@ -3540,22 +3709,53 @@ jApp.slider = (function(el, options) {
         }
     }
 
+    obj.next = function() {
+        if (obj.currentImage.nextSibling) {
+            obj.show(obj.currentImage.nextSibling);
+        }
+    }
+    
+    obj.prev = function() {
+        if (obj.currentImage.previousSibling) {
+            obj.show(obj.currentImage.previousSibling);
+        }
+    }
+
+    obj.getData = function() {
+        var files = jApp.getFiles(container);
+
+        const values = {};
+        const inputs = container.children;
+
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].name) {
+                values[inputs[i].name] = inputs[i].value;
+            }
+        }
+        return values;
+    }
+
     // Push to refresh
     var longTouchTimer = null;
 
     var mouseDown = function(e) {
         if (e.target.tagName == 'IMG') {
             // Remove
-            var targetImage = $(e.target);
+            var targetImage = e.target;
             longTouchTimer = setTimeout(function() {
                 if (e.target.src.substr(0,4) == 'data') {
                     e.target.remove();
                 } else {
-                    if (e.target.classList.contains('jslider-remove')) {
-                        e.target.classList.remove('jslider-remove');
+                    if (e.target.classList.contains('jremove')) {
+                        e.target.classList.remove('jremove');
                     } else {
-                        e.target.classList.remove('jslider-remove');
+                        e.target.classList.add('jremove');
                     }
+                }
+
+                // Onchange
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, e.target);
                 }
             }, 1000);
         }
@@ -3568,19 +3768,17 @@ jApp.slider = (function(el, options) {
 
         // Open slider
         if (e.target.tagName == 'IMG') {
-            obj.show(e.target);
+            if (! e.target.classList.contains('jremove')) {
+                obj.show(e.target);
+            }
         } else {
             // Arrow controls
             if (e.target.clientWidth - e.offsetX < 40) {
                 // Show next image
-                if (obj.currentImage.nextSibling) {
-                    obj.show(obj.currentImage.nextSibling);
-                }
+                obj.next();
             } else if (e.offsetX < 40) {
                 // Show previous image
-                if (obj.currentImage.previousSibling) {
-                    obj.show(obj.currentImage.previousSibling);
-                }
+                obj.prev();
             }
         }
     }
@@ -4087,77 +4285,88 @@ jApp.timeline = (function(el, options) {
 });
 
 jApp.tracker = (function(el, options) {
-    if (! options) {
-        options = {};
+    var obj = {};
+    obj.options = {};
+    
+    if (options) {
+        obj.options = options;
     }
 
-    // Set options
-    el.options = options;
-
     // Do not ignore changes
-    el.options.ignore = false;
+    obj.options.ignore = false;
+
+    // Default message. Depending on the browser, the message can be customized.
+    if (obj.options.message) {
+        obj.options.message = 'Are you sure? There are unsaved information in your form';
+    }
 
     // Return the form hash
-    el.setHash = function() {
-        return el.getHash(el.getElements());
+    obj.setHash = function() {
+        return obj.getHash(obj.getElements());
     }
 
     // Get the form hash
-    el.getHash = function(str) {
+    obj.getHash = function(str) {
         return str.split('').reduce((prevHash, currVal) => ((prevHash << 5) - prevHash) + currVal.charCodeAt(0), 0);
     }
 
     // Is there any change in the form since start tracking?
-    el.isChanged = function() {
-        var hash = el.setHash();
-        return (el.options.currentHash != hash);
+    obj.isChanged = function() {
+        var hash = obj.setHash();
+        return (obj.options.currentHash != hash);
     }
 
     // Change the ignore flag
-    el.setIgnore = function(option) {
-        el.options.ignore = option;
+    obj.setIgnore = function(option) {
+        obj.options.ignore = option;
     }
 
     // Restart tracking
-    el.resetTracker = function() {
-        el.options.currentHash = el.setHash();
-        el.options.ignore = false;
+    obj.resetTracker = function() {
+        obj.options.currentHash = obj.setHash();
+        obj.options.ignore = false;
+    }
+
+    // Ignore flag
+    obj.setIgnore = function(ignoreFlag) {
+        obj.options.ignore = ignoreFlag ? true : false;
     }
 
     // Get form elements
-    el.getElements = function() {
-        var obj = {};
+    obj.getElements = function() {
+        var ret = {};
         var elements = el.querySelectorAll("input, select, textarea");
-        for( var i = 0; i < elements.length; ++i ) {
+
+        for (var i = 0; i < elements.length; i++) {
             var element = elements[i];
             var name = element.name;
             var value = element.value;
 
             if (name) {
-                obj[name] = value;
+                ret[name] = value;
             }
         }
 
-        return JSON.stringify(obj);
+        return JSON.stringify(ret);
     }
 
     // Start tracking in one second
     setTimeout(function() {
-        el.options.currentHash = el.setHash();
+        obj.options.currentHash = obj.setHash();
     }, 1000);
 
     // Alert
     window.addEventListener("beforeunload", function (e) {
-        if (el.isChanged()) {
-            var confirmationMessage =  el.options.message? el.options.message : "\o/";
+        if (obj.isChanged() && obj.options.ignore == false) {
+            var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
 
-            if (confirmationMessage && el.options.ignore == false) {
+            if (confirmationMessage) {
                 if (typeof e == 'undefined') {
                     e = window.event;
                 }
 
                 if (e) {
-                    e.returnValue = message;
+                    e.returnValue = confirmationMessage;
                 }
 
                 return confirmationMessage;
@@ -4167,6 +4376,8 @@ jApp.tracker = (function(el, options) {
         }
     });
 
-    return el;
+    el.tracker = obj;
+
+    return obj;
 });
 

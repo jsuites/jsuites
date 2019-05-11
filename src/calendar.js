@@ -216,7 +216,7 @@ jApp.calendar = (function(el, options) {
     obj.open = function (value) {
         if (jApp.calendar.current) {
             if (jApp.calendar.current != obj) {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             }
         }
 
@@ -231,8 +231,14 @@ jApp.calendar = (function(el, options) {
                 calendarSelectHour.value = obj.date[3];
                 calendarSelectMin.value = obj.date[4];
             }
+
             // Get the position of the corner helper
-            if (screen.width > 800 && ! obj.options.fullscreen) {
+            if (jApp.getWindowWidth() < 800 || obj.options.fullscreen) {
+                // Full
+                calendar.classList.add('jcalendar-fullsize');
+                // Animation
+                calendarContent.classList.add('slide-bottom-in');
+            } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
                 if (window.innerHeight < rect.bottom + rectContent.height) {
@@ -240,16 +246,11 @@ jApp.calendar = (function(el, options) {
                 } else {
                     calendarContainer.style.top = '2px';
                 } 
-            } else {
-                // Full
-                calendar.classList.add('jcalendar-fullsize');
-                // Animation
-                calendarContent.classList.add('slide-bottom-in');
             }
         }
     }
 
-    obj.close = function (event, update) {
+    obj.close = function (ignoreEvents, update) {
         if (jApp.calendar.current) {
             jApp.calendar.current =  null;
 
@@ -257,7 +258,7 @@ jApp.calendar = (function(el, options) {
                 obj.setValue(obj.getValue());
             }
 
-            if (event && typeof(obj.options.onclose) == 'function') {
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
 
@@ -359,7 +360,7 @@ jApp.calendar = (function(el, options) {
         obj.date[2] = element.innerText;
 
         if (! obj.options.time) {
-            obj.close(true);
+            obj.close();
         } else {
             obj.date[3] = calendarSelectHour.value;
             obj.date[4] = calendarSelectMin.value;
@@ -381,7 +382,7 @@ jApp.calendar = (function(el, options) {
         // Reset element
         el.value = '';
         // Close calendar
-        obj.close(true);
+        obj.close();
     }
 
     /**
@@ -759,7 +760,7 @@ jApp.calendar.getElement = function(element) {
 jApp.calendar.mouseDownControls = function(e) {
     if (! jApp.calendar.getElement(e.target)) {
         if (jApp.calendar.current) {
-            jApp.calendar.current.close(true, false);
+            jApp.calendar.current.close(false, false);
         }
     } else {
         if (jApp.calendar.current) {
@@ -781,9 +782,9 @@ jApp.calendar.mouseDownControls = function(e) {
                 jApp.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
                 jApp.calendar.current.getDays();
             } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             } else if (action == 'jcalendar-close') {
-                jApp.calendar.current.close(true);
+                jApp.calendar.current.close();
             } else if (action == 'jcalendar-reset') {
                 jApp.calendar.current.reset();
             } else if (e.target.classList.contains('jcalendar-set-day')) {

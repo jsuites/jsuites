@@ -15,14 +15,37 @@ jApp.slider = (function(el, options) {
         obj.options = options;
     }
 
+    // Items
+    obj.options.items = [];
+
     if (! el.classList.contains('jslider')) {
         el.classList.add('jslider');
 
         // Create container
         var container = document.createElement('div');
         container.className = 'jslider-container';
-        el.appendChild(container);
+        // Move children inside
+        if (el.children.length > 0) {
+            // Keep children items
+            for (var i = 0; i < el.children.length; i++) {
+                obj.options.items.push(el.children[i]);
+            }
+        }
+        if (obj.options.items.length > 0) {
+            for (var i = 0; i < obj.options.items.length; i++) {
+                obj.options.items[i].classList.add('jfile');
+                var index = obj.options.items[i].src.lastIndexOf('/');
+                if (index < 0) {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src);
+                } else {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src.substr(index + 1));
+                }
+                var index = obj.options.items[i].src.lastIndexOf('/');
 
+                container.appendChild(obj.options.items[i]);
+            }
+        }
+        el.appendChild(container);
         // Add close buttom
         var close = document.createElement('div');
         close.className = 'jslider-close';
@@ -105,7 +128,7 @@ jApp.slider = (function(el, options) {
         attachmentIcon.innerHTML = 'attachment';
         attachmentIcon.className = 'jslider-attach material-icons';
         attachmentIcon.onclick = function() {
-            $(attachmentInput).click();
+            jApp.click(attachmentInput);
         }
 
         el.appendChild(attachmentInput);
@@ -114,6 +137,11 @@ jApp.slider = (function(el, options) {
 
     obj.open = function() {
         obj.show();
+
+        // Event
+        if (typeof(obj.options.onopen) == 'function') {
+            obj.options.onopen(el);
+        }
     }
 
     obj.close = function() {
@@ -128,6 +156,11 @@ jApp.slider = (function(el, options) {
         close.style.display = '';
 
         obj.currentImage = null;
+
+        // Event
+        if (typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
     }
 
     obj.addFile = function(v) {
@@ -138,6 +171,12 @@ jApp.slider = (function(el, options) {
         img.setAttribute('src', v.file);
         img.className = 'jfile';
         container.appendChild(img);
+        obj.options.items.push(img);
+
+        // Onchange
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, v);
+        }
     }
 
     obj.addFiles = function(files) {
@@ -146,22 +185,53 @@ jApp.slider = (function(el, options) {
         }
     }
 
+    obj.next = function() {
+        if (obj.currentImage.nextSibling) {
+            obj.show(obj.currentImage.nextSibling);
+        }
+    }
+    
+    obj.prev = function() {
+        if (obj.currentImage.previousSibling) {
+            obj.show(obj.currentImage.previousSibling);
+        }
+    }
+
+    obj.getData = function() {
+        var files = jApp.getFiles(container);
+
+        const values = {};
+        const inputs = container.children;
+
+        for (let i = 0; i < inputs.length; i++) {
+            if (inputs[i].name) {
+                values[inputs[i].name] = inputs[i].value;
+            }
+        }
+        return values;
+    }
+
     // Push to refresh
     var longTouchTimer = null;
 
     var mouseDown = function(e) {
         if (e.target.tagName == 'IMG') {
             // Remove
-            var targetImage = $(e.target);
+            var targetImage = e.target;
             longTouchTimer = setTimeout(function() {
                 if (e.target.src.substr(0,4) == 'data') {
                     e.target.remove();
                 } else {
-                    if (e.target.classList.contains('jslider-remove')) {
-                        e.target.classList.remove('jslider-remove');
+                    if (e.target.classList.contains('jremove')) {
+                        e.target.classList.remove('jremove');
                     } else {
-                        e.target.classList.remove('jslider-remove');
+                        e.target.classList.add('jremove');
                     }
+                }
+
+                // Onchange
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, e.target);
                 }
             }, 1000);
         }
@@ -174,19 +244,17 @@ jApp.slider = (function(el, options) {
 
         // Open slider
         if (e.target.tagName == 'IMG') {
-            obj.show(e.target);
+            if (! e.target.classList.contains('jremove')) {
+                obj.show(e.target);
+            }
         } else {
             // Arrow controls
             if (e.target.clientWidth - e.offsetX < 40) {
                 // Show next image
-                if (obj.currentImage.nextSibling) {
-                    obj.show(obj.currentImage.nextSibling);
-                }
+                obj.next();
             } else if (e.offsetX < 40) {
                 // Show previous image
-                if (obj.currentImage.previousSibling) {
-                    obj.show(obj.currentImage.previousSibling);
-                }
+                obj.prev();
             }
         }
     }

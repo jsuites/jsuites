@@ -59,6 +59,11 @@
     display:none;
 }
 
+.jremove {
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+}
+
 /** Animations **/
 
 .slide-left-in
@@ -446,6 +451,7 @@
 .jcolor {
     position:relative;
     display:none;
+    outline:none;
 }
 
 .jcolor-content {
@@ -679,7 +685,7 @@
     background-color:rgba(0,0,0,0.5);
     border:0px;
     padding:0px;
-    z-index:9000;
+    z-index:8000;
     display:none;
 }
 
@@ -731,6 +737,7 @@
     text-transform:uppercase;
     text-align:right;
     padding:10px;
+    padding-right:15px;
 }
 
 .jdropdown-content
@@ -751,15 +758,22 @@
     text-overflow: ellipsis;
     overflow-x:hidden;
     color:#000;
+    display:flex;
+    align-items:center;
 }
 
 .jdropdown-image
 {
-    float:left;
     margin-right:10px;
     width:40px;
     height:40px;
     border-radius:20px;
+}
+
+.jdropdown-image-small
+{
+    width:24px;
+    height:24px;
 }
 
 .jdropdown-title
@@ -768,6 +782,7 @@
     color:#aaa;
     text-overflow: ellipsis;
     overflow-x:hidden;
+    display:block;
 }
 
 /** Default visual **/
@@ -882,7 +897,7 @@
     width:100%;
     background-color:#fff;
     box-sizing: border-box;
-    z-index:9001;
+    z-index:9000;
 }
 
 .jdropdown-picker .jdropdown-close
@@ -897,7 +912,7 @@
 .jdropdown-picker .jdropdown-content
 {
     overflow-y:scroll;
-    height:215px;
+    height:280px;
     background-color:#fafafa;
     border-top:1px solid #e6e6e8;
 }
@@ -1059,12 +1074,6 @@
     font-size:0.9em;
 }
 
-.jdropdown-searchbar .jdropdown-image-small
-{
-    width:24px;
-    height:24px;
-}
-
 .jdropdown-searchbar .jdropdown-content > .jdropdown-item:first-child
 {
     border-top: 1px solid #e6e6e8;
@@ -1181,7 +1190,7 @@
 }
 
 .jeditor-toolbar div {
-    padding:3px;
+    padding:4px;
 }
 
 .jeditor-toolbar div i {
@@ -1189,6 +1198,8 @@
     font-size:20px;
     width:20px;
     height:20px;
+    line-height:20px;
+    color:#777;
 }
 
 .jeditor-toolbar select {
@@ -1220,6 +1231,10 @@
 .jeditor-toolbar div:hover, .toolbar select:hover {
     background-color:#f2f2f2;
     border-radius:2px;
+}
+
+.jeditor-toolbar div:hover i {
+    color:#222;
 }
 
 .jeditor-toolbar div.selected {
@@ -2637,10 +2652,6 @@
     display:none;
 }
 
-.jslider-remove {
-    opacity: 0.2;
-    filter: alpha(opacity=20);
-}
 
 /**
  * (c) jTools Template renderer
