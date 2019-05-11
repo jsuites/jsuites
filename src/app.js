@@ -3,6 +3,9 @@ var jApp = function(options) {
 
     // Find root element
     obj.el = document.querySelector('.app');
+    // Backdrop
+    obj.backdrop = document.createElement('div');
+    obj.backdrop.classList.add('jbackdrop');
 
     // Default behavior
     document.addEventListener('keydown', (e) => {

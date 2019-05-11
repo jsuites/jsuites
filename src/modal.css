@@ -19,8 +19,9 @@
     transform: translate(-50%, -50%);
     box-sizing: border-box;
     padding-top:50px;
-    z-index:1100;
+    z-index:9002;
     display:none;
+    border-radius:5px;
 }
 
 .jmodal:before {

@@ -3,6 +3,9 @@ var jApp = function(options) {
 
     // Find root element
     obj.el = document.querySelector('.app');
+    // Backdrop
+    obj.backdrop = document.createElement('div');
+    obj.backdrop.classList.add('jbackdrop');
 
     // Default behavior
     document.addEventListener('keydown', (e) => {
@@ -3435,11 +3438,35 @@ jApp.modal = (function(el, options) {
     var obj = {};
     obj.options = {};
 
-    if (options) {
-        obj.options = options;
+    // Default configuration
+    var defaults = {
+        // Events
+        onopen:null,
+        onclose:null,
+        closed:false,
+        width:null,
+        height:null,
+        title:null,
+    };
+
+    // Loop through our object
+    for (var prop in defaults) {
+        if (defaults.hasOwnProperty(prop)) {
+            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
+        }
     }
 
     el.classList.add('jmodal');
+
+    if (obj.options.title) {
+        el.setAttribute('title', obj.options.title);
+    }
+    if (obj.options.width) {
+        el.style.width = obj.options.width;
+    }
+    if (obj.options.height) {
+        el.style.height = obj.options.height;
+    }
 
     var container = document.createElement('div');
     for (var i = 0; i < el.children.length; i++) {
@@ -3461,7 +3488,9 @@ jApp.modal = (function(el, options) {
 
         if (typeof(obj.options.onopen) == 'function') {
             obj.options.onopen(el);
-        } 
+        }
+        // Backdrop
+        document.body.appendChild(jApp.backdrop);
     }
 
     obj.close = function() {
@@ -3470,6 +3499,8 @@ jApp.modal = (function(el, options) {
         if (typeof(obj.options.onclose) == 'function') {
             obj.options.onclose(el);
         }
+        // Backdrop
+        jApp.backdrop.remove();
     }
 
     el.addEventListener('mousedown', (e) => {
@@ -3480,20 +3511,23 @@ jApp.modal = (function(el, options) {
                 if (e.target.clientWidth - e.offsetX < 50 && e.offsetY < 50) {
                     obj.close();
                 } else {
-                    if (document.selection) {
-                        document.selection.empty();
-                    } else if ( window.getSelection ) {
-                        window.getSelection().removeAllRanges();
+                    if (el.getAttribute('title') && e.offsetY < 50) {
+                        if (document.selection) {
+                            document.selection.empty();
+                        } else if ( window.getSelection ) {
+                            window.getSelection().removeAllRanges();
+                        }
+
+                        var rect = el.getBoundingClientRect();
+                        obj.position = [
+                            rect.left,
+                            rect.top,
+                            e.clientX,
+                            e.clientY,
+                            rect.width,
+                            rect.height,
+                        ];
                     }
-
-                    var rect = el.getBoundingClientRect();
-
-                    obj.position = [
-                        rect.left,
-                        rect.top,
-                        e.clientX,
-                        e.clientY,
-                    ];
                 }
             }, 100);
         }
@@ -3502,8 +3536,8 @@ jApp.modal = (function(el, options) {
     el.addEventListener('mousemove', (e) => {
         if (obj.position) {
             if (e.which == 1 || e.which == 3) {
-                el.style.top = obj.position[1] - (obj.position[3] - e.clientY) + (e.clientHeight / 2) + 'px';
-                el.style.left = obj.position[0] - (obj.position[2] - e.clientX) + (e.clientWidth / 2)  + 'px';
+                el.style.top = obj.position[1] + (e.clientY - obj.position[3]) + (obj.position[5] / 2);
+                el.style.left = obj.position[0] + (e.clientX - obj.position[2]) + (obj.position[4] / 2);
                 el.style.cursor = 'move';
             } else {
                 el.style.cursor = 'auto';

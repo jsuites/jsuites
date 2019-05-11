@@ -55,8 +55,15 @@
     background-color:rgba(0,0,0,0.5);
     border:0px;
     padding:0px;
-    z-index:1000;
-    display:none;
+    z-index:8000;
+    
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
 }
 
 .jremove {
