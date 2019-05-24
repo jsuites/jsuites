@@ -5,7 +5,7 @@
  */
  
 .jcalendar {
-    position:absolute;
+    position:relative;
     z-index:9000;
     display:none;
     box-sizing:border-box;

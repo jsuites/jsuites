@@ -40,6 +40,7 @@ jApp.calendar = (function(el, options) {
         fullscreen:false,
         // Internal mode controller
         mode:null,
+        position:null,
     };
 
     // Loop through our object
@@ -241,11 +242,21 @@ jApp.calendar = (function(el, options) {
             } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
-                if (window.innerHeight < rect.bottom + rectContent.height) {
-                    calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
+
+                if (obj.options.position) {
+                    calendarContainer.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        calendarContainer.style.top = rect.top - (rectContent.height + 2);
+                    } else {
+                        calendarContainer.style.top = rect.top + rect.height + 2;
+                    }
                 } else {
-                    calendarContainer.style.top = '2px';
-                } 
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2);
+                    } else {
+                        calendarContainer.style.top = 2; 
+                    }
+                }
             }
         }
     }
@@ -319,6 +330,9 @@ jApp.calendar = (function(el, options) {
             // Set label
             var value = obj.setLabel(val, obj.options.format);
             var date = obj.options.value.split(' ');
+            if (! date[1]) {
+                date[1] = '00:00:00';
+            }
             var time = date[1].split(':')
             var date = date[0].split('-');
             var y = parseInt(date[0]);
@@ -793,6 +807,8 @@ jApp.calendar.mouseDownControls = function(e) {
                     jApp.calendar.current.update(e.target);
                 }
             }
+
+            e.stopImmediatePropagation();
         }
     }
 }

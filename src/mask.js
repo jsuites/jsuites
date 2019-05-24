@@ -12,6 +12,51 @@ jApp.mask = (function() {
     var values = []
     var pieces = [];
 
+    obj.run = function(value, mask, decimal) {
+        if (value && mask) {
+            if (! decimal) {
+                decimal = '.';
+            }
+            if (value == Number(value)) {
+                var number = (''+value).split('.');
+                var value = number[0];
+                var valueDecimal = number[1];
+            } else {
+                value = '' + value;
+            }
+            index = 0;
+            values = [];
+            // Create mask token
+            obj.prepare(mask);
+            // Current value
+            var currentValue = value;
+            if (currentValue) {
+                // Checking current value
+                for (var i = 0; i < currentValue.length; i++) {
+                    if (currentValue[i] != null) {
+                        obj.process(currentValue[i]);
+                    }
+                }
+            }
+            if (valueDecimal) {
+                obj.process(decimal);
+                var currentValue = valueDecimal;
+                if (currentValue) {
+                    // Checking current value
+                    for (var i = 0; i < currentValue.length; i++) {
+                        if (currentValue[i] != null) {
+                            obj.process(currentValue[i]);
+                        }
+                    }
+                }
+            }
+            // Formatted value
+            return values.join('');
+        } else {
+            return '';
+        }
+    }
+
     obj.apply = function(e) {
         var mask = e.target.getAttribute('data-mask');
         if (mask && e.keyCode > 46) {
@@ -61,7 +106,11 @@ jApp.mask = (function() {
                         return false;
                     }
                 } else {
-                    if (values[index] < 2 && parseInt(input) < 3) {
+                    if (values[index] == 1 && values[index] < 2 && parseInt(input) < 3) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] == 0 && values[index] < 10) {
                         values[index] += input;
                         index++;
                         return true;

@@ -476,14 +476,25 @@ jApp.dropdown = (function(el, options) {
             }
             // Container Size
             if (! obj.options.type || obj.options.type == 'default') {
-                // Min width
                 const rect = el.getBoundingClientRect();
                 const rectContainer = container.getBoundingClientRect();
                 container.style.minWidth = rect.width + 'px';
                 container.style.maxWidth = '100%';
-                if (window.innerHeight < rect.bottom + rectContainer.height) {
-                    container.style.bottom = rect.height + 1;
-                } 
+
+                if (obj.options.position) {
+                    container.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContainer.height) {
+                        container.style.top = rect.top - rectContainer.height - 2;
+                    } else {
+                        container.style.top = rect.top + rect.height + 1;
+                    }
+                } else {
+                    if (window.innerHeight < rect.bottom + rectContainer.height) {
+                        container.style.top = -1 * (rectContainer.height);
+                    } else {
+                        container.style.top = '';
+                    }
+                }
             }
 
             if (obj.options.type == 'searchbar') {

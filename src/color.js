@@ -20,6 +20,7 @@ jApp.color = (function(el, options) {
         value:null,
         onclose:null,
         onchange:null,
+        position:null,
     };
 
     // Loop through our object
@@ -328,9 +329,25 @@ jApp.color = (function(el, options) {
             jApp.color.current = obj;
             // Show colorpicker
             container.classList.add('jcolor-focus');
-            // Position of the colorpicker is based on the parent container
+
             const rect = el.getBoundingClientRect();
-            content.style.top += rect.height + 1;
+            const rectContent = content.getBoundingClientRect();
+
+            if (obj.options.position) {
+                content.style.position = 'fixed';
+                if (window.innerHeight < rect.bottom + rectContent.height) {
+                    content.style.top = rect.top - (rectContent.height + 2);
+                } else {
+                    content.style.top = rect.top + rect.height + 2;
+                }
+            } else {
+                if (window.innerHeight < rect.bottom + rectContent.height) {
+                    content.style.top = -1 * (rectContent.height + 2);
+                } else {
+                    content.style.top = rect.height + 2; 
+                }
+            }
+
             container.focus();
         }
     }

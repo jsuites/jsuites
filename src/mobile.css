@@ -1,7 +1,8 @@
 .app
 {
-    height:100%;
+    min-height:100%;
     box-sizing: border-box;
+    overflow:hidden;
 }
 
 .app .activeHighLight
@@ -249,12 +250,19 @@
     text-align:center;
 }
 
+.app .pages
+{
+    display:flex;
+    flex-wrap:no-wrap;
+}
+
 .app .page
 {
     padding-top:45px;
     padding-bottom:45px;
-    min-height:100%;
-    min-width:100%;
+    min-height:100vh;
+    min-width:100vw;
+    box-sizing:border-box;
 }
 
 .app .progressbar
@@ -348,6 +356,7 @@
     justify-content: space-evenly;
     align-items:center;
     width: 100%;
+    cursor:pointer;
 }
 
 .app .toolbar > div > div
