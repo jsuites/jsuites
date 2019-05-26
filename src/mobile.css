@@ -2,7 +2,9 @@
 {
     min-height:100%;
     box-sizing: border-box;
-    overflow:hidden;
+    overflow-x:hidden;
+    overflow-y:auto;
+    background-color:#fafafa;
 }
 
 .app .activeHighLight
@@ -121,7 +123,7 @@
 
 .app .navbar
 {
-    position:fixed;
+    position:absolute;
     left: 0;
     top: 0;
     width: 100%;
@@ -164,6 +166,11 @@
 .app .navbar-container div
 {
     text-align:center;
+}
+
+.app .navbar-container div.icon
+{
+    width:24px;
 }
 
 .app .navbar-container div i, .app .navbar-container div span
@@ -253,7 +260,7 @@
 .app .pages
 {
     display:flex;
-    flex-wrap:no-wrap;
+    flex-wrap:nowrap;
 }
 
 .app .page
@@ -263,6 +270,7 @@
     min-height:100vh;
     min-width:100vw;
     box-sizing:border-box;
+    position:relative;
 }
 
 .app .progressbar
@@ -381,7 +389,6 @@
 {
     font-size:0.7em;
     display:block;
-    margin-top:-4px;
     color:#929292;
 }
 
@@ -475,13 +482,6 @@
 {
     float:right;
     margin-right:15px;
-}
-
-.app .options .jdropdown
-{
-    border:0px;
-    padding:0px;
-    margin:0px;
 }
 
 .app .options .option-title

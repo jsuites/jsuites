@@ -382,7 +382,7 @@
 .jdropdown-searchbar .jdropdown-group
 {
     margin-top:10px;
-    margin-bottom:10px;
+    margin-bottom:15px;
     background-color:#fff;
 }
 
@@ -422,6 +422,12 @@
     padding-right:40px;
     background-color:#fff;
     font-size:0.9em;
+}
+
+.jdropdown-searchbar .jdropdown-description {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width:calc(100%-20px);
 }
 
 .jdropdown-searchbar .jdropdown-content > .jdropdown-item:first-child

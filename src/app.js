@@ -8,7 +8,7 @@ var jApp = function(options) {
     obj.backdrop.classList.add('jbackdrop');
 
     // Default behavior
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.which == 27) {
             var nodes = document.querySelectorAll('.jmodal');
             if (nodes.length > 0) {
@@ -30,7 +30,7 @@ var jApp = function(options) {
             jApp.mask.apply(e);
         }
     });
-
+    
     obj.getWindowWidth = function() {
         var w = window,
         d = document,

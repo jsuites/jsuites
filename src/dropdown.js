@@ -191,6 +191,7 @@ jApp.dropdown = (function(el, options) {
                 items[k] = document.createElement('div');
                 items[k].className = 'jdropdown-item';
                 items[k].value = v.id;
+                items[k].text = v.name;
 
                 // Image
                 if (v.image) {
@@ -260,13 +261,13 @@ jApp.dropdown = (function(el, options) {
         var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
         [...items].forEach(function(v) {
-            result.push(v.innerHTML);
+            result.push(v.text);
         });
 
         if (asArray) {
             return result
         } else {
-            return result.join(';');
+            return result.join('; ');
         }
     }
 
@@ -423,20 +424,8 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.updateLabel = function() {
-        var label = [];
-
         // Update label
-        var selectedOptions = el.querySelectorAll('.jdropdown-selected');
-        [...selectedOptions].forEach(function(v) {
-            var index = v.getAttribute('data-index');
-
-            if (obj.options.data[index]) {
-                label.push(obj.options.data[index].name);
-            }
-        });
-
-        // Update label
-        header.value = label.join('; ');
+        header.value = obj.getText();
     }
 
     obj.open = function() {
@@ -667,21 +656,23 @@ jApp.dropdown.onclick = function(e) {
                 dropdown.open();
             }
         } else if (e.target.classList.contains('jdropdown-group-name')) {
-            var items = e.target.parentNode.classList.contains('.jdropdown-item');
-            for (var x = 0; x < items.length; i++) {
-                if (items[i].style.display != 'none') {
-                    dropdown.selectItem(v);
+            var items = e.target.nextSibling.children;
+            if (e.target.nextSibling.style.display != 'none') {
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].style.display != 'none') {
+                        dropdown.selectItem(items[i]);
+                    }
                 }
             }
         } else if (e.target.classList.contains('jdropdown-group-arrow')) {
             if (e.target.classList.contains('jdropdown-group-arrow-down')) {
                 e.target.classList.remove('jdropdown-group-arrow-down');
                 e.target.classList.add('jdropdown-group-arrow-up');
-                //$(e.target).parent().next().hide();
+                e.target.parentNode.nextSibling.style.display = 'none';
             } else {
                 e.target.classList.remove('jdropdown-group-arrow-up');
                 e.target.classList.add('jdropdown-group-arrow-down');
-                //$(e.target).parent().next().show();
+                e.target.parentNode.nextSibling.style.display = '';
             }
         } else if (e.target.classList.contains('jdropdown-item')) {
             dropdown.selectItem(e.target);

@@ -14,6 +14,7 @@
         padding:0px;
         width:100%;
         height:100%;
+        min-height:100%;
         line-height:1.4;
         font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
         background-color:#fafafa;
@@ -81,8 +82,8 @@
 
 .slide-left-out
 {
-    animation: slide-left-out 0.2s forwards;
-    -webkit-animation: slide-left-out 0.2s forwards;
+    animation: slide-left-out 0.4s forwards;
+    -webkit-animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in
@@ -93,8 +94,8 @@
 
 .slide-right-out
 {
-    animation: slide-right-out 0.2s forwards;
-    -webkit-animation: slide-right-out 0.2s forwards;
+    animation: slide-right-out 0.4s forwards;
+    -webkit-animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in
@@ -254,7 +255,7 @@
  */
  
 .jcalendar {
-    position:absolute;
+    position:relative;
     z-index:9000;
     display:none;
     box-sizing:border-box;
@@ -1039,7 +1040,7 @@
 .jdropdown-searchbar .jdropdown-group
 {
     margin-top:10px;
-    margin-bottom:10px;
+    margin-bottom:15px;
     background-color:#fff;
 }
 
@@ -1079,6 +1080,12 @@
     padding-right:40px;
     background-color:#fff;
     font-size:0.9em;
+}
+
+.jdropdown-searchbar .jdropdown-description {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width:calc(100%-20px);
 }
 
 .jdropdown-searchbar .jdropdown-content > .jdropdown-item:first-child
@@ -1297,8 +1304,11 @@
 
 .app
 {
-    height:100%;
+    min-height:100%;
     box-sizing: border-box;
+    overflow-x:hidden;
+    overflow-y:auto;
+    background-color:#fafafa;
 }
 
 .app .activeHighLight
@@ -1417,7 +1427,7 @@
 
 .app .navbar
 {
-    position:fixed;
+    position:absolute;
     left: 0;
     top: 0;
     width: 100%;
@@ -1460,6 +1470,11 @@
 .app .navbar-container div
 {
     text-align:center;
+}
+
+.app .navbar-container div.icon
+{
+    width:24px;
 }
 
 .app .navbar-container div i, .app .navbar-container div span
@@ -1546,12 +1561,20 @@
     text-align:center;
 }
 
+.app .pages
+{
+    display:flex;
+    flex-wrap:nowrap;
+}
+
 .app .page
 {
     padding-top:45px;
     padding-bottom:45px;
-    min-height:100%;
-    min-width:100%;
+    min-height:100vh;
+    min-width:100vw;
+    box-sizing:border-box;
+    position:relative;
 }
 
 .app .progressbar
@@ -1645,6 +1668,7 @@
     justify-content: space-evenly;
     align-items:center;
     width: 100%;
+    cursor:pointer;
 }
 
 .app .toolbar > div > div
@@ -1669,7 +1693,6 @@
 {
     font-size:0.7em;
     display:block;
-    margin-top:-4px;
     color:#929292;
 }
 
@@ -1763,13 +1786,6 @@
 {
     float:right;
     margin-right:15px;
-}
-
-.app .options .jdropdown
-{
-    border:0px;
-    padding:0px;
-    margin:0px;
 }
 
 .app .options .option-title

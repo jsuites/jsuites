@@ -8,7 +8,7 @@ var jApp = function(options) {
     obj.backdrop.classList.add('jbackdrop');
 
     // Default behavior
-    document.addEventListener('keydown', (e) => {
+    document.addEventListener('keydown', function(e) {
         if (e.which == 27) {
             var nodes = document.querySelectorAll('.jmodal');
             if (nodes.length > 0) {
@@ -30,7 +30,7 @@ var jApp = function(options) {
             jApp.mask.apply(e);
         }
     });
-
+    
     obj.getWindowWidth = function() {
         var w = window,
         d = document,
@@ -206,6 +206,7 @@ jApp.calendar = (function(el, options) {
         fullscreen:false,
         // Internal mode controller
         mode:null,
+        position:null,
     };
 
     // Loop through our object
@@ -407,11 +408,21 @@ jApp.calendar = (function(el, options) {
             } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
-                if (window.innerHeight < rect.bottom + rectContent.height) {
-                    calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
+
+                if (obj.options.position) {
+                    calendarContainer.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        calendarContainer.style.top = rect.top - (rectContent.height + 2);
+                    } else {
+                        calendarContainer.style.top = rect.top + rect.height + 2;
+                    }
                 } else {
-                    calendarContainer.style.top = '2px';
-                } 
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2);
+                    } else {
+                        calendarContainer.style.top = 2; 
+                    }
+                }
             }
         }
     }
@@ -485,6 +496,9 @@ jApp.calendar = (function(el, options) {
             // Set label
             var value = obj.setLabel(val, obj.options.format);
             var date = obj.options.value.split(' ');
+            if (! date[1]) {
+                date[1] = '00:00:00';
+            }
             var time = date[1].split(':')
             var date = date[0].split('-');
             var y = parseInt(date[0]);
@@ -959,6 +973,8 @@ jApp.calendar.mouseDownControls = function(e) {
                     jApp.calendar.current.update(e.target);
                 }
             }
+
+            e.stopImmediatePropagation();
         }
     }
 }
@@ -988,6 +1004,7 @@ jApp.color = (function(el, options) {
         value:null,
         onclose:null,
         onchange:null,
+        position:null,
     };
 
     // Loop through our object
@@ -1296,9 +1313,25 @@ jApp.color = (function(el, options) {
             jApp.color.current = obj;
             // Show colorpicker
             container.classList.add('jcolor-focus');
-            // Position of the colorpicker is based on the parent container
+
             const rect = el.getBoundingClientRect();
-            content.style.top += rect.height + 1;
+            const rectContent = content.getBoundingClientRect();
+
+            if (obj.options.position) {
+                content.style.position = 'fixed';
+                if (window.innerHeight < rect.bottom + rectContent.height) {
+                    content.style.top = rect.top - (rectContent.height + 2);
+                } else {
+                    content.style.top = rect.top + rect.height + 2;
+                }
+            } else {
+                if (window.innerHeight < rect.bottom + rectContent.height) {
+                    content.style.top = -1 * (rectContent.height + 2);
+                } else {
+                    content.style.top = rect.height + 2; 
+                }
+            }
+
             container.focus();
         }
     }
@@ -1837,6 +1870,7 @@ jApp.dropdown = (function(el, options) {
                 items[k] = document.createElement('div');
                 items[k].className = 'jdropdown-item';
                 items[k].value = v.id;
+                items[k].text = v.name;
 
                 // Image
                 if (v.image) {
@@ -1906,13 +1940,13 @@ jApp.dropdown = (function(el, options) {
         var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
         [...items].forEach(function(v) {
-            result.push(v.innerHTML);
+            result.push(v.text);
         });
 
         if (asArray) {
             return result
         } else {
-            return result.join(';');
+            return result.join('; ');
         }
     }
 
@@ -2069,20 +2103,8 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.updateLabel = function() {
-        var label = [];
-
         // Update label
-        var selectedOptions = el.querySelectorAll('.jdropdown-selected');
-        [...selectedOptions].forEach(function(v) {
-            var index = v.getAttribute('data-index');
-
-            if (obj.options.data[index]) {
-                label.push(obj.options.data[index].name);
-            }
-        });
-
-        // Update label
-        header.value = label.join('; ');
+        header.value = obj.getText();
     }
 
     obj.open = function() {
@@ -2122,14 +2144,25 @@ jApp.dropdown = (function(el, options) {
             }
             // Container Size
             if (! obj.options.type || obj.options.type == 'default') {
-                // Min width
                 const rect = el.getBoundingClientRect();
                 const rectContainer = container.getBoundingClientRect();
                 container.style.minWidth = rect.width + 'px';
                 container.style.maxWidth = '100%';
-                if (window.innerHeight < rect.bottom + rectContainer.height) {
-                    container.style.bottom = rect.height + 1;
-                } 
+
+                if (obj.options.position) {
+                    container.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContainer.height) {
+                        container.style.top = rect.top - rectContainer.height - 2;
+                    } else {
+                        container.style.top = rect.top + rect.height + 1;
+                    }
+                } else {
+                    if (window.innerHeight < rect.bottom + rectContainer.height) {
+                        container.style.top = -1 * (rectContainer.height);
+                    } else {
+                        container.style.top = '';
+                    }
+                }
             }
 
             if (obj.options.type == 'searchbar') {
@@ -2302,21 +2335,23 @@ jApp.dropdown.onclick = function(e) {
                 dropdown.open();
             }
         } else if (e.target.classList.contains('jdropdown-group-name')) {
-            var items = e.target.parentNode.classList.contains('.jdropdown-item');
-            for (var x = 0; x < items.length; i++) {
-                if (items[i].style.display != 'none') {
-                    dropdown.selectItem(v);
+            var items = e.target.nextSibling.children;
+            if (e.target.nextSibling.style.display != 'none') {
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].style.display != 'none') {
+                        dropdown.selectItem(items[i]);
+                    }
                 }
             }
         } else if (e.target.classList.contains('jdropdown-group-arrow')) {
             if (e.target.classList.contains('jdropdown-group-arrow-down')) {
                 e.target.classList.remove('jdropdown-group-arrow-down');
                 e.target.classList.add('jdropdown-group-arrow-up');
-                //$(e.target).parent().next().hide();
+                e.target.parentNode.nextSibling.style.display = 'none';
             } else {
                 e.target.classList.remove('jdropdown-group-arrow-up');
                 e.target.classList.add('jdropdown-group-arrow-down');
-                //$(e.target).parent().next().show();
+                e.target.parentNode.nextSibling.style.display = '';
             }
         } else if (e.target.classList.contains('jdropdown-item')) {
             dropdown.selectItem(e.target);
@@ -2890,6 +2925,51 @@ jApp.mask = (function() {
     var values = []
     var pieces = [];
 
+    obj.run = function(value, mask, decimal) {
+        if (value && mask) {
+            if (! decimal) {
+                decimal = '.';
+            }
+            if (value == Number(value)) {
+                var number = (''+value).split('.');
+                var value = number[0];
+                var valueDecimal = number[1];
+            } else {
+                value = '' + value;
+            }
+            index = 0;
+            values = [];
+            // Create mask token
+            obj.prepare(mask);
+            // Current value
+            var currentValue = value;
+            if (currentValue) {
+                // Checking current value
+                for (var i = 0; i < currentValue.length; i++) {
+                    if (currentValue[i] != null) {
+                        obj.process(currentValue[i]);
+                    }
+                }
+            }
+            if (valueDecimal) {
+                obj.process(decimal);
+                var currentValue = valueDecimal;
+                if (currentValue) {
+                    // Checking current value
+                    for (var i = 0; i < currentValue.length; i++) {
+                        if (currentValue[i] != null) {
+                            obj.process(currentValue[i]);
+                        }
+                    }
+                }
+            }
+            // Formatted value
+            return values.join('');
+        } else {
+            return '';
+        }
+    }
+
     obj.apply = function(e) {
         var mask = e.target.getAttribute('data-mask');
         if (mask && e.keyCode > 46) {
@@ -2939,7 +3019,11 @@ jApp.mask = (function() {
                         return false;
                     }
                 } else {
-                    if (values[index] < 2 && parseInt(input) < 3) {
+                    if (values[index] == 1 && values[index] < 2 && parseInt(input) < 3) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] == 0 && values[index] < 10) {
                         values[index] += input;
                         index++;
                         return true;
