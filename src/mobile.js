@@ -5,18 +5,129 @@ jApp.mobile = (function(el, options) {
     return obj;
 });
 
-jApp.page = (function() {
+jApp.page = (function(route, options) {
+    if (! route) {
+        console.error('It is not possible to create a page without a route');
+        return;
+    }
+
+    if (jApp.page.items && jApp.page.items[route]) {
+        var obj = jApp.page.items[route];
+        obj.show();
+        return obj;
+    }
+
     var obj = {};
+    obj.options = options || {};
 
-    obj.create = function(options) {
-        obj.el = document.createElement('div');
-        obj.el.id = options.id;
-        jApp.el.appendChild(loading);
+    // Default configuration
+    var defaults = {
+        closed:false,
+        route:null,
     };
 
-    obj.hide = function() {
-        loading.remove();
+    // Loop through our object
+    for (var prop in defaults) {
+        if (defaults.hasOwnProperty(prop)) {
+            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
+        }
+    }
+
+    obj.options.route = route;
+
+    // Base path where the views are stored
+    if (! jApp.page.path) {
+        jApp.page.path = 'pages';
+    }
+    // If no defined path for this file get the default
+    if (! obj.options.path) {
+        obj.options.path = (jApp.page.path + route + '.html');
+    }
+    if (! obj.options.title) {
+        obj.options.title = 'Untitled';
+    }
+    var page = document.createElement('div');
+
+    // Class
+    if (obj.options.panel) {
+        page.classList.add('panel');
+        page.classList.add(obj.options.panel);
+    } else {
+        page.classList.add('page');
+    }
+
+    // Container
+    if (! jApp.page.container) {
+        jApp.page.container = document.createElement('div');
+        jApp.page.container.className = 'pages';
+        jApp.el.appendChild(jApp.page.container);
+    }
+
+    // Index
+    var index = jApp.page.container.children.length;
+    page.setAttribute('data-index', index);
+
+    // Panel goes in the main element
+    if (obj.options.panel) {
+        //jApp.el.appendChild(page);
+    } else {
+        jApp.page.container.appendChild(page);
+    }
+
+    // Keep page in the container
+    if (! jApp.page.items) {
+        jApp.page.items = [];
+    }
+    jApp.page.items[route] = obj;
+
+    // Load content
+    obj.create = function() {
+        var parse = function(result) {
+            jApp.loading.hide();
+
+            page.innerHTML = result;
+            obj.show();
+        }
+
+        jApp.loading.show();
+        $(page).load(obj.options.path, parse);
     };
+
+    obj.show = function(ignoreEntry) {
+        if (jApp.page.current) {
+            if (jApp.page.current == page) {
+                jApp.page.current = page;
+            } else {
+                if (page.classList.contains('panel')) {
+                } else {
+                    var a = parseInt(jApp.page.current.getAttribute('data-index'));
+                    var b = parseInt(page.getAttribute('data-index'));
+                    page.style.display = '';
+                    if (a < b) {
+                        jApp.page.container.classList.add('slide-left-out');
+                    } else {
+                        jApp.page.container.classList.add('slide-left-in');
+                    }
+
+                    setTimeout(function(){
+                        jApp.page.current.style.display = 'none';
+                        jApp.page.current = page;
+                        jApp.page.container.classList.remove('slide-left-out');
+                        jApp.page.container.classList.remove('slide-left-in');
+                    }, 400);
+                }
+            }
+        } else {
+            jApp.page.current = page;
+        }
+
+        if (! ignoreEntry) {
+            // Add history
+            history.pushState({ route:route }, obj.options.title, obj.options.route);
+        }
+    }
+
+    obj.create();
 
     return obj;
 });
@@ -44,7 +155,12 @@ jApp.toolbar = (function(el, options) {
         var toolbarItem = document.createElement('div');
         toolbarItem.classList.add('toolbar-item');
         var toolbarLink = document.createElement('a');
-        //toolbarLink.setAttribute('href', options.items[i].route);
+        if (options.items[i].route) {
+            toolbarLink.setAttribute('data-href', options.items[i].route);
+           // jApp.page(options.items[i].route, {
+           //     closed:true,
+           //});
+        }
 
         if (options.items[i].icon) {
             var toolbarIcon = document.createElement('i');
