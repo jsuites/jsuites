@@ -32,6 +32,7 @@ JAVASCRIPT SPREADSHEET EXAMPLES
 ---------
 
 * [Dropdown and autocomplete component](http://bossanova.uk/jexcel)
+
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
 * Date and datetime picker
