@@ -27,7 +27,7 @@ jApp.dropdown = (function(el, options) {
         multiple: false,
         autocomplete: false,
         type:null,
-        width:'200px',
+        width:null,
         opened:false,
         onchange:null,
         onopen:null,
@@ -145,7 +145,9 @@ jApp.dropdown = (function(el, options) {
 
         // Fix width - Workaround important to get the correct width
         if (obj.options.type == 'default') {
-            setTimeout(() => container.style.minWidth = header.outerWidth, 0);
+            setTimeout(function() {
+                container.style.minWidth = header.outerWidth;
+            }, 0);
         }
     }
 
