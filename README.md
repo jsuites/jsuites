@@ -20,12 +20,12 @@ Highlights
 ---------
 jTools brings the developer many advantages, such as:
 
-Make rich and user-friendly web interfaces and applications
-You can easily handle complicated data inputs in a way users are used to
-Improve your clients software experience
-Create rich CRUDS and beautiful UI
-Lean, fast and simple to use
-One code, multiple platform
+* Make rich and user-friendly web interfaces and applications
+* You can easily handle complicated data inputs in a way users are used to
+* Improve your clients software experience
+* Create rich CRUDS and beautiful UI
+* Lean, fast and simple to use
+* One code, multiple platform
 
 
 ### Basic demo
