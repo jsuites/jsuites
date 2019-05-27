@@ -28,22 +28,22 @@ Lean, fast and simple to use
 One code, multiple platform
 
 
-JAVASCRIPT SPREADSHEET EXAMPLES
+Examples
 ---------
 
 * [Dropdown and autocomplete component](https://bossanova.uk/jtools/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* Date and datetime picker
+* [Date and datetime picker](https://bossanova.uk/jtools/date-and-datetime-picker)\
 A very simple date and datetime picker full responsive and easy integration
 
-* Javascript string and number mask
+* [Javascript string and number mask](https://bossanova.uk/jtools/date-and-datetime-picker)\
 A simple javascript mask plugin
 
-* Javascript color picker plugin
+* [Javascript color picker plugin](https://bossanova.uk/jtools/javascript-mask)\
 Vanilla javascript colorpicker plugin
 
-* Javascript contextmenu plugin
+* [Javascript contextmenu plugin](https://bossanova.uk/jtools/contextmenu)\
 Vanilla javascript contextmenu plugin
 
 * Javascript image slider plugin
