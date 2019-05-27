@@ -91,10 +91,16 @@ Simple vanilla javascript modal plugin
 
 
 ## Official website
-- [jExcel Official](https://bossanova.uk/jexcel)
+- [Jtools Official](https://bossanova.uk/jtools)
 
 ## Community
-- [GitHub](https://github.com/paulhodel/jexcel/issues)
+- [GitHub](https://github.com/paulhodel/jtools/issues)
 
 ## Copyright and license
 jExcel is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
+
+## Other resources
+
+- [jExcel Official](https://bossanova.uk/jexcel)
+- [jExcel Pro Official](https://jexcel.net/v3)
+- [Banda Base](https://base.mus.br)
