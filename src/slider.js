@@ -62,14 +62,16 @@ jApp.slider = (function(el, options) {
     // Append data
     if (obj.options.data && obj.options.data.length) {
         for (var i = 0; i < obj.options.data.length; i++) {
-            var img = document.createElement('img');
-            img.setAttribute('data-name', obj.options.data[i].name);
-            img.setAttribute('data-size', obj.options.data[i].size);
-            img.setAttribute('data-cover', obj.options.data[i].cover);
-            img.setAttribute('data-extension', obj.options.data[i].extension);
-            img.setAttribute('src', obj.options.data[i].file);
-            obj.options.items.push(img);
-            container.appendChild(img);
+            if (obj.options.data[i]) {
+                var img = document.createElement('img');
+                img.setAttribute('data-name', obj.options.data[i].name);
+                img.setAttribute('data-size', obj.options.data[i].size);
+                img.setAttribute('data-cover', obj.options.data[i].cover);
+                img.setAttribute('data-extension', obj.options.data[i].extension);
+                img.setAttribute('src', obj.options.data[i].file);
+                obj.options.items.push(img);
+                container.appendChild(img);
+            }
         }
     }
 
