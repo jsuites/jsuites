@@ -31,8 +31,7 @@ One code, multiple platform
 JAVASCRIPT SPREADSHEET EXAMPLES
 ---------
 
-* [Dropdown and autocomplete component](http://bossanova.uk/jexcel)
-
+* [Dropdown and autocomplete component](https://bossanova.uk/jtools/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
 * Date and datetime picker
