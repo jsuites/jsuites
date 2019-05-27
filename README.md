@@ -55,8 +55,8 @@ jApp.dropdown(document.getElementById('dropdown1'), {
 </script>
 </html>
 ```
-
-![Automatically Responsive](https://bossanova.uk/templates/jtools/img/dropdown-mobile.gif)
+The same code can render in differnet ways\
+![Automatically Responsive](https://bossanova.uk/templates/jtools/img/dropdown.png)
 
 
 Examples
@@ -90,6 +90,11 @@ Alert the user for unsaved changes in a form before leave any page plugin.
 Simple vanilla javascript modal plugin
 
 
-Licence
----------
-MIT
+## Official website
+- [jExcel Official](https://bossanova.uk/jexcel)
+
+## Community
+- [GitHub](https://github.com/paulhodel/jexcel/issues)
+
+## Copyright and license
+jExcel is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
