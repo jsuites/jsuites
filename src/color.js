@@ -24,9 +24,11 @@ jApp.color = (function(el, options) {
     };
 
     // Loop through our object
-    for (var prop in defaults) {
-        if (defaults.hasOwnProperty(prop)) {
-            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
+    for (var property in defaults) {
+        if (options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
         }
     }
 
