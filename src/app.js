@@ -7,30 +7,6 @@ var jApp = function(options) {
     obj.backdrop = document.createElement('div');
     obj.backdrop.classList.add('jbackdrop');
 
-    // Default behavior
-    document.addEventListener('keydown', function(e) {
-        if (e.which == 27) {
-            var nodes = document.querySelectorAll('.jmodal');
-            if (nodes.length > 0) {
-                for (var i = 0; i < nodes.length; i++) {
-                    nodes[i].modal.close();
-                }
-            }
-
-            var nodes = document.querySelectorAll('.jslider');
-            if (nodes.length > 0) {
-                for (var i = 0; i < nodes.length; i++) {
-                    nodes[i].slider.close();
-                }
-            }
-        }
-
-        // Verify mask
-        if (jApp.mask) {
-            jApp.mask.apply(e);
-        }
-    });
-    
     obj.getWindowWidth = function() {
         var w = window,
         d = document,
@@ -50,8 +26,13 @@ var jApp = function(options) {
     }
 
     obj.getPosition = function(e) {
-        var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+        if (e.changedTouches && e.changedTouches[0]) {
+            var x = e.changedTouches[0].pageX;
+            var y = e.changedTouches[0].pageY;
+        } else {
+            var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+            var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+        }
 
         return [ x, y ];
     }
@@ -63,8 +44,25 @@ var jApp = function(options) {
             cancelable: true,
             view: window
         });
-        // If cancelled, don't dispatch our event
-        var canceled = !el.dispatchEvent(evt);
+        el.dispatchEvent(evt);
+    }
+
+    obj.getLinkElement = function(element) {
+        var targetElement = false;
+
+        function path (element) {
+            if (element.tagName == 'A' && element.getAttribute('data-href')) {
+                targetElement = element;
+            }
+
+            if (element.parentNode) {
+                path(element.parentNode);
+            }
+        }
+
+        path(element);
+
+        return targetElement;
     }
 
     obj.getFiles = function(element) {
@@ -160,5 +158,69 @@ var jApp = function(options) {
         }
     }
 
+    obj.touchTracker = null;
+
     return obj;
 }();
+
+window.onpopstate = function(e) {
+    if (e.state && e.state.route) {
+        if (jApp.page && jApp.page.items && jApp.page.items[e.state.route]) {
+            jApp.page.items[e.state.route].show(true);
+        }
+    }
+}
+
+document.addEventListener('keydown', function(e) {
+    if (e.which == 27) {
+        var nodes = document.querySelectorAll('.jmodal');
+        if (nodes.length > 0) {
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].modal.close();
+            }
+        }
+
+        var nodes = document.querySelectorAll('.jslider');
+        if (nodes.length > 0) {
+            for (var i = 0; i < nodes.length; i++) {
+                nodes[i].slider.close();
+            }
+        }
+    }
+
+    // Verify mask
+    if (jApp.mask) {
+        jApp.mask.apply(e);
+    }
+});
+
+jApp.actionDownControl = function(e) {
+    jApp.touchTracker = jApp.getPosition(e);
+    setTimeout(function() {
+        jApp.touchTracker = null;
+    }, 300);
+};
+
+jApp.actionUpControl = function(e) {
+    var position = jApp.getPosition(e);
+
+    if (jApp.touchTracker && (position[0] - jApp.touchTracker[0]) > 100) {
+        window.history.back();
+    } else if (jApp.touchTracker && (jApp.touchTracker[0] - position[0]) > 100) {
+        window.history.forward();
+    } else {
+        var element = null;
+        if (element = jApp.getLinkElement(e.target)) {
+            console.log(element);
+            var link = element.getAttribute('data-href');
+            if (link == 'back') {
+                history.back(-1);
+            } else {
+                jApp.page(link);
+            }
+        }
+    }
+}
+
+document.addEventListener('touchstart', jApp.actionDownControl);
+document.addEventListener('touchend', jApp.actionUpControl);
