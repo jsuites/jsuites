@@ -41,6 +41,11 @@ jApp.tracker = (function(el, options) {
         obj.options.ignore = false;
     }
 
+    obj.reset = function() {
+        obj.options.currentHash = obj.setHash();
+        obj.options.ignore = false;
+    }
+
     // Ignore flag
     obj.setIgnore = function(ignoreFlag) {
         obj.options.ignore = ignoreFlag ? true : false;
