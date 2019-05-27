@@ -1,5 +1,7 @@
 # [jTools](https://bossanova.uk/jtools/)
 
+About
+---------
 jTools is a collection of lightweight common required javascript web components. It is composed of fully responsive javascript vanilla plugins to help you bring the best user experience to your projects, independent of the platform.</p>
 
 The first version includes several common javascript tools in various frontend applications. jTools is fully and easily integrated with any framework and tools. The first collection brings the following plugins:
