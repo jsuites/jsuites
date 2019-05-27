@@ -28,6 +28,34 @@ Lean, fast and simple to use
 One code, multiple platform
 
 
+### Basic demo
+
+Create a multiple and autocomplete responsive dropdown.
+
+
+```html
+<html>
+<script src="https://bossanova.uk/jtools/v2/japp.js"></script>
+<link rel="stylesheet" href="https://bossanova.uk/jtools/v2/japp.css" type="text/css" />
+
+<div id="dropdown1"></div>
+
+<script>
+jApp.dropdown(document.getElementById('dropdown1'), {
+    data:[
+        'City of London',
+        'City of Westminster',
+        'Kensington and Chelsea',
+        'Hammersmith and Fulham', // (...)
+        ],
+    autocomplete:true,
+    multiple:true,
+    width:'280px',
+});
+</script>
+</html>
+```
+
 Examples
 ---------
 
@@ -46,14 +74,19 @@ Vanilla javascript colorpicker plugin
 * [Javascript contextmenu plugin](https://bossanova.uk/jtools/contextmenu)\
 Vanilla javascript contextmenu plugin
 
-* Javascript image slider plugin
+* [Javascript image slider plugin](https://bossanova.uk/jtools/image-slider)\
 Simple vanilla javascript image slider plugin
 
-* Javascript mini HTML editor plugin with filter
+* [Javascript mini HTML editor plugin with filter](https://bossanova.uk/jtools/text-editor)\
 Simple vanilla javascript image slider plugin
 
-* Tracking the form changes
+* [Tracking the form changes](https://bossanova.uk/jtools/tracking-for-form-changes)\
 Alert the user for unsaved changes in a form before leave any page plugin.
 
-* Javascript modal plugin
+* [Javascript modal plugin](https://bossanova.uk/jtools/modal)\
 Simple vanilla javascript modal plugin
+
+
+Licence
+---------
+MIT
