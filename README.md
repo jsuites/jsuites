@@ -26,3 +26,34 @@ Improve your clients software experience
 Create rich CRUDS and beautiful UI
 Lean, fast and simple to use
 One code, multiple platform
+
+
+JAVASCRIPT SPREADSHEET EXAMPLES
+---------
+
+* [Dropdown and autocomplete component](http://bossanova.uk/jexcel)
+Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
+
+* Date and datetime picker
+A very simple date and datetime picker full responsive and easy integration
+
+* Javascript string and number mask
+A simple javascript mask plugin
+
+* Javascript color picker plugin
+Vanilla javascript colorpicker plugin
+
+* Javascript contextmenu plugin
+Vanilla javascript contextmenu plugin
+
+* Javascript image slider plugin
+Simple vanilla javascript image slider plugin
+
+* Javascript mini HTML editor plugin with filter
+Simple vanilla javascript image slider plugin
+
+* Tracking the form changes
+Alert the user for unsaved changes in a form before leave any page plugin.
+
+* Javascript modal plugin
+Simple vanilla javascript modal plugin
