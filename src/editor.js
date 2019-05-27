@@ -7,12 +7,28 @@
  */
 
 jApp.editor = (function(el, options) {
-    if (! options) {
-        options = {};
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        value:null,
+        onclick:null,
+        onfocus:null,
+        onblur:null,
+        allowToolbar:true,
+        maxHeight:null,
+    };
+
+    // Loop through our object
+    for (var prop in defaults) {
+        if (defaults.hasOwnProperty(prop)) {
+            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
+        }
     }
 
-    if (options.value) {
-        var value = options.value;
+    if (obj.options.value) {
+        var value = obj.options.value;
     } else {
         var value = el.innerHTML ? el.innerHTML : ''; 
     }
@@ -26,18 +42,24 @@ jApp.editor = (function(el, options) {
     editor.setAttribute('contenteditable', true);
     editor.setAttribute('spellcheck', false);
     editor.className = 'jeditor';
+    editor.innerHTML = value;
     el.appendChild(editor);
 
-    el.setData = function(html) {
+    // Max height
+    if (obj.options.maxHeight) {
+        editor.style.overflowY = 'auto';
+        editor.style.maxHeight = obj.options.maxHeight;
+    }
+
+    obj.setData = function(html) {
         editor.innerHTML = html;
     }
 
-    el.getData = function() {
+    obj.getData = function() {
         return editor.innerHTML;
     }
 
-    // Filter HTML
-    el.clearHTML = function(input) {
+    obj.clearHTML = function(input) {
         var stringStripper = /(class=(")?Mso[a-zA-Z]+(")?)/g;
         var output = input.replace(stringStripper, ' ');
         var commentSripper = new RegExp('<!--(.*?)-->','g');
@@ -58,7 +80,7 @@ jApp.editor = (function(el, options) {
     }
 
     // Toolbar defaults
-    el.getToolbar = function() {
+    obj.getToolbar = function() {
         if (! options.toolbar) {
             options.toolbar = [
                 {
@@ -214,32 +236,29 @@ jApp.editor = (function(el, options) {
     }
 
     // Tooolbar
-    if (options.allowToolbar) {
-        var toolbar = el.getToolbar();
+    if (obj.options.allowToolbar) {
+        var toolbar = obj.getToolbar();
         el.appendChild(toolbar);
     }
 
-    // Set value
-    editor.innerHTML = value;
-
     // Click
-    if (typeof(options.onclick) == 'function') {
-        el.addEventListener('click', options.onclick);
+    if (typeof(obj.options.onclick) == 'function') {
+        el.addEventListener('click', obj.options.onclick);
     }
 
-    // Show Toolbar
-    editor.addEventListener('focus', function(e) {
-        if (toolbar) {
-            //toolbar.style.visibility = '';
-        }
-    });
+    // Blur
+    if (typeof(obj.options.onblur) == 'function') {
+        editor.addEventListener('blur', function() {
+            obj.options.onblur(obj);
+        });
+    }
 
-    // Hide Toolbar
-    editor.addEventListener('blur', function(e) {
-        if (toolbar) {
-            //toolbar.style.visibility = 'hidden';
-        }
-    });
+    // Focus
+    if (typeof(obj.options.onfocus) == 'function') {
+        editor.addEventListener('focus', function() {
+            obj.options.onfocus(obj);
+        });
+    }
 
     // Paste
     el.addEventListener('paste', function(e) {
@@ -266,7 +285,7 @@ jApp.editor = (function(el, options) {
         e.preventDefault();
     });
 
-    el.options = options;
+    el.editor = obj;
 
-    return el;
+    return obj;
 });
