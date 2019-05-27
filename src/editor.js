@@ -23,7 +23,7 @@ jApp.editor = (function(el, options) {
     // Loop through our object
     for (var prop in defaults) {
         if (defaults.hasOwnProperty(prop)) {
-            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
+            obj.options[prop] = options && options[prop] != null ? options[prop] : defaults[prop];
         }
     }
 
@@ -236,7 +236,7 @@ jApp.editor = (function(el, options) {
     }
 
     // Tooolbar
-    if (obj.options.allowToolbar) {
+    if (obj.options.allowToolbar == true) {
         var toolbar = obj.getToolbar();
         el.appendChild(toolbar);
     }
