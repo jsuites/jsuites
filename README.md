@@ -56,6 +56,9 @@ jApp.dropdown(document.getElementById('dropdown1'), {
 </html>
 ```
 
+![Automatically Responsive](https://bossanova.uk/templates/jtools/img/dropdown-mobile.gif)
+
+
 Examples
 ---------
 
