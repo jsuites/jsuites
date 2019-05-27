@@ -1,5 +1,7 @@
 ![The javascript web components](https://bossanova.uk/templates/jtools/img/logo.png)
 
+## jTools - The definitive common javascript web components
+
 About
 ---------
 jTools is a collection of lightweight common required javascript web components. It is composed of fully responsive javascript vanilla plugins to help you bring the best user experience to your projects, independent of the platform.</p>
