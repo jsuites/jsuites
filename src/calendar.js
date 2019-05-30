@@ -45,7 +45,7 @@ jApp.calendar = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];

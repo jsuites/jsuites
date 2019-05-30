@@ -77,22 +77,23 @@ jApp.modal = (function(el, options) {
         jApp.backdrop.remove();
     }
 
-    el.addEventListener('mousedown', (e) => {
+    el.addEventListener('mousedown', function(e) {
         obj.position = [];
 
-        if (e.path[0].classList.contains('jmodal')) {
+        if (e.target.classList.contains('jmodal')) {
             setTimeout(function() {
-                if (e.target.clientWidth - e.offsetX < 50 && e.offsetY < 50) {
+
+                var rect = el.getBoundingClientRect();
+                if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
                     obj.close();
                 } else {
-                    if (el.getAttribute('title') && e.offsetY < 50) {
+                    if (el.getAttribute('title') && e.clientY - rect.top < 50) {
                         if (document.selection) {
                             document.selection.empty();
                         } else if ( window.getSelection ) {
                             window.getSelection().removeAllRanges();
                         }
 
-                        var rect = el.getBoundingClientRect();
                         obj.position = [
                             rect.left,
                             rect.top,
@@ -107,7 +108,7 @@ jApp.modal = (function(el, options) {
         }
     });
 
-    el.addEventListener('mousemove', (e) => {
+    document.addEventListener('mousemove', function(e) {
         if (obj.position) {
             if (e.which == 1 || e.which == 3) {
                 el.style.top = obj.position[1] + (e.clientY - obj.position[3]) + (obj.position[5] / 2);
@@ -119,8 +120,8 @@ jApp.modal = (function(el, options) {
         }
     });
 
-    el.addEventListener('mouseup', (e) => {
-        obj.position = [];
+    document.addEventListener('mouseup', function(e) {
+        obj.position = null;
 
         el.style.cursor = 'auto';
     });
