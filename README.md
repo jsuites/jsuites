@@ -97,7 +97,7 @@ Simple vanilla javascript modal plugin
 - [GitHub](https://github.com/paulhodel/jtools/issues)
 
 ## Copyright and license
-jExcel is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
+jTools is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
 
 ## Other resources
 
