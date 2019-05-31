@@ -18,6 +18,7 @@ jApp.editor = (function(el, options) {
         onblur:null,
         allowToolbar:true,
         maxHeight:null,
+        filterHTML:true,
     };
 
     // Loop through our object
@@ -265,7 +266,7 @@ jApp.editor = (function(el, options) {
     // Paste
     el.addEventListener('paste', function(e) {
         let paste = (e.clipboardData || window.clipboardData).getData('text');
-        paste = el.clearHTML(paste);
+        paste = obj.clearHTML(paste);
         paste = paste.split('\r\n');
         var str = '';
         if (e.path[0].nodeName == 'DIV' && ! e.path[0].classList.contains('editor')) {

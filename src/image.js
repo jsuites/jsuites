@@ -7,6 +7,7 @@ jApp.image = (function(el, options) {
         minWidth:false,
         onchange:null,
         singleFile:true,
+        parser:'',
         text:{
             extensionNotAllowed:'The extension is not allowed',
             imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
@@ -95,7 +96,7 @@ jApp.image = (function(el, options) {
         }
     }
 
-    el.addEventListener("dblclick", (e) => {
+    el.addEventListener("dblclick", function(e) {
         var evt = new MouseEvent('click', {
             bubbles: true,
             cancelable: true,
@@ -105,23 +106,23 @@ jApp.image = (function(el, options) {
         attachmentInput.dispatchEvent(evt);
     });
 
-    el.addEventListener('dragenter', (e) => {
+    el.addEventListener('dragenter', function(e) {
         el.style.border = '1px dashed #000';
     });
 
-    el.addEventListener('dragleave', (e) => {
+    el.addEventListener('dragleave', function(e) {
         el.style.border = '1px solid #eee';
     });
 
-    el.addEventListener('dragstop', (e) => {
+    el.addEventListener('dragstop', function(e) {
         el.style.border = '1px solid #eee';
     });
 
-    el.addEventListener('dragover', (e) => {
+    el.addEventListener('dragover', function(e) {
         e.preventDefault();
     });
 
-    el.addEventListener('drop', (e) => {
+    el.addEventListener('drop', function(e) {
         e.preventDefault();  
         e.stopPropagation();
 

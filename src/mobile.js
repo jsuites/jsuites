@@ -27,8 +27,8 @@ jApp.page = (function(route, options) {
     };
 
     // Loop through our object
-    for (var prop in defaults) {
-        if (options.hasOwnProperty(property)) {
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
