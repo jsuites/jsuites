@@ -304,8 +304,15 @@ jApp.mask = (function() {
                 }
             } else {
                 if (pieces[index] != null) {
-                    values[index] = pieces[index];
-                    if (input == pieces[index]) {
+                    if (pieces[index] == '\\a') {
+                        var v = 'a';
+                    } else if (pieces[index] == '\\0') {
+                        var v = '0';
+                    } else {
+                        var v = pieces[index];
+                    }
+                    values[index] = v;
+                    if (input == v) {
                         index++;
                         return true;
                     }
@@ -322,7 +329,7 @@ jApp.mask = (function() {
     obj.prepare = function(mask) {
         pieces = [];
         for (var i = 0; i < mask.length; i++) {
-            if (mask[i].match(/[0-9]|[a-z]|[A-Z]/g)) {
+            if (mask[i].match(/[0-9]|[a-z]|\\/g)) {
                 if (mask[i] == 'y' && mask[i+1] == 'y' && mask[i+2] == 'y' && mask[i+3] == 'y') {
                     pieces.push('yyyy');
                     i += 3;
@@ -359,6 +366,12 @@ jApp.mask = (function() {
                 } else if (mask[i] == 'p' && mask[i+1] == 'm') {
                     pieces.push('pm');
                     i++;
+                } else if (mask[i] == '\\' && mask[i+1] == '0') {
+                    pieces.push('\\0');
+                    i++;
+                } else if (mask[i] == '\\' && mask[i+1] == 'a') {
+                    pieces.push('\\a');
+                    i++;
                 } else {
                     pieces.push(mask[i]);
                 }
@@ -374,6 +387,8 @@ jApp.mask = (function() {
                 }
             }
         }
+        
+        console.log(pieces);
     }
 
     /** 
