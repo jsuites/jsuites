@@ -18,7 +18,6 @@ jApp.editor = (function(el, options) {
         onblur:null,
         allowToolbar:true,
         maxHeight:null,
-        filterHTML:true,
     };
 
     // Loop through our object
