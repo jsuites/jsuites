@@ -265,7 +265,7 @@ jApp.editor = (function(el, options) {
     // Paste
     el.addEventListener('paste', function(e) {
         let paste = (e.clipboardData || window.clipboardData).getData('text');
-        paste = obj.clearHTML(paste);
+        paste = el.clearHTML(paste);
         paste = paste.split('\r\n');
         var str = '';
         if (e.path[0].nodeName == 'DIV' && ! e.path[0].classList.contains('editor')) {
