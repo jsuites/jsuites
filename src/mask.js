@@ -250,12 +250,12 @@ jApp.mask = (function() {
                                 t.push(values[index][j]);
                                 s++;
                                 if (! (s % 3)) {
-                                    t.push('.');
+                                    t.push(separator);
                                 }
                             }
                             t = t.reverse();
                             values[index] = t.join('');
-                            if (values[index].substr(0,1) == '.') {
+                            if (values[index].substr(0,1) == separator) {
                                 values[index] = values[index].substr(1);
                             } 
                         }
