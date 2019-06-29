@@ -4,11 +4,12 @@
  * https://github.com/paulhodel/jtools
  */
  
-jApp.dialog = (function() {
+jSuites.dialog = (function() {
     var obj = {};
     obj.options = {};
 
     var dialog = document.createElement('div');
+    dialog.setAttribute('tabindex', '901');
     dialog.className = 'jdialog';
     dialog.id = 'dialog';
 
@@ -91,7 +92,16 @@ jApp.dialog = (function() {
 
         // Append element to the app
         dialog.style.opacity = 100;
-        jApp.el.appendChild(dialog);
+
+        // Append to the page
+        if (jSuites.el) {
+            jSuites.el.appendChild(dialog);
+        } else {
+            document.body.appendChild(dialog);
+        }
+
+        // Focus
+        dialog.focus();
 
         // Show
         setTimeout(function() {
@@ -109,3 +119,29 @@ jApp.dialog = (function() {
 
     return obj;
 })();
+
+jSuites.confirm = (function(message, onconfirm) {
+    if (jSuites.getWindowWidth() < 800) {
+        jSuites.dialog.open({
+            type:'confirm',
+            message:message,
+            title:'Confirmation',
+            onconfirm:onconfirm,
+        });
+    } else {
+        if (confirm('message')) {
+            onconfirm();
+        }
+    }
+});
+
+jSuites.alert = function(message) {
+    if (jSuites.getWindowWidth() < 800) {
+        jSuites.dialog.open({
+            title:'Alert',
+            message:message,
+        });
+    } else {
+        alert(message);
+    }
+}

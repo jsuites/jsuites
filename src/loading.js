@@ -6,7 +6,7 @@
  * @description: Page loading spin
  */
 
-jApp.loading = (function() {
+jSuites.loading = (function() {
     var obj = {};
 
     var loading = document.createElement('div');

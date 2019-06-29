@@ -134,7 +134,7 @@
     width:100%;
 }
 
-.jcalendar-hour, .jcalendar-min {
+.jcalendar select {
     width:55px;
     display:inline-block;
     border:0px;
@@ -142,11 +142,12 @@
     text-align:center;
     font-size:1.1em;
     user-select:none;
+    margin-right:10px;
 }
 
-.jcalendar-min {
-    margin-left:2px;
-    margin-right:10px;
+.jcalendar select:first-child
+{
+    margin-right:2px;
 }
 
 .jcalendar-selected {

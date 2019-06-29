@@ -4,28 +4,32 @@
  * https://github.com/paulhodel/jtools
  */
 
-jApp.contextmenu = (function(el, options) {
+jSuites.contextmenu = (function(el, options) {
     var obj = {};
     obj.options = {};
-    obj.options.items = options.items && options.items.length ? options.items : {};
+
+    // Default configuration
+    var defaults = {
+        items:null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
 
     obj.menu = document.createElement('ul');
     obj.menu.classList.add('jcontextmenu');
     obj.menu.setAttribute('tabindex', '900');
-    obj.menu.addEventListener('blur', (e) => {
-        obj.menu.classList.remove('jcontextmenu-focus');
-    });
-
-    if (typeof(options.onclick) == 'function') {
-        obj.menu.onclick = options.onclick;
-    }
 
     /**
      * Open contextmenu
      */
     obj.open = function(e, items) {
-        e = e || window.event;
-
         if (items) {
             obj.options.items = items;
         }
@@ -59,20 +63,34 @@ jApp.contextmenu = (function(el, options) {
             obj.menu.appendChild(itemContainer);
         }
 
-        let position = jApp.getPosition(e);
+        if (e.target) {
+            var e = e || window.event;
+            let position = jSuites.getPosition(e);
+            obj.menu.style.top = position[1] + 'px';
+            obj.menu.style.left = position[0] + 'px';
+        } else {
+            obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
+            obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+        }
 
         obj.menu.classList.add('jcontextmenu-focus');
-        obj.menu.style.top = position[1];
-        obj.menu.style.left = position[0];
         obj.menu.focus();
     }
 
     /**
-     * Close
+     * Close menu
      */
     obj.close = function() {
         obj.menu.classList.remove('jcontextmenu-focus');
     }
+
+    el.addEventListener("click", function(e) {
+        obj.close();
+    });
+
+    obj.menu.addEventListener('blur', function(e) {
+        obj.close();
+    });
 
     el.appendChild(obj.menu);
     el.contextmenu = obj;

@@ -1,21 +1,39 @@
-.jnotification
-{
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    z-index:1000;
-    border:1px solid #eee;
+.jnotification {
+    position: fixed;
+    z-index:10000;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
 
-    margin:10px;
-    background: #fff;
-    border-radius: 12px;
-    -webkit-box-shadow: 0px 5px 25px -10px rgba(0,0,0,.7);
-    box-shadow: 0px 5px 25px -10px rgba(0,0,0,.7);
+    border-radius: 4px;
     padding: 10px;
-    color: #000;
+
+    -webkit-box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.4);
+    box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+@media (min-width: 320px) and (max-width: 800px)
+{
+    .jnotification {
+        top:0px;
+        background: #fff;
+        margin:10px;
+        width:calc(100% - 20px);
+        border:1px solid #eee;
+    }
+}
+
+@media (min-width: 801px)
+{
+    .jnotification {
+        bottom:0px;
+        backgroun-color:#000;
+        background: rgb(92,92,92);
+        background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
+        color:#fff;
+        width:320px;
+        margin:30px;
+        padding:20px;
+    }
 }
 
 .jnotification-header

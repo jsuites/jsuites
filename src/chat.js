@@ -1,41 +1,19 @@
 /**
- * (c) jTools Timeline
+ * (c) jTools Chat
  * https://github.com/paulhodel/jtools
  *
  * @author: Paul Hodel <paul.hodel@gmail.com>
  * @description: Timeline
  */
 
-jSuites.timeline = (function(el, options) {
+jSuites.chat = (function(el, options) {
     var obj = {};
     obj.options = {};
 
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
-    }
-
-    // Default date format
-    if (! options.date) {
-        var date = new Date();
-        var y = date.getFullYear();
-        var m = two(date.getMonth() + 1);
-        date = y + '-' + m;
-    }
-
-    // Default configurations
+    // Default configuration
     var defaults = {
-        data: [],
-        date: date,
-        months: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
-        monthsFull: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ],
-        text: {
-            noInformation: '<div class="jtimeline-message">No information for this period</div>',
-        }
+        url:null,
+        data:null,
     };
 
     // Loop through our object
@@ -48,7 +26,7 @@ jSuites.timeline = (function(el, options) {
     }
 
     // Add class
-    el.classList.add('jtimeline');
+    el.classList.add('jchat');
 
     // Header
     var timelineHeader = document.createElement('div');

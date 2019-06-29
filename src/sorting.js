@@ -6,7 +6,7 @@
  * @description: Element drag and drop sorting
  */
 
-jApp.sorting = (function(el, options) {
+jSuites.sorting = (function(el, options) {
     el.classList.add('jsorting');
 
     el.addEventListener('dragstart', (e) => {

@@ -1,0 +1,125 @@
+.jchat {
+    padding-bottom:30px;
+}
+
+.jchat .jchat-header {
+    display:flex;
+    align-items:center;
+    padding:10px;
+    padding-bottom:10px;
+}
+
+.jchat .jchat-icon {
+    margin-right:5px;
+}
+
+.jchat .jchat-name {
+    font-size:0.8em;
+    flex:1;
+}
+
+.jchat .jchat-when {
+    font-size:0.8em;
+
+}
+
+.jchat .jchat-user {
+    width:20px;
+    height:20px;
+    border-radius:10px;
+}
+
+.jchat .jchat-body {
+    padding:12px;
+    padding-top:0px;
+}
+
+.jchat .jchat-status {
+    padding-left:5px;
+}
+.jchat .jchat-message {
+    margin:15px;
+    margin-top:2px;
+    margin-bottom:2px;
+    border-radius:10px;
+    font-size:0.8em;
+    position: relative;
+    margin-bottom:20px;
+}
+
+.jchat .jchat-message.jchat-right {
+    color:#fff;
+    background-image: linear-gradient(to bottom right, #72879e, #b1b8cc); /** #fa6b50, #da237c **/
+    margin-left:50px;
+}
+
+.jchat .jchat-message.jchat-left {
+    border:1px solid #eeeeee;
+    background-image: linear-gradient(to bottom right, #f1f1f1, #eeeeee);
+    margin-right:50px;
+}
+
+.jchat .jchat-line {
+    margin-bottom:30px;
+}
+
+.jchat .jchat-text {
+    min-width:50vw;
+}
+
+.jchat img {
+    width:100%;
+    border-radius:0px 0px 10px 10px;
+}
+
+.jchat .jchat-left::beforex
+{
+    content: "";
+    width: 0px;
+    height: 0px;
+    position: absolute;
+    border-left: 10px solid #efefef;
+    border-right: 10px solid transparent;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    left: 0px;
+    bottom: -10px;
+}
+
+.jchat .jchat-right::afterx
+{
+    content: "";
+    width: 0px;
+    height: 0px;
+    position: absolute;
+    border-left: 10px solid transparent;
+    border-right: 10px solid #b1b8cc;
+    border-top: 10px solid transparent;
+    border-bottom: 10px solid transparent;
+    right: 0px;
+    bottom: -10px;
+}
+
+.jchat .jchat-input {
+    position:fixed;
+    left:0px;
+    bottom:0px;
+    width:100%;
+    z-index:600;
+}
+
+.jchat .jchat-input i {
+    position:absolute;
+    right:0px;
+    margin-top:10px;
+    margin-right:15px;
+    color:#b1b8cc;
+}
+
+.jchat .jchat-input input {
+    box-shadow: 0px -2px 4px rgba(0, 0, 0, .05);
+    border:0px;
+    width:100%;
+    padding:16px;
+    outline: none;
+}

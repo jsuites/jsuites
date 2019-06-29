@@ -1,12 +1,12 @@
 /**
- * (c) jTools Modal page
- * https://github.com/paulhodel/jtools
+ * (c) jSuites modal
+ * https://github.com/paulhodel/jsuites
  *
  * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Modal page
+ * @description: Modal
  */
 
-jApp.modal = (function(el, options) {
+jSuites.modal = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -23,7 +23,7 @@ jApp.modal = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -64,7 +64,10 @@ jApp.modal = (function(el, options) {
             obj.options.onopen(el);
         }
         // Backdrop
-        document.body.appendChild(jApp.backdrop);
+        document.body.appendChild(jSuites.backdrop);
+
+        // Current
+        jSuites.modal.current = el;
     }
 
     obj.close = function() {
@@ -74,59 +77,78 @@ jApp.modal = (function(el, options) {
             obj.options.onclose(el);
         }
         // Backdrop
-        jApp.backdrop.remove();
+        jSuites.backdrop.remove();
+
+        // Current
+        jSuites.modal.current = null;
     }
 
-    el.addEventListener('mousedown', function(e) {
-        obj.position = [];
+    if (! jSuites.modal.hasEvents) {
+        jSuites.modal.current = el;
 
-        if (e.target.classList.contains('jmodal')) {
-            setTimeout(function() {
+        document.addEventListener('mousedown', jSuites.modal.mouseDownControls);
+        document.addEventListener('mousemove', jSuites.modal.mouseMoveControls);
+        document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
 
-                var rect = el.getBoundingClientRect();
-                if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
-                    obj.close();
-                } else {
-                    if (el.getAttribute('title') && e.clientY - rect.top < 50) {
-                        if (document.selection) {
-                            document.selection.empty();
-                        } else if ( window.getSelection ) {
-                            window.getSelection().removeAllRanges();
-                        }
+        jSuites.modal.hasEvents = true;
+    }
 
-                        obj.position = [
-                            rect.left,
-                            rect.top,
-                            e.clientX,
-                            e.clientY,
-                            rect.width,
-                            rect.height,
-                        ];
-                    }
-                }
-            }, 100);
-        }
-    });
-
-    document.addEventListener('mousemove', function(e) {
-        if (obj.position) {
-            if (e.which == 1 || e.which == 3) {
-                el.style.top = obj.position[1] + (e.clientY - obj.position[3]) + (obj.position[5] / 2);
-                el.style.left = obj.position[0] + (e.clientX - obj.position[2]) + (obj.position[4] / 2);
-                el.style.cursor = 'move';
-            } else {
-                el.style.cursor = 'auto';
-            }
-        }
-    });
-
-    document.addEventListener('mouseup', function(e) {
-        obj.position = null;
-
-        el.style.cursor = 'auto';
-    });
-
+    // Keep object available from the node
     el.modal = obj;
 
     return obj;
 });
+
+jSuites.modal.current = null;
+jSuites.modal.position = null;
+
+jSuites.modal.mouseUpControls = function(e) {
+    if (jSuites.modal.current) {
+        jSuites.modal.current.style.cursor = 'auto';
+    }
+    jSuites.modal.position = null;
+}
+
+jSuites.modal.mouseMoveControls = function(e) {
+    if (jSuites.modal.current && jSuites.modal.position) {
+        if (e.which == 1 || e.which == 3) {
+            var position = jSuites.modal.position;
+            jSuites.modal.current.style.top = (position[1] + (e.clientY - position[3]) + (position[5] / 2)) + 'px';
+            jSuites.modal.current.style.left = (position[0] + (e.clientX - position[2]) + (position[4] / 2)) + 'px';
+            jSuites.modal.current.style.cursor = 'move';
+        } else {
+            jSuites.modal.current.style.cursor = 'auto';
+        }
+    }
+}
+
+jSuites.modal.mouseDownControls = function(e) {
+    jSuites.modal.position = [];
+
+    if (e.target.classList.contains('jmodal')) {
+        setTimeout(function() {
+
+            var rect = e.target.getBoundingClientRect();
+            if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
+                e.target.modal.close();
+            } else {
+                if (e.target.getAttribute('title') && e.clientY - rect.top < 50) {
+                    if (document.selection) {
+                        document.selection.empty();
+                    } else if ( window.getSelection ) {
+                        window.getSelection().removeAllRanges();
+                    }
+
+                    jSuites.modal.position = [
+                        rect.left,
+                        rect.top,
+                        e.clientX,
+                        e.clientY,
+                        rect.width,
+                        rect.height,
+                    ];
+                }
+            }
+        }, 100);
+    }
+}

@@ -235,7 +235,6 @@
     text-transform:uppercase;
     font-size:1em;
     padding-right:24px;
-    background-position:top 50% right 8px;
 }
 
 .jdropdown-picker .jdropdown-container
@@ -312,7 +311,7 @@
 
 .jdropdown-searchbar
 {
-    width:100% !important;
+    width:100%;
     border-top:1px solid #e6e6e8;
     border-bottom:1px solid #e6e6e8;
     padding-top:10px;

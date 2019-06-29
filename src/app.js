@@ -1,8 +1,9 @@
-var jApp = function(options) {
+var jSuites = function(options) {
     var obj = {}
 
     // Find root element
     obj.el = document.querySelector('.app');
+
     // Backdrop
     obj.backdrop = document.createElement('div');
     obj.backdrop.classList.add('jbackdrop');
@@ -47,11 +48,31 @@ var jApp = function(options) {
         el.dispatchEvent(evt);
     }
 
+    obj.getElement = function(element, className) {
+        var foundElement = false;
+
+        function path (element) {
+            if (element.className) {
+                if (element.classList.contains(className)) {
+                    foundElement = element;
+                }
+            }
+
+            if (element.parentNode) {
+                path(element.parentNode);
+            }
+        }
+
+        path(element);
+
+        return foundElement;
+    }
+
     obj.getLinkElement = function(element) {
         var targetElement = false;
 
         function path (element) {
-            if (element.tagName == 'A' && element.getAttribute('data-href')) {
+            if ((element.tagName == 'A' || element.tagName == 'DIV') && element.getAttribute('data-href')) {
                 targetElement = element;
             }
 
@@ -63,6 +84,28 @@ var jApp = function(options) {
         path(element);
 
         return targetElement;
+    }
+
+    obj.getFormElements = function(formObject) {
+        var ret = {};
+
+        if (formObject) {
+            var elements = formObject.querySelectorAll("input, select, textarea");
+        } else {
+            var elements = document.querySelectorAll("input, select, textarea");
+        }
+
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var name = element.name;
+            var value = element.value;
+
+            if (name) {
+                ret[name] = value;
+            }
+        }
+
+        return ret;
     }
 
     obj.getFiles = function(element) {
@@ -158,69 +201,113 @@ var jApp = function(options) {
         }
     }
 
+    obj.ajax = function(postOptions) {
+        if (! postOptions.data) {
+            postOptions.data = {};
+        }
+        postOptions.data = new URLSearchParams(postOptions.data);
+
+        // Remote call
+        fetch(postOptions.url, {
+            method: postOptions.method ? postOptions.method : 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            }),
+            body: postOptions.data
+        })
+        .then(function(data) {
+            data.json().then(function(result) {
+                if (postOptions.success && typeof(postOptions.success) == 'function') {
+                    postOptions.success(result);
+                }
+            })
+        });
+    }
+
+    obj.keyDownControls = function(e) {
+        if (e.which == 27) {
+            var nodes = document.querySelectorAll('.jmodal');
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].modal.close();
+                }
+            }
+
+            var nodes = document.querySelectorAll('.jslider');
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].slider.close();
+                }
+            }
+
+            if (document.querySelector('.jdialog')) {
+                jSuites.dialog.close();
+            }
+        } else if (e.which == 13) {
+            if (document.querySelector('.jdialog')) {
+                if (typeof(jSuites.dialog.options.onconfirm) == 'function') {
+                    jSuites.dialog.options.onconfirm();
+                }
+                jSuites.dialog.close();
+            }
+        }
+
+        // Verify mask
+        if (jSuites.mask) {
+            jSuites.mask.apply(e);
+        }
+    }
+
+    obj.actionDownControl = function(e) {
+        jSuites.touchTracker = jSuites.getPosition(e);
+        setTimeout(function() {
+            jSuites.touchTracker = null;
+        }, 300);
+    }
+
+    obj.actionUpControl = function(e) {
+        var position = jSuites.getPosition(e);
+
+        if (jSuites.touchTracker && (position[0] - jSuites.touchTracker[0]) > 100) {
+            // Left
+            var event = new CustomEvent("swipeleft");
+            document.dispatchEvent(event);
+        } else if (jSuites.touchTracker && (jSuites.touchTracker[0] - position[0]) > 100) {
+            // Right
+            var event = new CustomEvent("swiperight");
+            document.dispatchEvent(event);
+        } else {
+            var element = null;
+            if (element = jSuites.getLinkElement(e.target)) {
+                var link = element.getAttribute('data-href');
+                if (link == 'back') {
+                    window.history.back();
+                } else {
+                    jSuites.page(link);
+                }
+            }
+        }
+    }
+
+    // Add events
+    document.addEventListener('touchstart', obj.actionDownControl);
+    document.addEventListener('touchend', obj.actionUpControl);
+    document.addEventListener('keydown', obj.keyDownControls);
+
+    window.onpopstate = function(e) {
+        if (e.state && e.state.route) {
+            if (jSuites.page && jSuites.page.items && jSuites.page.items[e.state.route]) {
+                jSuites.page.items[e.state.route].show(true);
+                // Verify toolbar bind with this page
+                if (jSuites.page.items[e.state.route].options.toolbar) {
+                    jSuites.page.items[e.state.route].options.toolbar.selectItem(jSuites.page.items[e.state.route].options.toolbarItem);
+                }
+            }
+        }
+    }
+
     obj.touchTracker = null;
 
     return obj;
 }();
-
-window.onpopstate = function(e) {
-    if (e.state && e.state.route) {
-        if (jApp.page && jApp.page.items && jApp.page.items[e.state.route]) {
-            jApp.page.items[e.state.route].show(true);
-        }
-    }
-}
-
-document.addEventListener('keydown', function(e) {
-    if (e.which == 27) {
-        var nodes = document.querySelectorAll('.jmodal');
-        if (nodes.length > 0) {
-            for (var i = 0; i < nodes.length; i++) {
-                nodes[i].modal.close();
-            }
-        }
-
-        var nodes = document.querySelectorAll('.jslider');
-        if (nodes.length > 0) {
-            for (var i = 0; i < nodes.length; i++) {
-                nodes[i].slider.close();
-            }
-        }
-    }
-
-    // Verify mask
-    if (jApp.mask) {
-        jApp.mask.apply(e);
-    }
-});
-
-jApp.actionDownControl = function(e) {
-    jApp.touchTracker = jApp.getPosition(e);
-    setTimeout(function() {
-        jApp.touchTracker = null;
-    }, 300);
-};
-
-jApp.actionUpControl = function(e) {
-    var position = jApp.getPosition(e);
-
-    if (jApp.touchTracker && (position[0] - jApp.touchTracker[0]) > 100) {
-        window.history.back();
-    } else if (jApp.touchTracker && (jApp.touchTracker[0] - position[0]) > 100) {
-        window.history.forward();
-    } else {
-        var element = null;
-        if (element = jApp.getLinkElement(e.target)) {
-            console.log(element);
-            var link = element.getAttribute('data-href');
-            if (link == 'back') {
-                history.back(-1);
-            } else {
-                jApp.page(link);
-            }
-        }
-    }
-}
-
-document.addEventListener('touchstart', jApp.actionDownControl);
-document.addEventListener('touchend', jApp.actionUpControl);

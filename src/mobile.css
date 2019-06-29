@@ -1,3 +1,30 @@
+:root {
+    --active-color:#007aff;
+}
+
+@media only screen and (max-device-width : 800px)
+{
+    * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+    }
+
+    body {
+        margin:0px;
+        padding:0px;
+        width:100%;
+        height:100%;
+        min-height:100%;
+        line-height:1.4;
+        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+        background-color:#fafafa;
+    }
+
+    input, select, textarea, div {
+        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    }
+}
+
 .app
 {
     min-height:100%;
@@ -7,6 +34,7 @@
     background-color:#fafafa;
 }
 
+/*
 .app .activeHighLight
 {
     color:var(--active-color);
@@ -36,6 +64,7 @@
     margin-right:15px;
     cursor:pointer;
 }
+*/
 
 .app button
 {
@@ -71,60 +100,10 @@
     text-transform:uppercase;
 }
 
-.app .login-container
-{
-    position:absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    min-height:100%;
-    z-index:1000;
-
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    -webkit-box-align: center;
-
-    align-items: center;
-}
-
-.app .login
-{
-	width: 100%;
-    max-width:480px;
-    box-sizing: border-box;
-    margin:0 auto;
-    vertical-align:middle;
-}
-
-.app .login label
-{
-    font-size:0.8em;
-}
-
-.app .login input[type='text'], .app .login input[type='password'], .app .login input[type='number']
-{
-    width:100%;
-    outline:none;
-    padding:15px;
-    margin:0px;
-    font-size:1em;
-}
-
-.app .login input[type='button']
-{
-    width:100%;
-}
-
 /** Navbar **/
 
-.app .navbar
-{
-    position:absolute;
-    left: 0;
+.app .navbar {
+    position:fixed;
     top: 0;
     width: 100%;
     z-index: 500;
@@ -140,8 +119,7 @@
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
 }
 
-.app .navbar-container
-{
+.app .navbar-container {
     padding: 0 8px;
     position: absolute;
     left: 0;
@@ -163,44 +141,32 @@
     align-items:center;
 }
 
-.app .navbar-container div
-{
+.app .navbar-container div {
     text-align:center;
 }
 
-.app .navbar-container div.icon
-{
+.app .navbar-container div.icon {
     width:24px;
 }
 
-.app .navbar-container div i, .app .navbar-container div span
-{
+.app .navbar-container div i {
     display:block;
 }
 
-.app .navbar-container div img
-{
+.app .navbar-container div img {
     height:30px;
     display:block;
 }
 
-.app .navbar .icon
-{
-    color:#007aff;
+.app .navbar .icon {
+    color:var(--active-color);
 }
 
-.app .navbar img
-{
-    height:30px;
-}
-
-.app .title
-{
+.app .title {
     font-size:1.2em;
 }
 
-.app .block
-{
+.app .block {
     padding:15px;
     box-sizing: border-box;
     color: #6d6d72;
@@ -208,8 +174,7 @@
     box-sizing: border-box;
 }
 
-.app .block-title
-{
+.app .block-title {
     text-transform: uppercase;
     color: #6d6d72;
     margin: 25px 15px 10px;
@@ -222,34 +187,29 @@
     font-size:0.9em;
 }
 
-.app .block-strong
-{
+.app .block-strong {
     background-color:#fff;
     color: #000;
 }
 
-.app .block-border
-{
+.app .block-border {
     border-top:1px solid #ddd;
     border-bottom:1px solid #ddd; 
 }
 
-.app .block-footer
-{
+.app .block-footer {
 	text-transform: uppercase;
     padding:15px;
     color: #6d6d72;
     font-size:0.7em;
 }
 
-.app .block-collapse
-{
+.app .block-collapse {
     max-height:100px;
     overflow-y:hidden;
 }
 
-.app .block-instruction
-{
+.app .block-instruction {
     text-transform: uppercase;
     padding:15px;
     color: #6d6d72;
@@ -321,19 +281,9 @@
     color:var(--active-color);
 }
 
-.app .icon
-{
-    float:left;
-    margin-right:10px;
-    max-width:40px;
-    max-height:40px;
-    border-radius:20px;
-    color:#929292;
-}
-
 /** Toolbar **/
 
-.app .toolbar
+.app .jtoolbar
 {
     position:fixed;
     bottom: 0;
@@ -348,7 +298,7 @@
     padding:4px;
 }
 
-.app .toolbar > div
+.app .jtoolbar > div
 {
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -367,34 +317,34 @@
     cursor:pointer;
 }
 
-.app .toolbar > div > div
+.app .jtoolbar > div > div
 {
     text-align:center;
     flex:1;
     margin:auto;
 }
 
-.app .toolbar a
+.app .jtoolbar a
 {
     text-decoration:none;
     display:inline-block;
 }
 
-.app .toolbar i
+.app .jtoolbar i
 {
     color:#929292;
 }
 
-.app .toolbar span
+.app .jtoolbar span
 {
     font-size:0.7em;
     display:block;
     color:#929292;
 }
 
-.app .toolbar .selected a,
-.app .toolbar .selected i,
-.app .toolbar .selected span
+.app .jtoolbar .selected a,
+.app .jtoolbar .selected i,
+.app .jtoolbar .selected span
 {
     color:var(--active-color);
 }
@@ -416,27 +366,39 @@
     display:none;
 }
 
-.app .options label
+.app .options .option
 {
-    display:block;
     padding-top:10px;
     padding-bottom:10px;
-    border-bottom:1px solid #e6e6e8;
-    font-size:1.2em;
     text-transform:uppercase;
+    font-size:1em;
+    border-bottom:1px solid #e6e6e8;
+    overflow-x:hidden;
+
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align:middle;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-flow: row nowrap;
+    justify-content: space-evenly;
+    align-items:center;
+    flex-wrap:nowrap;
 }
 
-.app .options label:last-child
+.app .options .option:last-child
 {
     border-bottom:0px;
 }
 
-.app .options label .small
+.app .options label
 {
-    display:block;
-    font-size:0.6em;
-    margin-bottom:4px;
-    color: #6d6d72;
+    width:100%;
 }
 
 .app .options input[type='text'], .app .options textarea
@@ -465,6 +427,19 @@
     margin-right:20px;
 }
 
+.app .options .option .jdropdown
+{
+     border-top: 0px solid #e6e6e8;
+    border-bottom: 0px solid #e6e6e8;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.app .options .option .option-right
+{
+    margin-right:10px;
+}
+
 .app .options input[type='checkbox']:checked:before, .app .options input[type='radio']:checked:before
 {
     content:'';
@@ -473,6 +448,23 @@
     position:relative;
 }
 
+.app .options .icon
+{
+    float:left;
+    margin-right:10px;
+    max-width:40px;
+    max-height:40px;
+    border-radius:20px;
+    color:#929292;
+}
+
+
+
+
+
+
+
+/*
 .app .options .jcalendar_input
 {
     width:calc(100% - 10px) !important;
@@ -483,7 +475,7 @@
     float:right;
     margin-right:15px;
 }
-
+*/
 .app .options .option-title
 {
     display:block;
@@ -530,32 +522,9 @@
 	border-top:1px solid #e6e6e8;
 }
 
-.app .options .option-item
-{
-    padding-top:10px;
-    padding-bottom:10px;
-    text-transform:uppercase;
-    font-size:1em;
-	border-bottom:1px solid #e6e6e8;
-    overflow-x:hidden;
 
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    vertical-align:middle;
 
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-flow: row nowrap;
-    justify-content: space-evenly;
-    align-items:center;
-    flex-wrap:nowrap;
-}
-
-.app .options .option-item .option-label-small
+.app .options .option.option-small
 {
     display:block;
     font-size:0.8em;
@@ -563,7 +532,7 @@
     color: #6d6d72;
 }
 
-.app .options .option-item .option-action, .app .options .option-item .option-action-small
+.app .options .option .option-action, .app .options .option .option-action-small
 {
     display:flex;
     transform: translateX(100%);
@@ -614,12 +583,12 @@
     text-overflow: ellipsis;
 }
 
-.app .options .option-item .option-name
+.app .options .option .option-name
 {
     font-size:1.1em;
 }
 
-.app .options .option-item .option-small
+.app .options .option .option-small
 {
     font-size:0.7em;
     color: #6d6d72;
@@ -629,7 +598,7 @@
     display:block;
 }
 
-.app .options .option-item .option-image img
+.app .options .option .option-image img
 {
     width:40px;
     height:auto;
@@ -637,7 +606,7 @@
     display:block;
 }
 
-.app .options .option-item .option-image-small img
+.app .options .option .option-image-small img
 {
     width:24px;
     height:auto;
@@ -645,11 +614,12 @@
     display:block;
 }
 
-.app .options .option-item .option-date
+.app .options .option .option-date
 {
     float:right;
     font-size:0.6em;
-    color:#ccc;
+    color:#888;
+    margin-right:15px;
 }
 
 
@@ -697,117 +667,6 @@
     padding:6px;
     padding-top:4px;
     padding-bottom:4px;
-}
-
-/** Chat **/
-
-.app .chat
-{
-    padding-top:20px;
-}
-
-.app .chat .message .message-name
-{
-    font-size:0.8em;
-}
-
-.app .chat .message .message-when
-{
-    float:right;
-    font-size:0.8em;
-
-}
-
-.app .chat .message-header
-{
-    margin-bottom:4px;
-}
-.app .chat .message-content
-{
-    padding:15px;
-    margin:15px;
-    margin-top:2px;
-    margin-bottom:2px;
-    border-radius:10px;
-    font-size:0.8em;
-    position: relative;
-}
-
-.app .chat .message-content.message-line
-{
-    margin-bottom:30px;
-}
-
-.app .chat .message .message-text
-{
-    min-width:50vw;
-}
-
-.app .chat .message-right .message-content
-{
-    color:#fff;
-    background-image: linear-gradient(to bottom right, #72879e, #b1b8cc); /** #fa6b50, #da237c **/
-    margin-left:50px;
-}
-
-.app .chat .message-left .message-content
-{
-    background-image: linear-gradient(to bottom right, #f1f1f1, #eeeeee);
-    margin-right:50px;
-}
-
-
-.app .chat .message-left .message-content.message-line::before
-{
-    content: "";
-    width: 0px;
-    height: 0px;
-    position: absolute;
-    border-left: 10px solid #efefef;
-    border-right: 10px solid transparent;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    left: 0px;
-    bottom: -10px;
-}
-
-.app .chat .message-right .message-content.message-line::after
-{
-    content: "";
-    width: 0px;
-    height: 0px;
-    position: absolute;
-    border-left: 10px solid transparent;
-    border-right: 10px solid #b1b8cc;
-    border-top: 10px solid transparent;
-    border-bottom: 10px solid transparent;
-    right: 0px;
-    bottom: -10px;
-}
-
-.app .message-input
-{
-    position:fixed;
-    left:0px;
-    bottom:0px;
-    width:100%;
-}
-
-.app .message-input i
-{
-    position:absolute;
-    right:0px;
-    margin-top:10px;
-    margin-right:15px;
-    color:#b1b8cc;
-}
-.app .message-input input
-{
-    box-shadow: 0px -2px 4px rgba(0, 0, 0, .05);
-    border:0px;
-    width:100%;
-    padding:15px;
-    outline: none;
 }
 
 /** Picker **/
@@ -1178,4 +1037,25 @@
 .app .options input:-moz-placeholder
 {
     text-tranform:uppercase;
+}
+
+::placeholder
+{
+    color: #cccccc;
+    opacity: 1;
+}
+
+:-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+::-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+::-webkit-input-placeholder
+{
+    color: #cccccc;
 }

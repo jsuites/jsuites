@@ -1,4 +1,4 @@
-jApp.rating = (function(el, options) {
+jSuites.rating = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -23,7 +23,7 @@ jApp.rating = (function(el, options) {
     el.classList.add('jrating');
 
     // Add elements
-    for (var i = 0; i < 5; i++) {
+    for (var i = 0; i < obj.options.number; i++) {
         var div = document.createElement('div');
         div.setAttribute('data-index', (i + 1))
         div.setAttribute('title', obj.options.tooltip[i])
@@ -32,7 +32,7 @@ jApp.rating = (function(el, options) {
 
     // Set value
     obj.setValue = function(index) {
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < obj.options.number; i++) {
             if (i < index) {
                 el.children[i].classList.add('jrating-selected');
             } else {
@@ -44,6 +44,18 @@ jApp.rating = (function(el, options) {
 
         if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, index);
+        }
+    }
+
+    obj.getValue = function() {
+        return obj.options.value;
+    }
+
+    if (obj.options.value) {
+        for (var i = 0; i < obj.options.number; i++) {
+            if (i < obj.options.value) {
+                el.children[i].classList.add('jrating-selected');
+            }
         }
     }
 
@@ -59,7 +71,7 @@ jApp.rating = (function(el, options) {
 
     el.addEventListener("mouseover", function(e) {
         var index = e.target.getAttribute('data-index');
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < obj.options.number; i++) {
             if (i < index) {
                 el.children[i].classList.add('jrating-over');
             } else {
@@ -69,7 +81,7 @@ jApp.rating = (function(el, options) {
     });
 
     el.addEventListener("mouseout", function(e) {
-        for (var i = 0; i < 5; i++) {
+        for (var i = 0; i < obj.options.number; i++) {
             el.children[i].classList.remove('jrating-over');
         }
     });

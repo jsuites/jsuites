@@ -1,18 +1,18 @@
-jApp.mobile = (function(el, options) {
+jSuites.mobile = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     return obj;
 });
 
-jApp.page = (function(route, options) {
+jSuites.page = (function(route, options) {
     if (! route) {
         console.error('It is not possible to create a page without a route');
         return;
     }
 
-    if (jApp.page.items && jApp.page.items[route]) {
-        var obj = jApp.page.items[route];
+    if (jSuites.page.items && jSuites.page.items[route]) {
+        var obj = jSuites.page.items[route];
         obj.show();
         return obj;
     }
@@ -24,6 +24,8 @@ jApp.page = (function(route, options) {
     var defaults = {
         closed:false,
         route:null,
+        toolbar:null,
+        toolbarItem:null,
     };
 
     // Loop through our object
@@ -38,16 +40,32 @@ jApp.page = (function(route, options) {
     obj.options.route = route;
 
     // Base path where the views are stored
-    if (! jApp.page.path) {
-        jApp.page.path = 'pages';
+    if (! jSuites.page.path) {
+        jSuites.page.path = 'pages';
     }
     // If no defined path for this file get the default
     if (! obj.options.path) {
-        obj.options.path = (jApp.page.path + route + '.html');
+        obj.options.path = (jSuites.page.path + route + '.html');
     }
     if (! obj.options.title) {
         obj.options.title = 'Untitled';
     }
+
+    // Create page container
+    if (! jSuites.page.container) {
+        jSuites.page.container = document.createElement('div');
+        jSuites.page.container.className = 'pages';
+        if (jSuites.el) {
+            jSuites.el.appendChild(jSuites.page.container);
+        } else {
+            document.body.appendChild(jSuites.page.container);
+        }
+
+        // If there is no element yet, can't be closed
+        obj.options.closed = false;
+    }
+
+    // Create page
     var page = document.createElement('div');
 
     // Class
@@ -58,74 +76,91 @@ jApp.page = (function(route, options) {
         page.classList.add('page');
     }
 
-    // Container
-    if (! jApp.page.container) {
-        jApp.page.container = document.createElement('div');
-        jApp.page.container.className = 'pages';
-        jApp.el.appendChild(jApp.page.container);
-    }
-
-    // Index
-    var index = jApp.page.container.children.length;
-    page.setAttribute('data-index', index);
-
     // Panel goes in the main element
     if (obj.options.panel) {
-        //jApp.el.appendChild(page);
+        //jSuites.el.appendChild(page);
     } else {
-        jApp.page.container.appendChild(page);
+        if (! jSuites.page.current) {
+            jSuites.page.container.appendChild(page);
+        } else {
+            jSuites.page.container.insertBefore(page, jSuites.page.current.nextSibling);
+        }
     }
 
     // Keep page in the container
-    if (! jApp.page.items) {
-        jApp.page.items = [];
+    if (! jSuites.page.items) {
+        jSuites.page.items = [];
     }
-    jApp.page.items[route] = obj;
+    jSuites.page.items[route] = obj;
 
     // Load content
     obj.create = function() {
-        var parse = function(result) {
-            jApp.loading.hide();
-
-            page.innerHTML = result;
-            obj.show();
+        var parse = function(html) {
+            // Content
+            page.innerHTML = html;
+            // Default
+            if (obj.options.closed == true) {
+                page.style.display = 'none';
+            } else {
+                obj.show();
+            }
         }
 
-        jApp.loading.show();
-        $(page).load(obj.options.path, parse);
+        fetch(obj.options.path).then(function(data) {
+            data.text().then(function(result) {
+                // Open
+                parse(result);
+                // Get javascript
+                var script = page.getElementsByTagName('script');
+                // Run possible inline scripts
+                for (var i = 0; i < script.length; i++) {
+                    // Get type
+                    var type = script[i].getAttribute('type');
+                    if (! type || type == 'text/javascript') {
+                        eval(script[i].innerHTML);
+                    }
+                }
+            })
+        });
     };
 
-    obj.show = function(ignoreEntry) {
-        if (jApp.page.current) {
-            if (jApp.page.current == page) {
-                jApp.page.current = page;
+    obj.show = function(historyDirection) {
+        if (jSuites.page.current) {
+            if (jSuites.page.current == page) {
+                jSuites.page.current = page;
             } else {
                 if (page.classList.contains('panel')) {
                 } else {
-                    var a = parseInt(jApp.page.current.getAttribute('data-index'));
-                    var b = parseInt(page.getAttribute('data-index'));
                     page.style.display = '';
+
+                    var a = Array.prototype.indexOf.call(jSuites.page.container.children, jSuites.page.current);
+                    var b = Array.prototype.indexOf.call(jSuites.page.container.children, page);
+
                     if (a < b) {
-                        jApp.page.container.classList.add('slide-left-out');
+                        jSuites.page.container.classList.add('slide-left-out');
                     } else {
-                        jApp.page.container.classList.add('slide-left-in');
+                        jSuites.page.container.classList.add('slide-left-in');
                     }
 
                     setTimeout(function(){
-                        jApp.page.current.style.display = 'none';
-                        jApp.page.current = page;
-                        jApp.page.container.classList.remove('slide-left-out');
-                        jApp.page.container.classList.remove('slide-left-in');
+                        jSuites.page.current.style.display = 'none';
+                        jSuites.page.current = page;
+                        jSuites.page.container.classList.remove('slide-left-out');
+                        jSuites.page.container.classList.remove('slide-left-in');
                     }, 400);
                 }
             }
         } else {
-            jApp.page.current = page;
+            // Show
+            page.style.display = '';
+            // Keep current
+            jSuites.page.current = page;
         }
 
-        if (! ignoreEntry) {
+        // Add history
+        if (! historyDirection) {
             // Add history
-            history.pushState({ route:route }, obj.options.title, obj.options.route);
+            window.history.pushState({ route:route }, obj.options.title, obj.options.route);
         }
     }
 
@@ -134,19 +169,16 @@ jApp.page = (function(route, options) {
     return obj;
 });
 
-jApp.toolbar = (function(el, options) {
+jSuites.toolbar = (function(el, options) {
     var obj = {};
     obj.options = options;
 
     var toolbar = document.createElement('div');
-    toolbar.classList.add('toolbar');
+    toolbar.classList.add('jtoolbar');
     toolbar.onclick = function(e) {
-        var element = toolbarContent.children;
-        for (var i = 0; i < element.length; i++) {
-            element[i].classList.remove('selected');
-        }
-        if (element = getElement(e.target)) {
-            element.classList.add('selected');
+        var element = jSuites.getElement(e.target, 'jtoolbar-item');
+        if (element) {
+            obj.selectItem(element);
         }
     }
 
@@ -155,65 +187,65 @@ jApp.toolbar = (function(el, options) {
 
     for (var i = 0; i < options.items.length; i++) {
         var toolbarItem = document.createElement('div');
-        toolbarItem.classList.add('toolbar-item');
-        var toolbarLink = document.createElement('a');
+        toolbarItem.classList.add('jtoolbar-item');
         if (options.items[i].route) {
-            toolbarLink.setAttribute('data-href', options.items[i].route);
-           // jApp.page(options.items[i].route, {
-           //     closed:true,
-           //});
+            toolbarItem.setAttribute('data-href', options.items[i].route);
+            jSuites.page(options.items[i].route, {
+                closed: i == 0 ? false : true,
+                toolbar:obj,
+                toolbarItem:toolbarItem,
+            });
+            // First item should be selected
+            if (i == 0) {
+                toolbarItem.classList.add('selected');
+            }
         }
 
         if (options.items[i].icon) {
             var toolbarIcon = document.createElement('i');
             toolbarIcon.classList.add('material-icons');
             toolbarIcon.innerHTML = options.items[i].icon;
-            toolbarLink.appendChild(toolbarIcon);
+            toolbarItem.appendChild(toolbarIcon);
         }
+
         if (options.items[i].badge) {
             var toolbarBadge = document.createElement('div');
             toolbarBadge.classList.add('badge');
             var toolbarBadgeContent = document.createElement('div');
             toolbarBadgeContent.innerHTML = options.items[i].badge;
             toolbarBadge.appendChild(toolbarBadgeContent);
-            toolbarLink.appendChild(toolbarBadge);
+            toolbarItem.appendChild(toolbarBadge);
         }
+
         if (options.items[i].title) {
             var toolbarTitle = document.createElement('span');
             toolbarTitle.innerHTML = options.items[i].title;
-            toolbarLink.appendChild(toolbarTitle);
+            toolbarItem.appendChild(toolbarTitle);
         }
 
-        toolbarItem.appendChild(toolbarLink);
         toolbarContent.appendChild(toolbarItem);
     }
 
-    var getElement = function(element) {
-        var item = null;
-
-        function path (element) {
-            if (element.className) {
-                if (element.classList.contains('toolbar-item')) {
-                    item = element;
-                }
-            }
-
-            if (element.parentNode) {
-                path(element.parentNode);
-            }
+    obj.selectItem = function(element) {
+        var elements = toolbarContent.children;
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('selected');
         }
-
-        path(element);
-
-        return item;
+        element.classList.add('selected');
     }
+
+    obj.get = function() {
+        return toolbar;
+    }
+
+    el.toolbar = obj;
 
     el.appendChild(toolbar);
 
     return obj;
 });
 
-jApp.actionsheet = (function() {
+jSuites.actionsheet = (function() {
     var obj = {};
     obj.options = {};
 
@@ -251,7 +283,7 @@ jApp.actionsheet = (function() {
 
         // Append
         actionsheet.style.opacity = 100;
-        jApp.el.appendChild(actionsheet);
+        jSuites.el.appendChild(actionsheet);
 
         // Animation
         actionContent.classList.add('slide-bottom-in');

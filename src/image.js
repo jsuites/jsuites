@@ -1,4 +1,4 @@
-jApp.image = (function(el, options) {
+jSuites.image = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -16,7 +16,7 @@ jApp.image = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];

@@ -1,4 +1,4 @@
-jApp.combo = (function(el, options) {
+jSuites.combo = (function(el, options) {
     var obj = {};
 
     if (options) {

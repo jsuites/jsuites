@@ -1,0 +1,30 @@
+.jtabs {
+    position:relative;
+}
+.jtabs > .jtabs-headers {
+    display:flex;
+    padding:6px;
+}
+
+.jtabs > .jtabs-headers > div {
+    padding:10px;
+    padding-left:20px;
+    padding-right:20px;
+    margin-right:5px;
+    margin-bottom:5px;
+    background-color:#eee;
+    cursor:pointer;
+}
+
+.jtabs > .jtabs-headers > div.jtabs-selected {
+    background-color:#ddd;
+}
+
+.jtabs > .jtabs-content > div {
+    display:none;
+    padding:10px;
+}
+
+.jtabs > .jtabs-content > div.jtabs-selected {
+    display:block;
+}

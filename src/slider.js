@@ -6,7 +6,7 @@
  * @description: Image Slider
  */
 
-jApp.slider = (function(el, options) {
+jSuites.slider = (function(el, options) {
     var obj = {};
     obj.options = {};
     obj.currentImage = null;
@@ -147,7 +147,7 @@ jApp.slider = (function(el, options) {
         attachmentIcon.innerHTML = 'attachment';
         attachmentIcon.className = 'jslider-attach material-icons';
         attachmentIcon.onclick = function() {
-            jApp.click(attachmentInput);
+            jSuites.click(attachmentInput);
         }
 
         el.appendChild(attachmentInput);
@@ -217,7 +217,7 @@ jApp.slider = (function(el, options) {
     }
 
     obj.getData = function() {
-        var files = jApp.getFiles(container);
+        var files = jSuites.getFiles(container);
 
         const values = {};
         const inputs = container.children;

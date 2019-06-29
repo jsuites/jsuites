@@ -1,8 +1,31 @@
-var jApp = function(options) {
+
+/**
+ * (c) jSuites Javascript Web Components
+ *
+ * Author: Paul Hodel <paul.hodel@gmail.com>
+ * Website: https://bossanova.uk/jsuites/
+ * Description: Create amazing web based applications.
+ *
+ * MIT License
+ *
+ */
+;(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    global.jSuites = factory();
+
+    // Keep compatibility with jtools legacy
+    global.jApp = global.jSuites;
+}(this, (function () {
+
+    'use strict';
+
+    var jSuites = function(options) {
     var obj = {}
 
     // Find root element
     obj.el = document.querySelector('.app');
+
     // Backdrop
     obj.backdrop = document.createElement('div');
     obj.backdrop.classList.add('jbackdrop');
@@ -47,11 +70,31 @@ var jApp = function(options) {
         el.dispatchEvent(evt);
     }
 
+    obj.getElement = function(element, className) {
+        var foundElement = false;
+
+        function path (element) {
+            if (element.className) {
+                if (element.classList.contains(className)) {
+                    foundElement = element;
+                }
+            }
+
+            if (element.parentNode) {
+                path(element.parentNode);
+            }
+        }
+
+        path(element);
+
+        return foundElement;
+    }
+
     obj.getLinkElement = function(element) {
         var targetElement = false;
 
         function path (element) {
-            if (element.tagName == 'A' && element.getAttribute('data-href')) {
+            if ((element.tagName == 'A' || element.tagName == 'DIV') && element.getAttribute('data-href')) {
                 targetElement = element;
             }
 
@@ -63,6 +106,28 @@ var jApp = function(options) {
         path(element);
 
         return targetElement;
+    }
+
+    obj.getFormElements = function(formObject) {
+        var ret = {};
+
+        if (formObject) {
+            var elements = formObject.querySelectorAll("input, select, textarea");
+        } else {
+            var elements = document.querySelectorAll("input, select, textarea");
+        }
+
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var name = element.name;
+            var value = element.value;
+
+            if (name) {
+                ret[name] = value;
+            }
+        }
+
+        return ret;
     }
 
     obj.getFiles = function(element) {
@@ -158,86 +223,125 @@ var jApp = function(options) {
         }
     }
 
+    obj.ajax = function(postOptions) {
+        if (! postOptions.data) {
+            postOptions.data = {};
+        }
+        postOptions.data = new URLSearchParams(postOptions.data);
+
+        // Remote call
+        fetch(postOptions.url, {
+            method: postOptions.method ? postOptions.method : 'POST',
+            headers: new Headers({
+                'Accept': 'application/json',
+                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
+            }),
+            body: postOptions.data
+        })
+        .then(function(data) {
+            data.json().then(function(result) {
+                if (postOptions.success && typeof(postOptions.success) == 'function') {
+                    postOptions.success(result);
+                }
+            })
+        });
+    }
+
+    obj.keyDownControls = function(e) {
+        if (e.which == 27) {
+            var nodes = document.querySelectorAll('.jmodal');
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].modal.close();
+                }
+            }
+
+            var nodes = document.querySelectorAll('.jslider');
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].slider.close();
+                }
+            }
+
+            if (document.querySelector('.jdialog')) {
+                jSuites.dialog.close();
+            }
+        } else if (e.which == 13) {
+            if (document.querySelector('.jdialog')) {
+                if (typeof(jSuites.dialog.options.onconfirm) == 'function') {
+                    jSuites.dialog.options.onconfirm();
+                }
+                jSuites.dialog.close();
+            }
+        }
+
+        // Verify mask
+        if (jSuites.mask) {
+            jSuites.mask.apply(e);
+        }
+    }
+
+    obj.actionDownControl = function(e) {
+        jSuites.touchTracker = jSuites.getPosition(e);
+        setTimeout(function() {
+            jSuites.touchTracker = null;
+        }, 300);
+    }
+
+    obj.actionUpControl = function(e) {
+        var position = jSuites.getPosition(e);
+
+        if (jSuites.touchTracker && (position[0] - jSuites.touchTracker[0]) > 100) {
+            // Left
+            var event = new CustomEvent("swipeleft");
+            document.dispatchEvent(event);
+        } else if (jSuites.touchTracker && (jSuites.touchTracker[0] - position[0]) > 100) {
+            // Right
+            var event = new CustomEvent("swiperight");
+            document.dispatchEvent(event);
+        } else {
+            var element = null;
+            if (element = jSuites.getLinkElement(e.target)) {
+                var link = element.getAttribute('data-href');
+                if (link == 'back') {
+                    window.history.back();
+                } else {
+                    jSuites.page(link);
+                }
+            }
+        }
+    }
+
+    // Add events
+    document.addEventListener('touchstart', obj.actionDownControl);
+    document.addEventListener('touchend', obj.actionUpControl);
+    document.addEventListener('keydown', obj.keyDownControls);
+
+    window.onpopstate = function(e) {
+        if (e.state && e.state.route) {
+            if (jSuites.page && jSuites.page.items && jSuites.page.items[e.state.route]) {
+                jSuites.page.items[e.state.route].show(true);
+                // Verify toolbar bind with this page
+                if (jSuites.page.items[e.state.route].options.toolbar) {
+                    jSuites.page.items[e.state.route].options.toolbar.selectItem(jSuites.page.items[e.state.route].options.toolbarItem);
+                }
+            }
+        }
+    }
+
     obj.touchTracker = null;
 
     return obj;
 }();
 
-window.onpopstate = function(e) {
-    if (e.state && e.state.route) {
-        if (jApp.page && jApp.page.items && jApp.page.items[e.state.route]) {
-            jApp.page.items[e.state.route].show(true);
-        }
-    }
-}
 
-document.addEventListener('keydown', function(e) {
-    if (e.which == 27) {
-        var nodes = document.querySelectorAll('.jmodal');
-        if (nodes.length > 0) {
-            for (var i = 0; i < nodes.length; i++) {
-                nodes[i].modal.close();
-            }
-        }
-
-        var nodes = document.querySelectorAll('.jslider');
-        if (nodes.length > 0) {
-            for (var i = 0; i < nodes.length; i++) {
-                nodes[i].slider.close();
-            }
-        }
-    }
-
-    // Verify mask
-    if (jApp.mask) {
-        jApp.mask.apply(e);
-    }
-});
-
-jApp.actionDownControl = function(e) {
-    jApp.touchTracker = jApp.getPosition(e);
-    setTimeout(function() {
-        jApp.touchTracker = null;
-    }, 300);
-};
-
-jApp.actionUpControl = function(e) {
-    var position = jApp.getPosition(e);
-
-    if (jApp.touchTracker && (position[0] - jApp.touchTracker[0]) > 100) {
-        window.history.back();
-    } else if (jApp.touchTracker && (jApp.touchTracker[0] - position[0]) > 100) {
-        window.history.forward();
-    } else {
-        var element = null;
-        if (element = jApp.getLinkElement(e.target)) {
-            console.log(element);
-            var link = element.getAttribute('data-href');
-            if (link == 'back') {
-                history.back(-1);
-            } else {
-                jApp.page(link);
-            }
-        }
-    }
-}
-
-document.addEventListener('touchstart', jApp.actionDownControl);
-document.addEventListener('touchend', jApp.actionUpControl);
-
-/**
- * Date & Datetime picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
-
-jApp.calendar = (function(el, options) {
+jSuites.calendar = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Global container
-    if (! jApp.dropdown.current) {
-        jApp.dropdown.current = null;
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
     }
 
     // Default configuration
@@ -396,7 +500,6 @@ jApp.calendar = (function(el, options) {
     calendarContent.appendChild(calendarTable);
 
     var calendarSelectHour = document.createElement('select');
-    calendarSelectHour.className = 'jcalendar-hour';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
     }
@@ -409,7 +512,6 @@ jApp.calendar = (function(el, options) {
     }
 
     var calendarSelectMin = document.createElement('select');
-    calendarSelectMin.className = 'jcalendar-min';
     calendarSelectMin.onchange = function() {
         obj.date[4] = this.value; 
     }
@@ -444,14 +546,14 @@ jApp.calendar = (function(el, options) {
 
     // Methods
     obj.open = function (value) {
-        if (jApp.calendar.current) {
-            if (jApp.calendar.current != obj) {
-                jApp.calendar.current.close();
+        if (jSuites.calendar.current) {
+            if (jSuites.calendar.current != obj) {
+                jSuites.calendar.current.close();
             }
         }
 
-        if (! jApp.calendar.current) {
-            jApp.calendar.current = obj;
+        if (! jSuites.calendar.current) {
+            jSuites.calendar.current = obj;
             // Show calendar
             calendar.classList.add('jcalendar-focus');
             // Get days
@@ -463,7 +565,7 @@ jApp.calendar = (function(el, options) {
             }
 
             // Get the position of the corner helper
-            if (jApp.getWindowWidth() < 800 || obj.options.fullscreen) {
+            if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen) {
                 // Full
                 calendar.classList.add('jcalendar-fullsize');
                 // Animation
@@ -475,15 +577,15 @@ jApp.calendar = (function(el, options) {
                 if (obj.options.position) {
                     calendarContainer.style.position = 'fixed';
                     if (window.innerHeight < rect.bottom + rectContent.height) {
-                        calendarContainer.style.top = rect.top - (rectContent.height + 2);
+                        calendarContainer.style.top = (rect.top - (rectContent.height + 2)) + 'px';
                     } else {
-                        calendarContainer.style.top = rect.top + rect.height + 2;
+                        calendarContainer.style.top = (rect.top + rect.height + 2) + 'px';
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContent.height) {
-                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2);
+                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
                     } else {
-                        calendarContainer.style.top = 2; 
+                        calendarContainer.style.top = 2 + 'px'; 
                     }
                 }
             }
@@ -491,8 +593,8 @@ jApp.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        if (jApp.calendar.current) {
-            jApp.calendar.current =  null;
+        if (jSuites.calendar.current) {
+            jSuites.calendar.current =  null;
 
             if (update != false && el.tagName == 'INPUT') {
                 obj.setValue(obj.getValue());
@@ -663,10 +765,10 @@ jApp.calendar = (function(el, options) {
         }
 
         var date = new Date(year, month, 0, 0, 0);
-        nd = date.getDate();
+        var nd = date.getDate();
 
         var date = new Date(year, month-1, 0, hour, min);
-        fd = date.getDay() + 1;
+        var fd = date.getDay() + 1;
 
         // Reset table
         calendarBody.innerHTML = '';
@@ -804,28 +906,39 @@ jApp.calendar = (function(el, options) {
     }
 
     obj.setLabel = function(value, format) {
-        return jApp.calendar.getDateString(value, format);
+        return jSuites.calendar.getDateString(value, format);
     }
 
     obj.fromFormatted = function (value, format) {
-        return jApp.calendar.extractDateFromString(value, format);
+        return jSuites.calendar.extractDateFromString(value, format);
     }
 
-    // Element
+    // Add properties
     el.setAttribute('autocomplete', 'off');
     el.setAttribute('data-mask', obj.options.format.toLowerCase());
+
     if (obj.options.readonly) {
         el.setAttribute('readonly', 'readonly');
     }
+
     if (obj.options.placeholder) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
+
+    // Handle events
     el.addEventListener("focus", function(e) {
         obj.open();
     });
+
+    el.addEventListener("mousedown", function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        obj.open();
+    });
+
     el.addEventListener("keyup", function(e) {
         if (e.target.value && e.target.value.length > 3) {
-            var test = jApp.calendar.extractDateFromString(e.target.value, obj.options.format);
+            var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
                 console.log(test);
                 if (e.target.getAttribute('data-completed') == 'true') {
@@ -834,15 +947,38 @@ jApp.calendar = (function(el, options) {
             }
         }
     });
+
+    if (! jSuites.calendar.hasEvents) {
+        // Add global events
+        document.addEventListener("swipeleft", function(e) {
+            if (calendar.classList.contains('jcalendar-focus')) {
+                obj.prev();
+            }
+        });
+
+        document.addEventListener("swiperight", function(e) {
+            if (calendar.classList.contains('jcalendar-focus')) {
+                obj.next();
+            }
+        });
+
+        document.addEventListener("mousedown", jSuites.calendar.mouseDownControls);
+
+        // Has events
+        jSuites.calendar.hasEvents = true;
+    }
+
+    // Append element to the DOM
     el.parentNode.insertBefore(calendar, el.nextSibling);
 
+    // Keep object available from the node
     el.calendar = obj;
 
     return obj;
 });
 
 // Helper to extract date from a string
-jApp.calendar.extractDateFromString = function(date, format) {
+jSuites.calendar.extractDateFromString = function(date, format) {
     var v1 = '' + date;
     var v2 = format.replace(/[0-9]/g,'');
 
@@ -913,7 +1049,7 @@ jApp.calendar.extractDateFromString = function(date, format) {
 }
 
 // Helper to convert date into string
-jApp.calendar.getDateString = function(value, format) {
+jSuites.calendar.getDateString = function(value, format) {
     // Default calendar
     if (! format) {
         var format = 'DD/MM/YYYY';
@@ -980,70 +1116,52 @@ jApp.calendar.getDateString = function(value, format) {
     return value;
 }
 
-jApp.calendar.getElement = function(element) {
-    var jcalendarElement = false;
-
-    function path (element) {
-        if (element.className) {
-            if (element.classList.contains('jcalendar')) {
-                jcalendarElement = true;
-            }
-        }
-
-        if (element.parentNode) {
-            path(element.parentNode);
-        }
-    }
-
-    path(element);
-
-    return jcalendarElement;
-}
-
-jApp.calendar.mouseDownControls = function(e) {
-    if (! jApp.calendar.getElement(e.target)) {
-        if (jApp.calendar.current) {
-            jApp.calendar.current.close(false, false);
+jSuites.calendar.mouseDownControls = function(e) {
+    if (! jSuites.getElement(e.target, 'jcalendar')) {
+        if (jSuites.calendar.current) {
+            jSuites.calendar.current.close(false, false);
         }
     } else {
-        if (jApp.calendar.current) {
+        if (jSuites.calendar.current) {
             var action = e.target.className;
 
             // Object id
             if (action == 'jcalendar-prev') {
-                jApp.calendar.current.prev();
+                jSuites.calendar.current.prev();
             } else if (action == 'jcalendar-next') {
-                jApp.calendar.current.next();
+                jSuites.calendar.current.next();
             } else if (action == 'jcalendar-month') {
-                jApp.calendar.current.getMonths();
+                jSuites.calendar.current.getMonths();
             } else if (action == 'jcalendar-year') {
-                jApp.calendar.current.getYears();
+                jSuites.calendar.current.getYears();
             } else if (action == 'jcalendar-set-year') {
-                jApp.calendar.current.date[0] = e.target.innerText;
-                jApp.calendar.current.getDays();
+                jSuites.calendar.current.date[0] = e.target.innerText;
+                jSuites.calendar.current.getDays();
             } else if (action == 'jcalendar-set-month') {
-                jApp.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
-                jApp.calendar.current.getDays();
+                jSuites.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
+                jSuites.calendar.current.getDays();
             } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jApp.calendar.current.close();
+                jSuites.calendar.current.close();
             } else if (action == 'jcalendar-close') {
-                jApp.calendar.current.close();
+                jSuites.calendar.current.close();
+            } else if (action == 'jcalendar-backdrop') {
+                jSuites.calendar.current.close(false, false);
             } else if (action == 'jcalendar-reset') {
-                jApp.calendar.current.reset();
+                jSuites.calendar.current.reset();
             } else if (e.target.classList.contains('jcalendar-set-day')) {
                 if (e.target.innerText) {
                     // Keep selected day
-                    jApp.calendar.current.update(e.target);
+                    jSuites.calendar.current.update(e.target);
                 }
             }
 
-            e.stopImmediatePropagation();
+            if (action.substr(0,9) == 'jcalendar') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
         }
     }
 }
-
-document.addEventListener("mousedown", jApp.calendar.mouseDownControls);
-
 
 /**
  * Color Picker v1.0.1
@@ -1051,14 +1169,14 @@ document.addEventListener("mousedown", jApp.calendar.mouseDownControls);
  * https://github.com/paulhodel/jtools
  */
 
-jApp.color = (function(el, options) {
+jSuites.color = (function(el, options) {
     var obj = {};
     obj.options = {};
     obj.values = [];
 
     // Global container
-    if (! jApp.color.current) {
-        jApp.color.current = null;
+    if (! jSuites.color.current) {
+        jSuites.color.current = null;
     }
 
     // Default configuration
@@ -1072,7 +1190,7 @@ jApp.color = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -1367,15 +1485,15 @@ jApp.color = (function(el, options) {
      * Open color pallete
      */
     obj.open = function() {
-        if (jApp.color.current) {
-            if (jApp.color.current != obj) {
-                jApp.color.current.close();
+        if (jSuites.color.current) {
+            if (jSuites.color.current != obj) {
+                jSuites.color.current.close();
             }
         }
 
-        if (! jApp.color.current) {
+        if (! jSuites.color.current) {
             // Persist element
-            jApp.color.current = obj;
+            jSuites.color.current = obj;
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
@@ -1385,15 +1503,15 @@ jApp.color = (function(el, options) {
             if (obj.options.position) {
                 content.style.position = 'fixed';
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = rect.top - (rectContent.height + 2);
+                    content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
                 } else {
-                    content.style.top = rect.top + rect.height + 2;
+                    content.style.top = (rect.top + rect.height + 2) + 'px';;
                 }
             } else {
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = -1 * (rectContent.height + 2);
+                    content.style.top = (-1 * (rectContent.height + 2)) + 'px';
                 } else {
-                    content.style.top = rect.height + 2; 
+                    content.style.top = (rect.height + 2) + 'px';
                 }
             }
 
@@ -1405,8 +1523,8 @@ jApp.color = (function(el, options) {
      * Close color pallete
      */
     obj.close = function(ignoreEvents) {
-        if (jApp.color.current) {
-            jApp.color.current = null;
+        if (jSuites.color.current) {
+            jSuites.color.current = null;
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
@@ -1457,96 +1575,35 @@ jApp.color = (function(el, options) {
     // Select color
     container.addEventListener("click", function(e) {
         if (e.target.tagName == 'TD') {
-            jApp.color.current.setValue(e.target.getAttribute('data-value'));
-            jApp.color.current.close();
+            jSuites.color.current.setValue(e.target.getAttribute('data-value'));
+            jSuites.color.current.close();
         }
     });
 
     // Possible to focus the container
     container.setAttribute('tabindex', '900');
-    // Append to the table
-    content.appendChild(table);
-    container.appendChild(content);
-    container.onblur = function(e) {
-        if (jApp.color.current) {
-            jApp.color.current.close();
-        }
-    }
-    // Insert picker after the element
-    el.parentNode.insertBefore(container, el);
-    // Keep object available thought the node
-    el.color = obj;
 
     if (obj.options.placeholder) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
 
-    return obj;
-});
-
-jApp.combo = (function(el, options) {
-    var obj = {};
-
-    if (options) {
-        obj.options = options;
-    }
-
-    // Reset
-    if (obj.options.reset == true) {
-        el.innerHTML = '';
-    }
-
-    // Blank option?
-    if (obj.options.blankOption) {
-        var option = document.createElement('option');
-        option.value = '';
-        el.appendChild(option);
-    }
-
-    // Load options from a remote URL
-    if (obj.options.url) {
-        fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-            .then(function(data) {
-                data.json().then(function(data) {
-                    obj.options.data = data;
-
-                    Object.keys(data).forEach(function(k) {
-                        var option = document.createElement('option');
-
-                        if (data[k].id) {
-                            option.value = data[k].id;
-                            option.innerHTML = data[k].name;
-                        } else {
-                            option.value = k;
-                            option.innerHTML = data[k];
-                        }
-
-                        el.appendChild(option);
-                    });
-
-                    if (obj.options.value) {
-                        $(select).val(obj.options.value);
-                    }
-
-                    if (typeof(obj.options.onload) == 'function') {
-                        obj.options.onload(el);
-                    }
-                })
-            });
-    } else if (options.numeric) {
-        for (var i = obj.options.numeric[0]; i <= obj.options.numeric[1]; i++) {
-            var option = document.createElement('option');
-            option.value = i;
-            option.innerHTML = i;
-            el.appendChild(option);
+    // Append to the table
+    content.appendChild(table);
+    container.appendChild(content);
+    container.onblur = function(e) {
+        if (jSuites.color.current) {
+            jSuites.color.current.close();
         }
     }
 
-    el.combo = obj;
+    // Insert picker after the element
+    el.parentNode.insertBefore(container, el);
+
+    // Keep object available from the node
+    el.color = obj;
 
     return obj;
 });
-
 
 /**
  * Contextmenu v1.0.1
@@ -1554,28 +1611,32 @@ jApp.combo = (function(el, options) {
  * https://github.com/paulhodel/jtools
  */
 
-jApp.contextmenu = (function(el, options) {
+jSuites.contextmenu = (function(el, options) {
     var obj = {};
     obj.options = {};
-    obj.options.items = options.items && options.items.length ? options.items : {};
+
+    // Default configuration
+    var defaults = {
+        items:null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
 
     obj.menu = document.createElement('ul');
     obj.menu.classList.add('jcontextmenu');
     obj.menu.setAttribute('tabindex', '900');
-    obj.menu.addEventListener('blur', (e) => {
-        obj.menu.classList.remove('jcontextmenu-focus');
-    });
-
-    if (typeof(options.onclick) == 'function') {
-        obj.menu.onclick = options.onclick;
-    }
 
     /**
      * Open contextmenu
      */
     obj.open = function(e, items) {
-        e = e || window.event;
-
         if (items) {
             obj.options.items = items;
         }
@@ -1609,138 +1670,40 @@ jApp.contextmenu = (function(el, options) {
             obj.menu.appendChild(itemContainer);
         }
 
-        let position = jApp.getPosition(e);
+        if (e.target) {
+            var e = e || window.event;
+            let position = jSuites.getPosition(e);
+            obj.menu.style.top = position[1] + 'px';
+            obj.menu.style.left = position[0] + 'px';
+        } else {
+            obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
+            obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+        }
 
         obj.menu.classList.add('jcontextmenu-focus');
-        obj.menu.style.top = position[1];
-        obj.menu.style.left = position[0];
         obj.menu.focus();
     }
 
     /**
-     * Close
+     * Close menu
      */
     obj.close = function() {
         obj.menu.classList.remove('jcontextmenu-focus');
     }
+
+    el.addEventListener("click", function(e) {
+        obj.close();
+    });
+
+    obj.menu.addEventListener('blur', function(e) {
+        obj.close();
+    });
 
     el.appendChild(obj.menu);
     el.contextmenu = obj;
 
     return obj;
 });
-
-/**
- * Dialog v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
- 
-jApp.dialog = (function() {
-    var obj = {};
-    obj.options = {};
-
-    var dialog = document.createElement('div');
-    dialog.className = 'jdialog';
-    dialog.id = 'dialog';
-
-    var dialogHeader = document.createElement('div');
-    dialogHeader.className = 'jdialog-header';
-
-    var dialogTitle = document.createElement('div');
-    dialogTitle.className = 'jdialog-title';
-    dialogHeader.appendChild(dialogTitle);
-
-    var dialogMessage = document.createElement('div');
-    dialogMessage.className = 'jdialog-message';
-    dialogHeader.appendChild(dialogMessage);
-
-    var dialogFooter = document.createElement('div');
-    dialogFooter.className = 'jdialog-footer';
-
-    var dialogContainer = document.createElement('div');
-    dialogContainer.className = 'jdialog-container';
-    dialogContainer.appendChild(dialogHeader);
-    dialogContainer.appendChild(dialogFooter);
-
-    // Confirm
-    var dialogConfirm = document.createElement('div');
-    var dialogConfirmButton = document.createElement('input');
-    dialogConfirmButton.value = obj.options.confirmLabel;
-    dialogConfirmButton.type = 'button';
-    dialogConfirmButton.onclick = function() {
-        if (typeof(obj.options.onconfirm) == 'function') {
-            obj.options.onconfirm();
-        }
-        obj.close();
-    };
-    dialogConfirm.appendChild(dialogConfirmButton);
-    dialogFooter.appendChild(dialogConfirm);
-
-    // Cancel
-    var dialogCancel = document.createElement('div');
-    var dialogCancelButton = document.createElement('input');
-    dialogCancelButton.value = obj.options.cancelLabel;
-    dialogCancelButton.type = 'button';
-    dialogCancelButton.onclick = function() {
-        if (typeof(obj.options.oncancel) == 'function') {
-            obj.options.oncancel();
-        }
-        obj.close();
-    }
-    dialogCancel.appendChild(dialogCancelButton);
-    dialogFooter.appendChild(dialogCancel);
-
-    // Dialog
-    dialog.appendChild(dialogContainer);
-
-    obj.open = function(options) {
-        obj.options = options;
-
-        if (obj.options.title) {
-            dialogTitle.innerHTML = obj.options.title;
-        }
-
-        if (obj.options.message) {
-            dialogMessage.innerHTML = obj.options.message;
-        }
-
-        if (! obj.options.confirmLabel) {
-            obj.options.confirmLabel = 'OK';
-        }
-        dialogConfirmButton.value = obj.options.confirmLabel;
-
-        if (! obj.options.cancelLabel) {
-            obj.options.cancelLabel = 'Cancel';
-        }
-        dialogCancelButton.value = obj.options.cancelLabel;
-
-        if (obj.options.type == 'confirm') {
-            dialogCancelButton.parentNode.style.display = '';
-        } else {
-            dialogCancelButton.parentNode.style.display = 'none';
-        }
-
-        // Append element to the app
-        dialog.style.opacity = 100;
-        jApp.el.appendChild(dialog);
-
-        // Show
-        setTimeout(function() {
-            dialogContainer.style.opacity = 100;
-        }, 0);
-    };
-
-    obj.close = function() {
-        dialog.style.opacity = 0;
-        dialogContainer.style.opacity = 0;
-        setTimeout(function() {
-            dialog.remove();
-        }, 100);
-    };
-
-    return obj;
-})();
 
 /**
  * (c) 2013 jDropdown
@@ -1750,7 +1713,7 @@ jApp.dialog = (function() {
  * @description: Custom dropdowns
  */
 
-jApp.dropdown = (function(el, options) {
+jSuites.dropdown = (function(el, options) {
     var obj = {};
     obj.options = {};
     obj.items = [];
@@ -1761,8 +1724,8 @@ jApp.dropdown = (function(el, options) {
     }
 
     // Global container
-    if (! jApp.dropdown.current) {
-        jApp.dropdown.current = null;
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
     }
 
     // Default configuration
@@ -1783,7 +1746,7 @@ jApp.dropdown = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -1800,7 +1763,7 @@ jApp.dropdown = (function(el, options) {
     } else if (obj.options.type == 'picker') {
         el.classList.add('jdropdown-picker');
     } else {
-        if (jApp.getWindowWidth() < 800) {
+        if (jSuites.getWindowWidth() < 800) {
             el.classList.add('jdropdown-picker');
             obj.options.type = 'picker';
         } else {
@@ -2110,7 +2073,7 @@ jApp.dropdown = (function(el, options) {
 
     obj.selectItem = function(item) {
         var index = item.getAttribute('data-index');
-        if (jApp.dropdown.current) {
+        if (jSuites.dropdown.current) {
             obj.selectIndex(item.getAttribute('data-index'));
         } else {
             // List
@@ -2177,11 +2140,11 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.open = function() {
-        if (jApp.dropdown.current != el) {
-            if (jApp.dropdown.current) {
-                jApp.dropdown.current.dropdown.close();
+        if (jSuites.dropdown.current != el) {
+            if (jSuites.dropdown.current) {
+                jSuites.dropdown.current.dropdown.close();
             }
-            jApp.dropdown.current = el;
+            jSuites.dropdown.current = el;
         }
 
         // Focus
@@ -2190,7 +2153,7 @@ jApp.dropdown = (function(el, options) {
             el.classList.add('jdropdown-focus');
 
             // Animation
-            if (jApp.getWindowWidth() < 800) {
+            if (jSuites.getWindowWidth() < 800) {
                 if (obj.options.type == null || obj.options.type == 'picker') {
                     container.classList.add('slide-bottom-in');
                 }
@@ -2221,21 +2184,17 @@ jApp.dropdown = (function(el, options) {
                 if (obj.options.position) {
                     container.style.position = 'fixed';
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = rect.top - rectContainer.height - 2;
+                        container.style.top = (rect.top - rectContainer.height - 2) + 'px';
                     } else {
-                        container.style.top = rect.top + rect.height + 1;
+                        container.style.top = (rect.top + rect.height + 1) + 'px';
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = -1 * (rectContainer.height);
+                        container.style.top = (-1 * (rectContainer.height)) + 'px';
                     } else {
                         container.style.top = '';
                     }
                 }
-            }
-
-            if (obj.options.type == 'searchbar') {
-                container.style.height = (document.body.offsetHeight) + 'px';
             }
         }
 
@@ -2246,9 +2205,9 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.close = function(ignoreEvents) {
-        if (jApp.dropdown.current) {
+        if (jSuites.dropdown.current) {
             // Remove controller
-            jApp.dropdown.current = null
+            jSuites.dropdown.current = null
             // Remove cursor
             var cursor = el.querySelector('.jdropdown-cursor');
             if (cursor) {
@@ -2365,38 +2324,26 @@ jApp.dropdown = (function(el, options) {
         }
     }
 
+    if (! jSuites.dropdown.hasEvents) {
+        document.addEventListener('click', jSuites.dropdown.onclick);
+        document.addEventListener('keydown', jSuites.dropdown.onkeydown);
+
+        jSuites.dropdown.hasEvents = true;
+    }
+
+    // Start dropdown
     obj.init();
 
+    // Keep object available from the node
     el.dropdown = obj;
 
     return obj;
 });
 
-jApp.dropdown.getElement = function(element) {
-    var jdropdownElement = false;
-
-    function path (element) {
-        if (element.className) {
-            if (element.classList.contains('jdropdown')) {
-                jdropdownElement = element;
-            }
-        }
-
-        if (element.parentNode) {
-            path(element.parentNode);
-        }
-    }
-
-    path(element);
-
-    return jdropdownElement;
-}
-
-jApp.dropdown.onclick = function(e) {
-    var element = jApp.dropdown.getElement(e.target);
-
+jSuites.dropdown.onclick = function(e) {
+    var element = jSuites.getElement(e.target, 'jdropdown');
     if (element) {
-        dropdown = element.dropdown;
+        var dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
             if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
                 dropdown.close();
@@ -2438,18 +2385,18 @@ jApp.dropdown.onclick = function(e) {
         e.stopPropagation();
         e.preventDefault();
     } else {
-        if (jApp.dropdown.current) {
-            jApp.dropdown.current.dropdown.close();
+        if (jSuites.dropdown.current) {
+            jSuites.dropdown.current.dropdown.close();
         }
     }
 }
 
 
 // Keydown controls
-jApp.dropdown.onkeydown = function(e) {
-    if (jApp.dropdown.current) {
+jSuites.dropdown.onkeydown = function(e) {
+    if (jSuites.dropdown.current) {
         // Element
-        var element = jApp.dropdown.current.dropdown;
+        var element = jSuites.dropdown.current.dropdown;
         // Index
         var index = element.currentIndex;
 
@@ -2485,304 +2432,7 @@ jApp.dropdown.onkeydown = function(e) {
     }
 }
 
-document.addEventListener('click', jApp.dropdown.onclick);
-document.addEventListener('keydown', jApp.dropdown.onkeydown);
-
-/**
- * (c) jTools Text Editor
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline richtext editor
- */
-
-jApp.editor = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-
-    // Default configuration
-    var defaults = {
-        value:null,
-        onclick:null,
-        onfocus:null,
-        onblur:null,
-        allowToolbar:true,
-        maxHeight:null,
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    if (obj.options.value) {
-        var value = obj.options.value;
-    } else {
-        var value = el.innerHTML ? el.innerHTML : ''; 
-    }
-
-    // Prepare container
-    el.innerHTML = '';
-    el.classList.add('jeditor-container');
-
-    // Create editor
-    var editor = document.createElement('div');
-    editor.setAttribute('contenteditable', true);
-    editor.setAttribute('spellcheck', false);
-    editor.className = 'jeditor';
-    editor.innerHTML = value;
-    el.appendChild(editor);
-
-    // Max height
-    if (obj.options.maxHeight) {
-        editor.style.overflowY = 'auto';
-        editor.style.maxHeight = obj.options.maxHeight;
-    }
-
-    obj.setData = function(html) {
-        editor.innerHTML = html;
-    }
-
-    obj.getData = function() {
-        return editor.innerHTML;
-    }
-
-    obj.clearHTML = function(input) {
-        var stringStripper = /(class=(")?Mso[a-zA-Z]+(")?)/g;
-        var output = input.replace(stringStripper, ' ');
-        var commentSripper = new RegExp('<!--(.*?)-->','g');
-        var output = output.replace(commentSripper, '');
-        var tagStripper = new RegExp('<(/)*(meta|link|span|\\?xml:|st1:|o:|font)(.*?)>','gi');
-        output = output.replace(tagStripper, '');
-        var badTags = ['style', 'script','applet','embed','noframes','noscript'];
-        for (var i=0; i< badTags.length; i++) {
-          tagStripper = new RegExp('<'+badTags[i]+'.*?'+badTags[i]+'(.*?)>', 'gi');
-          output = output.replace(tagStripper, '');
-        }
-        var badAttributes = ['style', 'start'];
-        for (var i=0; i< badAttributes.length; i++) {
-          var attributeStripper = new RegExp(' ' + badAttributes[i] + '="(.*?)"','gi');
-          output = output.replace(attributeStripper, '');
-        }
-        return output;
-    }
-
-    // Toolbar defaults
-    obj.getToolbar = function() {
-        if (! options.toolbar) {
-            options.toolbar = [
-                {
-                    icon:'undo',
-                    onclick: function() {
-                        document.execCommand('undo');
-                    }
-                },
-                {
-                    icon:'redo',
-                    onclick: function() {
-                        document.execCommand('redo');
-                    }
-                },
-                {
-                    type:'divisor'
-                },
-                {
-                    icon:'format_bold',
-                    onclick: function() {
-                        document.execCommand('bold');
-
-                        if (document.queryCommandState("bold")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_italic',
-                    onclick: function() {
-                        document.execCommand('italic');
-
-                        if (document.queryCommandState("italic")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_underline',
-                    onclick: function() {
-                        document.execCommand('underline');
-
-                        if (document.queryCommandState("underline")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                /*{
-                    type:'select',
-                    items: ['Verdana','Arial','Courier New'],
-                    onchange: function() {
-                    }
-                },
-                {
-                    type:'select',
-                    items: ['10px','12px','14px','16px','18px','20px','22px'],
-                    onchange: function() {
-                    }
-                },
-                {
-                    icon:'format_align_left',
-                    onclick: function() {
-                        document.execCommand('JustifyLeft');
-
-                        if (document.queryCommandState("JustifyLeft")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_align_center',
-                    onclick: function() {
-                        document.execCommand('justifyCenter');
-
-                        if (document.queryCommandState("justifyCenter")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_align_right',
-                    onclick: function() {
-                        document.execCommand('justifyRight');
-
-                        if (document.queryCommandState("justifyRight")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_align_justify',
-                    onclick: function() {
-                        document.execCommand('justifyFull');
-
-                        if (document.queryCommandState("justifyFull")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                },
-                {
-                    icon:'format_list_bulleted',
-                    onclick: function() {
-                        document.execCommand('insertUnorderedList');
-
-                        if (document.queryCommandState("insertUnorderedList")) {
-                            this.classList.add('selected');
-                        } else {
-                            this.classList.remove('selected');
-                        }
-                    }
-                }*/
-            ];
-        }
-
-        var toolbar = document.createElement('div');
-        toolbar.className = 'jeditor-toolbar';
-        //toolbar.style.visibility = 'hidden';
-
-        for (var i = 0; i < options.toolbar.length; i++) {
-            if (options.toolbar[i].icon) {
-                var item = document.createElement('div');
-                item.style.userSelect = 'none';
-                var itemIcon = document.createElement('i');
-                itemIcon.className = 'material-icons';
-                itemIcon.innerHTML = options.toolbar[i].icon;
-                itemIcon.onclick = options.toolbar[i].onclick;
-                item.appendChild(itemIcon);
-                toolbar.appendChild(item);
-            } else {
-                if (options.toolbar[i].type == 'divisor') {
-                    var divisor = document.createElement('div');
-                    divisor.className = 'jeditor-toolbar-divisor';
-                    toolbar.appendChild(divisor);
-                }
-            }
-        }
-
-        return toolbar;
-    }
-
-    // Tooolbar
-    if (obj.options.allowToolbar == true) {
-        var toolbar = obj.getToolbar();
-        el.appendChild(toolbar);
-    }
-
-    // Click
-    if (typeof(obj.options.onclick) == 'function') {
-        el.addEventListener('click', obj.options.onclick);
-    }
-
-    // Blur
-    if (typeof(obj.options.onblur) == 'function') {
-        editor.addEventListener('blur', function() {
-            obj.options.onblur(obj);
-        });
-    }
-
-    // Focus
-    if (typeof(obj.options.onfocus) == 'function') {
-        editor.addEventListener('focus', function() {
-            obj.options.onfocus(obj);
-        });
-    }
-
-    // Paste
-    el.addEventListener('paste', function(e) {
-        let paste = (e.clipboardData || window.clipboardData).getData('text');
-        paste = el.clearHTML(paste);
-        paste = paste.split('\r\n');
-        var str = '';
-        if (e.path[0].nodeName == 'DIV' && ! e.path[0].classList.contains('editor')) {
-            for (var i = 0; i < paste.length; i++) {
-                if (paste[i]) {
-                    str += paste[i] + "\n";
-                }
-            }
-        } else {
-            for (var i = 0; i < paste.length; i++) {
-                if (paste[i]) {
-                    str += '<div>' + paste[i] + '</div>';
-                } else {
-                    str += '<div><br></div>';
-                }
-            }
-        }
-        document.execCommand('insertHtml', false, str);
-        e.preventDefault();
-    });
-
-    el.editor = obj;
-
-    return obj;
-});
-
-jApp.image = (function(el, options) {
+jSuites.image = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -2800,7 +2450,7 @@ jApp.image = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -2987,7 +2637,7 @@ jApp.image = (function(el, options) {
  * @description: Page loading spin
  */
 
-jApp.loading = (function() {
+jSuites.loading = (function() {
     var obj = {};
 
     var loading = document.createElement('div');
@@ -3012,7 +2662,7 @@ jApp.loading = (function() {
  * @description: Input mask
  */
 
-jApp.mask = (function() {
+jSuites.mask = (function() {
     var obj = {};
     var index = 0;
     var values = []
@@ -3393,8 +3043,6 @@ jApp.mask = (function() {
                 }
             }
         }
-        
-        console.log(pieces);
     }
 
     /** 
@@ -3463,288 +3111,15 @@ jApp.mask = (function() {
     return obj;
 })();
 
-jApp.mobile = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-
-    return obj;
-});
-
-jApp.page = (function(route, options) {
-    if (! route) {
-        console.error('It is not possible to create a page without a route');
-        return;
-    }
-
-    if (jApp.page.items && jApp.page.items[route]) {
-        var obj = jApp.page.items[route];
-        obj.show();
-        return obj;
-    }
-
-    var obj = {};
-    obj.options = options || {};
-
-    // Default configuration
-    var defaults = {
-        closed:false,
-        route:null,
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    obj.options.route = route;
-
-    // Base path where the views are stored
-    if (! jApp.page.path) {
-        jApp.page.path = 'pages';
-    }
-    // If no defined path for this file get the default
-    if (! obj.options.path) {
-        obj.options.path = (jApp.page.path + route + '.html');
-    }
-    if (! obj.options.title) {
-        obj.options.title = 'Untitled';
-    }
-    var page = document.createElement('div');
-
-    // Class
-    if (obj.options.panel) {
-        page.classList.add('panel');
-        page.classList.add(obj.options.panel);
-    } else {
-        page.classList.add('page');
-    }
-
-    // Container
-    if (! jApp.page.container) {
-        jApp.page.container = document.createElement('div');
-        jApp.page.container.className = 'pages';
-        jApp.el.appendChild(jApp.page.container);
-    }
-
-    // Index
-    var index = jApp.page.container.children.length;
-    page.setAttribute('data-index', index);
-
-    // Panel goes in the main element
-    if (obj.options.panel) {
-        //jApp.el.appendChild(page);
-    } else {
-        jApp.page.container.appendChild(page);
-    }
-
-    // Keep page in the container
-    if (! jApp.page.items) {
-        jApp.page.items = [];
-    }
-    jApp.page.items[route] = obj;
-
-    // Load content
-    obj.create = function() {
-        var parse = function(result) {
-            jApp.loading.hide();
-
-            page.innerHTML = result;
-            obj.show();
-        }
-
-        jApp.loading.show();
-        $(page).load(obj.options.path, parse);
-    };
-
-    obj.show = function(ignoreEntry) {
-        if (jApp.page.current) {
-            if (jApp.page.current == page) {
-                jApp.page.current = page;
-            } else {
-                if (page.classList.contains('panel')) {
-                } else {
-                    var a = parseInt(jApp.page.current.getAttribute('data-index'));
-                    var b = parseInt(page.getAttribute('data-index'));
-                    page.style.display = '';
-                    if (a < b) {
-                        jApp.page.container.classList.add('slide-left-out');
-                    } else {
-                        jApp.page.container.classList.add('slide-left-in');
-                    }
-
-                    setTimeout(function(){
-                        jApp.page.current.style.display = 'none';
-                        jApp.page.current = page;
-                        jApp.page.container.classList.remove('slide-left-out');
-                        jApp.page.container.classList.remove('slide-left-in');
-                    }, 400);
-                }
-            }
-        } else {
-            jApp.page.current = page;
-        }
-
-        if (! ignoreEntry) {
-            // Add history
-            history.pushState({ route:route }, obj.options.title, obj.options.route);
-        }
-    }
-
-    obj.create();
-
-    return obj;
-});
-
-jApp.toolbar = (function(el, options) {
-    var obj = {};
-    obj.options = options;
-
-    var toolbar = document.createElement('div');
-    toolbar.classList.add('toolbar');
-    toolbar.onclick = function(e) {
-        var element = toolbarContent.children;
-        for (var i = 0; i < element.length; i++) {
-            element[i].classList.remove('selected');
-        }
-        if (element = getElement(e.target)) {
-            element.classList.add('selected');
-        }
-    }
-
-    var toolbarContent = document.createElement('div');
-    toolbar.appendChild(toolbarContent);
-
-    for (var i = 0; i < options.items.length; i++) {
-        var toolbarItem = document.createElement('div');
-        toolbarItem.classList.add('toolbar-item');
-        var toolbarLink = document.createElement('a');
-        if (options.items[i].route) {
-            toolbarLink.setAttribute('data-href', options.items[i].route);
-           // jApp.page(options.items[i].route, {
-           //     closed:true,
-           //});
-        }
-
-        if (options.items[i].icon) {
-            var toolbarIcon = document.createElement('i');
-            toolbarIcon.classList.add('material-icons');
-            toolbarIcon.innerHTML = options.items[i].icon;
-            toolbarLink.appendChild(toolbarIcon);
-        }
-        if (options.items[i].badge) {
-            var toolbarBadge = document.createElement('div');
-            toolbarBadge.classList.add('badge');
-            var toolbarBadgeContent = document.createElement('div');
-            toolbarBadgeContent.innerHTML = options.items[i].badge;
-            toolbarBadge.appendChild(toolbarBadgeContent);
-            toolbarLink.appendChild(toolbarBadge);
-        }
-        if (options.items[i].title) {
-            var toolbarTitle = document.createElement('span');
-            toolbarTitle.innerHTML = options.items[i].title;
-            toolbarLink.appendChild(toolbarTitle);
-        }
-
-        toolbarItem.appendChild(toolbarLink);
-        toolbarContent.appendChild(toolbarItem);
-    }
-
-    var getElement = function(element) {
-        var item = null;
-
-        function path (element) {
-            if (element.className) {
-                if (element.classList.contains('toolbar-item')) {
-                    item = element;
-                }
-            }
-
-            if (element.parentNode) {
-                path(element.parentNode);
-            }
-        }
-
-        path(element);
-
-        return item;
-    }
-
-    el.appendChild(toolbar);
-
-    return obj;
-});
-
-jApp.actionsheet = (function() {
-    var obj = {};
-    obj.options = {};
-
-     var actionsheet = document.createElement('div');
-     actionsheet.className = 'jactionsheet';
-
-    var actionContent = document.createElement('div');
-    actionContent.className = 'jactionsheet-content';
-    actionsheet.appendChild(actionContent);
-
-    obj.open = function(options) {
-       obj.options = options;
-
-       obj.options.groups.forEach(function(group) {
-            var actionGroup = document.createElement('div');
-            actionGroup.className = 'jactionsheet-group';
-
-            group.forEach(function(v) {
-                var actionItem = document.createElement('div');
-                var actionInput = document.createElement('input');
-                actionInput.type = 'button';
-                actionInput.value = v.title;
-                if (v.className) {
-                    actionInput.className = v.className; 
-                }
-                if (v.onclick) {
-                    actionInput.onclick = v.onclick; 
-                }
-                actionItem.appendChild(actionInput);
-                actionGroup.appendChild(actionItem);
-            });
-
-            actionContent.appendChild(actionGroup);
-        });
-
-        // Append
-        actionsheet.style.opacity = 100;
-        jApp.el.appendChild(actionsheet);
-
-        // Animation
-        actionContent.classList.add('slide-bottom-in');
-    }
-
-    obj.close = function() {
-        actionsheet.style.opacity = 0;
-        // Remove any existing actionsheet
-        actionContent.classList.add('slide-bottom-out');
-
-        // Wait for the animation and remove any actionsheet
-        setTimeout(function() {
-            actionsheet.remove();
-        }, 400);
-    }
-
-    return obj;
-})();
-
 /**
- * (c) jTools Modal page
- * https://github.com/paulhodel/jtools
+ * (c) jSuites modal
+ * https://github.com/paulhodel/jsuites
  *
  * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Modal page
+ * @description: Modal
  */
 
-jApp.modal = (function(el, options) {
+jSuites.modal = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -3761,7 +3136,7 @@ jApp.modal = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -3802,7 +3177,10 @@ jApp.modal = (function(el, options) {
             obj.options.onopen(el);
         }
         // Backdrop
-        document.body.appendChild(jApp.backdrop);
+        document.body.appendChild(jSuites.backdrop);
+
+        // Current
+        jSuites.modal.current = el;
     }
 
     obj.close = function() {
@@ -3812,1024 +3190,84 @@ jApp.modal = (function(el, options) {
             obj.options.onclose(el);
         }
         // Backdrop
-        jApp.backdrop.remove();
+        jSuites.backdrop.remove();
+
+        // Current
+        jSuites.modal.current = null;
     }
 
-    el.addEventListener('mousedown', function(e) {
-        obj.position = [];
+    if (! jSuites.modal.hasEvents) {
+        jSuites.modal.current = el;
 
-        if (e.target.classList.contains('jmodal')) {
-            setTimeout(function() {
+        document.addEventListener('mousedown', jSuites.modal.mouseDownControls);
+        document.addEventListener('mousemove', jSuites.modal.mouseMoveControls);
+        document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
 
-                var rect = el.getBoundingClientRect();
-                if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
-                    obj.close();
-                } else {
-                    if (el.getAttribute('title') && e.clientY - rect.top < 50) {
-                        if (document.selection) {
-                            document.selection.empty();
-                        } else if ( window.getSelection ) {
-                            window.getSelection().removeAllRanges();
-                        }
+        jSuites.modal.hasEvents = true;
+    }
 
-                        obj.position = [
-                            rect.left,
-                            rect.top,
-                            e.clientX,
-                            e.clientY,
-                            rect.width,
-                            rect.height,
-                        ];
-                    }
-                }
-            }, 100);
-        }
-    });
-
-    document.addEventListener('mousemove', function(e) {
-        if (obj.position) {
-            if (e.which == 1 || e.which == 3) {
-                el.style.top = obj.position[1] + (e.clientY - obj.position[3]) + (obj.position[5] / 2);
-                el.style.left = obj.position[0] + (e.clientX - obj.position[2]) + (obj.position[4] / 2);
-                el.style.cursor = 'move';
-            } else {
-                el.style.cursor = 'auto';
-            }
-        }
-    });
-
-    document.addEventListener('mouseup', function(e) {
-        obj.position = null;
-
-        el.style.cursor = 'auto';
-    });
-
+    // Keep object available from the node
     el.modal = obj;
 
     return obj;
 });
 
-jApp.rating = (function(el, options) {
-    var obj = {};
-    obj.options = {};
+jSuites.modal.current = null;
+jSuites.modal.position = null;
 
-    // Default configuration
-    var defaults = {
-        number:5,
-        value:0,
-        tooltip: [ 'Very bad', 'Bad', 'Average', 'Good', 'Very good' ],
-        onchange:null,
-    };
+jSuites.modal.mouseUpControls = function(e) {
+    if (jSuites.modal.current) {
+        jSuites.modal.current.style.cursor = 'auto';
+    }
+    jSuites.modal.position = null;
+}
 
-    // Loop through the initial configuration
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
+jSuites.modal.mouseMoveControls = function(e) {
+    if (jSuites.modal.current && jSuites.modal.position) {
+        if (e.which == 1 || e.which == 3) {
+            var position = jSuites.modal.position;
+            jSuites.modal.current.style.top = (position[1] + (e.clientY - position[3]) + (position[5] / 2)) + 'px';
+            jSuites.modal.current.style.left = (position[0] + (e.clientX - position[2]) + (position[4] / 2)) + 'px';
+            jSuites.modal.current.style.cursor = 'move';
         } else {
-            obj.options[property] = defaults[property];
+            jSuites.modal.current.style.cursor = 'auto';
         }
     }
+}
 
-    // Class
-    el.classList.add('jrating');
+jSuites.modal.mouseDownControls = function(e) {
+    jSuites.modal.position = [];
 
-    // Add elements
-    for (var i = 0; i < 5; i++) {
-        var div = document.createElement('div');
-        div.setAttribute('data-index', (i + 1))
-        div.setAttribute('title', obj.options.tooltip[i])
-        el.appendChild(div);
-    }
+    if (e.target.classList.contains('jmodal')) {
+        setTimeout(function() {
 
-    // Set value
-    obj.setValue = function(index) {
-        for (var i = 0; i < 5; i++) {
-            if (i < index) {
-                el.children[i].classList.add('jrating-selected');
+            var rect = e.target.getBoundingClientRect();
+            if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
+                e.target.modal.close();
             } else {
-                el.children[i].classList.remove('jrating-selected');
-            }
-        }
-
-        obj.options.value = index;
-
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, index);
-        }
-    }
-
-    // Events
-    el.addEventListener("click", function(e) {
-        var index = e.target.getAttribute('data-index');
-        if (index == obj.options.value) {
-            obj.setValue(0);
-        } else {
-            obj.setValue(index);
-        }
-    });
-
-    el.addEventListener("mouseover", function(e) {
-        var index = e.target.getAttribute('data-index');
-        for (var i = 0; i < 5; i++) {
-            if (i < index) {
-                el.children[i].classList.add('jrating-over');
-            } else {
-                el.children[i].classList.remove('jrating-over');
-            }
-        }
-    });
-
-    el.addEventListener("mouseout", function(e) {
-        for (var i = 0; i < 5; i++) {
-            el.children[i].classList.remove('jrating-over');
-        }
-    });
-
-    el.rating = obj;
-
-    return obj;
-});
-
-/**
- * (c) Image slider
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Image Slider
- */
-
-jApp.slider = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-    obj.currentImage = null;
-
-    if (options) {
-        obj.options = options;
-    }
-
-    // Items
-    obj.options.items = [];
-
-    if (! el.classList.contains('jslider')) {
-        el.classList.add('jslider');
-
-        // Create container
-        var container = document.createElement('div');
-        container.className = 'jslider-container';
-
-        // Move children inside
-        if (el.children.length > 0) {
-            // Keep children items
-            for (var i = 0; i < el.children.length; i++) {
-                obj.options.items.push(el.children[i]);
-            }
-        }
-        if (obj.options.items.length > 0) {
-            for (var i = 0; i < obj.options.items.length; i++) {
-                obj.options.items[i].classList.add('jfile');
-                var index = obj.options.items[i].src.lastIndexOf('/');
-                if (index < 0) {
-                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src);
-                } else {
-                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src.substr(index + 1));
-                }
-                var index = obj.options.items[i].src.lastIndexOf('/');
-
-                container.appendChild(obj.options.items[i]);
-            }
-        }
-        el.appendChild(container);
-        // Add close buttom
-        var close = document.createElement('div');
-        close.className = 'jslider-close';
-        close.innerHTML = 'close';
-        close.onclick =  function() {
-            obj.close();
-        }
-        el.appendChild(close);
-    } else {
-        var container = el.querySelector('slider-container');
-    }
-
-    // Append data
-    if (obj.options.data && obj.options.data.length) {
-        for (var i = 0; i < obj.options.data.length; i++) {
-            if (obj.options.data[i]) {
-                var img = document.createElement('img');
-                img.setAttribute('data-name', obj.options.data[i].name);
-                img.setAttribute('data-size', obj.options.data[i].size);
-                img.setAttribute('data-cover', obj.options.data[i].cover);
-                img.setAttribute('data-extension', obj.options.data[i].extension);
-                img.setAttribute('src', obj.options.data[i].file);
-                obj.options.items.push(img);
-                container.appendChild(img);
-            }
-        }
-    }
-
-    obj.show = function(target) {
-        if (! target) {
-            var target = container.children[0];
-        }
-
-        if (! container.classList.contains('jslider-preview')) {
-            container.classList.add('jslider-preview');
-            close.style.display = 'block';
-        }
-
-        // Hide all images
-        [...container.children].forEach(function(v) {
-            v.style.display = 'none';
-        });
-
-        // Show clicked only
-        target.style.display = 'block';
-
-        // Is there any previous
-        if (target.previousSibling) {
-            container.classList.add('jslider-left');
-        } else {
-            container.classList.remove('jslider-left');
-        }
-
-        // Is there any next
-        if (target.nextSibling) {
-            container.classList.add('jslider-right');
-        } else {
-            container.classList.remove('jslider-right');
-        }
-
-        obj.currentImage = target;
-    }
-
-    // Allow insert
-    if (obj.options.allowAttachment) {
-        var attachmentInput = document.createElement('input');
-        attachmentInput.type = 'file';
-        attachmentInput.className = 'slider-attachment';
-        attachmentInput.setAttribute('accept', 'image/*');
-        attachmentInput.style.display = 'none';
-        attachmentInput.onchange = function() {
-            var reader = [];
-
-            for (var i = 0; i < this.files.length; i++) {
-                var type = this.files[i].type.split('/');
-
-                if (type[0] == 'image') {
-                    var file = {
-                        size: this.files[i].size,
-                        name: this.files[i].name,
-                        lastmodified: this.files[i].lastModified,
+                if (e.target.getAttribute('title') && e.clientY - rect.top < 50) {
+                    if (document.selection) {
+                        document.selection.empty();
+                    } else if ( window.getSelection ) {
+                        window.getSelection().removeAllRanges();
                     }
 
-                    reader[i] = new FileReader();
-                    reader[i].addEventListener("load", function (e) {
-                        file.file = e.target.result;
-                        obj.addFile(file);
-                    }, false);
-
-                    reader[i].readAsDataURL(this.files[i]);
-                } else {
-                    alert('The extension is not allowed');
+                    jSuites.modal.position = [
+                        rect.left,
+                        rect.top,
+                        e.clientX,
+                        e.clientY,
+                        rect.width,
+                        rect.height,
+                    ];
                 }
-            };
-        }
-
-        var attachmentIcon = document.createElement('i');
-        attachmentIcon.innerHTML = 'attachment';
-        attachmentIcon.className = 'jslider-attach material-icons';
-        attachmentIcon.onclick = function() {
-            jApp.click(attachmentInput);
-        }
-
-        el.appendChild(attachmentInput);
-        el.appendChild(attachmentIcon);
-    }
-
-    obj.open = function() {
-        obj.show();
-
-        // Event
-        if (typeof(obj.options.onopen) == 'function') {
-            obj.options.onopen(el);
-        }
-    }
-
-    obj.close = function() {
-        container.classList.remove('jslider-preview');
-        container.classList.remove('jslider-left');
-        container.classList.remove('jslider-right');
-
-        [...container.children].forEach(function(v) {
-            v.style.display = '';
-        });
-
-        close.style.display = '';
-
-        obj.currentImage = null;
-
-        // Event
-        if (typeof(obj.options.onclose) == 'function') {
-            obj.options.onclose(el);
-        }
-    }
-
-    obj.addFile = function(v) {
-        var img = document.createElement('img');
-        img.setAttribute('data-lastmodified', v.lastmodified);
-        img.setAttribute('data-name', v.name);
-        img.setAttribute('data-size', v.size);
-        img.setAttribute('src', v.file);
-        img.className = 'jfile';
-        container.appendChild(img);
-        obj.options.items.push(img);
-
-        // Onchange
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, v);
-        }
-    }
-
-    obj.addFiles = function(files) {
-        for (var i = 0; i < files.length; i++) {
-            obj.addFile(files[i]);
-        }
-    }
-
-    obj.next = function() {
-        if (obj.currentImage.nextSibling) {
-            obj.show(obj.currentImage.nextSibling);
-        }
-    }
-    
-    obj.prev = function() {
-        if (obj.currentImage.previousSibling) {
-            obj.show(obj.currentImage.previousSibling);
-        }
-    }
-
-    obj.getData = function() {
-        var files = jApp.getFiles(container);
-
-        const values = {};
-        const inputs = container.children;
-
-        for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].name) {
-                values[inputs[i].name] = inputs[i].value;
             }
-        }
-        return values;
+        }, 100);
     }
+}
 
-    // Push to refresh
-    var longTouchTimer = null;
 
-    var mouseDown = function(e) {
-        if (e.target.tagName == 'IMG') {
-            // Remove
-            var targetImage = e.target;
-            longTouchTimer = setTimeout(function() {
-                if (e.target.src.substr(0,4) == 'data') {
-                    e.target.remove();
-                } else {
-                    if (e.target.classList.contains('jremove')) {
-                        e.target.classList.remove('jremove');
-                    } else {
-                        e.target.classList.add('jremove');
-                    }
-                }
 
-                // Onchange
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange(el, e.target);
-                }
-            }, 1000);
-        }
-    }
+    return jSuites;
 
-    var mouseUp = function(e) {
-        if (longTouchTimer) {
-            clearTimeout(longTouchTimer);
-        }
-
-        // Open slider
-        if (e.target.tagName == 'IMG') {
-            if (! e.target.classList.contains('jremove')) {
-                obj.show(e.target);
-            }
-        } else {
-            // Arrow controls
-            if (e.target.clientWidth - e.offsetX < 40) {
-                // Show next image
-                obj.next();
-            } else if (e.offsetX < 40) {
-                // Show previous image
-                obj.prev();
-            }
-        }
-    }
-
-    container.addEventListener('mousedown', mouseDown);
-    container.addEventListener('touchstart', mouseDown);
-    container.addEventListener('mouseup', mouseUp);
-    container.addEventListener('touchend', mouseUp);
-
-    el.slider = obj;
-
-    return obj;
-});
-
-/**
- * (c) jTools v1.0.1 - Element sorting
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Element drag and drop sorting
- */
-
-jApp.sorting = (function(el, options) {
-    el.classList.add('jsorting');
-
-    el.addEventListener('dragstart', (e) => {
-        e.target.classList.add('dragging');
-    });
-
-    el.addEventListener('dragover', (e) => {
-        e.preventDefault();
-
-        if (e.target.clientHeight / 2 > e.offsetY) {
-            e.path[0].style.borderTop = '1px dotted #ccc';
-            e.path[0].style.borderBottom = '';
-        } else {
-            e.path[0].style.borderTop = '';
-            e.path[0].style.borderBottom = '1px dotted #ccc';
-        }
-    });
-
-    el.addEventListener('dragleave', (e) => {
-        e.path[0].style.borderTop = '';
-        e.path[0].style.borderBottom = '';
-    });
-
-    el.addEventListener('dragend', (e) => {
-        e.path[1].querySelector('.dragging').classList.remove('dragging');
-    });
-
-    el.addEventListener('drop', (e) => {
-        var element = e.path[1].querySelector('.dragging');
-
-        if (e.target.clientHeight / 2 > e.offsetY) {
-            e.path[1].insertBefore(element, e.path[0]);
-        } else {
-            e.path[1].insertBefore(element, e.path[0].nextSibling);
-        }
-
-        e.path[0].style.borderTop = '';
-        e.path[0].style.borderBottom = '';
-    });
-
-    [...el.children].forEach(function(v) {
-        v.setAttribute('draggable', 'true');
-    });
-
-    return el;
-});
-
-/**
- * (c) jTools Element template render
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Template renderer
- */
-
-jApp.template = (function(el, options) {
-    options.getData = function(pageNumber, query) {
-        // Node container
-        var container = '';
-
-        // Filter data
-        if (query) {
-            var test = function(obj, query) {
-                for (var key in obj) {
-                    var value = obj[key];
-
-                    if ((''+value).toLowerCase().search(query) >= 0) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
-            var data = options.data.filter(function(item) {
-                return test(item, query);
-            });
-        } else {
-            var data = options.data;
-        }
-
-        // Method filter
-        if (options.filter) {
-            data = options.filter(data);
-        }
-
-        if (! data.length) {
-            container.innerHTML = 'No records found';
-        } else {
-            var component = options.template[Object.keys(options.template)[0]];
-
-            if (options.pagination) {
-                if (! pageNumber) {
-                    pageNumber = 1;
-                }
-                var quantityPerPage = options.pagination;
-                startNumber = (options.pagination * (pageNumber - 1));
-                finalNumber = (options.pagination * (pageNumber - 1)) + options.pagination;
-
-                if (data.length < finalNumber) {
-                    finalNumber = data.length;
-                }
-            } else {
-                var startNumber = 0;
-                var finalNumber = data.length;
-            }
-
-            // Append itens
-            for (var i = startNumber; i < finalNumber; i++) {
-                container += component(data[i]).trim();
-            }
-
-            // Create pagination
-            if (options.pagination && data.length > options.pagination) {
-                // Pagination container
-                var pagination = document.createElement('div');
-                pagination.className = 'jtemplate-pagination';
-
-                var quantyOfPages = parseInt(data.length / options.pagination);
-
-                if (pageNumber < 6) {
-                    startNumber = 1;
-                    finalNumber = quantyOfPages < 10 ? quantyOfPages + 1 : 10;
-                } else if (quantyOfPages - pageNumber < 6) {
-                    startNumber = quantyOfPages - 9;
-                    finalNumber = quantyOfPages;
-                } else {
-                    startNumber = pageNumber - 4;
-                    finalNumber = pageNumber + 5;
-                }
-
-                // First
-                if (startNumber > 1) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = '<';
-                    paginationItem.title = 1;
-                    pagination.appendChild(paginationItem);
-                }
-
-                // Get page links
-                for (var i = startNumber; i <= finalNumber; i++) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = i;
-                    pagination.appendChild(paginationItem);
-
-                    if (pageNumber == i) {
-                        paginationItem.style.fontWeight = 'bold';
-                    }
-                }
-
-                // Last
-                if (finalNumber < quantyOfPages) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = '>';
-                    paginationItem.title = quantyOfPages;
-                    pagination.appendChild(paginationItem);
-                }
-
-                container = pagination.outerHTML + container;
-            }
-        }
-
-        return container;
-    };
-
-    if (options.search) {
-        var searchContainer = document.createElement('div');
-        searchContainer.className = 'jtemplate-results';
-        var searchInput = document.createElement('input');
-        searchInput.onkeyup = function(e) {
-            el.innerHTML = options.getData(1, this.value.toLowerCase());
-        }
-        searchContainer.appendChild(searchInput);
-        el.parentNode.insertBefore(searchContainer, el);
-    }
-
-    options.reset = function() {
-        el.innerHTML = '';
-    }
-
-    options.refresh = function() {
-        el.innerHTML = options.render();
-    }
-
-    if (options.url) {
-        fetch(options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-            .then(function(data) {
-                data.json().then(function(data) {
-                    options.data = data;
-
-                    el.innerHTML = options.render();
-                })
-            });
-    } else {
-        el.innerHTML = options.render();
-    }
-
-    el.addEventListener('mousedown', (e) => {
-        if (e.path[1].classList.contains('jtemplate-pagination')) {
-            var index = e.path[0].innerText;
-            if (index == '<') {
-                el.innerHTML = options.getData(1);
-            } else if (index == '>') {
-                el.innerHTML = options.getData(e.path[0].getAttribute('title'));
-            } else {
-                el.innerHTML = options.getData(parseInt(index));
-            }
-        }
-        e.preventDefault();
-    });
-
-    el.template = options;
-
-    return options;
-});
-
-/**
- * (c) jTools Timeline
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Timeline
- */
-
-jApp.timeline = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
-    }
-
-    // Default date format
-    if (! options.date) {
-        var date = new Date();
-        y = date.getFullYear();
-        m = two(date.getMonth() + 1);
-        date = y + '-' + m;
-    }
-
-    // Default configurations
-    var defaults = {
-        data: [],
-        date: date,
-        months: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
-        monthsFull: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ],
-        text: {
-            noInformation: '<div class="jtimeline-message">No information for this period</div>',
-        }
-    };
-
-    // Loop through our object
-    for (var prop in defaults) {
-        if (defaults.hasOwnProperty(prop)) {
-            obj.options[prop] = options && options[prop] ? options[prop] : defaults[prop];
-        }
-    }
-
-    // Add class
-    el.classList.add('jtimeline');
-
-    // Header
-    var timelineHeader = document.createElement('div');
-    timelineHeader.className = 'jtimeline-header';
-
-    var timelineLabel = document.createElement('div');
-    timelineLabel.className = 'jtimeline-label';
-
-    var timelineNavigation = document.createElement('div');
-    timelineNavigation.className = 'jtimeline-navigation';
-
-    // Labels 
-    var timelineMonth = document.createElement('div');
-    timelineMonth.className = 'jtimeline-month';
-    timelineMonth.innerHTML = '';
-    timelineLabel.appendChild(timelineMonth);
-
-    var timelineYear = document.createElement('div');
-    timelineYear.className = 'jtimeline-year';
-    timelineYear.innerHTML = '';
-    timelineLabel.appendChild(timelineYear);
-
-    // Navigation
-    var timelinePrev = document.createElement('div');
-    timelinePrev.className = 'jtimeline-prev';
-    timelinePrev.innerHTML = '<i class="material-icons">keyboard_arrow_left</i>';
-    timelineNavigation.appendChild(timelinePrev);
-
-    var timelineNext = document.createElement('div');
-    timelineNext.className = 'jtimeline-next';
-    timelineNext.innerHTML = '<i class="material-icons">keyboard_arrow_right</i>';
-    timelineNavigation.appendChild(timelineNext);
-
-    timelineHeader.appendChild(timelineLabel);
-    timelineHeader.appendChild(timelineNavigation);
-
-    // Data container
-    var timelineContainer = document.createElement('div');
-    timelineContainer.className = 'jtimeline-container';
-
-    // Append headers
-    el.appendChild(timelineHeader);
-    el.appendChild(timelineContainer);
-
-    // Date
-    if (obj.options.date.length > 7) {
-        obj.options.date = obj.options.date.substr(0, 7)
-    }
-
-    obj.setData = function(rows) {
-        var data = [];
-        for (var i = 0; i < rows.length; i++) {
-            var d = rows[i].date.substr(0,7);
-
-            // Create the object if not exists
-            if (! data[d]) {
-                data[d] = [];
-            }
-
-            // Create array
-            data[d].push(rows[i]);
-        };
-        obj.options.data = data;
-        obj.render(obj.options.date);
-    }
-
-    obj.render = function(date) {
-        // Filter
-        if (date.length > 7) {
-            var date = date.substr(0,7);
-        }
-
-        // Update current date
-        obj.options.date = date;
-
-        // Reset data
-        timelineContainer.innerHTML = '';
-
-        // Days
-        var timelineDays = [];
-
-        // Itens
-        if (! obj.options.data[date]) {
-            timelineContainer.innerHTML = obj.options.text.noInformation;
-        } else {
-            for (var i = 0; i < obj.options.data[date].length; i++) {
-                var v = obj.options.data[date][i];
-                var d = v.date.split('-');
-
-                // Item container
-                var timelineItem = document.createElement('div');
-                timelineItem.className = 'jtimeline-item';
-
-                // Date
-                var timelineDateContainer = document.createElement('div');
-                timelineDateContainer.className = 'jtimeline-date-container';
-
-                var timelineDate = document.createElement('div');
-                if (! timelineDays[d[2]]) {
-                    timelineDate.className = 'jtimeline-date jtimeline-date-bullet';
-                    timelineDate.innerHTML = d[2];
-
-                    if (! v.title) {
-                        v.title = v.subtitle ? v.subtitle : 'Information';
-                    }
-                } else {
-                    timelineDate.className = 'jtimeline-date';
-                    timelineDate.innerHTML = '';
-                }
-                timelineDateContainer.appendChild(timelineDate);
-
-                var timelineContent = document.createElement('div');
-                timelineContent.className = 'jtimeline-content';
-
-                var timelineTitle = document.createElement('div');
-                timelineTitle.className = 'jtimeline-title';
-                timelineTitle.innerHTML = v.title;
-                timelineContent.appendChild(timelineTitle);
-
-                var timelineSubtitle = document.createElement('div');
-                timelineSubtitle.className = 'jtimeline-subtitle';
-                timelineSubtitle.innerHTML = v.subtitle ? v.subtitle : '';
-                timelineContent.appendChild(timelineSubtitle);
-
-                // Text
-                var timelineText = document.createElement('div');
-                timelineText.className = 'jtimeline-text';
-                timelineText.innerHTML = v.text;
-                timelineContent.appendChild(timelineText);
-
-                // Tag
-                if (v.tag) {
-                    var timelineTag = document.createElement('div');
-                    timelineTag.className = 'jtimeline-tag';
-                    if (typeof(v.tag) == 'string') {
-                        timelineTag.innerHTML = v.tag;
-                    } else {
-                        timelineTag.innerHTML = v.tag.text;
-                        timelineTag.style.backgroundColor = v.tag.color;
-                    }
-                    timelineContent.appendChild(timelineTag);
-                }
-
-                // Day
-                timelineDays[d[2]] = true;
-
-                // Append Item
-                timelineItem.appendChild(timelineDateContainer);
-                timelineItem.appendChild(timelineContent);
-                timelineContainer.appendChild(timelineItem);
-            };
-        }
-
-        // Update labels
-        var d = date.split('-');
-        timelineYear.innerHTML = d[0];
-        timelineMonth.innerHTML = obj.options.monthsFull[parseInt(d[1]) - 1];
-    }
-
-    obj.next = function() {
-        // Update current date
-        var d = obj.options.date.split('-');
-        // Next month
-        d[1]++;
-        // Next year
-        if (d[1] > 12) {
-            d[0]++;
-            d[1] = 1;
-        }
-        date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
-    }
-
-    obj.prev = function() {
-        // Update current date
-        var d = obj.options.date.split('-');
-        // Next month
-        d[1]--;
-        // Next year
-        if (d[1] < 1) {
-            d[0]--;
-            d[1] = 12;
-        }
-        date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
-    }
-
-    // Init
-    if (obj.options.url) {
-        $.ajax({
-            url: obj.options.url,
-            type: 'GET',
-            dataType:'json',
-            success: function(data) {
-                // Timeline data
-                obj.setData(data);
-            }
-        });
-    } else {
-        // Timeline data
-        obj.setData(obj.options.data);
-    }
-
-    var timelineMouseDownControls = function(e) {
-        if (e.target.classList.contains('jtimeline-next') || e.target.parentNode.classList.contains('jtimeline-next')) {
-            obj.next();
-        } else if (e.target.classList.contains('jtimeline-prev') || e.target.parentNode.classList.contains('jtimeline-prev')) {
-            obj.prev();
-        }
-    }
-
-    el.addEventListener("mousedown", timelineMouseDownControls);
-
-    el.timeline = obj;
-
-    return obj;
-});
-
-jApp.tracker = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-    
-    if (options) {
-        obj.options = options;
-    }
-
-    // Do not ignore changes
-    obj.options.ignore = false;
-
-    // Default message. Depending on the browser, the message can be customized.
-    if (obj.options.message) {
-        obj.options.message = 'Are you sure? There are unsaved information in your form';
-    }
-
-    // Return the form hash
-    obj.setHash = function() {
-        return obj.getHash(obj.getElements());
-    }
-
-    // Get the form hash
-    obj.getHash = function(str) {
-        return str.split('').reduce((prevHash, currVal) => ((prevHash << 5) - prevHash) + currVal.charCodeAt(0), 0);
-    }
-
-    // Is there any change in the form since start tracking?
-    obj.isChanged = function() {
-        var hash = obj.setHash();
-        return (obj.options.currentHash != hash);
-    }
-
-    // Change the ignore flag
-    obj.setIgnore = function(option) {
-        obj.options.ignore = option;
-    }
-
-    // Restart tracking
-    obj.resetTracker = function() {
-        obj.options.currentHash = obj.setHash();
-        obj.options.ignore = false;
-    }
-
-    obj.reset = function() {
-        obj.options.currentHash = obj.setHash();
-        obj.options.ignore = false;
-    }
-
-    // Ignore flag
-    obj.setIgnore = function(ignoreFlag) {
-        obj.options.ignore = ignoreFlag ? true : false;
-    }
-
-    // Get form elements
-    obj.getElements = function() {
-        var ret = {};
-        var elements = el.querySelectorAll("input, select, textarea");
-
-        for (var i = 0; i < elements.length; i++) {
-            var element = elements[i];
-            var name = element.name;
-            var value = element.value;
-
-            if (name) {
-                ret[name] = value;
-            }
-        }
-
-        return JSON.stringify(ret);
-    }
-
-    // Start tracking in one second
-    setTimeout(function() {
-        obj.options.currentHash = obj.setHash();
-    }, 1000);
-
-    // Alert
-    window.addEventListener("beforeunload", function (e) {
-        if (obj.isChanged() && obj.options.ignore == false) {
-            var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
-
-            if (confirmationMessage) {
-                if (typeof e == 'undefined') {
-                    e = window.event;
-                }
-
-                if (e) {
-                    e.returnValue = confirmationMessage;
-                }
-
-                return confirmationMessage;
-            } else {
-                return void(0);
-            }
-        }
-    });
-
-    el.tracker = obj;
-
-    return obj;
-});
-
+})));

@@ -6,7 +6,7 @@
  * @description: Custom dropdowns
  */
 
-jApp.dropdown = (function(el, options) {
+jSuites.dropdown = (function(el, options) {
     var obj = {};
     obj.options = {};
     obj.items = [];
@@ -17,8 +17,8 @@ jApp.dropdown = (function(el, options) {
     }
 
     // Global container
-    if (! jApp.dropdown.current) {
-        jApp.dropdown.current = null;
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
     }
 
     // Default configuration
@@ -39,7 +39,7 @@ jApp.dropdown = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -56,7 +56,7 @@ jApp.dropdown = (function(el, options) {
     } else if (obj.options.type == 'picker') {
         el.classList.add('jdropdown-picker');
     } else {
-        if (jApp.getWindowWidth() < 800) {
+        if (jSuites.getWindowWidth() < 800) {
             el.classList.add('jdropdown-picker');
             obj.options.type = 'picker';
         } else {
@@ -366,7 +366,7 @@ jApp.dropdown = (function(el, options) {
 
     obj.selectItem = function(item) {
         var index = item.getAttribute('data-index');
-        if (jApp.dropdown.current) {
+        if (jSuites.dropdown.current) {
             obj.selectIndex(item.getAttribute('data-index'));
         } else {
             // List
@@ -433,11 +433,11 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.open = function() {
-        if (jApp.dropdown.current != el) {
-            if (jApp.dropdown.current) {
-                jApp.dropdown.current.dropdown.close();
+        if (jSuites.dropdown.current != el) {
+            if (jSuites.dropdown.current) {
+                jSuites.dropdown.current.dropdown.close();
             }
-            jApp.dropdown.current = el;
+            jSuites.dropdown.current = el;
         }
 
         // Focus
@@ -446,7 +446,7 @@ jApp.dropdown = (function(el, options) {
             el.classList.add('jdropdown-focus');
 
             // Animation
-            if (jApp.getWindowWidth() < 800) {
+            if (jSuites.getWindowWidth() < 800) {
                 if (obj.options.type == null || obj.options.type == 'picker') {
                     container.classList.add('slide-bottom-in');
                 }
@@ -477,21 +477,17 @@ jApp.dropdown = (function(el, options) {
                 if (obj.options.position) {
                     container.style.position = 'fixed';
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = rect.top - rectContainer.height - 2;
+                        container.style.top = (rect.top - rectContainer.height - 2) + 'px';
                     } else {
-                        container.style.top = rect.top + rect.height + 1;
+                        container.style.top = (rect.top + rect.height + 1) + 'px';
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = -1 * (rectContainer.height);
+                        container.style.top = (-1 * (rectContainer.height)) + 'px';
                     } else {
                         container.style.top = '';
                     }
                 }
-            }
-
-            if (obj.options.type == 'searchbar') {
-                container.style.height = (document.body.offsetHeight) + 'px';
             }
         }
 
@@ -502,9 +498,9 @@ jApp.dropdown = (function(el, options) {
     }
 
     obj.close = function(ignoreEvents) {
-        if (jApp.dropdown.current) {
+        if (jSuites.dropdown.current) {
             // Remove controller
-            jApp.dropdown.current = null
+            jSuites.dropdown.current = null
             // Remove cursor
             var cursor = el.querySelector('.jdropdown-cursor');
             if (cursor) {
@@ -621,38 +617,26 @@ jApp.dropdown = (function(el, options) {
         }
     }
 
+    if (! jSuites.dropdown.hasEvents) {
+        document.addEventListener('click', jSuites.dropdown.onclick);
+        document.addEventListener('keydown', jSuites.dropdown.onkeydown);
+
+        jSuites.dropdown.hasEvents = true;
+    }
+
+    // Start dropdown
     obj.init();
 
+    // Keep object available from the node
     el.dropdown = obj;
 
     return obj;
 });
 
-jApp.dropdown.getElement = function(element) {
-    var jdropdownElement = false;
-
-    function path (element) {
-        if (element.className) {
-            if (element.classList.contains('jdropdown')) {
-                jdropdownElement = element;
-            }
-        }
-
-        if (element.parentNode) {
-            path(element.parentNode);
-        }
-    }
-
-    path(element);
-
-    return jdropdownElement;
-}
-
-jApp.dropdown.onclick = function(e) {
-    var element = jApp.dropdown.getElement(e.target);
-
+jSuites.dropdown.onclick = function(e) {
+    var element = jSuites.getElement(e.target, 'jdropdown');
     if (element) {
-        dropdown = element.dropdown;
+        var dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
             if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
                 dropdown.close();
@@ -694,18 +678,18 @@ jApp.dropdown.onclick = function(e) {
         e.stopPropagation();
         e.preventDefault();
     } else {
-        if (jApp.dropdown.current) {
-            jApp.dropdown.current.dropdown.close();
+        if (jSuites.dropdown.current) {
+            jSuites.dropdown.current.dropdown.close();
         }
     }
 }
 
 
 // Keydown controls
-jApp.dropdown.onkeydown = function(e) {
-    if (jApp.dropdown.current) {
+jSuites.dropdown.onkeydown = function(e) {
+    if (jSuites.dropdown.current) {
         // Element
-        var element = jApp.dropdown.current.dropdown;
+        var element = jSuites.dropdown.current.dropdown;
         // Index
         var index = element.currentIndex;
 
@@ -740,6 +724,3 @@ jApp.dropdown.onkeydown = function(e) {
         }
     }
 }
-
-document.addEventListener('click', jApp.dropdown.onclick);
-document.addEventListener('keydown', jApp.dropdown.onkeydown);

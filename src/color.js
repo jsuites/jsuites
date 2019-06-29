@@ -4,14 +4,14 @@
  * https://github.com/paulhodel/jtools
  */
 
-jApp.color = (function(el, options) {
+jSuites.color = (function(el, options) {
     var obj = {};
     obj.options = {};
     obj.values = [];
 
     // Global container
-    if (! jApp.color.current) {
-        jApp.color.current = null;
+    if (! jSuites.color.current) {
+        jSuites.color.current = null;
     }
 
     // Default configuration
@@ -25,7 +25,7 @@ jApp.color = (function(el, options) {
 
     // Loop through our object
     for (var property in defaults) {
-        if (options.hasOwnProperty(property)) {
+        if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
@@ -320,15 +320,15 @@ jApp.color = (function(el, options) {
      * Open color pallete
      */
     obj.open = function() {
-        if (jApp.color.current) {
-            if (jApp.color.current != obj) {
-                jApp.color.current.close();
+        if (jSuites.color.current) {
+            if (jSuites.color.current != obj) {
+                jSuites.color.current.close();
             }
         }
 
-        if (! jApp.color.current) {
+        if (! jSuites.color.current) {
             // Persist element
-            jApp.color.current = obj;
+            jSuites.color.current = obj;
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
@@ -338,15 +338,15 @@ jApp.color = (function(el, options) {
             if (obj.options.position) {
                 content.style.position = 'fixed';
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = rect.top - (rectContent.height + 2);
+                    content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
                 } else {
-                    content.style.top = rect.top + rect.height + 2;
+                    content.style.top = (rect.top + rect.height + 2) + 'px';;
                 }
             } else {
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = -1 * (rectContent.height + 2);
+                    content.style.top = (-1 * (rectContent.height + 2)) + 'px';
                 } else {
-                    content.style.top = rect.height + 2; 
+                    content.style.top = (rect.height + 2) + 'px';
                 }
             }
 
@@ -358,8 +358,8 @@ jApp.color = (function(el, options) {
      * Close color pallete
      */
     obj.close = function(ignoreEvents) {
-        if (jApp.color.current) {
-            jApp.color.current = null;
+        if (jSuites.color.current) {
+            jSuites.color.current = null;
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
@@ -410,29 +410,32 @@ jApp.color = (function(el, options) {
     // Select color
     container.addEventListener("click", function(e) {
         if (e.target.tagName == 'TD') {
-            jApp.color.current.setValue(e.target.getAttribute('data-value'));
-            jApp.color.current.close();
+            jSuites.color.current.setValue(e.target.getAttribute('data-value'));
+            jSuites.color.current.close();
         }
     });
 
     // Possible to focus the container
     container.setAttribute('tabindex', '900');
-    // Append to the table
-    content.appendChild(table);
-    container.appendChild(content);
-    container.onblur = function(e) {
-        if (jApp.color.current) {
-            jApp.color.current.close();
-        }
-    }
-    // Insert picker after the element
-    el.parentNode.insertBefore(container, el);
-    // Keep object available thought the node
-    el.color = obj;
 
     if (obj.options.placeholder) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
+
+    // Append to the table
+    content.appendChild(table);
+    container.appendChild(content);
+    container.onblur = function(e) {
+        if (jSuites.color.current) {
+            jSuites.color.current.close();
+        }
+    }
+
+    // Insert picker after the element
+    el.parentNode.insertBefore(container, el);
+
+    // Keep object available from the node
+    el.color = obj;
 
     return obj;
 });

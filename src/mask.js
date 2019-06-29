@@ -6,7 +6,7 @@
  * @description: Input mask
  */
 
-jApp.mask = (function() {
+jSuites.mask = (function() {
     var obj = {};
     var index = 0;
     var values = []
@@ -348,7 +348,7 @@ jApp.mask = (function() {
                 } else if (mask[i] == 'd' && mask[i+1] == 'd') {
                     pieces.push('dd');
                     i++;
-                } else if (mask[i] == 'h' && mask[i+1] == 'h' && mask[i+2] == '2' && mask[i+3] == '4') {
+                } else if (mask[i] == 'h' && mask[i+1] == 'h' && mask[i] == '2' && mask[i+1] == '4') {
                     pieces.push('hh24');
                     i += 3;
                 } else if (mask[i] == 'h' && mask[i+1] == 'h') {
@@ -387,8 +387,6 @@ jApp.mask = (function() {
                 }
             }
         }
-        
-        console.log(pieces);
     }
 
     /** 

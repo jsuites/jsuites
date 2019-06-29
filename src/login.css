@@ -1,0 +1,91 @@
+.jlogin {
+    width: 100%;
+    max-width:480px;
+    padding:20px;
+    box-sizing: border-box;
+    margin:0 auto;
+    vertical-align:middle;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+}
+
+.jlogin > div > div {
+    margin-bottom:10px;
+}
+
+.jlogin label {
+    font-size:0.8em;
+    display:block;
+}
+
+.jlogin > div > div > input {
+    width:100%;
+    outline:none;
+    padding:15px;
+    margin:0px;
+    font-size:1em;
+}
+
+.jlogin input[type='checkbox'] {
+    float:left;
+}
+
+.jlogin input[type='button'] {
+    font-size:0.8em;
+    padding:10px;
+    background-color: #2c8ba9;
+    border: 1px solid #2c8ba9;
+    color: #fff;
+    cursor:pointer;
+}
+
+.jlogin span
+{
+    margin:0 auto;
+}
+.jlogin img
+{
+    max-width:140px;
+}
+
+.jlogin .logo
+{
+    text-align:center;
+    padding:20px;
+}
+
+.jlogin .captcha
+{
+    width:100%;
+    margin-top:4px;
+    margin-bottom:4px;
+    border:1px solid #ccc;
+    display:block;
+}
+
+.jlogin .facebookButton
+{
+    font-size:0.8em;
+    padding:10px;
+    background-color: #2c8ba9;
+    border: 1px solid #2c8ba9;
+    color: #fff;
+    text-align:center;
+    background-repeat:no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24px' height='24px'%3E%3Cpath d='M19,3H5C3.895,3,3,3.895,3,5v14c0,1.105,0.895,2,2,2h7.621v-6.961h-2.343v-2.725h2.343V9.309 c0-2.324,1.421-3.591,3.495-3.591c0.699-0.002,1.397,0.034,2.092,0.105v2.43h-1.428c-1.13,0-1.35,0.534-1.35,1.322v1.735h2.7 l-0.351,2.725h-2.365V21H19c1.105,0,2-0.895,2-2V5C21,3.895,20.105,3,19,3z' fill='white'/%3E%3C/svg%3E%0A");
+    background-position:10px 40%;
+    cursor:pointer;
+}
+
+.jlogin .rememberButton
+{
+    padding:10px;
+}
+
+.jlogin .requestButton, .jlogin .cancelButton
+{
+    padding:20px;
+    text-align:center;
+    cursor:pointer;
+}

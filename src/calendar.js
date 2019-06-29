@@ -1,16 +1,10 @@
-/**
- * Date & Datetime picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
-
-jApp.calendar = (function(el, options) {
+jSuites.calendar = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Global container
-    if (! jApp.dropdown.current) {
-        jApp.dropdown.current = null;
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
     }
 
     // Default configuration
@@ -169,7 +163,6 @@ jApp.calendar = (function(el, options) {
     calendarContent.appendChild(calendarTable);
 
     var calendarSelectHour = document.createElement('select');
-    calendarSelectHour.className = 'jcalendar-hour';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
     }
@@ -182,7 +175,6 @@ jApp.calendar = (function(el, options) {
     }
 
     var calendarSelectMin = document.createElement('select');
-    calendarSelectMin.className = 'jcalendar-min';
     calendarSelectMin.onchange = function() {
         obj.date[4] = this.value; 
     }
@@ -217,14 +209,14 @@ jApp.calendar = (function(el, options) {
 
     // Methods
     obj.open = function (value) {
-        if (jApp.calendar.current) {
-            if (jApp.calendar.current != obj) {
-                jApp.calendar.current.close();
+        if (jSuites.calendar.current) {
+            if (jSuites.calendar.current != obj) {
+                jSuites.calendar.current.close();
             }
         }
 
-        if (! jApp.calendar.current) {
-            jApp.calendar.current = obj;
+        if (! jSuites.calendar.current) {
+            jSuites.calendar.current = obj;
             // Show calendar
             calendar.classList.add('jcalendar-focus');
             // Get days
@@ -236,7 +228,7 @@ jApp.calendar = (function(el, options) {
             }
 
             // Get the position of the corner helper
-            if (jApp.getWindowWidth() < 800 || obj.options.fullscreen) {
+            if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen) {
                 // Full
                 calendar.classList.add('jcalendar-fullsize');
                 // Animation
@@ -248,15 +240,15 @@ jApp.calendar = (function(el, options) {
                 if (obj.options.position) {
                     calendarContainer.style.position = 'fixed';
                     if (window.innerHeight < rect.bottom + rectContent.height) {
-                        calendarContainer.style.top = rect.top - (rectContent.height + 2);
+                        calendarContainer.style.top = (rect.top - (rectContent.height + 2)) + 'px';
                     } else {
-                        calendarContainer.style.top = rect.top + rect.height + 2;
+                        calendarContainer.style.top = (rect.top + rect.height + 2) + 'px';
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContent.height) {
-                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2);
+                        calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
                     } else {
-                        calendarContainer.style.top = 2; 
+                        calendarContainer.style.top = 2 + 'px'; 
                     }
                 }
             }
@@ -264,8 +256,8 @@ jApp.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        if (jApp.calendar.current) {
-            jApp.calendar.current =  null;
+        if (jSuites.calendar.current) {
+            jSuites.calendar.current =  null;
 
             if (update != false && el.tagName == 'INPUT') {
                 obj.setValue(obj.getValue());
@@ -436,10 +428,10 @@ jApp.calendar = (function(el, options) {
         }
 
         var date = new Date(year, month, 0, 0, 0);
-        nd = date.getDate();
+        var nd = date.getDate();
 
         var date = new Date(year, month-1, 0, hour, min);
-        fd = date.getDay() + 1;
+        var fd = date.getDay() + 1;
 
         // Reset table
         calendarBody.innerHTML = '';
@@ -577,28 +569,39 @@ jApp.calendar = (function(el, options) {
     }
 
     obj.setLabel = function(value, format) {
-        return jApp.calendar.getDateString(value, format);
+        return jSuites.calendar.getDateString(value, format);
     }
 
     obj.fromFormatted = function (value, format) {
-        return jApp.calendar.extractDateFromString(value, format);
+        return jSuites.calendar.extractDateFromString(value, format);
     }
 
-    // Element
+    // Add properties
     el.setAttribute('autocomplete', 'off');
     el.setAttribute('data-mask', obj.options.format.toLowerCase());
+
     if (obj.options.readonly) {
         el.setAttribute('readonly', 'readonly');
     }
+
     if (obj.options.placeholder) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
+
+    // Handle events
     el.addEventListener("focus", function(e) {
         obj.open();
     });
+
+    el.addEventListener("mousedown", function(e) {
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        obj.open();
+    });
+
     el.addEventListener("keyup", function(e) {
         if (e.target.value && e.target.value.length > 3) {
-            var test = jApp.calendar.extractDateFromString(e.target.value, obj.options.format);
+            var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
                 console.log(test);
                 if (e.target.getAttribute('data-completed') == 'true') {
@@ -607,15 +610,38 @@ jApp.calendar = (function(el, options) {
             }
         }
     });
+
+    if (! jSuites.calendar.hasEvents) {
+        // Add global events
+        document.addEventListener("swipeleft", function(e) {
+            if (calendar.classList.contains('jcalendar-focus')) {
+                obj.prev();
+            }
+        });
+
+        document.addEventListener("swiperight", function(e) {
+            if (calendar.classList.contains('jcalendar-focus')) {
+                obj.next();
+            }
+        });
+
+        document.addEventListener("mousedown", jSuites.calendar.mouseDownControls);
+
+        // Has events
+        jSuites.calendar.hasEvents = true;
+    }
+
+    // Append element to the DOM
     el.parentNode.insertBefore(calendar, el.nextSibling);
 
+    // Keep object available from the node
     el.calendar = obj;
 
     return obj;
 });
 
 // Helper to extract date from a string
-jApp.calendar.extractDateFromString = function(date, format) {
+jSuites.calendar.extractDateFromString = function(date, format) {
     var v1 = '' + date;
     var v2 = format.replace(/[0-9]/g,'');
 
@@ -686,7 +712,7 @@ jApp.calendar.extractDateFromString = function(date, format) {
 }
 
 // Helper to convert date into string
-jApp.calendar.getDateString = function(value, format) {
+jSuites.calendar.getDateString = function(value, format) {
     // Default calendar
     if (! format) {
         var format = 'DD/MM/YYYY';
@@ -753,66 +779,49 @@ jApp.calendar.getDateString = function(value, format) {
     return value;
 }
 
-jApp.calendar.getElement = function(element) {
-    var jcalendarElement = false;
-
-    function path (element) {
-        if (element.className) {
-            if (element.classList.contains('jcalendar')) {
-                jcalendarElement = true;
-            }
-        }
-
-        if (element.parentNode) {
-            path(element.parentNode);
-        }
-    }
-
-    path(element);
-
-    return jcalendarElement;
-}
-
-jApp.calendar.mouseDownControls = function(e) {
-    if (! jApp.calendar.getElement(e.target)) {
-        if (jApp.calendar.current) {
-            jApp.calendar.current.close(false, false);
+jSuites.calendar.mouseDownControls = function(e) {
+    if (! jSuites.getElement(e.target, 'jcalendar')) {
+        if (jSuites.calendar.current) {
+            jSuites.calendar.current.close(false, false);
         }
     } else {
-        if (jApp.calendar.current) {
+        if (jSuites.calendar.current) {
             var action = e.target.className;
 
             // Object id
             if (action == 'jcalendar-prev') {
-                jApp.calendar.current.prev();
+                jSuites.calendar.current.prev();
             } else if (action == 'jcalendar-next') {
-                jApp.calendar.current.next();
+                jSuites.calendar.current.next();
             } else if (action == 'jcalendar-month') {
-                jApp.calendar.current.getMonths();
+                jSuites.calendar.current.getMonths();
             } else if (action == 'jcalendar-year') {
-                jApp.calendar.current.getYears();
+                jSuites.calendar.current.getYears();
             } else if (action == 'jcalendar-set-year') {
-                jApp.calendar.current.date[0] = e.target.innerText;
-                jApp.calendar.current.getDays();
+                jSuites.calendar.current.date[0] = e.target.innerText;
+                jSuites.calendar.current.getDays();
             } else if (action == 'jcalendar-set-month') {
-                jApp.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
-                jApp.calendar.current.getDays();
+                jSuites.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
+                jSuites.calendar.current.getDays();
             } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jApp.calendar.current.close();
+                jSuites.calendar.current.close();
             } else if (action == 'jcalendar-close') {
-                jApp.calendar.current.close();
+                jSuites.calendar.current.close();
+            } else if (action == 'jcalendar-backdrop') {
+                jSuites.calendar.current.close(false, false);
             } else if (action == 'jcalendar-reset') {
-                jApp.calendar.current.reset();
+                jSuites.calendar.current.reset();
             } else if (e.target.classList.contains('jcalendar-set-day')) {
                 if (e.target.innerText) {
                     // Keep selected day
-                    jApp.calendar.current.update(e.target);
+                    jSuites.calendar.current.update(e.target);
                 }
             }
 
-            e.stopImmediatePropagation();
+            if (action.substr(0,9) == 'jcalendar') {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            }
         }
     }
 }
-
-document.addEventListener("mousedown", jApp.calendar.mouseDownControls);
