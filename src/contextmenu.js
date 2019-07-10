@@ -63,18 +63,21 @@ jSuites.contextmenu = (function(el, options) {
             obj.menu.appendChild(itemContainer);
         }
 
-        if (e.target) {
-            var e = e || window.event;
-            let position = jSuites.getPosition(e);
-            obj.menu.style.top = position[1] + 'px';
-            obj.menu.style.left = position[0] + 'px';
-        } else {
-            obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
-            obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+        // Only show the context menu if it has items
+        if (obj.options.items.length > 0) {
+            if (e.target) {
+                var e = e || window.event;
+                let position = jSuites.getPosition(e);
+                obj.menu.style.top = position[1] + 'px';
+                obj.menu.style.left = position[0] + 'px';
+            } else {
+                obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
+                obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+            }
+    
+            obj.menu.classList.add('jcontextmenu-focus');
+            obj.menu.focus();
         }
-
-        obj.menu.classList.add('jcontextmenu-focus');
-        obj.menu.focus();
     }
 
     /**
