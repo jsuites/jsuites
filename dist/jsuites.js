@@ -53,8 +53,8 @@
                 var x = e.changedTouches[0].pageX;
                 var y = e.changedTouches[0].pageY;
             } else {
-                var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-                var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+                var x = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+                var y = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
             }
     
             return [ x, y ];
@@ -1656,7 +1656,7 @@
                     if (obj.options.items[i].disabled) {
                         itemContainer.className = 'jcontextmenu-disabled';
                     } else if (obj.options.items[i].onclick) {
-                        itemContainer.onclick = obj.options.items[i].onclick;
+                        itemContainer.onmouseup = obj.options.items[i].onclick;
                     }
                     itemContainer.appendChild(itemText);
     
@@ -1671,13 +1671,13 @@
             }
     
             if (e.target) {
-                var e = e || window.event;
-                let position = jSuites.getPosition(e);
-                obj.menu.style.top = position[1] + 'px';
-                obj.menu.style.left = position[0] + 'px';
+                var x = e.clientX;
+                var y = e.clientY;
+                obj.menu.style.top = y + 'px';
+                obj.menu.style.left = x + 'px';
             } else {
-                obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
-                obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+                obj.menu.style.top = e.y + 'px';
+                obj.menu.style.left = e.x + 'px';
             }
     
             obj.menu.classList.add('jcontextmenu-focus');
@@ -1696,6 +1696,10 @@
         });
     
         obj.menu.addEventListener('blur', function(e) {
+            obj.close();
+        });
+
+        window.addEventListener("mousewheel", function() {
             obj.close();
         });
     
