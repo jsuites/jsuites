@@ -26,6 +26,8 @@
     border: 1px dotted #eee;
     cursor: pointer;
     box-sizing: border-box;
+    width:100%;
+    min-height:180px;
 }
 
 .jbackdrop {
@@ -210,6 +212,7 @@
     100% { -webkit-transform: translateY(100%); }
 }
 
+
 @supports (-webkit-overflow-scrolling: touch) {
     .app .options input:checked:before {
         top:-12px;
@@ -232,6 +235,15 @@
     to {
         transform:rotate(360deg);
     }
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 /**
@@ -483,7 +495,7 @@
 /**
  * Contextmenu v1.0.1
  * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
+ * https://github.com/paulhodel/jsuites
  */
  
 .jcontextmenu {
@@ -902,10 +914,12 @@
     background-position-y: 40%;
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QzE1LjQxIDEyLjU5IDE2IDExLjExIDE2IDkuNSAxNiA1LjkxIDEzLjA5IDMgOS41IDNTMyA1LjkxIDMgOS41IDUuOTEgMTYgOS41IDE2YzEuNjEgMCAzLjA5LS41OSA0LjIzLTEuNTdsLjI3LjI4di43OWw1IDQuOTlMMjAuNDkgMTlsLTQuOTktNXptLTYgMEM3LjAxIDE0IDUgMTEuOTkgNSA5LjVTNy4wMSA1IDkuNSA1IDE0IDcuMDEgMTQgOS41IDExLjk5IDE0IDkuNSAxNHoiIGZpbGw9IiNlNmU2ZTgiLz48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PC9zdmc+);
     padding-left:30px !important;
+    padding-right:60px !important;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-close
 {
+    font-weight:bold;
     display:block;
 }
 
@@ -1101,6 +1115,7 @@
     border-color:#aaa;
     border-top-color:transparent;
 }
+
 
 /**
  * (c) jTools Modal page
