@@ -30,13 +30,6 @@ var jSuites = function(options) {
     obj.backdrop = document.createElement('div');
     obj.backdrop.classList.add('jbackdrop');
 
-    obj.uuidv4 = function() {
-        return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-    }
-
     obj.getWindowWidth = function() {
         var w = window,
         d = document,
@@ -68,13 +61,16 @@ var jSuites = function(options) {
     }
 
     obj.click = function(el) {
-        // Create our event (with options)
-        var evt = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-        el.dispatchEvent(evt);
+        if (el.click) {
+            el.click();
+        } else {
+            var evt = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            el.dispatchEvent(evt);
+        }
     }
 
     obj.getElement = function(element, className) {
@@ -219,13 +215,13 @@ var jSuites = function(options) {
         var httpRequest = new XMLHttpRequest();
         httpRequest.open(options.method, options.url, true);
 
-        if (options.dataType == 'json') {
-            httpRequest.setRequestHeader('Content-Type', 'text/json');
-        }
-
-        if (options.type == 'POST') {
+        if (options.method == 'POST') {
             httpRequest.setRequestHeader('Accept', 'application/json');
-            httpRequest.setRequestHeader('Content-type', 'application/x-www-form-urlencoded; charset=UTF-8');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        } else {
+            if (options.dataType == 'json') {
+                httpRequest.setRequestHeader('Content-Type', 'text/json');
+            }
         }
 
         if (options.data) {
@@ -1832,9 +1828,11 @@ jSuites.color = (function(el, options) {
     content.appendChild(table);
     container.appendChild(content);
     container.onblur = function(e) {
-        if (jSuites.color.current) {
-            jSuites.color.current.close();
-        }
+        setTimeout(function() {
+            if (jSuites.color.current) { 
+                jSuites.color.current.close();
+            }
+        }, 200);
     }
 
     // Insert picker after the element
