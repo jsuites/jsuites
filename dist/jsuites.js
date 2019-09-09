@@ -457,7 +457,7 @@ var jSuites = function(options) {
             }
         }
     }
-    
+
     var controlSwipeRight = function(e) {
         var element = jSuites.getElement(e.target, 'option');
         if (element && element.querySelector('.option-actions')) {
@@ -666,7 +666,7 @@ jSuites.calendar = (function(el, options) {
 
     var calendarSelectHour = document.createElement('select');
     calendarSelectHour.onchange = function() {
-        obj.date[3] = this.value; 
+        obj.date[3] = this.value;
     }
 
     for (var i = 0; i < 24; i++) {
@@ -678,7 +678,7 @@ jSuites.calendar = (function(el, options) {
 
     var calendarSelectMin = document.createElement('select');
     calendarSelectMin.onchange = function() {
-        obj.date[4] = this.value; 
+        obj.date[4] = this.value;
     }
 
     for (var i = 0; i < 60; i++) {
@@ -750,7 +750,7 @@ jSuites.calendar = (function(el, options) {
                     if (window.innerHeight < rect.bottom + rectContent.height) {
                         calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
                     } else {
-                        calendarContainer.style.top = 2 + 'px'; 
+                        calendarContainer.style.top = 2 + 'px';
                     }
                 }
             }
@@ -774,7 +774,7 @@ jSuites.calendar = (function(el, options) {
             calendar.classList.remove('jcalendar-focus');
         }
 
-        return obj.getValue(); 
+        return obj.getValue();
     }
 
     obj.prev = function() {
@@ -1045,7 +1045,7 @@ jSuites.calendar = (function(el, options) {
         calendarBody.innerHTML = html;
     }
 
-    obj.getYears = function() { 
+    obj.getYears = function() {
         // Mode
         obj.options.mode = 'years';
 
@@ -1252,7 +1252,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     } else {
         h = '00';
     }
-    
+
     // Get minutes
     var i = v2.search("MI");
     if (i >= 0) {
@@ -1829,7 +1829,7 @@ jSuites.color = (function(el, options) {
     container.appendChild(content);
     container.onblur = function(e) {
         setTimeout(function() {
-            if (jSuites.color.current) { 
+            if (jSuites.color.current) {
                 jSuites.color.current.close();
             }
         }, 200);
@@ -1993,7 +1993,7 @@ jSuites.dropdown = (function(el, options) {
 
     // Create dropdown
     el.classList.add('jdropdown');
- 
+
     if (obj.options.type == 'searchbar') {
         el.classList.add('jdropdown-searchbar');
     } else if (obj.options.type == 'list') {
@@ -2254,7 +2254,7 @@ jSuites.dropdown = (function(el, options) {
         var items = el.querySelectorAll('.jdropdown-selected');
         for (var j = 0; j < items.length; j++) {
             items[j].classList.remove('jdropdown-selected')
-        } 
+        }
 
         // Set values
         if (value) {
@@ -2566,7 +2566,7 @@ jSuites.dropdown = (function(el, options) {
 
             // Update position
             obj.currentIndex = parseInt(index);
-    
+
             // Update scroll
             var container = content.scrollTop;
             var element = obj.items[obj.currentIndex];
@@ -2863,7 +2863,7 @@ jSuites.image = (function(el, options) {
     });
 
     el.addEventListener('drop', function(e) {
-        e.preventDefault();  
+        e.preventDefault();
         e.stopPropagation();
 
 
@@ -3151,7 +3151,7 @@ jSuites.mask = (function() {
                     } else {
                         values[index] += input;
                     }
-                    
+
                     if (values[index].length == pieces[index].length) {
                         index++;
                     }
@@ -3187,7 +3187,7 @@ jSuites.mask = (function() {
                             values[index] = t.join('');
                             if (values[index].substr(0,1) == separator) {
                                 values[index] = values[index].substr(1);
-                            } 
+                            }
                         }
                     }
                     return true;
@@ -3319,7 +3319,7 @@ jSuites.mask = (function() {
         }
     }
 
-    /** 
+    /**
      * Thanks for the collaboration
      */
     obj.fromKeyCode = function(e) {
