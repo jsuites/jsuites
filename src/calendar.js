@@ -843,7 +843,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
         s = '00';
     }
 
-    if (test == 1 && date.length == format.length) {
+    if (test == 1 && date.length == v2.length) {
         // Update source
         var data = y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
 
