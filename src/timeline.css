@@ -1,39 +1,40 @@
-.jtimeline-item
-{
+.jtimeline {
+    min-height:calc(100vh - 90px);
+}
+
+.jtimeline-item {
     display:flex;
     margin-left:15px;
     margin-right:15px;
 }
 
-.jtimeline-header
-{
+.jtimeline-header {
     position:fixed;
     width:100%;
     display:flex;
     align-items: center;
     justify-content:space-between;
     padding:15px;
+    border-top:1px solid #eee;
     border-bottom:1px solid #eee;
+    margin-top:-1px;
     margin-bottom:10px;
     background-color:#fff;
     z-index:1000;
 }
 
-.jtimeline-year
-{
+.jtimeline-year {
     font-size:2.2em;
     display:inline-block;
 }
 
-.jtimeline-month
-{
+.jtimeline-month {
     font-size:0.8em;
     position:relative;
     top:6px;
 }
 
-.jtimeline-navigation div
-{
+.jtimeline-navigation div {
     display:inline-block;
     background-color:#eee;
     padding:8px;
@@ -42,8 +43,7 @@
     margin-left:4px;
 }
 
-.jtimeline-navigation i
-{
+.jtimeline-navigation i {
     width:32px;
     height:32px;
     font-size:32px;
@@ -51,71 +51,80 @@
     display:inline-block;
 }
 
-.jtimeline-container
-{
-    padding-top:100px;
+.jtimeline-container {
+    padding-top:110px;
+    padding-bottom:30px;
 }
 
-.jtimeline-subtitle
-{
+.jtimeline-subtitle {
     color:#aaa;
     font-size:0.8em;
 }
 
-.jtimeline-content
-{
-    padding-top:12px;
+.jtimeline-content {
+    padding-top:0px;
     padding-left:20px;
-    padding-bottom:0px;
+    padding-bottom:30px;
     font-size:0.8em;
     border-left:3px solid #aaa;
+    width:100%;
 }
 
-.jtimeline-text
-{
+.jtimeline-item:last-child .jtimeline-content {
+    padding-bottom:0px;
+}
+
+.jtimeline-text {
     color:#888;
     font-size:0.9em;
     line-height:18px;
-    text-align:justify;
     margin-top:5px;
-    margin-bottom:10px;
+    margin-bottom:5px;
 }
 
-.jtimeline-text:empty
-{
-    display:none;
+.jtimeline-item:last-child .jtimeline-text {
 }
 
-.jtimeline-item:last-child .jtimeline-text
-{
-    margin-bottom:0px;
-}
-
-.jtimeline-date-container
-{
+.jtimeline-date-container {
     position:relative;
-    padding-top:12px;
+    padding-top:0px;
 }
 
-.jtimeline-date
-{
+.jtimeline-date {
     font-size:1em;
     width:40px;
     padding-top:2px;
 }
 
-.jtimeline-title
-{
-    font-size:1.5em;
+.jtimeline-title-container {
+    display:flex;
 }
 
-.jtimeline-date small
-{
+.jtimeline-title {
+    font-size:1.4em;
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width:calc(100% - 60px);
+}
+
+.jtimeline-controls {
+    margin-left:5px;
+}
+
+.jtimeline-controls i {
+    font-size:16px;
+    width:16px;
+    height:16px;
+    line-height:24px;
+    color:#aaa;
+}
+
+.jtimeline-date small {
     font-size:0.7em;
 }
 
-.jtimeline-date-bullet::after
-{
+.jtimeline-date-bullet::after {
     content:'';
     width:12px;
     height:12px;
@@ -123,13 +132,22 @@
     border:3px solid #00688B;
     display: inline-block;
     position:absolute;
-    top:15px;
+    top:4px;
     right:-10px;
     background-color:#fff;
 }
 
-.jtimeline-tag
-{
+.jtimeline-tags {
+    margin-top:15px;
+    margin-bottom:0px;
+    border-bottom:1px solid #fefefe;
+}
+
+.jtimeline-tags:empty {
+    display:none;
+}
+
+.jtimeline-tag {
     padding:1px;
     padding-right:10px;
     padding-left:10px;
@@ -137,9 +155,11 @@
     color:#fff;
     display:inline-block;
     font-size:0.8em;
+    margin-bottom:5px;
+    margin-right:5px;
 }
-.jtimeline-message
-{
+
+.jtimeline-message {
     text-align:center;
     padding:20px;
     font-size:0.7em;

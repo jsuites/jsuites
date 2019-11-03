@@ -4,10 +4,10 @@ jSuites.image = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        minWidth:false,
-        onchange:null,
-        singleFile:true,
-        parser:'',
+        minWidth: false,
+        onchange: null,
+        singleFile: true,
+        remoteParser: null,
         text:{
             extensionNotAllowed:'The extension is not allowed',
             imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
@@ -28,12 +28,16 @@ jSuites.image = (function(el, options) {
 
     // Add image
     obj.addImage = function(file) {
+        if (! file.date) {
+            file.date = '';
+        }
         var img = document.createElement('img');
-        img.setAttribute('data-lastmodified', file.size);
+        img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
         img.setAttribute('data-name', file.name);
         img.setAttribute('data-size', file.size);
-        img.setAttribute('data-thumbs', file.thumbs);
+        img.setAttribute('data-small', file.small ? file.small : '');
         img.setAttribute('data-cover', file.cover ? 1 : 0);
+        img.setAttribute('data-extension', file.extension);
         img.setAttribute('src', file.file);
         img.className = 'jfile';
         img.style.width = '100%';
@@ -53,37 +57,95 @@ jSuites.image = (function(el, options) {
     }
 
     obj.addFromFile = function(file) {
-        if (obj.options.singleFile == true) {
-            el.innerHTML = '';
-        }
-
         var type = file.type.split('/');
         if (type[0] == 'image') {
-            var image = new FileReader();
-            image.addEventListener("load", function (v) {
+            if (obj.options.singleFile == true) {
+                el.innerHTML = '';
+            }
 
-                var img = document.createElement('img');
-                img.setAttribute('data-lastModified', file.lastModified);
-                img.setAttribute('data-name', file.name);
-                img.setAttribute('data-size', file.size);
-                img.setAttribute('src', v.srcElement.result);
-                el.appendChild(img);
+            var imageFile = new FileReader();
+            imageFile.addEventListener("load", function (v) {
 
-                setTimeout(function() {
-                    if (obj.options.minWidth && (parseInt(img.width) < parseInt(obj.options.minWidth))) {
-                        img.remove();
-                        alert(obj.options.text.imageTooSmall);
-                    } else {
-                        if (typeof(obj.options.onchange) == 'function') {
-                            obj.options.onchange(img);
-                        }
+                var img = new Image();
+
+                img.onload = function onload() {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    var data = {
+                        file: canvas.toDataURL(),
+                        extension: file.name.substr(file.name.lastIndexOf('.') + 1),
+                        name: file.name,
+                        size: file.size,
+                        lastmodified: file.lastModified,
                     }
-                }, 0);
-            }, false);
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
 
-            image.readAsDataURL(file);
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage);
+                    }
+                };
+
+                img.src = v.srcElement.result;
+            });
+
+            imageFile.readAsDataURL(file);
         } else {
             alert(text.extentionNotAllowed);
+        }
+    }
+
+    obj.addFromUrl = function(src) {
+        if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
+            console.error('remoteParser not defined in your initialization');
+        } else {
+            // This is to process cross domain images
+            if (src.substr(0,4) == 'data') {
+                var extension = src.split(';')
+                extension = extension[0].split('/');
+                extension = extension[1];
+            } else {
+                var extension = src.substr(src.lastIndexOf('.') + 1);
+                // Work for cross browsers
+                src = obj.options.remoteParser + src;
+            }
+
+            var img = new Image();
+
+            img.onload = function onload() {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function(blob) {
+                    var data = {
+                        file: window.URL.createObjectURL(blob),
+                        extension: extension
+                    }
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
+
+                    // Keep base64 ready to go
+                    var content = canvas.toDataURL();
+                    jSuites.files[data.file] = content.substr(content.indexOf(',') + 1);
+
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage);
+                    }
+                });
+            };
+
+            img.src = src;
         }
     }
 
@@ -97,13 +159,7 @@ jSuites.image = (function(el, options) {
     }
 
     el.addEventListener("dblclick", function(e) {
-        var evt = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-
-        attachmentInput.dispatchEvent(evt);
+        jSuites.click(attachmentInput);
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -126,62 +182,30 @@ jSuites.image = (function(el, options) {
         e.preventDefault();  
         e.stopPropagation();
 
-        var data = e.dataTransfer.getData('text/html');
-        if (! data) {
+
+        var html = (e.originalEvent || e).dataTransfer.getData('text/html');
+        var file = (e.originalEvent || e).dataTransfer.files;
+
+        if (file.length) {
             for (var i = 0; i < e.dataTransfer.files.length; i++) {
                 obj.addFromFile(e.dataTransfer.files[i]);
             }
-        } else {
+        } else if (html) {
             if (obj.options.singleFile == true) {
                 el.innerHTML = '';
             }
 
-            var template = document.createElement('template');
-            template.innerHTML = data.trim();
-            data = template.content.firstChild;
+            // Create temp element
+            var div = document.createElement('div');
+            div.innerHTML = html;
 
-            var img = document.createElement('img');
-            img.setAttribute('data-lastModified', '');
-            img.setAttribute('data-name', '');
-            img.setAttribute('data-size', '');
-            el.appendChild(img);
+            // Extract images
+            var img = div.querySelectorAll('img');
 
-            if (data.src.substr(0,4) == 'data') {
-                img.setAttribute('src', data.src);
-                img.setAttribute('data-size', data.src.length);
-
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange(img);
+            if (img.length) {
+                for (var i = 0; i < img.length; i++) {
+                    obj.addFromUrl(img[i].src);
                 }
-            } else {
-                var name = data.src.split('/');
-                name = name[name.length-1];
-                img.setAttribute('data-name', name);
-
-                const toDataURL = url => fetch(url)
-                    .then(response => response.blob())
-                    .then(blob => new Promise((resolve, reject) => {
-                          const reader = new FileReader();
-                          reader.onloadend = () => resolve(reader.result);
-                          reader.onerror = reject;
-                          reader.readAsDataURL(blob);
-                    }));
-
-                toDataURL(obj.options.parser + data.src).then(dataUrl => {
-                    img.setAttribute('src', dataUrl);
-                    img.setAttribute('data-size', dataUrl.length);
-
-                    setTimeout(function() {
-                        if (parseInt(img.width) < 800) {
-                            img.remove();
-                            alert(obj.options.imageTooSmall);
-                        } else {
-                            if (typeof(obj.options.onchange) == 'function') {
-                                obj.options.onchange(img);
-                            }
-                        }
-                    }, 0);
-                });
             }
         }
 

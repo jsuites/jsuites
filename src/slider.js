@@ -50,29 +50,13 @@ jSuites.slider = (function(el, options) {
         // Add close buttom
         var close = document.createElement('div');
         close.className = 'jslider-close';
-        close.innerHTML = 'close';
+        close.innerHTML = '';
         close.onclick =  function() {
             obj.close();
         }
         el.appendChild(close);
     } else {
         var container = el.querySelector('slider-container');
-    }
-
-    // Append data
-    if (obj.options.data && obj.options.data.length) {
-        for (var i = 0; i < obj.options.data.length; i++) {
-            if (obj.options.data[i]) {
-                var img = document.createElement('img');
-                img.setAttribute('data-name', obj.options.data[i].name);
-                img.setAttribute('data-size', obj.options.data[i].size);
-                img.setAttribute('data-cover', obj.options.data[i].cover);
-                img.setAttribute('data-extension', obj.options.data[i].extension);
-                img.setAttribute('src', obj.options.data[i].file);
-                obj.options.items.push(img);
-                container.appendChild(img);
-            }
-        }
     }
 
     obj.show = function(target) {
@@ -86,9 +70,9 @@ jSuites.slider = (function(el, options) {
         }
 
         // Hide all images
-        [...container.children].forEach(function(v) {
-            v.style.display = 'none';
-        });
+        for (var i = 0; i < container.children.length; i++) {
+            container.children[i].style.display = 'none';
+        }
 
         // Show clicked only
         target.style.display = 'block';
@@ -110,6 +94,89 @@ jSuites.slider = (function(el, options) {
         obj.currentImage = target;
     }
 
+    obj.open = function() {
+        obj.show();
+
+        // Event
+        if (typeof(obj.options.onopen) == 'function') {
+            obj.options.onopen(el);
+        }
+    }
+
+    obj.close = function() {
+        container.classList.remove('jslider-preview');
+        container.classList.remove('jslider-left');
+        container.classList.remove('jslider-right');
+
+        for (var i = 0; i < container.children.length; i++) {
+            container.children[i].style.display = '';
+        }
+
+        close.style.display = '';
+
+        obj.currentImage = null;
+
+        // Event
+        if (typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
+    }
+
+    obj.reset = function() {
+        container.innerHTML = '';
+    }
+
+    obj.addFile = function(v, ignoreEvents) {
+        var img = document.createElement('img');
+        img.setAttribute('data-lastmodified', v.lastmodified);
+        img.setAttribute('data-name', v.name);
+        img.setAttribute('data-size', v.size);
+        img.setAttribute('data-extension', v.extension);
+        img.setAttribute('data-cover', v.cover);
+        img.setAttribute('src', v.file);
+        img.className = 'jfile';
+        container.appendChild(img);
+        obj.options.items.push(img);
+
+        // Onchange
+        if (! ignoreEvents) {
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, v);
+            }
+        }
+    }
+
+    obj.addFiles = function(files) {
+        for (var i = 0; i < files.length; i++) {
+            obj.addFile(files[i]);
+        }
+    }
+
+    obj.next = function() {
+        if (obj.currentImage.nextSibling) {
+            obj.show(obj.currentImage.nextSibling);
+        }
+    }
+    
+    obj.prev = function() {
+        if (obj.currentImage.previousSibling) {
+            obj.show(obj.currentImage.previousSibling);
+        }
+    }
+
+    obj.getData = function() {
+        return jSuites.getFiles(container);
+    }
+
+    // Append data
+    if (obj.options.data && obj.options.data.length) {
+        for (var i = 0; i < obj.options.data.length; i++) {
+            if (obj.options.data[i]) {
+                obj.addFile(obj.options.data[i]);
+            }
+        }
+    }
+
     // Allow insert
     if (obj.options.allowAttachment) {
         var attachmentInput = document.createElement('input');
@@ -124,9 +191,15 @@ jSuites.slider = (function(el, options) {
                 var type = this.files[i].type.split('/');
 
                 if (type[0] == 'image') {
+                    var extension = this.files[i].name;
+                    extension = extension.split('.');
+                    extension = extension[extension.length-1];
+
                     var file = {
                         size: this.files[i].size,
                         name: this.files[i].name,
+                        extension: extension,
+                        cover: 0,
                         lastmodified: this.files[i].lastModified,
                     }
 
@@ -152,82 +225,6 @@ jSuites.slider = (function(el, options) {
 
         el.appendChild(attachmentInput);
         el.appendChild(attachmentIcon);
-    }
-
-    obj.open = function() {
-        obj.show();
-
-        // Event
-        if (typeof(obj.options.onopen) == 'function') {
-            obj.options.onopen(el);
-        }
-    }
-
-    obj.close = function() {
-        container.classList.remove('jslider-preview');
-        container.classList.remove('jslider-left');
-        container.classList.remove('jslider-right');
-
-        [...container.children].forEach(function(v) {
-            v.style.display = '';
-        });
-
-        close.style.display = '';
-
-        obj.currentImage = null;
-
-        // Event
-        if (typeof(obj.options.onclose) == 'function') {
-            obj.options.onclose(el);
-        }
-    }
-
-    obj.addFile = function(v) {
-        var img = document.createElement('img');
-        img.setAttribute('data-lastmodified', v.lastmodified);
-        img.setAttribute('data-name', v.name);
-        img.setAttribute('data-size', v.size);
-        img.setAttribute('src', v.file);
-        img.className = 'jfile';
-        container.appendChild(img);
-        obj.options.items.push(img);
-
-        // Onchange
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, v);
-        }
-    }
-
-    obj.addFiles = function(files) {
-        for (var i = 0; i < files.length; i++) {
-            obj.addFile(files[i]);
-        }
-    }
-
-    obj.next = function() {
-        if (obj.currentImage.nextSibling) {
-            obj.show(obj.currentImage.nextSibling);
-        }
-    }
-    
-    obj.prev = function() {
-        if (obj.currentImage.previousSibling) {
-            obj.show(obj.currentImage.previousSibling);
-        }
-    }
-
-    obj.getData = function() {
-        var files = jSuites.getFiles(container);
-
-        const values = {};
-        const inputs = container.children;
-
-        for (let i = 0; i < inputs.length; i++) {
-            if (inputs[i].name) {
-                values[inputs[i].name] = inputs[i].value;
-            }
-        }
-        return values;
     }
 
     // Push to refresh
@@ -282,6 +279,20 @@ jSuites.slider = (function(el, options) {
     container.addEventListener('touchstart', mouseDown);
     container.addEventListener('mouseup', mouseUp);
     container.addEventListener('touchend', mouseUp);
+
+    // Add global events
+    el.addEventListener("swipeleft", function(e) {
+        obj.next();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    el.addEventListener("swiperight", function(e) {
+        obj.prev();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
 
     el.slider = obj;
 

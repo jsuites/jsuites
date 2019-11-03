@@ -12,15 +12,19 @@ jSuites.login = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        url:window.location.href,
-        prepareRequest:null,
-        accessToken:null,
-        deviceToken:null,
-        facebookUrl:null,
-        maxHeight:null,
-        onload:null,
-        message:null,
-        logo:null,
+        url: window.location.href,
+        prepareRequest: null,
+        accessToken: null,
+        deviceToken: null,
+        facebookUrl: null,
+        maxHeight: null,
+        onload: null,
+        message: null,
+        logo: null,
+        newProfile: false,
+        newProfileUrl: false,
+        newProfileLogin: false,
+        fullscreen: false,
     };
 
     // Loop through our object
@@ -40,13 +44,16 @@ jSuites.login = (function(el, options) {
         }
     }
 
+    // Action
+    var action = null;
+
     // Container
-    var container = document.createElement('div');
+    var container = document.createElement('form');
     el.appendChild(container);
 
     // Logo
     var divLogo = document.createElement('div');
-    divLogo.className = 'logo'
+    divLogo.className = 'jlogin-logo'
     container.appendChild(divLogo);
 
     if (obj.options.logo) {
@@ -81,12 +88,37 @@ jSuites.login = (function(el, options) {
     var divRecovery = document.createElement('div');
     divRecovery.appendChild(inputRecovery);
 
+    // Login
+    var labelLogin = document.createElement('label');
+    labelLogin.innerHTML = 'Login';
+    var inputLogin = document.createElement('input');
+    inputLogin.type = 'text';
+    inputLogin.name = 'login';
+    inputLogin.setAttribute('autocomplete', 'off');
+    inputLogin.onkeyup = function() {
+        this.value = this.value.toLowerCase().replace(/[^a-zA-Z0-9_+]+/gi, '');
+    } 
+    var divLogin = document.createElement('div');
+    divLogin.appendChild(labelLogin);
+    divLogin.appendChild(inputLogin);
+
+    // Name
+    var labelName = document.createElement('label');
+    labelName.innerHTML = 'Name';
+    var inputName = document.createElement('input');
+    inputName.type = 'text';
+    inputName.name = 'name';
+    var divName = document.createElement('div');
+    divName.appendChild(labelName);
+    divName.appendChild(inputName);
+
     // Email
     var labelUsername = document.createElement('label');
     labelUsername.innerHTML = 'E-mail';
     var inputUsername = document.createElement('input');
     inputUsername.type = 'text';
     inputUsername.name = 'username';
+    inputUsername.setAttribute('autocomplete', 'new-username');
     var divUsername = document.createElement('div');
     divUsername.appendChild(labelUsername);
     divUsername.appendChild(inputUsername);
@@ -97,9 +129,15 @@ jSuites.login = (function(el, options) {
     var inputPassword = document.createElement('input');
     inputPassword.type = 'password';
     inputPassword.name = 'password';
+    inputPassword.setAttribute('autocomplete', 'new-password');
     var divPassword = document.createElement('div');
     divPassword.appendChild(labelPassword);
     divPassword.appendChild(inputPassword);
+    divPassword.onkeydown = function(e) {
+        if (e.keyCode == 13) {
+            obj.execute();
+        }
+    }
 
     // Repeat password
     var labelRepeatPassword = document.createElement('label');
@@ -174,8 +212,21 @@ jSuites.login = (function(el, options) {
     divRequestButton.onclick = function() {
         obj.requestNewPassword();
     }
+    // Create a new Profile
+    var inputNewProfile = document.createElement('span');
+    inputNewProfile.innerHTML = 'Create a new profile';
+    var divNewProfileButton = document.createElement('div');
+    divNewProfileButton.className = 'newProfileButton';
+    divNewProfileButton.appendChild(inputNewProfile);
+    divNewProfileButton.onclick = function() {
+        obj.newProfile();
+    }
 
     el.className = 'jlogin';
+
+    if (obj.options.fullscreen == true) {
+        el.classList.add('jlogin-fullscreen');
+    }
 
     /** 
      * Show message
@@ -186,10 +237,37 @@ jSuites.login = (function(el, options) {
         if (typeof(obj.options.showMessage) == 'function') {
             obj.options.showMessage(data);
         } else {
-            alert(data);
+            jSuites.alert(data);
         }
     }
-    
+
+    /**
+     * New profile
+     */
+    obj.newProfile = function() {
+        container.innerHTML = '';
+        container.appendChild(divLogo);
+        if (obj.options.newProfileLogin) {
+            container.appendChild(divLogin);
+        }
+        container.appendChild(divName);
+        container.appendChild(divUsername);
+        container.appendChild(divActionButton);
+        container.appendChild(divFacebookButton);
+        container.appendChild(divCancelButton);
+
+        // Reset inputs
+        inputLogin.value = '';
+        inputUsername.value = '';
+        inputPassword.value = '';
+
+        // Button
+        actionButton.value = 'Create new profile';
+
+        // Action
+        action = 'newProfile';
+    }
+
     /**
      * Request the email with the recovery instructions
      */
@@ -209,6 +287,9 @@ jSuites.login = (function(el, options) {
         container.appendChild(divCancelButton);
         actionButton.value = 'Request a new password';
         inputRecovery.value = 1;
+
+        // Action
+        action = 'requestNewPassword';
     }
 
     /**
@@ -223,6 +304,9 @@ jSuites.login = (function(el, options) {
         container.appendChild(divCancelButton);
         actionButton.value = 'Confirm code';
         inputRecovery.value = 2;
+
+        // Action
+        action = 'codeConfirmation';
     }
 
     /**
@@ -238,6 +322,9 @@ jSuites.login = (function(el, options) {
         container.appendChild(divCancelButton);
         actionButton.value = 'Change my password';
         inputHash.value = hash;
+
+        // Action
+        action = 'changeMyPassword';
     }
 
     /**
@@ -253,7 +340,15 @@ jSuites.login = (function(el, options) {
         container.appendChild(divRequestButton);
         container.appendChild(divRememberButton);
         container.appendChild(divRequestButton);
+        if (obj.options.newProfile == true) {
+            container.appendChild(divNewProfileButton);
+        }
+
+        // Button
         actionButton.value = 'Login';
+
+        // Password
+        inputPassword.value = '';
 
         // Email persistence
         if (window.localStorage.getItem('username')) {
@@ -262,6 +357,9 @@ jSuites.login = (function(el, options) {
         } else {
             inputUsername.focus();
         }
+
+        // Action
+        action = 'requestAccess';
     }
 
     /**
@@ -323,10 +421,31 @@ jSuites.login = (function(el, options) {
             fbLogin.addEventListener('loaderror', jError);
             fbLogin.addEventListener('exit', jExit);
         }
+
+        // Action
+        action = 'requestLoginViaFacebook';
     }
 
     // Perform request
     obj.execute = function(data) {
+        // New profile
+        if (action == 'newProfile') {
+            var pattern = new RegExp(/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/);
+            if (! inputUsername.value || ! pattern.test(inputUsername.value)) {
+                var message = 'Invalid e-mail address'; 
+            }
+
+            var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
+            if (! inputLogin.value || ! pattern.test(inputLogin.value)) {
+                var message = 'Invalid username, please use only characters and numbers';
+            }
+
+            if (message) {
+                obj.showMessage(message);
+                return false;
+            }
+        }
+
         // Keep email
         if (inputUsername.value != '') {
             window.localStorage.setItem('username', inputUsername.value);
@@ -354,12 +473,14 @@ jSuites.login = (function(el, options) {
                 // Successfully response
                 if (result.success == 1) {
                     // Recovery process
-                    if (Array.prototype.indexOf.call(container.children, divRecovery) >= 0) {
-                        if (inputRecovery.value == 1) {
-                            obj.codeConfirmation();
-                        } else {
-                            obj.requestAccess();
-                        }
+                    if (action == 'requestNewPassword') {
+                        obj.codeConfirmation();
+                    } else if (action == 'codeConfirmation') {
+                        obj.requestAccess();
+                    } else if (action == 'newProfile') {
+                        obj.requestAccess();
+                        // New profile
+                        result.newProfile = true;
                     }
 
                     // Token
@@ -424,21 +545,29 @@ jSuites.login = (function(el, options) {
                 data.h = jSuites.login.sha512(inputCode.value);
             }
         }
-        var data = new URLSearchParams(data);
+
+        // Loading
+        el.classList.add('jlogin-loading');
+
+        // Url
+        var url = (action == 'newProfile' && obj.options.newProfileUrl) ? obj.options.newProfileUrl : obj.options.url;
 
         // Remote call
-        fetch(obj.options.url, {
+        jSuites.ajax({
+            url: url,
             method: 'POST',
-            headers: new Headers({
-                'Accept': 'application/json',
-                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            }),
-            body: data
-        })
-        .then(function(data) {
-            data.json().then(function(result) {
+            dataType: 'json',
+            data: data,
+            success: function(result) {
+                // Remove loading
+                el.classList.remove('jlogin-loading');
+                // Callback
                 onsuccess(result);
-            })
+            },
+            error: function() {
+                // Error
+                el.classList.remove('jlogin-loading');
+            }
         });
     }
 
@@ -660,8 +789,8 @@ jSuites.login.sha512 = (function(str) {
         }
     }
 
-    str = utf8_encode(str);
-    strlen = str.length*charsize;
+    var str = utf8_encode(str);
+    var strlen = str.length*charsize;
     str = str2binb(str);
 
     str[strlen >> 5] |= 0x80 << (24 - strlen % 32);

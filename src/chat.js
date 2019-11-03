@@ -1,19 +1,13 @@
-/**
- * (c) jTools Chat
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Timeline
- */
-
 jSuites.chat = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Default configuration
     var defaults = {
-        url:null,
-        data:null,
+        id: null,
+        url: null,
+        cache: false,
+        data: [],
     };
 
     // Loop through our object
@@ -25,222 +19,518 @@ jSuites.chat = (function(el, options) {
         }
     }
 
-    // Add class
-    el.classList.add('jchat');
+    /**
+     * Reset the data from the chat
+     */
+    obj.resetData = function() {
+        // Reset data content
+        obj.options.data = [];
 
-    // Header
-    var timelineHeader = document.createElement('div');
-    timelineHeader.className = 'jtimeline-header';
-
-    var timelineLabel = document.createElement('div');
-    timelineLabel.className = 'jtimeline-label';
-
-    var timelineNavigation = document.createElement('div');
-    timelineNavigation.className = 'jtimeline-navigation';
-
-    // Labels 
-    var timelineMonth = document.createElement('div');
-    timelineMonth.className = 'jtimeline-month';
-    timelineMonth.innerHTML = '';
-    timelineLabel.appendChild(timelineMonth);
-
-    var timelineYear = document.createElement('div');
-    timelineYear.className = 'jtimeline-year';
-    timelineYear.innerHTML = '';
-    timelineLabel.appendChild(timelineYear);
-
-    // Navigation
-    var timelinePrev = document.createElement('div');
-    timelinePrev.className = 'jtimeline-prev';
-    timelinePrev.innerHTML = '<i class="material-icons">keyboard_arrow_left</i>';
-    timelineNavigation.appendChild(timelinePrev);
-
-    var timelineNext = document.createElement('div');
-    timelineNext.className = 'jtimeline-next';
-    timelineNext.innerHTML = '<i class="material-icons">keyboard_arrow_right</i>';
-    timelineNavigation.appendChild(timelineNext);
-
-    timelineHeader.appendChild(timelineLabel);
-    timelineHeader.appendChild(timelineNavigation);
-
-    // Data container
-    var timelineContainer = document.createElement('div');
-    timelineContainer.className = 'jtimeline-container';
-
-    // Append headers
-    el.appendChild(timelineHeader);
-    el.appendChild(timelineContainer);
-
-    // Date
-    if (obj.options.date.length > 7) {
-        obj.options.date = obj.options.date.substr(0, 7)
+        // Clear any cache
+        var key = 'jsuites.chat.' + obj.options.id;
+        localStorage.setItem(key, null);
     }
 
-    obj.setData = function(rows) {
-        var data = [];
-        for (var i = 0; i < rows.length; i++) {
-            var d = rows[i].date.substr(0,7);
+    /**
+     * Append data to the chat
+     */
+    obj.appendData = function(data, newDataFlag) {
+        if (! newDataFlag) {
+            for (var i = 0; i < data.length; i++) {
+                obj.options.data.push(data[i]);
+            }
+        } else {
+             var newData = [];
+             if (data.length > 0) {
+                 for (var i = 0; i < data.length; i++) {
+                     newData.push(data[i]);
+                 }
+             }
 
-            // Create the object if not exists
-            if (! data[d]) {
-                data[d] = [];
+             if (obj.options.data.length > 0) {
+                 for (var i = 0; i < obj.options.data.length; i++) {
+                     newData.push(obj.options.data[i]);
+                 }
+             }
+
+             obj.options.data = newData;
+        }
+
+        // Cache most recent
+        var cache = [];
+        for (var i = 0; i < obj.options.data.length; i++) {
+            if (i < 20) {
+                cache.push(obj.options.data[i]);
+            }
+        }
+
+        if (cache.length) {
+            obj.cache(cache);
+        }
+
+        // Render
+        obj.render(data, newData);
+
+        // Back to bottom
+        if (newDataFlag) {
+            obj.scrollToBottom();
+        }
+    }
+
+    obj.appendMessage = function(data, append) {
+        var chatMessage = document.createElement('div');
+        chatMessage.classList.add('jchat-message');
+        if (data.mine) {
+            chatMessage.classList.add('jchat-right');
+        } else {
+            chatMessage.classList.add('jchat-left');
+        }
+
+        var chatIcon = document.createElement('div');
+        chatIcon.classList.add('jchat-icon');
+        if (data.icon) {
+            var icon = document.createElement('img');
+            icon.src = data.icon;
+        }
+
+        var chatName = document.createElement('div');
+        chatName.classList.add('jchat-name');
+        chatName.innerText = data.name;
+
+        var chatWhen = document.createElement('div');
+        chatWhen.classList.add('jchat-when');
+        chatWhen.classList.add('prettydate');
+        chatWhen.innerText = data.date;
+
+        var chatStatus = document.createElement('div');
+        chatStatus.classList.add('jchat-status');
+        if (data.status == 1) {
+            chatStatus.classList.add('received');
+        } else if (data.status == 2) {
+            chatStatus.classList.add('read');
+        }
+
+        var chatText = document.createElement('div');
+        chatText.classList.add('jchat-text');
+        if (data.message == '👍') {
+            data.message = '<span style="font-size:2em;">' + data.message + '<span>';
+        }
+        chatText.innerHTML = data.message;
+
+        // Header
+        var chatHeader = document.createElement('div');
+        chatHeader.classList.add('jchat-header');
+        chatHeader.appendChild(chatIcon);
+        chatHeader.appendChild(chatName);
+        chatHeader.appendChild(chatWhen);
+        chatHeader.appendChild(chatStatus);
+        chatMessage.appendChild(chatHeader);
+
+        // Body
+        var chatBody = document.createElement('div');
+        chatBody.classList.add('jchat-body');
+        chatBody.appendChild(chatText);
+        chatMessage.appendChild(chatBody);
+
+        // Append message
+        if (append) {
+            chatContainer.appendChild(chatMessage);
+        } else {
+            chatContainer.insertBefore(chatMessage, chatContainer.firstChild);
+        }
+
+        // Animation
+        jSuites.fadeIn(chatMessage);
+
+        // Update date
+        jSuites.calendar.prettifyAll();
+    }
+
+    obj.cache = function(value) {
+        if (obj.options.id && obj.options.cache == true && window.localStorage) {
+            // Quick cache
+            var key = 'jsuites.chat.' + obj.options.id;
+
+            // Get or set
+            if (value) {
+                localStorage.setItem(key, JSON.stringify(value));
+            } else {
+                var value = localStorage.getItem(key);
+                if (value) {
+                    return JSON.parse(value);
+                }
+            }
+        }
+    }
+
+    // Audio
+    obj.beep = function() {
+        sound.play();
+    }
+
+    // Scroll to the botton.
+    obj.scrollToBottom = function(hard) {
+        if (hard) {
+            el.scrollTo(0, el.scrollHeight);
+        } else {
+            // Scroll bottom
+            el.scrollTo({
+                top: el.scrollHeight,
+                behavior: 'smooth',
+            });
+        }
+    }
+
+    obj.render = function(data, newData) {
+        if (newData && data.length > 0) {
+            for (var i = data.length - 1; i >= 0; i--) {
+                obj.appendMessage(data[i], true);
+            }
+        } else {
+            if (! data) {
+                var data = obj.options.data;
             }
 
-            // Create array
-            data[d].push(rows[i]);
-        };
-        obj.options.data = data;
-        obj.render(obj.options.date);
+            for (var i = 0; i < data.length; i++) {
+                obj.appendMessage(data[i]);
+            }
+        }
     }
 
-    obj.render = function(date) {
-        // Filter
-        if (date.length > 7) {
-            var date = date.substr(0,7);
-        }
-
-        // Update current date
-        obj.options.date = date;
-
-        // Reset data
-        timelineContainer.innerHTML = '';
-
-        // Days
-        var timelineDays = [];
-
-        // Itens
-        if (! obj.options.data[date]) {
-            timelineContainer.innerHTML = obj.options.text.noInformation;
+    // Load history
+    obj.loadData = function(newData, __callback) {
+        if (! newData) {
+            var ajax = {
+                date: obj.options.data[obj.options.data.length - 1].date,
+                history: 1,
+            }
         } else {
-            for (var i = 0; i < obj.options.data[date].length; i++) {
-                var v = obj.options.data[date][i];
-                var d = v.date.split('-');
+            var ajax = {
+                date: obj.options.data && obj.options.data[0] && obj.options.data[0].date ? obj.options.data[0].date : '',
+            }
+        }
 
-                // Item container
-                var timelineItem = document.createElement('div');
-                timelineItem.className = 'jtimeline-item';
-
-                // Date
-                var timelineDateContainer = document.createElement('div');
-                timelineDateContainer.className = 'jtimeline-date-container';
-
-                var timelineDate = document.createElement('div');
-                if (! timelineDays[d[2]]) {
-                    timelineDate.className = 'jtimeline-date jtimeline-date-bullet';
-                    timelineDate.innerHTML = d[2];
-
-                    if (! v.title) {
-                        v.title = v.subtitle ? v.subtitle : 'Information';
-                    }
-                } else {
-                    timelineDate.className = 'jtimeline-date';
-                    timelineDate.innerHTML = '';
-                }
-                timelineDateContainer.appendChild(timelineDate);
-
-                var timelineContent = document.createElement('div');
-                timelineContent.className = 'jtimeline-content';
-
-                var timelineTitle = document.createElement('div');
-                timelineTitle.className = 'jtimeline-title';
-                timelineTitle.innerHTML = v.title;
-                timelineContent.appendChild(timelineTitle);
-
-                var timelineSubtitle = document.createElement('div');
-                timelineSubtitle.className = 'jtimeline-subtitle';
-                timelineSubtitle.innerHTML = v.subtitle ? v.subtitle : '';
-                timelineContent.appendChild(timelineSubtitle);
-
-                // Text
-                var timelineText = document.createElement('div');
-                timelineText.className = 'jtimeline-text';
-                timelineText.innerHTML = v.text;
-                timelineContent.appendChild(timelineText);
-
-                // Tag
-                if (v.tag) {
-                    var timelineTag = document.createElement('div');
-                    timelineTag.className = 'jtimeline-tag';
-                    if (typeof(v.tag) == 'string') {
-                        timelineTag.innerHTML = v.tag;
-                    } else {
-                        timelineTag.innerHTML = v.tag.text;
-                        timelineTag.style.backgroundColor = v.tag.color;
-                    }
-                    timelineContent.appendChild(timelineTag);
+        jSuites.ajax({
+            url: obj.options.url,
+            type: 'GET',
+            dataType: 'json',
+            data: ajax,
+            success: function(result) {
+                // New data found
+                if (result) {
+                    obj.appendData(result, newData);
                 }
 
-                // Day
-                timelineDays[d[2]] = true;
-
-                // Append Item
-                timelineItem.appendChild(timelineDateContainer);
-                timelineItem.appendChild(timelineContent);
-                timelineContainer.appendChild(timelineItem);
-            };
-        }
-
-        // Update labels
-        var d = date.split('-');
-        timelineYear.innerHTML = d[0];
-        timelineMonth.innerHTML = obj.options.monthsFull[parseInt(d[1]) - 1];
+                // Callback
+                if (typeof(__callback) == 'function') {
+                    __callback(result);
+                }
+            }
+        });
     }
 
-    obj.next = function() {
-        // Update current date
-        var d = obj.options.date.split('-');
-        // Next month
-        d[1]++;
-        // Next year
-        if (d[1] > 12) {
-            d[0]++;
-            d[1] = 1;
-        }
-        date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
-    }
+    obj.sendMessage = function() {
+        var message = chatInput.value ? chatInput.value : '👍';
 
-    obj.prev = function() {
-        // Update current date
-        var d = obj.options.date.split('-');
-        // Next month
-        d[1]--;
-        // Next year
-        if (d[1] < 1) {
-            d[0]--;
-            d[1] = 12;
-        }
-        date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'POST',
+            dataType:'json',
+            data: { message: message },
+            success: function(data) {
+                // Reset input
+                chatInput.value = '';
+                chatSend.classList.remove('jchat-send');
+
+                // Message
+                var data = [{
+                    name:  'Me',
+                    date: jSuites.calendar.now(),
+                    type: 0,
+                    media: '',
+                    message: message,
+                    status: 2,
+                    mine: 1,
+                }];
+
+                // Append Data
+                obj.appendData(data, true);
+            }
+        });
     }
 
     // Init
-    if (obj.options.url) {
-        $.ajax({
-            url: obj.options.url,
-            type: 'GET',
-            dataType:'json',
-            success: function(data) {
-                // Timeline data
-                obj.setData(data);
+    obj.init = function() {
+        // Load data
+        if (obj.options.url) {
+            var data = obj.cache();
+            if (data) {
+                obj.options.data = data;
+                obj.render();
             }
-        });
-    } else {
-        // Timeline data
-        obj.setData(obj.options.data);
-    }
-
-    var timelineMouseDownControls = function(e) {
-        if (e.target.classList.contains('jtimeline-next') || e.target.parentNode.classList.contains('jtimeline-next')) {
-            obj.next();
-        } else if (e.target.classList.contains('jtimeline-prev') || e.target.parentNode.classList.contains('jtimeline-prev')) {
-            obj.prev();
+            // Most recent date
+            obj.loadData(true, function() {
+                obj.scrollToBottom(1);
+            });
+        } else {
+            if (! obj.options.data) {
+                console.error('No data defined'); 
+            } else {
+                obj.render();
+            }
         }
     }
 
-    el.addEventListener("mousedown", timelineMouseDownControls);
+    obj.updateDate = function() {
+        jSuites.calendar.prettifyAll();
+    }
 
-    el.timeline = obj;
+    obj.update = function() {
+        // Verify new messages
+        obj.loadData(true, function() {
+            obj.scrollToBottom(1);
+        });
+    }
+
+    // Audio file
+    var sound = new Audio("data:audio/wav;base64,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qJrx4KOQjahZxWbcZgztj2c49nKmkId44S71j0c8eV9yDK6uPRzx5X18eDvjvQ6yKo9ZSS6l//8elePK/Lf//IInrOF/FvDoADYAGBMGb7FtErm5MXMlmPAJQVgWta7Zx2go+8xJ0UiCb8LHHdftWyLJE0QIAIsI+UbXu67dZMjmgDGCGl1H+vpF4NSDckSIkk7Vd+sxEhBQMRU8j/12UIRhzSaUdQ+rQU5kGeFxm+hb1oh6pWWmv3uvmReDl0UnvtapVaIzo1jZbf/pD6ElLqSX+rUmOQNpJFa/r+sa4e/pBlAABoAAAAA3CUgShLdGIxsY7AUABPRrgCABdDuQ5GC7DqPQCgbbJUAoRSUj+NIEig0YfyWUho1VBBBA//uQZB4ABZx5zfMakeAAAAmwAAAAF5F3P0w9GtAAACfAAAAAwLhMDmAYWMgVEG1U0FIGCBgXBXAtfMH10000EEEEEECUBYln03TTTdNBDZopopYvrTTdNa325mImNg3TTPV9q3pmY0xoO6bv3r00y+IDGid/9aaaZTGMuj9mpu9Mpio1dXrr5HERTZSmqU36A3CumzN/9Robv/Xx4v9ijkSRSNLQhAWumap82WRSBUqXStV/YcS+XVLnSS+WLDroqArFkMEsAS+eWmrUzrO0oEmE40RlMZ5+ODIkAyKAGUwZ3mVKmcamcJnMW26MRPgUw6j+LkhyHGVGYjSUUKNpuJUQoOIAyDvEyG8S5yfK6dhZc0Tx1KI/gviKL6qvvFs1+bWtaz58uUNnryq6kt5RzOCkPWlVqVX2a/EEBUdU1KrXLf40GoiiFXK///qpoiDXrOgqDR38JB0bw7SoL+ZB9o1RCkQjQ2CBYZKd/+VJxZRRZlqSkKiws0WFxUyCwsKiMy7hUVFhIaCrNQsKkTIsLivwKKigsj8XYlwt/WKi2N4d//uQRCSAAjURNIHpMZBGYiaQPSYyAAABLAAAAAAAACWAAAAApUF/Mg+0aohSIRobBAsMlO//Kk4soosy1JSFRYWaLC4qZBYWFRGZdwqKiwkNBVmoWFSJkWFxX4FFRQWR+LsS4W/rFRb/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////VEFHAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAU291bmRib3kuZGUAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAMjAwNGh0dHA6Ly93d3cuc291bmRib3kuZGUAAAAAAAAAACU=");
+
+    if (! el.classList.contains('jchat')) {
+        // Add class
+        el.classList.add('jchat');
+
+        // Container
+        var chatContainer = document.createElement('div');
+        chatContainer.classList.add('jchat-container');
+
+        // Input
+        var chatArrow = document.createElement('div');
+        chatArrow.className = 'jchat-arrow';
+        chatArrow.style.display = 'none';
+        chatArrow.onclick = function() {
+            obj.scrollToBottom();
+        }
+
+        // Input
+        var chatInputContainer = document.createElement('div');
+        chatInputContainer.className = 'jchat-input';
+
+        var chatPhoto = document.createElement('div');
+        chatPhoto.className = 'jchat-photo';
+
+        var chatSend = document.createElement('div');
+        chatSend.className = 'jchat-submit';
+        chatSend.onclick = function(e) {
+            obj.sendMessage();
+        }
+
+        var chatInput = document.createElement('textarea');
+        chatInput.setAttribute('placeholder', 'Write a message');
+        chatInput.onkeyup = function(e) {
+            if (e.target.value) {
+                chatSend.classList.add('jchat-send');
+            } else {
+                chatSend.classList.remove('jchat-send');
+            }
+        }
+
+        chatInput.onfocus = function(e) {
+            setTimeout(function() {
+                document.body.scrollTop = document.body.scrollHeight;
+            }, 200);
+        }
+
+        // Append input box
+        chatInputContainer.appendChild(chatPhoto);
+        chatInputContainer.appendChild(chatInput);
+        chatInputContainer.appendChild(chatSend);
+
+        // Append container to the element
+        el.appendChild(chatContainer);
+        el.appendChild(chatArrow);
+        el.appendChild(chatInputContainer);
+
+        jSuites.refresh(el, function() {
+            obj.loadData(null, function() {
+                jSuites.refresh.hide();
+            });
+        });
+
+        el.addEventListener('scroll', function(e) {
+            var scrollHeight = e.target.scrollHeight - e.target.clientHeight;
+            if (scrollHeight - e.target.scrollTop > 800) {
+                if (chatArrow.style.display == 'none') {
+                    chatArrow.style.display = '';
+                }
+            } else {
+                if (chatArrow.style.display != 'none') {
+                    chatArrow.style.display = 'none';
+                }
+            }
+        });
+    
+        // Add global events
+        el.addEventListener("swipeleft", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        el.addEventListener("swiperight", function(e) {
+            var element = jSuites.getElement(e.target, 'jchat-message');
+            element.classList.add('jchat-action');
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // DOM quick access
+        el.chat = obj;
+    }
+
+    // Keep quick reference
+    el.chat = obj;
+
+    // Init
+    obj.init();
 
     return obj;
 });
+
+jSuites.chat.manager = (function() {
+    // Containers
+    var chatUsers = document.createElement('div');
+    var chatSearch = document.createElement('div');
+    var chatContainer = document.createElement('div');
+    chatContainer.classList.add('options');
+
+    // Hide users
+    chatUsers.style.display = 'none';
+
+    // Elements
+    var inputSearch = document.createElement('input');
+    inputSearch.type = 'text';
+    chatSearch.classList.add('top-search');
+    chatSearch.appendChild(inputSearch);
+
+    // Instances
+    var history = null;
+    var listUsers = null;
+
+    var obj = function(el, options) {
+        if (el) {
+            if (el.innerHTML) {
+                return obj;
+            } else {
+                el.innerHTML = '';
+
+                // Options
+                if (options) {
+                    obj.options = options;
+                }
+
+                // Container
+                el.appendChild(chatUsers);
+                el.appendChild(chatSearch);
+                el.appendChild(chatContainer);
+
+                history = jSuites.template(chatContainer, {
+                    url: obj.options.url,
+                    template: obj.options.template,
+                    noRecordsFound: 'No messages at this moment',
+                    onload: function() {
+                        // Date format
+                        jSuites.calendar.prettifyAll();
+                    }
+                });
+
+                listUsers = jSuites.dropdown(chatUsers, {
+                    url: obj.options.users,
+                    type: 'searchbar',
+                    autocomplete: true,
+                    multiple: true,
+                    onclose: function() {
+                        // Create room
+                        obj.createRoom(listUsers.getValue());
+
+                        // Close users
+                        listUsers.reset();
+                        chatUsers.style.display = 'none';
+                    }
+                });
+            }
+        }
+    }
+
+    obj.refresh = function() {
+        history.reload();
+    }
+
+    obj.create = function() {
+        chatUsers.style.display = '';
+        listUsers.open();
+    }
+
+    obj.createRoom = function(users) {
+        if (users) {
+            // Show loading
+            jSuites.loading.show();
+
+            // Create room in the remote server
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'POST',
+                data: { users:users },
+                dataType: 'json',
+                success: function(data) {
+                    // Refresh
+                    obj.refresh();
+
+                    // Hide loading
+                    jSuites.loading.hide();
+
+                    if (data.success == 1) {
+                        // Open room
+                        obj.openRoom(data.id);
+                    } else {
+                        jSuites.alert(data.message);
+                    }
+                }
+            });
+        }
+    }
+
+    obj.openRoom = function(id, o) {
+        // Open room
+        jSuites.pages(obj.options.url + '/room#' + id, {
+            onload: function(p) {
+                // Create chat component
+                if (! p.children[1].classList.contains('jchat')) {
+                    jSuites.chat(p.children[1], {
+                        id: id,
+                        url: obj.options.url + '/room/' + id,
+                        cache: true,
+                    });
+                }
+
+                // Header
+                if (o) {
+                    p.setTitle("<div class='round'>" + o.children[1].innerHTML + '</div><div>' + o.children[2].children[0].innerHTML + '</div>');
+                } else {
+                    p.setTitle('Chat');
+                }
+            },
+            onenter: function(p) {
+                if (p.children[1].chat) {
+                    p.children[1].chat.update();
+                }
+                // Hide toolbar
+                app.toolbar(0);
+            },
+            onleave: function(p) {
+                app.toolbar(1);
+            }
+        });
+    }
+
+    return obj;
+})();
+

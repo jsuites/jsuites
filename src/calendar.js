@@ -3,38 +3,40 @@ jSuites.calendar = (function(el, options) {
     obj.options = {};
 
     // Global container
-    if (! jSuites.dropdown.current) {
-        jSuites.dropdown.current = null;
+    if (! jSuites.calendar.current) {
+        jSuites.calendar.current = null;
     }
 
     // Default configuration
     var defaults = {
         // Date format
-        format:'DD/MM/YYYY',
+        format: 'DD/MM/YYYY',
         // Allow keyboard date entry
-        readonly:0,
+        readonly: true,
         // Today is default
-        today:0,
+        today: false,
         // Show timepicker
-        time:0,
+        time: false,
         // Show the reset button
-        resetButton:true,
+        resetButton: true,
         // Placeholder
-        placeholder:'',
+        placeholder: '',
         // Translations can be done here
-        months:['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        weekdays:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-        weekdays_short:['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
         // Value
-        value:null,
+        value: null,
         // Events
-        onclose:null,
-        onchange:null,
+        onclose: null,
+        onchange: null,
         // Fullscreen (this is automatic set for screensize < 800)
-        fullscreen:false,
+        fullscreen: false,
         // Internal mode controller
-        mode:null,
-        position:null,
+        mode: null,
+        position: null,
+        // Create the calendar closed as default
+        opened: false,
     };
 
     // Loop through our object
@@ -90,6 +92,9 @@ jSuites.calendar = (function(el, options) {
         }
         return value;
     }
+
+    // Element
+    el.classList.add('jcalendar-input');
 
     // Calendar elements
     var calendarReset = document.createElement('div');
@@ -163,6 +168,7 @@ jSuites.calendar = (function(el, options) {
     calendarContent.appendChild(calendarTable);
 
     var calendarSelectHour = document.createElement('select');
+    calendarSelectHour.className = 'jcalendar-select';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
     }
@@ -175,6 +181,7 @@ jSuites.calendar = (function(el, options) {
     }
 
     var calendarSelectMin = document.createElement('select');
+    calendarSelectMin.className = 'jcalendar-select';
     calendarSelectMin.onchange = function() {
         obj.date[4] = this.value; 
     }
@@ -209,13 +216,8 @@ jSuites.calendar = (function(el, options) {
 
     // Methods
     obj.open = function (value) {
-        if (jSuites.calendar.current) {
-            if (jSuites.calendar.current != obj) {
-                jSuites.calendar.current.close();
-            }
-        }
-
-        if (! jSuites.calendar.current) {
+        if (! calendar.classList.contains('jcalendar-focus')) {
+            // Current
             jSuites.calendar.current = obj;
             // Show calendar
             calendar.classList.add('jcalendar-focus');
@@ -232,7 +234,7 @@ jSuites.calendar = (function(el, options) {
                 // Full
                 calendar.classList.add('jcalendar-fullsize');
                 // Animation
-                calendarContent.classList.add('slide-bottom-in');
+                jSuites.slideBottom(calendarContent, 1);
             } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
@@ -256,21 +258,20 @@ jSuites.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        if (jSuites.calendar.current) {
-            jSuites.calendar.current =  null;
+        // Current
+        jSuites.calendar.current = null;
 
-            if (update != false && el.tagName == 'INPUT') {
-                obj.setValue(obj.getValue());
-            }
-
-            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
-                obj.options.onclose(el);
-            }
-
-            // Animation
-            calendarContainer.classList.remove('slide-bottom-in');
-            calendar.classList.remove('jcalendar-focus');
+        if (update != false && el.tagName == 'INPUT') {
+            obj.setValue(obj.getValue());
         }
+
+        // Animation
+        if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
+
+        // Hide
+        calendar.classList.remove('jcalendar-focus');
 
         return obj.getValue(); 
     }
@@ -534,7 +535,8 @@ jSuites.calendar = (function(el, options) {
             if ((i > 0) && (!(i % 4))) {
                 html += '</tr><tr align="center">';
             }
-            month = parseInt(i) + 1;
+
+            var month = parseInt(i) + 1;
             html += '<td class="jcalendar-set-month" data-value="' + month + '">' + months[i] +'</td>';
         }
 
@@ -588,47 +590,110 @@ jSuites.calendar = (function(el, options) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
 
-    // Handle events
-    el.addEventListener("focus", function(e) {
-        obj.open();
-    });
+    var mouseUpControls = function(e) {
+        var action = e.target.className;
 
-    el.addEventListener("mousedown", function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        obj.open();
-    });
+        // Object id
+        if (action == 'jcalendar-prev') {
+            obj.prev();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-next') {
+            obj.next();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-month') {
+            obj.getMonths();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-year') {
+            obj.getYears();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-set-year') {
+            obj.date[0] = e.target.innerText;
+            obj.getDays();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-set-month') {
+            obj.date[1] = parseInt(e.target.getAttribute('data-value'));
+            obj.getDays();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
+            obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-close') {
+            obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-backdrop') {
+            obj.close(false, false);
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-reset') {
+            obj.reset();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (e.target.classList.contains('jcalendar-set-day')) {
+            if (e.target.innerText) {
+                obj.update(e.target);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+    }
 
-    el.addEventListener("keyup", function(e) {
+    var keyUpControls = function(e) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
-                console.log(test);
                 if (e.target.getAttribute('data-completed') == 'true') {
                     obj.setValue(test);
                 }
             }
         }
+    }
+
+    var verifyControls = function(e) {
+        console.log(e.target.className)
+    }
+
+    // Handle events
+    el.addEventListener("keyup", keyUpControls);
+
+    // Add global events
+    calendar.addEventListener("swipeleft", function(e) {
+        jSuites.slideLeft(calendarTable, 0, function() {
+            obj.next();
+            jSuites.slideRight(calendarTable, 1);
+        });
+        e.preventDefault();
+        e.stopPropagation();
     });
 
-    if (! jSuites.calendar.hasEvents) {
-        // Add global events
-        document.addEventListener("swipeleft", function(e) {
-            if (calendar.classList.contains('jcalendar-focus')) {
-                obj.prev();
-            }
+    calendar.addEventListener("swiperight", function(e) {
+        jSuites.slideRight(calendarTable, 0, function() {
+            obj.prev();
+            jSuites.slideLeft(calendarTable, 1);
         });
+        e.preventDefault();
+        e.stopPropagation();
+    });
 
-        document.addEventListener("swiperight", function(e) {
-            if (calendar.classList.contains('jcalendar-focus')) {
-                obj.next();
-            }
+    if ('ontouchend' in document.documentElement === true) {
+        calendar.addEventListener("touchend", mouseUpControls);
+
+        el.addEventListener("touchend", function(e) {
+            obj.open();
         });
+    } else {
+        calendar.addEventListener("mouseup", mouseUpControls);
 
-        document.addEventListener("mousedown", jSuites.calendar.mouseDownControls);
-
-        // Has events
-        jSuites.calendar.hasEvents = true;
+        el.addEventListener("mouseup", function(e) {
+            obj.open();
+        });
     }
 
     // Append element to the DOM
@@ -637,8 +702,85 @@ jSuites.calendar = (function(el, options) {
     // Keep object available from the node
     el.calendar = obj;
 
+    if (obj.options.opened == true) {
+        obj.open();
+    }
+
     return obj;
 });
+
+jSuites.calendar.prettify = function(d, texts) {
+    if (! texts) {
+        var texts = {
+            justNow: 'Just now',
+            xMinutesAgo: '{0}m ago',
+            xHoursAgo: '{0}h ago',
+            xDaysAgo: '{0}d ago',
+            xWeeksAgo: '{0}w ago',
+            xMonthsAgo: '{0} mon ago',
+            xYearsAgo: '{0}y ago',
+        }
+    }
+
+    var d1 = new Date();
+    var d2 = new Date(d);
+    var total = parseInt((d1 - d2) / 1000 / 60);
+
+    String.prototype.format = function(o) {
+        return this.replace('{0}', o);
+    }
+
+    if (total == 0) {
+        var text = texts.justNow;
+    } else if (total < 90) {
+        var text = texts.xMinutesAgo.format(total);
+    } else if (total < 1440) { // One day
+        var text = texts.xHoursAgo.format(Math.round(total/60));
+    } else if (total < 20160) { // 14 days
+        var text = texts.xDaysAgo.format(Math.round(total / 1440));
+    } else if (total < 43200) { // 30 days
+        var text = texts.xWeeksAgo.format(Math.round(total / 10080));
+    } else if (total < 1036800) { // 24 months
+        var text = texts.xMonthsAgo.format(Math.round(total / 43200));
+    } else { // 24 months+
+        var text = texts.xYearsAgo.format(Math.round(total / 525600));
+    }
+
+    return text;
+}
+
+jSuites.calendar.prettifyAll = function() {
+    var elements = document.querySelectorAll('.prettydate');
+    for (var i = 0; i < elements.length; i++) {
+        if (elements[i].getAttribute('data-date')) {
+            elements[i].innerHTML = jSuites.calendar.prettify(elements[i].getAttribute('data-date'));
+        } else {
+            elements[i].setAttribute('data-date', elements[i].innerHTML);
+            elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
+        }
+    }
+}
+
+jSuites.calendar.now = function() {
+    var date = new Date();
+    var y = date.getFullYear();
+    var m = date.getMonth() + 1;
+    var d = date.getDate();
+    var h = date.getHours();
+    var i = date.getMinutes();
+    var s = date.getSeconds();
+
+    // Two digits
+    var two = function(value) {
+        value = '' + value;
+        if (value.length == 1) {
+            value = '0' + value;
+        }
+        return value;
+    }
+
+    return two(y) + '-' + two(m) + '-' + two(d) + ' ' + two(h) + ':' + two(i) + ':' + two(s);
+}
 
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
@@ -728,9 +870,9 @@ jSuites.calendar.getDateString = function(value, format) {
 
         if (d[1]) {
             h = d[1].split(':');
-            m = h[1];
-            s = h[2];
-            h = h[0];
+            m = h[1] ? h[1] : '00';
+            s = h[2] ? h[2] : '00';
+            h = h[0] ? h[0] : '00';
         } else {
             h = '00';
             m = '00';
@@ -779,49 +921,17 @@ jSuites.calendar.getDateString = function(value, format) {
     return value;
 }
 
-jSuites.calendar.mouseDownControls = function(e) {
-    if (! jSuites.getElement(e.target, 'jcalendar')) {
-        if (jSuites.calendar.current) {
-            jSuites.calendar.current.close(false, false);
-        }
-    } else {
-        if (jSuites.calendar.current) {
-            var action = e.target.className;
-
-            // Object id
-            if (action == 'jcalendar-prev') {
-                jSuites.calendar.current.prev();
-            } else if (action == 'jcalendar-next') {
-                jSuites.calendar.current.next();
-            } else if (action == 'jcalendar-month') {
-                jSuites.calendar.current.getMonths();
-            } else if (action == 'jcalendar-year') {
-                jSuites.calendar.current.getYears();
-            } else if (action == 'jcalendar-set-year') {
-                jSuites.calendar.current.date[0] = e.target.innerText;
-                jSuites.calendar.current.getDays();
-            } else if (action == 'jcalendar-set-month') {
-                jSuites.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
-                jSuites.calendar.current.getDays();
-            } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jSuites.calendar.current.close();
-            } else if (action == 'jcalendar-close') {
-                jSuites.calendar.current.close();
-            } else if (action == 'jcalendar-backdrop') {
-                jSuites.calendar.current.close(false, false);
-            } else if (action == 'jcalendar-reset') {
-                jSuites.calendar.current.reset();
-            } else if (e.target.classList.contains('jcalendar-set-day')) {
-                if (e.target.innerText) {
-                    // Keep selected day
-                    jSuites.calendar.current.update(e.target);
-                }
-            }
-
-            if (action.substr(0,9) == 'jcalendar') {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-            }
+jSuites.calendar.isOpen = function(e) {
+    if (jSuites.calendar.current) {
+        if (! e.target.className || e.target.className.indexOf('jcalendar') == -1) {
+            jSuites.calendar.current.close();
         }
     }
+}
+
+if ('ontouchend' in document.documentElement === true) {
+    document.addEventListener("touchend", jSuites.calendar.isOpen);
+
+} else {
+    document.addEventListener("mouseup", jSuites.calendar.isOpen);
 }

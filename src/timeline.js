@@ -1,6 +1,6 @@
 /**
- * (c) jTools Timeline
- * https://github.com/paulhodel/jtools
+ * (c) jSuites Timeline
+ * https://github.com/paulhodel/jsuites
  *
  * @author: Paul Hodel <paul.hodel@gmail.com>
  * @description: Timeline
@@ -29,10 +29,14 @@ jSuites.timeline = (function(el, options) {
 
     // Default configurations
     var defaults = {
+        url: null,  
         data: [],
         date: date,
         months: [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ],
         monthsFull: [ 'January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December' ],
+        oneditionstart: null,
+        oneditionend: null,
+        ondelete: null,
         text: {
             noInformation: '<div class="jtimeline-message">No information for this period</div>',
         }
@@ -98,6 +102,49 @@ jSuites.timeline = (function(el, options) {
         obj.options.date = obj.options.date.substr(0, 7)
     }
 
+    // Action
+    var action = function(o) {
+        // Get item
+        var item = o.parentNode.parentNode.parentNode.parentNode;
+        // Get id
+        var id = item.getAttribute('data-id');
+        // Open actionsheet
+        jSuites.actionsheet([
+            [
+                {
+                    title: 'Edit',
+                    onclick: function() {
+                        if (typeof(obj.options.oneditionstart) == 'function') {
+                            obj.options.oneditionstart(obj, item, id);
+                        }
+                    }
+                },
+                {
+                    title: 'Delete',
+                    onclick: function() {
+                        jSuites.confirm('Are you sure?', function() {
+                            // Remove item
+                            obj.remove(item);
+                            // Callback
+                            if (typeof(obj.options.ondelete) == 'function') {
+                                obj.options.ondelete(obj, item, id);
+                            }
+                        });
+                    }
+                },
+            ],
+            [
+                {
+                    title: 'Close',
+                    action: 'cancel',
+                    onclick: function() {
+                        jSuites.actionsheet.close();
+                    }
+                }
+            ]
+        ]);
+    }
+
     obj.setData = function(rows) {
         var data = [];
         for (var i = 0; i < rows.length; i++) {
@@ -113,6 +160,43 @@ jSuites.timeline = (function(el, options) {
         };
         obj.options.data = data;
         obj.render(obj.options.date);
+    }
+
+    obj.add = function(data) {
+        var date = data.date.substr(0,7);
+
+        // Create the object if not exists
+        if (! obj.options.data[date]) {
+            obj.options.data[date] = [];
+        }
+
+        // Format date
+        data.date = data.date.substr(0,10);
+
+        // Append data
+        obj.options.data[date].push(data);
+
+        // Reorder
+        obj.options.data[date] = obj.options.data[date].order();
+
+        // Render
+        obj.render(date);
+    }
+
+    obj.remove = function(item) {
+        var index = item.getAttribute('data-index');
+        var date = item.getAttribute('data-date');
+
+        jSuites.fadeOut(item, function() {
+            item.remove();
+        });
+
+        obj.options.data[date].splice(index, 1);
+    }
+
+    obj.reload = function() {
+        var date = obj.options.date
+        obj.render(date);
     }
 
     obj.render = function(date) {
@@ -141,6 +225,9 @@ jSuites.timeline = (function(el, options) {
                 // Item container
                 var timelineItem = document.createElement('div');
                 timelineItem.className = 'jtimeline-item';
+                timelineItem.setAttribute('data-id', v.id);
+                timelineItem.setAttribute('data-index', i);
+                timelineItem.setAttribute('data-date', date);
 
                 // Date
                 var timelineDateContainer = document.createElement('div');
@@ -150,10 +237,6 @@ jSuites.timeline = (function(el, options) {
                 if (! timelineDays[d[2]]) {
                     timelineDate.className = 'jtimeline-date jtimeline-date-bullet';
                     timelineDate.innerHTML = d[2];
-
-                    if (! v.title) {
-                        v.title = v.subtitle ? v.subtitle : 'Information';
-                    }
                 } else {
                     timelineDate.className = 'jtimeline-date';
                     timelineDate.innerHTML = '';
@@ -163,10 +246,33 @@ jSuites.timeline = (function(el, options) {
                 var timelineContent = document.createElement('div');
                 timelineContent.className = 'jtimeline-content';
 
+                // Title
+                if (! v.title) {
+                    v.title = v.subtitle ? v.subtitle : 'Information';
+                }
+
+                var timelineTitleContainer = document.createElement('div');
+                timelineTitleContainer.className = 'jtimeline-title-container';
+                timelineContent.appendChild(timelineTitleContainer);
+
                 var timelineTitle = document.createElement('div');
                 timelineTitle.className = 'jtimeline-title';
                 timelineTitle.innerHTML = v.title;
-                timelineContent.appendChild(timelineTitle);
+                timelineTitleContainer.appendChild(timelineTitle);
+
+                var timelineControls = document.createElement('div');
+                timelineControls.className = 'jtimeline-controls';
+                timelineTitleContainer.appendChild(timelineControls);
+
+                var timelineEdit = document.createElement('i');
+                timelineEdit.className = 'material-icons timeline-edit';
+                timelineEdit.innerHTML = 'edit';
+                timelineEdit.onclick = function() {
+                    action(this);
+                }
+                if (v.author == 1) {
+                    timelineControls.appendChild(timelineEdit);
+                }
 
                 var timelineSubtitle = document.createElement('div');
                 timelineSubtitle.className = 'jtimeline-subtitle';
@@ -180,16 +286,30 @@ jSuites.timeline = (function(el, options) {
                 timelineContent.appendChild(timelineText);
 
                 // Tag
-                if (v.tag) {
-                    var timelineTag = document.createElement('div');
-                    timelineTag.className = 'jtimeline-tag';
-                    if (typeof(v.tag) == 'string') {
-                        timelineTag.innerHTML = v.tag;
-                    } else {
-                        timelineTag.innerHTML = v.tag.text;
-                        timelineTag.style.backgroundColor = v.tag.color;
+                let timelineTags = document.createElement('div');
+                timelineTags.className = 'jtimeline-tags';
+                timelineContent.appendChild(timelineTags);
+
+                if (v.tags) {
+                    var createTag = function(name, color) {
+                        let timelineTag = document.createElement('div');
+                        timelineTag.className = 'jtimeline-tag';
+                        timelineTag.innerHTML = name;
+                        if (color) {
+                            timelineTag.style.backgroundColor = color;
+                        }
+                        return timelineTag; 
                     }
-                    timelineContent.appendChild(timelineTag);
+
+                    if (typeof(v.tags) == 'string') {
+                        var t = createTag(v.tags);
+                        timelineTags.appendChild(t);
+                    } else {
+                        for (var j = 0; j < v.tags.length; j++) {
+                            var t = createTag(v.tags[j].text, v.tags[j].color);
+                            timelineTags.appendChild(t);
+                        }
+                    }
                 }
 
                 // Day
@@ -219,7 +339,12 @@ jSuites.timeline = (function(el, options) {
             d[1] = 1;
         }
         date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
+
+        // Animation
+        jSuites.slideLeft(timelineContainer, 0, function() {
+            obj.render(date);
+            jSuites.slideRight(timelineContainer, 1);
+        });
     }
 
     obj.prev = function() {
@@ -233,26 +358,39 @@ jSuites.timeline = (function(el, options) {
             d[1] = 12;
         }
         date = d[0] + '-' + (d[1] < 10 ? '0' + d[1] : d[1]);
-        obj.render(date);
-    }
 
-    // Init
-    if (obj.options.url) {
-        $.ajax({
-            url: obj.options.url,
-            type: 'GET',
-            dataType:'json',
-            success: function(data) {
-                // Timeline data
-                obj.setData(data);
-            }
+        // Animation
+        jSuites.slideRight(timelineContainer, 0, function() {
+            obj.render(date);
+            jSuites.slideLeft(timelineContainer, 1);
         });
-    } else {
-        // Timeline data
-        obj.setData(obj.options.data);
     }
 
-    var timelineMouseDownControls = function(e) {
+    obj.load = function() {
+        // Init
+        if (obj.options.url) {
+            jSuites.ajax({
+                url: obj.options.url,
+                type: 'GET',
+                dataType:'json',
+                success: function(data) {
+                    // Timeline data
+                    obj.setData(data);
+                }
+            });
+        } else {
+            // Timeline data
+            obj.setData(obj.options.data);
+        }
+    }
+
+    obj.reload = function() {
+        obj.load();
+    }
+
+    obj.load();
+
+    var timelineMouseUpControls = function(e) {
         if (e.target.classList.contains('jtimeline-next') || e.target.parentNode.classList.contains('jtimeline-next')) {
             obj.next();
         } else if (e.target.classList.contains('jtimeline-prev') || e.target.parentNode.classList.contains('jtimeline-prev')) {
@@ -260,7 +398,34 @@ jSuites.timeline = (function(el, options) {
         }
     }
 
-    el.addEventListener("mousedown", timelineMouseDownControls);
+    if ('ontouchend' in document.documentElement === true) {
+        el.addEventListener("touchend", timelineMouseUpControls);
+    } else {
+        el.addEventListener("mouseup", timelineMouseUpControls);
+    }
+
+    // Add global events
+    el.addEventListener("swipeleft", function(e) {
+        obj.next();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    el.addEventListener("swiperight", function(e) {
+        obj.prev();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    // Orderby
+    Array.prototype.order = function() {
+        return this.slice(0).sort(function(a, b) {
+            var valueA = a.date;
+            var valueB = b.date;
+
+            return (valueA > valueB) ? 1 : (valueA < valueB) ? -1 : 0;
+        });
+    }
 
     el.timeline = obj;
 

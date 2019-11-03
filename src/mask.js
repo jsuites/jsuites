@@ -65,7 +65,11 @@ jSuites.mask = (function() {
             // Create mask token
             obj.prepare(mask);
             // Current value
-            var currentValue = e.target.value;
+            if (e.target.selectionStart < e.target.selectionEnd) {
+                var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+            } else {
+                var currentValue = e.target.value;
+            }
             if (currentValue) {
                 // Checking current value
                 for (var i = 0; i < currentValue.length; i++) {
@@ -286,6 +290,14 @@ jSuites.mask = (function() {
 
                     return false;
                 }
+            } else if (pieces[index] == '[-]') {
+                if (input == '-' || input == '+') {
+                    values[index] = input;
+                } else {
+                    values[index] = ' ';
+                }
+                index++;
+                return true;
             } else if (pieces[index] == '0') {
                 if (input.match(/[0-9]/g)) {
                     values[index] = input;
@@ -382,6 +394,9 @@ jSuites.mask = (function() {
                 } else if (mask[i] == '#' && mask[i+1] == ',' && mask[i+2] == '#' && mask[i+3] == '#') {
                     pieces.push('#,##');
                     i += 3;
+                } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
+                    pieces.push('[-]');
+                    i += 2;
                 } else {
                     pieces.push(mask[i]);
                 }

@@ -1,9 +1,3 @@
-/**
- * Contextmenu v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
-
 jSuites.contextmenu = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -49,7 +43,7 @@ jSuites.contextmenu = (function(el, options) {
                 if (obj.options.items[i].disabled) {
                     itemContainer.className = 'jcontextmenu-disabled';
                 } else if (obj.options.items[i].onclick) {
-                    itemContainer.onclick = obj.options.items[i].onclick;
+                    itemContainer.onmouseup = obj.options.items[i].onclick;
                 }
                 itemContainer.appendChild(itemText);
 
@@ -63,18 +57,31 @@ jSuites.contextmenu = (function(el, options) {
             obj.menu.appendChild(itemContainer);
         }
 
+        // Coordinates
         if (e.target) {
-            var e = e || window.event;
-            let position = jSuites.getPosition(e);
-            obj.menu.style.top = position[1] + 'px';
-            obj.menu.style.left = position[0] + 'px';
+            var x = e.clientX;
+            var y = e.clientY;
         } else {
-            obj.menu.style.top = (e.y + document.body.scrollTop) + 'px';
-            obj.menu.style.left = (e.x + document.body.scrollLeft) + 'px';
+            var x = e.x;
+            var y = e.y;
         }
 
         obj.menu.classList.add('jcontextmenu-focus');
         obj.menu.focus();
+
+        const rect = obj.menu.getBoundingClientRect();
+
+        if (window.innerHeight < y + rect.height) {
+            obj.menu.style.top = (y - rect.height) + 'px';
+        } else {
+            obj.menu.style.top = y + 'px';
+        }
+
+        if (window.innerWidth < x + rect.width) {
+            obj.menu.style.left = (x - rect.width) + 'px';
+        } else {
+            obj.menu.style.left = x + 'px';
+        }
     }
 
     /**
@@ -89,6 +96,10 @@ jSuites.contextmenu = (function(el, options) {
     });
 
     obj.menu.addEventListener('blur', function(e) {
+        obj.close();
+    });
+
+    window.addEventListener("mousewheel", function() {
         obj.close();
     });
 

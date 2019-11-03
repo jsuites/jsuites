@@ -161,16 +161,18 @@ var jSuites = function(options) {
                     file.remove = 1;
                 } else {
                     if (src.substr(0,4) == 'data') {
-                        file.content = src.substr(str.indexOf(',') + 1);
+                        file.content = src.substr(src.indexOf(',') + 1);
+                        file.extension = files[i].getAttribute('data-extension');
                     } else {
                         file.file = src;
-
+                        file.extension = files[i].getAttribute('data-extension');
+                        if (! file.extension) {
+                            file.extension =  src.substr(src.lastIndexOf('.') + 1);
+                        }
                         if (jSuites.files[file.file]) {
                             file.content = jSuites.files[file.file];
                         }
                     }
-
-                    file.extension = files[i].getAttribute('data-extension');
 
                     // Optional file information
                     if (files[i].getAttribute('data-name')) {
@@ -212,18 +214,6 @@ var jSuites = function(options) {
             options.method = options.type;
         }
 
-        var httpRequest = new XMLHttpRequest();
-        httpRequest.open(options.method, options.url, true);
-
-        if (options.method == 'POST') {
-            httpRequest.setRequestHeader('Accept', 'application/json');
-            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
-        } else {
-            if (options.dataType == 'json') {
-                httpRequest.setRequestHeader('Content-Type', 'text/json');
-            }
-        }
-
         if (options.data) {
             var data = [];
             var keys = Object.keys(options.data);
@@ -247,7 +237,30 @@ var jSuites = function(options) {
                     }
                 }
             }
+
+            if (options.method == 'GET' && data.length > 0) {
+                if (options.url.indexOf('?') < 0) {
+                    options.url += '?';
+                }
+                options.url += data.join('&');
+            }
         }
+
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.open(options.method, options.url, true);
+
+        if (options.method == 'POST') {
+            httpRequest.setRequestHeader('Accept', 'application/json');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        } else {
+            if (options.dataType == 'json') {
+                httpRequest.setRequestHeader('Content-Type', 'text/json');
+            }
+        }
+
+        // No cache
+        httpRequest.setRequestHeader('pragma', 'no-cache');
+        httpRequest.setRequestHeader('cache-control', 'no-cache');
 
         httpRequest.onload = function() {
             if (httpRequest.status === 200) {
@@ -366,7 +379,7 @@ var jSuites = function(options) {
                 if (typeof(done) == 'function') {
                     done();
                 }
-            }, 400);
+            }, 100);
         }
     }
 
@@ -451,13 +464,16 @@ var jSuites = function(options) {
             if (element && jSuites.calendar.current) {
                 jSuites.calendar.current.prev();
             } else {
-                if (jSuites.panel.get()) {
-                    jSuites.panel.close();
+                var element = jSuites.panel.get();
+                if (element) {
+                    if (element.style.display != 'none') {
+                        jSuites.panel.close();
+                    }
                 }
             }
         }
     }
-    
+
     var controlSwipeRight = function(e) {
         var element = jSuites.getElement(e.target, 'option');
         if (element && element.querySelector('.option-actions')) {
@@ -483,14 +499,19 @@ var jSuites = function(options) {
     // Create page container
     document.addEventListener('swipeleft', controlSwipeLeft);
     document.addEventListener('swiperight', controlSwipeRight);
-    document.addEventListener('touchend', obj.actionUpControl);
     document.addEventListener('keydown', obj.keyDownControls);
+
+    if ('ontouchend' in document.documentElement === true) {
+        document.addEventListener('touchend', obj.actionUpControl);
+    } else {
+        document.addEventListener('mouseup', obj.actionUpControl);
+    }
 
     // Pop state control
     window.onpopstate = function(e) {
         if (e.state && e.state.route) {
             if (jSuites.pages.get(e.state.route)) {
-                jSuites.pages(e.state.route, true);
+                jSuites.pages(e.state.route, { ignoreHistory:true });
             }
         }
     }
@@ -505,38 +526,40 @@ jSuites.calendar = (function(el, options) {
     obj.options = {};
 
     // Global container
-    if (! jSuites.dropdown.current) {
-        jSuites.dropdown.current = null;
+    if (! jSuites.calendar.current) {
+        jSuites.calendar.current = null;
     }
 
     // Default configuration
     var defaults = {
         // Date format
-        format:'DD/MM/YYYY',
+        format: 'DD/MM/YYYY',
         // Allow keyboard date entry
-        readonly:0,
+        readonly: true,
         // Today is default
-        today:0,
+        today: false,
         // Show timepicker
-        time:0,
+        time: false,
         // Show the reset button
-        resetButton:true,
+        resetButton: true,
         // Placeholder
-        placeholder:'',
+        placeholder: '',
         // Translations can be done here
-        months:['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-        weekdays:['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-        weekdays_short:['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
         // Value
-        value:null,
+        value: null,
         // Events
-        onclose:null,
-        onchange:null,
+        onclose: null,
+        onchange: null,
         // Fullscreen (this is automatic set for screensize < 800)
-        fullscreen:false,
+        fullscreen: false,
         // Internal mode controller
-        mode:null,
-        position:null,
+        mode: null,
+        position: null,
+        // Create the calendar closed as default
+        opened: false,
     };
 
     // Loop through our object
@@ -592,6 +615,9 @@ jSuites.calendar = (function(el, options) {
         }
         return value;
     }
+
+    // Element
+    el.classList.add('jcalendar-input');
 
     // Calendar elements
     var calendarReset = document.createElement('div');
@@ -665,6 +691,7 @@ jSuites.calendar = (function(el, options) {
     calendarContent.appendChild(calendarTable);
 
     var calendarSelectHour = document.createElement('select');
+    calendarSelectHour.className = 'jcalendar-select';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
     }
@@ -677,6 +704,7 @@ jSuites.calendar = (function(el, options) {
     }
 
     var calendarSelectMin = document.createElement('select');
+    calendarSelectMin.className = 'jcalendar-select';
     calendarSelectMin.onchange = function() {
         obj.date[4] = this.value; 
     }
@@ -711,13 +739,8 @@ jSuites.calendar = (function(el, options) {
 
     // Methods
     obj.open = function (value) {
-        if (jSuites.calendar.current) {
-            if (jSuites.calendar.current != obj) {
-                jSuites.calendar.current.close();
-            }
-        }
-
-        if (! jSuites.calendar.current) {
+        if (! calendar.classList.contains('jcalendar-focus')) {
+            // Current
             jSuites.calendar.current = obj;
             // Show calendar
             calendar.classList.add('jcalendar-focus');
@@ -734,7 +757,7 @@ jSuites.calendar = (function(el, options) {
                 // Full
                 calendar.classList.add('jcalendar-fullsize');
                 // Animation
-                calendarContent.classList.add('slide-bottom-in');
+                jSuites.slideBottom(calendarContent, 1);
             } else {
                 const rect = el.getBoundingClientRect();
                 const rectContent = calendarContent.getBoundingClientRect();
@@ -758,21 +781,20 @@ jSuites.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        if (jSuites.calendar.current) {
-            jSuites.calendar.current =  null;
+        // Current
+        jSuites.calendar.current = null;
 
-            if (update != false && el.tagName == 'INPUT') {
-                obj.setValue(obj.getValue());
-            }
-
-            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
-                obj.options.onclose(el);
-            }
-
-            // Animation
-            calendarContainer.classList.remove('slide-bottom-in');
-            calendar.classList.remove('jcalendar-focus');
+        if (update != false && el.tagName == 'INPUT') {
+            obj.setValue(obj.getValue());
         }
+
+        // Animation
+        if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
+
+        // Hide
+        calendar.classList.remove('jcalendar-focus');
 
         return obj.getValue(); 
     }
@@ -1036,7 +1058,8 @@ jSuites.calendar = (function(el, options) {
             if ((i > 0) && (!(i % 4))) {
                 html += '</tr><tr align="center">';
             }
-            month = parseInt(i) + 1;
+
+            var month = parseInt(i) + 1;
             html += '<td class="jcalendar-set-month" data-value="' + month + '">' + months[i] +'</td>';
         }
 
@@ -1090,18 +1113,62 @@ jSuites.calendar = (function(el, options) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
 
-    // Handle events
-    el.addEventListener("focus", function(e) {
-        obj.open();
-    });
+    var mouseUpControls = function(e) {
+        var action = e.target.className;
 
-    el.addEventListener("mousedown", function(e) {
-        e.preventDefault();
-        e.stopImmediatePropagation();
-        obj.open();
-    });
+        // Object id
+        if (action == 'jcalendar-prev') {
+            obj.prev();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-next') {
+            obj.next();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-month') {
+            obj.getMonths();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-year') {
+            obj.getYears();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-set-year') {
+            obj.date[0] = e.target.innerText;
+            obj.getDays();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-set-month') {
+            obj.date[1] = parseInt(e.target.getAttribute('data-value'));
+            obj.getDays();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
+            obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-close') {
+            obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-backdrop') {
+            obj.close(false, false);
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-reset') {
+            obj.reset();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (e.target.classList.contains('jcalendar-set-day')) {
+            if (e.target.innerText) {
+                obj.update(e.target);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+        }
+    }
 
-    el.addEventListener("keyup", function(e) {
+    var keyUpControls = function(e) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
@@ -1110,26 +1177,46 @@ jSuites.calendar = (function(el, options) {
                 }
             }
         }
+    }
+
+    var verifyControls = function(e) {
+        console.log(e.target.className)
+    }
+
+    // Handle events
+    el.addEventListener("keyup", keyUpControls);
+
+    // Add global events
+    calendar.addEventListener("swipeleft", function(e) {
+        jSuites.slideLeft(calendarTable, 0, function() {
+            obj.next();
+            jSuites.slideRight(calendarTable, 1);
+        });
+        e.preventDefault();
+        e.stopPropagation();
     });
 
-    if (! jSuites.calendar.hasEvents) {
-        // Add global events
-        document.addEventListener("swipeleft", function(e) {
-            if (calendar.classList.contains('jcalendar-focus')) {
-                obj.prev();
-            }
+    calendar.addEventListener("swiperight", function(e) {
+        jSuites.slideRight(calendarTable, 0, function() {
+            obj.prev();
+            jSuites.slideLeft(calendarTable, 1);
         });
+        e.preventDefault();
+        e.stopPropagation();
+    });
 
-        document.addEventListener("swiperight", function(e) {
-            if (calendar.classList.contains('jcalendar-focus')) {
-                obj.next();
-            }
+    if ('ontouchend' in document.documentElement === true) {
+        calendar.addEventListener("touchend", mouseUpControls);
+
+        el.addEventListener("touchend", function(e) {
+            obj.open();
         });
+    } else {
+        calendar.addEventListener("mouseup", mouseUpControls);
 
-        document.addEventListener("mousedown", jSuites.calendar.mouseDownControls);
-
-        // Has events
-        jSuites.calendar.hasEvents = true;
+        el.addEventListener("mouseup", function(e) {
+            obj.open();
+        });
     }
 
     // Append element to the DOM
@@ -1138,6 +1225,10 @@ jSuites.calendar = (function(el, options) {
     // Keep object available from the node
     el.calendar = obj;
 
+    if (obj.options.opened == true) {
+        obj.open();
+    }
+
     return obj;
 });
 
@@ -1145,12 +1236,12 @@ jSuites.calendar.prettify = function(d, texts) {
     if (! texts) {
         var texts = {
             justNow: 'Just now',
-            xMinutesAgo: '{0} minutes ago',
-            xHoursAgo: '{0} hours ago',
-            xDaysAgo: '{0} days ago',
-            xWeeksAgo: '{0} weeks ago',
-            xMonthsAgo: '{0} months ago',
-            xYearsAgo: '{0} years ago',
+            xMinutesAgo: '{0}m ago',
+            xHoursAgo: '{0}h ago',
+            xDaysAgo: '{0}d ago',
+            xWeeksAgo: '{0}w ago',
+            xMonthsAgo: '{0} mon ago',
+            xYearsAgo: '{0}y ago',
         }
     }
 
@@ -1302,9 +1393,9 @@ jSuites.calendar.getDateString = function(value, format) {
 
         if (d[1]) {
             h = d[1].split(':');
-            m = h[1];
-            s = h[2];
-            h = h[0];
+            m = h[1] ? h[1] : '00';
+            s = h[2] ? h[2] : '00';
+            h = h[0] ? h[0] : '00';
         } else {
             h = '00';
             m = '00';
@@ -1353,51 +1444,19 @@ jSuites.calendar.getDateString = function(value, format) {
     return value;
 }
 
-jSuites.calendar.mouseDownControls = function(e) {
-    if (! jSuites.getElement(e.target, 'jcalendar')) {
-        if (jSuites.calendar.current) {
-            jSuites.calendar.current.close(false, false);
-        }
-    } else {
-        if (jSuites.calendar.current) {
-            var action = e.target.className;
-
-            // Object id
-            if (action == 'jcalendar-prev') {
-                jSuites.calendar.current.prev();
-            } else if (action == 'jcalendar-next') {
-                jSuites.calendar.current.next();
-            } else if (action == 'jcalendar-month') {
-                jSuites.calendar.current.getMonths();
-            } else if (action == 'jcalendar-year') {
-                jSuites.calendar.current.getYears();
-            } else if (action == 'jcalendar-set-year') {
-                jSuites.calendar.current.date[0] = e.target.innerText;
-                jSuites.calendar.current.getDays();
-            } else if (action == 'jcalendar-set-month') {
-                jSuites.calendar.current.date[1] = parseInt(e.target.getAttribute('data-value'));
-                jSuites.calendar.current.getDays();
-            } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-                jSuites.calendar.current.close();
-            } else if (action == 'jcalendar-close') {
-                jSuites.calendar.current.close();
-            } else if (action == 'jcalendar-backdrop') {
-                jSuites.calendar.current.close(false, false);
-            } else if (action == 'jcalendar-reset') {
-                jSuites.calendar.current.reset();
-            } else if (e.target.classList.contains('jcalendar-set-day')) {
-                if (e.target.innerText) {
-                    // Keep selected day
-                    jSuites.calendar.current.update(e.target);
-                }
-            }
-
-            if (action.substr(0,9) == 'jcalendar') {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-            }
+jSuites.calendar.isOpen = function(e) {
+    if (jSuites.calendar.current) {
+        if (! e.target.className || e.target.className.indexOf('jcalendar') == -1) {
+            jSuites.calendar.current.close();
         }
     }
+}
+
+if ('ontouchend' in document.documentElement === true) {
+    document.addEventListener("touchend", jSuites.calendar.isOpen);
+
+} else {
+    document.addEventListener("mouseup", jSuites.calendar.isOpen);
 }
 
 /**
@@ -1903,18 +1962,31 @@ jSuites.contextmenu = (function(el, options) {
             obj.menu.appendChild(itemContainer);
         }
 
+        // Coordinates
         if (e.target) {
             var x = e.clientX;
             var y = e.clientY;
-            obj.menu.style.top = y + 'px';
-            obj.menu.style.left = x + 'px';
         } else {
-            obj.menu.style.top = e.y + 'px';
-            obj.menu.style.left = e.x + 'px';
+            var x = e.x;
+            var y = e.y;
         }
 
         obj.menu.classList.add('jcontextmenu-focus');
         obj.menu.focus();
+
+        const rect = obj.menu.getBoundingClientRect();
+
+        if (window.innerHeight < y + rect.height) {
+            obj.menu.style.top = (y - rect.height) + 'px';
+        } else {
+            obj.menu.style.top = y + 'px';
+        }
+
+        if (window.innerWidth < x + rect.width) {
+            obj.menu.style.left = (x - rect.width) + 'px';
+        } else {
+            obj.menu.style.left = x + 'px';
+        }
     }
 
     /**
@@ -1943,9 +2015,157 @@ jSuites.contextmenu = (function(el, options) {
 });
 
 /**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
+ * Dialog v1.0.1
+ * Author: paul.hodel@gmail.com
+ * https://github.com/paulhodel/jtools
+ */
+ 
+jSuites.dialog = (function() {
+    var obj = {};
+    obj.options = {};
+
+    var dialog = document.createElement('div');
+    dialog.setAttribute('tabindex', '901');
+    dialog.className = 'jdialog';
+    dialog.id = 'dialog';
+
+    var dialogHeader = document.createElement('div');
+    dialogHeader.className = 'jdialog-header';
+
+    var dialogTitle = document.createElement('div');
+    dialogTitle.className = 'jdialog-title';
+    dialogHeader.appendChild(dialogTitle);
+
+    var dialogMessage = document.createElement('div');
+    dialogMessage.className = 'jdialog-message';
+    dialogHeader.appendChild(dialogMessage);
+
+    var dialogFooter = document.createElement('div');
+    dialogFooter.className = 'jdialog-footer';
+
+    var dialogContainer = document.createElement('div');
+    dialogContainer.className = 'jdialog-container';
+    dialogContainer.appendChild(dialogHeader);
+    dialogContainer.appendChild(dialogFooter);
+
+    // Confirm
+    var dialogConfirm = document.createElement('div');
+    var dialogConfirmButton = document.createElement('input');
+    dialogConfirmButton.value = obj.options.confirmLabel;
+    dialogConfirmButton.type = 'button';
+    dialogConfirmButton.onclick = function() {
+        if (typeof(obj.options.onconfirm) == 'function') {
+            obj.options.onconfirm();
+        }
+        obj.close();
+    };
+    dialogConfirm.appendChild(dialogConfirmButton);
+    dialogFooter.appendChild(dialogConfirm);
+
+    // Cancel
+    var dialogCancel = document.createElement('div');
+    var dialogCancelButton = document.createElement('input');
+    dialogCancelButton.value = obj.options.cancelLabel;
+    dialogCancelButton.type = 'button';
+    dialogCancelButton.onclick = function() {
+        if (typeof(obj.options.oncancel) == 'function') {
+            obj.options.oncancel();
+        }
+        obj.close();
+    }
+    dialogCancel.appendChild(dialogCancelButton);
+    dialogFooter.appendChild(dialogCancel);
+
+    // Dialog
+    dialog.appendChild(dialogContainer);
+
+    obj.open = function(options) {
+        obj.options = options;
+
+        if (obj.options.title) {
+            dialogTitle.innerHTML = obj.options.title;
+        }
+
+        if (obj.options.message) {
+            dialogMessage.innerHTML = obj.options.message;
+        }
+
+        if (! obj.options.confirmLabel) {
+            obj.options.confirmLabel = 'OK';
+        }
+        dialogConfirmButton.value = obj.options.confirmLabel;
+
+        if (! obj.options.cancelLabel) {
+            obj.options.cancelLabel = 'Cancel';
+        }
+        dialogCancelButton.value = obj.options.cancelLabel;
+
+        if (obj.options.type == 'confirm') {
+            dialogCancelButton.parentNode.style.display = '';
+        } else {
+            dialogCancelButton.parentNode.style.display = 'none';
+        }
+
+        // Append element to the app
+        dialog.style.opacity = 100;
+
+        // Append to the page
+        if (jSuites.el) {
+            jSuites.el.appendChild(dialog);
+        } else {
+            document.body.appendChild(dialog);
+        }
+
+        // Focus
+        dialog.focus();
+
+        // Show
+        setTimeout(function() {
+            dialogContainer.style.opacity = 100;
+        }, 0);
+    };
+
+    obj.close = function() {
+        dialog.style.opacity = 0;
+        dialogContainer.style.opacity = 0;
+        setTimeout(function() {
+            dialog.remove();
+        }, 100);
+    };
+
+    return obj;
+})();
+
+jSuites.confirm = (function(message, onconfirm) {
+    if (jSuites.getWindowWidth() < 800) {
+        jSuites.dialog.open({
+            type: 'confirm',
+            message: message,
+            title: 'Confirmation',
+            onconfirm: onconfirm,
+        });
+    } else {
+        if (confirm(message)) {
+            onconfirm();
+        }
+    }
+});
+
+jSuites.alert = function(message) {
+    if (jSuites.getWindowWidth() < 800) {
+        jSuites.dialog.open({
+            title:'Alert',
+            message:message,
+        });
+    } else {
+        alert(message);
+    }
+}
+
+
+/**
+ * (c) 2013 jDropdown http://www.github.com/paulhodel/jdropdown
+ * 
  * @author: Paul Hodel <paul.hodel@gmail.com>
  * @description: Custom dropdowns
  */
@@ -1978,8 +2198,11 @@ jSuites.dropdown = (function(el, options) {
         onopen: null,
         onclose: null,
         onblur: null,
+        oninsert: null,
+        allowInsert: false,
         value: null,
         placeholder: '',
+        position: false, // Fixed position
     };
 
     // Loop through our object
@@ -2050,6 +2273,12 @@ jSuites.dropdown = (function(el, options) {
         // Handler
         header.addEventListener('keyup', function(e) {
             obj.find(header.value);
+
+            if (! el.classList.contains('jdropdown-focus')) {
+                if (e.which > 65) {
+                    obj.open();
+                }
+            }
         });
     } else {
         header.setAttribute('readonly', 'readonly');
@@ -2058,6 +2287,22 @@ jSuites.dropdown = (function(el, options) {
     // Place holder
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
+    }
+
+    // Insert new elements
+    if (obj.options.allowInsert == true) {
+        el.classList.add('jdropdown-insert');
+
+        // Add button
+        var insertButton  = document.createElement('div');
+        insertButton.className = 'jdropdown-insert-button';
+        insertButton.innerHTML = '+';
+        insertButton.onclick = function() {
+            if (header.value) {
+                obj.addItem(header.value);
+            }
+        }
+        containerHeader.appendChild(insertButton);
     }
 
     // Append elements
@@ -2070,19 +2315,21 @@ jSuites.dropdown = (function(el, options) {
 
     obj.init = function() {
         if (obj.options.url) {
-            fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-                .then(function(data) {
-                    data.json().then(function(data) {
-                        if (data) {
-                            obj.options.data = data;
-                            obj.setData();
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data) {
+                        obj.options.data = data;
+                        obj.setData();
 
-                            if (typeof(obj.options.onload) == 'function') {
-                                obj.options.onload(el, obj, data);
-                            }
+                        if (typeof(obj.options.onload) == 'function') {
+                            obj.options.onload(el, obj, data);
                         }
-                    })
-                });
+                    }
+                }
+            });
         } else {
             obj.setData();
 
@@ -2112,12 +2359,15 @@ jSuites.dropdown = (function(el, options) {
 
     obj.setUrl = function(url) {
         obj.options.url = url;
-        fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-            .then(function(data) {
-                data.json().then(function(data) {
-                    obj.setData(data);
-                })
-            });
+
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                obj.setData(data);
+            }
+        });
     }
 
     obj.setData = function(data) {
@@ -2257,8 +2507,8 @@ jSuites.dropdown = (function(el, options) {
         } 
 
         // Set values
-        if (value) {
-            if (typeof(value.forEach) == 'function') {
+        if (value != null) {
+            if (Array.isArray(value)) {
                 for (var i = 0; i < obj.items.length; i++) {
                     value.forEach(function(val) {
                         if (obj.items[i].value == val) {
@@ -2279,45 +2529,62 @@ jSuites.dropdown = (function(el, options) {
         obj.updateLabel();
     }
 
+    obj.addItem = function() {
+        console.log(obj.items);
+    }
+
     obj.selectIndex = function(index) {
-        // Focus behaviour
-        if (! obj.options.multiple) {
-            // Update selected item
-            obj.items.forEach(function(v) {
-                v.classList.remove('jdropdown-cursor');
-                v.classList.remove('jdropdown-selected');
-            });
-            obj.items[index].classList.add('jdropdown-selected');
-            obj.items[index].classList.add('jdropdown-cursor');
-            // Close
-            obj.close();
-        } else {
-            // Toggle option
-            if (obj.items[index].classList.contains('jdropdown-selected')) {
-                obj.items[index].classList.remove('jdropdown-selected');
-                obj.items[index].classList.remove('jdropdown-cursor');
-            } else {
-                obj.items.forEach(function(v) {
-                    v.classList.remove('jdropdown-cursor');
-                });
-                obj.items[index].classList.add('jdropdown-selected');
-                obj.items[index].classList.add('jdropdown-cursor');
-            }
-            // Update cursor position
-            obj.currentIndex = index;
-
-            // Update labels for multiple dropdown
-            if (! obj.options.autocomplete) {
-                obj.updateLabel();
-            }
-        }
-
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
+        if (index >= 0) {
+            // Current selection
             var oldValue = obj.getValue();
-            var newValue = obj.items[index].value;
+            var oldLabel = obj.getText();
 
-            obj.options.onchange(el, index, oldValue, newValue);
+            // Focus behaviour
+            if (! obj.options.multiple) {
+                // Cursor
+                obj.items[index].classList.add('jdropdown-cursor');
+                // Unselect option
+                if (obj.items[index].classList.contains('jdropdown-selected')) {
+                    obj.items[index].classList.remove('jdropdown-selected');
+                } else {
+                    // Update selected item
+                    obj.items.forEach(function(v) {
+                        v.classList.remove('jdropdown-cursor');
+                        v.classList.remove('jdropdown-selected');
+                    });
+                    obj.items[index].classList.add('jdropdown-selected');
+                    // Close
+                    obj.close();
+                }
+            } else {
+                // Toggle option
+                if (obj.items[index].classList.contains('jdropdown-selected')) {
+                    obj.items[index].classList.remove('jdropdown-selected');
+                    obj.items[index].classList.remove('jdropdown-cursor');
+                } else {
+                    obj.items.forEach(function(v) {
+                        v.classList.remove('jdropdown-cursor');
+                    });
+                    obj.items[index].classList.add('jdropdown-selected');
+                    obj.items[index].classList.add('jdropdown-cursor');
+                }
+                // Update cursor position
+                obj.currentIndex = index;
+
+                // Update labels for multiple dropdown
+                if (! obj.options.autocomplete) {
+                    obj.updateLabel();
+                }
+            }
+
+            // Current selection
+            var newValue = obj.getValue();
+            var newLabel = obj.getText();
+
+            // Events
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, index, oldValue, newValue, oldLabel, newLabel);
+            }
         }
     }
 
@@ -2429,7 +2696,7 @@ jSuites.dropdown = (function(el, options) {
                 const rect = el.getBoundingClientRect();
                 const rectContainer = container.getBoundingClientRect();
                 container.style.minWidth = rect.width + 'px';
-                //container.style.maxWidth = '100%';
+                // container.style.maxWidth = '100%';
 
                 if (obj.options.position) {
                     container.style.position = 'fixed';
@@ -2440,9 +2707,10 @@ jSuites.dropdown = (function(el, options) {
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = (-1 * (rectContainer.height)) + 'px';
+                        container.style.bottom = (rect.height) + 'px';
                     } else {
                         container.style.top = '';
+                        container.style.bottom = '';
                     }
                 }
             }
@@ -2472,7 +2740,9 @@ jSuites.dropdown = (function(el, options) {
             // Reset
             obj.currentIndex = null;
             // Blur
-            //header.blur();
+            if (header.blur) {
+                header.blur();
+            }
             // Remove focus
             el.classList.remove('jdropdown-focus');
         }
@@ -2492,6 +2762,22 @@ jSuites.dropdown = (function(el, options) {
         });
         // Update labels
         obj.updateLabel();
+    }
+
+    obj.firstVisible = function() {
+        var newIndex = null;
+        for (var i = 0; i < obj.options.data.length; i++) {
+            if (obj.items[i].style.display != 'none') {
+                newIndex = i;
+                break;
+            }
+        }
+
+        if (newIndex == null) {
+            return false;
+        }
+
+        obj.updateCursor(newIndex);
     }
 
     obj.first = function() {
@@ -2575,7 +2861,11 @@ jSuites.dropdown = (function(el, options) {
     }
 
     if (! jSuites.dropdown.hasEvents) {
-        document.addEventListener('click', jSuites.dropdown.onclick);
+        if ('ontouchsend' in document.documentElement === true) {
+            document.addEventListener('touchsend', jSuites.dropdown.mouseup);
+        } else {
+            document.addEventListener('mouseup', jSuites.dropdown.mouseup);
+        }
         document.addEventListener('keydown', jSuites.dropdown.onkeydown);
 
         jSuites.dropdown.hasEvents = true;
@@ -2590,7 +2880,7 @@ jSuites.dropdown = (function(el, options) {
     return obj;
 });
 
-jSuites.dropdown.onclick = function(e) {
+jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.getElement(e.target, 'jdropdown');
     if (element) {
         var dropdown = element.dropdown;
@@ -2653,19 +2943,19 @@ jSuites.dropdown.onkeydown = function(e) {
         if (e.shiftKey) {
 
         } else {
-            if (e.which == 13 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
+            if (e.which == 13 || e.which == 27 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
                 // Move cursor
                 if (e.which == 13) {
                     element.selectIndex(index)
                 } else if (e.which == 38) {
                     if (index == null) {
-                        element.updateCursor(0);
+                        element.firstVisible();
                     } else if (index > 0) {
                         element.prev();
                     }
                 } else if (e.which == 40) {
                     if (index == null) {
-                        element.updateCursor(0);
+                        element.firstVisible();
                     } else if (index + 1 < element.options.data.length) {
                         element.next();
                     }
@@ -2673,6 +2963,8 @@ jSuites.dropdown.onkeydown = function(e) {
                     element.first();
                 } else if (e.which == 35) {
                     element.last();
+                } else if (e.which == 27) {
+                    element.close();
                 }
 
                 e.stopPropagation();
@@ -2681,6 +2973,1108 @@ jSuites.dropdown.onkeydown = function(e) {
         }
     }
 }
+
+/**
+ * (c) jTools Text Editor
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Inline richtext editor
+ */
+
+jSuites.editor = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        // Initial HTML content
+        value: null,
+        // Initial snippet
+        snippet: null,
+        // Add toolbar
+        toolbar: null,
+        // Max height
+        maxHeight: null,
+        // Website parser is to read websites and images from cross domain
+        remoteParser: null,
+        // Key from youtube to read properties from URL
+        youtubeKey: null,
+        // User list
+        userSearch: null,
+        // Parse URL
+        parseURL: false,
+        // Accept drop files
+        dropZone: true,
+        dropAsAttachment: false,
+        acceptImages: true,
+        acceptFiles: false,
+        maxFileSize: 5000000, 
+        // Border
+        border: true,
+        padding: true,
+        focus: false,
+        // Events
+        onclick: null,
+        onfocus: null,
+        onblur: null,
+        onload: null,
+        onenter: null,
+        onkeyup: null,
+        onkeydown: null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Private controllers
+    var imageResize = 0;
+    var editorTimer = null;
+    var editorAction = null;
+
+    // Make sure element is empty
+    el.innerHTML = '';
+
+    // Prepare container
+    el.classList.add('jeditor-container');
+
+    // Padding
+    if (obj.options.padding == true) {
+        el.classList.add('jeditor-padding');
+    }
+
+    // Border
+    if (obj.options.border == false) {
+        el.style.border = '0px';
+    }
+
+    // Snippet
+    var snippet = document.createElement('div');
+    snippet.className = 'snippet';
+    snippet.setAttribute('contenteditable', false);
+
+    // Toolbar
+    var toolbar = document.createElement('div');
+    toolbar.className = 'jeditor-toolbar';
+
+    // Create editor
+    var editor = document.createElement('div');
+    editor.setAttribute('contenteditable', true);
+    editor.setAttribute('spellcheck', false);
+    editor.className = 'jeditor';
+
+    // Max height
+    if (obj.options.maxHeight) {
+        editor.style.overflowY = 'auto';
+        editor.style.maxHeight = obj.options.maxHeight;
+    }
+
+    // Set editor initial value
+    if (obj.options.value) {
+        var value = obj.options.value;
+    } else {
+        var value = el.innerHTML ? el.innerHTML : ''; 
+    }
+
+    if (! value) {
+        var value = '<br>';
+    }
+
+    /**
+     * Extract images from a HTML string
+     */
+    var extractImageFromHtml = function(html) {
+        // Create temp element
+        var div = document.createElement('div');
+        div.innerHTML = html;
+
+        // Extract images
+        var img = div.querySelectorAll('img');
+
+        if (img.length) {
+            for (var i = 0; i < img.length; i++) {
+                obj.addImage(img[i].src);
+            }
+        }
+    }
+
+    /**
+     * Insert node at caret
+     */
+    var insertNodeAtCaret = function(newNode) {
+        var sel, range;
+
+        if (window.getSelection) {
+            sel = window.getSelection();
+            if (sel.rangeCount) {
+                range = sel.getRangeAt(0);
+                var selectedText = range.toString();
+                range.deleteContents();
+                range.insertNode(newNode); 
+                // move the cursor after element
+                range.setStartAfter(newNode);
+                range.setEndAfter(newNode); 
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
+        }
+    }
+
+    /**
+     * Append snippet or thumbs in the editor
+     * @Param object data
+     */
+    var appendElement = function(data) {
+        // Reset snippet
+        snippet.innerHTML = '';
+
+        if (data.image) {
+            var div = document.createElement('div');
+            div.className = 'snippet-image';
+            div.setAttribute('data-k', 'image');
+            snippet.appendChild(div);
+
+            var image = document.createElement('img');
+            image.src = data.image;
+            div.appendChild(image);
+        }
+
+        var div = document.createElement('div');
+        div.className = 'snippet-title';
+        div.setAttribute('data-k', 'title');
+        div.innerHTML = data.title;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'snippet-description';
+        div.setAttribute('data-k', 'description');
+        div.innerHTML = data.description;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'snippet-host';
+        div.setAttribute('data-k', 'host');
+        div.innerHTML = data.host;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'snippet-url';
+        div.setAttribute('data-k', 'url');
+        div.innerHTML = data.url;
+        snippet.appendChild(div);
+
+        editor.appendChild(snippet);
+    }
+
+    var verifyEditor = function() {
+        clearTimeout(editorTimer);
+        editorTimer = setTimeout(function() {
+            var snippet = editor.querySelector('.snippet');
+            var thumbsContainer = el.querySelector('.jeditor-thumbs-container');
+
+            if (! snippet && ! thumbsContainer) {
+                var html = editor.innerHTML.replace(/\n/g, ' ');
+                var container = document.createElement('div');
+                container.innerHTML = html;
+                var thumbsContainer = container.querySelector('.jeditor-thumbs-container');
+                if (thumbsContainer) {
+                    thumbsContainer.remove();
+                }
+                var text = container.innerText; 
+                var url = jSuites.editor.detectUrl(text);
+
+                if (url) {
+                    if (url[0].substr(-3) == 'jpg' || url[0].substr(-3) == 'png' || url[0].substr(-3) == 'gif') {
+                        if (jSuites.editor.getDomain(url[0]) == window.location.hostname) {
+                            obj.importImage(url[0], '');
+                        } else {
+                            obj.importImage(obj.options.remoteParser + url[0], '');
+                        }
+                    } else {
+                        var id = jSuites.editor.youtubeParser(url[0]);
+
+                        if (id) {
+                            obj.getYoutube(id);
+                        } else {
+                            obj.getWebsite(url[0]);
+                        }
+                    }
+                }
+            }
+        }, 1000);
+    }
+
+    /**
+     * Get metadata from a youtube video
+     */
+    obj.getYoutube = function(id) {
+        if (! obj.options.youtubeKey) {
+            console.error('The youtubeKey is not defined');
+        } else {
+            jSuites.ajax({
+                url: 'https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=' + obj.options.youtubeKey + '&id=' + id,
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    // Only valid elements to be appended
+                    if (result.items && result.items[0]) {
+                        var p = {
+                            title: '',
+                            description: '',
+                            image: '',
+                            host: 'www.youtube.com',
+                            url: 'https://www.youtube.com?watch=' + id,
+                        }
+                        if (result.items[0].snippet.title) {
+                            p.title = result.items[0].snippet.title;
+                        }
+                        if (result.items[0].snippet.description) {
+                            p.description = result.items[0].snippet.description;
+
+                            if (p.description.length > 150) {
+                                p.description = p.description.substr(0, 150) + '...';
+                            }
+                        }
+                        if (result.items[0].snippet.thumbnails.medium.url) {
+                            p.image = result.items[0].snippet.thumbnails.medium.url;
+                        }
+
+                        appendElement(p);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Get meta information from a website
+     */
+    obj.getWebsite = function(url) {
+        if (! obj.options.remoteParser) {
+            console.log('The remoteParser is not defined');
+        } else {
+            jSuites.ajax({
+                url: obj.options.remoteParser + encodeURI(url.trim()),
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    var p = {
+                        title: '',
+                        description: '',
+                        image: '',
+                        host: url,
+                        url: url,
+                    }
+
+                    if (result.title) {
+                        p.title = result.title;
+                    }
+                    if (result.description) {
+                        p.description = result.description;
+                    }
+                    if (result.image) {
+                        p.image = result.image;
+                    } else if (result['og:image']) {
+                        p.image = result['og:image'];
+                    }
+                    if (result.host) {
+                        p.host = result.host;
+                    }
+                    if (result.url) {
+                        p.url = result.url;
+                    }
+
+                    appendElement(p);
+                }
+            });
+        }
+    }
+
+    /**
+     * Set editor value
+     */
+    obj.setData = function(html) {
+        editor.innerHTML = html;
+        cursor();
+    }
+
+    /**
+     * Get editor data
+     */
+    obj.getData = function(json) {
+        if (! json) {
+            var data = editor.innerHTML;
+        } else {
+            var data = {
+                content : '',
+            }
+
+            // Get tag users
+            var tagged = editor.querySelectorAll('.post-tag');
+            if (tagged.length) {
+                data.users = [];
+                for (var i = 0; i < tagged.length; i++) {
+                    var userId = tagged[i].getAttribute('data-user');
+                    if (userId) {
+                        data.users.push(userId);
+                    }
+                }
+                data.users = data.users.join(',');
+            }
+
+            if (snippet.innerHTML) {
+                var index = 0;
+                data.snippet = {};
+                for (var i = 0; i < snippet.children.length; i++) {
+                    // Get key from element
+                    var key = snippet.children[i].getAttribute('data-k');
+                    if (key) {
+                        if (key == 'image') {
+                            data.snippet.image = snippet.children[i].children[0].getAttribute('src');
+                        } else {
+                            data.snippet[key] = snippet.children[i].innerHTML;
+                        }
+                    }
+                }
+
+                snippet.innerHTML = '';
+                snippet.remove();
+            }
+
+            var text = editor.innerHTML;
+            text = text.replace(/<br>/g, "\n");
+            text = text.replace(/<\/div>/g, "<\/div>\n");
+            text = text.replace(/<(?:.|\n)*?>/gm, "");
+            data.content = text.trim();
+            data = JSON.stringify(data);
+        }
+
+        return data;
+    }
+
+    // Reset
+    obj.reset = function() {
+        editor.innerHTML = '';
+    }
+
+    obj.addPdf = function(data) {
+        if (data.result.substr(0,4) != 'data') {
+            console.error('Invalid source');
+        } else {
+            var canvas = document.createElement('canvas');
+            canvas.width = 60;
+            canvas.height = 60;
+
+            var img = new Image();
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            canvas.toBlob(function(blob) {
+                var newImage = document.createElement('img');
+                newImage.src = window.URL.createObjectURL(blob);
+                newImage.setAttribute('data-extension', 'pdf');
+                if (data.name) {
+                    newImage.setAttribute('data-name', data.name);
+                }
+                if (data.size) {
+                    newImage.setAttribute('data-size', data.size);
+                }
+                if (data.date) {
+                    newImage.setAttribute('data-date', data.date);
+                }
+                newImage.className = 'jfile pdf';
+
+                insertNodeAtCaret(newImage);
+                jSuites.files[newImage.src] = data.result.substr(data.result.indexOf(',') + 1);
+            });
+        }
+    }
+
+    obj.addImage = function(src, name, size, date) {
+        if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
+            console.error('remoteParser not defined in your initialization');
+        } else {
+            // This is to process cross domain images
+            if (src.substr(0,4) == 'data') {
+                var extension = src.split(';')
+                extension = extension[0].split('/');
+                extension = extension[1];
+            } else {
+                var extension = src.substr(src.lastIndexOf('.') + 1);
+                // Work for cross browsers
+                src = obj.options.remoteParser + src;
+            }
+
+            var img = new Image();
+
+            img.onload = function onload() {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function(blob) {
+                    var newImage = document.createElement('img');
+                    newImage.src = window.URL.createObjectURL(blob);
+                    newImage.setAttribute('tabindex', '900');
+                    newImage.setAttribute('data-extension', extension);
+                    if (name) {
+                        newImage.setAttribute('data-name', name);
+                    }
+                    if (size) {
+                        newImage.setAttribute('data-size', size);
+                    }
+                    if (date) {
+                        newImage.setAttribute('data-date', date);
+                    }
+                    newImage.className = 'jfile';
+                    var content = canvas.toDataURL();
+                    insertNodeAtCaret(newImage);
+
+                    jSuites.files[newImage.src] = content.substr(content.indexOf(',') + 1);
+                });
+            };
+
+            img.src = src;
+        }
+    }
+
+    obj.addFile = function(files) {
+        var reader = [];
+
+        for (var i = 0; i < files.length; i++) {
+            if (files[i].size > obj.options.maxFileSize) {
+                alert('The file is too big');
+            } else {
+                // Only PDF or Images
+                var type = files[i].type.split('/');
+
+                if (type[0] == 'image') {
+                    type = 1;
+                } else if (type[1] == 'pdf') {
+                    type = 2;
+                } else {
+                    type = 0;
+                }
+
+                if (type) {
+                    // Create file
+                    reader[i] = new FileReader();
+                    reader[i].index = i;
+                    reader[i].type = type;
+                    reader[i].name = files[i].name;
+                    reader[i].date = files[i].lastModified;
+                    reader[i].size = files[i].size;
+                    reader[i].addEventListener("load", function (data) {
+                        // Get result
+                        if (data.target.type == 2) {
+                            if (obj.options.acceptFiles == true) {
+                                obj.addPdf(data.target);
+                            }
+                        } else {
+                            obj.addImage(data.target.result, data.target.name, data.total, data.target.lastModified);
+                        }
+                    }, false);
+
+                    reader[i].readAsDataURL(files[i])
+                } else {
+                    alert('The extension is not allowed');
+                }
+            }
+        }
+    }
+
+    // Destroy
+    obj.destroy = function() {
+        editor.removeEventListener('mouseup', editorMouseUp);
+        editor.removeEventListener('mousedown', editorMouseDown);
+        editor.removeEventListener('mousemove', editorMouseMove);
+        editor.removeEventListener('keyup', editorKeyUp);
+        editor.removeEventListener('keydown', editorKeyDown);
+        editor.removeEventListener('dragstart', editorDragStart);
+        editor.removeEventListener('dragenter', editorDragEnter);
+        editor.removeEventListener('dragover', editorDragOver);
+        editor.removeEventListener('drop', editorDrop);
+        editor.removeEventListener('paste', editorPaste);
+
+        if (typeof(obj.options.onblur) == 'function') {
+            editor.removeEventListener('blur', editorBlur);
+        }
+        if (typeof(obj.options.onfocus) == 'function') {
+            editor.removeEventListener('focus', editorFocus);
+        }
+
+        el.editor = null;
+        el.classList.remove('jeditor-container');
+
+        toolbar.remove();
+        snippet.remove();
+        editor.remove();
+    }
+
+    var isLetter = function (str) {
+        var regex = /([\u0041-\u005A\u0061-\u007A\u00AA\u00B5\u00BA\u00C0-\u00D6\u00D8-\u00F6\u00F8-\u02C1\u02C6-\u02D1\u02E0-\u02E4\u02EC\u02EE\u0370-\u0374\u0376\u0377\u037A-\u037D\u0386\u0388-\u038A\u038C\u038E-\u03A1\u03A3-\u03F5\u03F7-\u0481\u048A-\u0527\u0531-\u0556\u0559\u0561-\u0587\u05D0-\u05EA\u05F0-\u05F2\u0620-\u064A\u066E\u066F\u0671-\u06D3\u06D5\u06E5\u06E6\u06EE\u06EF\u06FA-\u06FC\u06FF\u0710\u0712-\u072F\u074D-\u07A5\u07B1\u07CA-\u07EA\u07F4\u07F5\u07FA\u0800-\u0815\u081A\u0824\u0828\u0840-\u0858\u08A0\u08A2-\u08AC\u0904-\u0939\u093D\u0950\u0958-\u0961\u0971-\u0977\u0979-\u097F\u0985-\u098C\u098F\u0990\u0993-\u09A8\u09AA-\u09B0\u09B2\u09B6-\u09B9\u09BD\u09CE\u09DC\u09DD\u09DF-\u09E1\u09F0\u09F1\u0A05-\u0A0A\u0A0F\u0A10\u0A13-\u0A28\u0A2A-\u0A30\u0A32\u0A33\u0A35\u0A36\u0A38\u0A39\u0A59-\u0A5C\u0A5E\u0A72-\u0A74\u0A85-\u0A8D\u0A8F-\u0A91\u0A93-\u0AA8\u0AAA-\u0AB0\u0AB2\u0AB3\u0AB5-\u0AB9\u0ABD\u0AD0\u0AE0\u0AE1\u0B05-\u0B0C\u0B0F\u0B10\u0B13-\u0B28\u0B2A-\u0B30\u0B32\u0B33\u0B35-\u0B39\u0B3D\u0B5C\u0B5D\u0B5F-\u0B61\u0B71\u0B83\u0B85-\u0B8A\u0B8E-\u0B90\u0B92-\u0B95\u0B99\u0B9A\u0B9C\u0B9E\u0B9F\u0BA3\u0BA4\u0BA8-\u0BAA\u0BAE-\u0BB9\u0BD0\u0C05-\u0C0C\u0C0E-\u0C10\u0C12-\u0C28\u0C2A-\u0C33\u0C35-\u0C39\u0C3D\u0C58\u0C59\u0C60\u0C61\u0C85-\u0C8C\u0C8E-\u0C90\u0C92-\u0CA8\u0CAA-\u0CB3\u0CB5-\u0CB9\u0CBD\u0CDE\u0CE0\u0CE1\u0CF1\u0CF2\u0D05-\u0D0C\u0D0E-\u0D10\u0D12-\u0D3A\u0D3D\u0D4E\u0D60\u0D61\u0D7A-\u0D7F\u0D85-\u0D96\u0D9A-\u0DB1\u0DB3-\u0DBB\u0DBD\u0DC0-\u0DC6\u0E01-\u0E30\u0E32\u0E33\u0E40-\u0E46\u0E81\u0E82\u0E84\u0E87\u0E88\u0E8A\u0E8D\u0E94-\u0E97\u0E99-\u0E9F\u0EA1-\u0EA3\u0EA5\u0EA7\u0EAA\u0EAB\u0EAD-\u0EB0\u0EB2\u0EB3\u0EBD\u0EC0-\u0EC4\u0EC6\u0EDC-\u0EDF\u0F00\u0F40-\u0F47\u0F49-\u0F6C\u0F88-\u0F8C\u1000-\u102A\u103F\u1050-\u1055\u105A-\u105D\u1061\u1065\u1066\u106E-\u1070\u1075-\u1081\u108E\u10A0-\u10C5\u10C7\u10CD\u10D0-\u10FA\u10FC-\u1248\u124A-\u124D\u1250-\u1256\u1258\u125A-\u125D\u1260-\u1288\u128A-\u128D\u1290-\u12B0\u12B2-\u12B5\u12B8-\u12BE\u12C0\u12C2-\u12C5\u12C8-\u12D6\u12D8-\u1310\u1312-\u1315\u1318-\u135A\u1380-\u138F\u13A0-\u13F4\u1401-\u166C\u166F-\u167F\u1681-\u169A\u16A0-\u16EA\u1700-\u170C\u170E-\u1711\u1720-\u1731\u1740-\u1751\u1760-\u176C\u176E-\u1770\u1780-\u17B3\u17D7\u17DC\u1820-\u1877\u1880-\u18A8\u18AA\u18B0-\u18F5\u1900-\u191C\u1950-\u196D\u1970-\u1974\u1980-\u19AB\u19C1-\u19C7\u1A00-\u1A16\u1A20-\u1A54\u1AA7\u1B05-\u1B33\u1B45-\u1B4B\u1B83-\u1BA0\u1BAE\u1BAF\u1BBA-\u1BE5\u1C00-\u1C23\u1C4D-\u1C4F\u1C5A-\u1C7D\u1CE9-\u1CEC\u1CEE-\u1CF1\u1CF5\u1CF6\u1D00-\u1DBF\u1E00-\u1F15\u1F18-\u1F1D\u1F20-\u1F45\u1F48-\u1F4D\u1F50-\u1F57\u1F59\u1F5B\u1F5D\u1F5F-\u1F7D\u1F80-\u1FB4\u1FB6-\u1FBC\u1FBE\u1FC2-\u1FC4\u1FC6-\u1FCC\u1FD0-\u1FD3\u1FD6-\u1FDB\u1FE0-\u1FEC\u1FF2-\u1FF4\u1FF6-\u1FFC\u2071\u207F\u2090-\u209C\u2102\u2107\u210A-\u2113\u2115\u2119-\u211D\u2124\u2126\u2128\u212A-\u212D\u212F-\u2139\u213C-\u213F\u2145-\u2149\u214E\u2183\u2184\u2C00-\u2C2E\u2C30-\u2C5E\u2C60-\u2CE4\u2CEB-\u2CEE\u2CF2\u2CF3\u2D00-\u2D25\u2D27\u2D2D\u2D30-\u2D67\u2D6F\u2D80-\u2D96\u2DA0-\u2DA6\u2DA8-\u2DAE\u2DB0-\u2DB6\u2DB8-\u2DBE\u2DC0-\u2DC6\u2DC8-\u2DCE\u2DD0-\u2DD6\u2DD8-\u2DDE\u2E2F\u3005\u3006\u3031-\u3035\u303B\u303C\u3041-\u3096\u309D-\u309F\u30A1-\u30FA\u30FC-\u30FF\u3105-\u312D\u3131-\u318E\u31A0-\u31BA\u31F0-\u31FF\u3400-\u4DB5\u4E00-\u9FCC\uA000-\uA48C\uA4D0-\uA4FD\uA500-\uA60C\uA610-\uA61F\uA62A\uA62B\uA640-\uA66E\uA67F-\uA697\uA6A0-\uA6E5\uA717-\uA71F\uA722-\uA788\uA78B-\uA78E\uA790-\uA793\uA7A0-\uA7AA\uA7F8-\uA801\uA803-\uA805\uA807-\uA80A\uA80C-\uA822\uA840-\uA873\uA882-\uA8B3\uA8F2-\uA8F7\uA8FB\uA90A-\uA925\uA930-\uA946\uA960-\uA97C\uA984-\uA9B2\uA9CF\uAA00-\uAA28\uAA40-\uAA42\uAA44-\uAA4B\uAA60-\uAA76\uAA7A\uAA80-\uAAAF\uAAB1\uAAB5\uAAB6\uAAB9-\uAABD\uAAC0\uAAC2\uAADB-\uAADD\uAAE0-\uAAEA\uAAF2-\uAAF4\uAB01-\uAB06\uAB09-\uAB0E\uAB11-\uAB16\uAB20-\uAB26\uAB28-\uAB2E\uABC0-\uABE2\uAC00-\uD7A3\uD7B0-\uD7C6\uD7CB-\uD7FB\uF900-\uFA6D\uFA70-\uFAD9\uFB00-\uFB06\uFB13-\uFB17\uFB1D\uFB1F-\uFB28\uFB2A-\uFB36\uFB38-\uFB3C\uFB3E\uFB40\uFB41\uFB43\uFB44\uFB46-\uFBB1\uFBD3-\uFD3D\uFD50-\uFD8F\uFD92-\uFDC7\uFDF0-\uFDFB\uFE70-\uFE74\uFE76-\uFEFC\uFF21-\uFF3A\uFF41-\uFF5A\uFF66-\uFFBE\uFFC2-\uFFC7\uFFCA-\uFFCF\uFFD2-\uFFD7\uFFDA-\uFFDC]+)/g;
+        return str.match(regex) ? 1 : 0;
+    }
+
+    // Event handlers
+    var editorMouseUp = function(e) {
+        editorAction = false;
+    }
+
+    var editorMouseDown = function(e) {
+        var close = function(snippet) {
+            var rect = snippet.getBoundingClientRect();
+            if (rect.width - (e.clientX - rect.left) < 40 && e.clientY - rect.top < 40) {
+                snippet.innerHTML = '';
+                snippet.remove();
+            }
+        }
+
+        if (e.target.tagName == 'IMG') {
+            if (e.target.style.cursor) {
+                var rect = e.target.getBoundingClientRect();
+                editorAction = {
+                    e: e.target,
+                    x: e.clientX,
+                    y: e.clientY,
+                    w: rect.width,
+                    h: rect.height,
+                    d: e.target.style.cursor,
+                }
+
+                if (! e.target.style.width) {
+                    e.target.style.width = rect.width + 'px';
+                }
+
+                if (! e.target.style.height) {
+                    e.target.style.height = rect.height + 'px';
+                }
+
+                var s = window.getSelection();
+                if (s.rangeCount) {
+                    for (var i = 0; i < s.rangeCount; i++) {
+                        s.removeRange(s.getRangeAt(i));
+                    }
+                }
+            } else {
+                editorAction = true;
+            }
+        } else { 
+            if (e.target.classList.contains('snippet')) {
+                close(e.target);
+            } else if (e.target.parentNode.classList.contains('snippet')) {
+                close(e.target.parentNode);
+            }
+
+            editorAction = true;
+        }
+    }
+
+    var editorMouseMove = function(e) {
+        if (e.target.tagName == 'IMG') {
+            if (e.target.getAttribute('tabindex')) {
+                var rect = e.target.getBoundingClientRect();
+                if (e.clientY - rect.top < 5) {
+                    if (rect.width - (e.clientX - rect.left) < 5) {
+                        e.target.style.cursor = 'ne-resize';
+                    } else if (e.clientX - rect.left < 5) {
+                        e.target.style.cursor = 'nw-resize';
+                    } else {
+                        e.target.style.cursor = 'n-resize';
+                    }
+                } else if (rect.height - (e.clientY - rect.top) < 5) {
+                    if (rect.width - (e.clientX - rect.left) < 5) {
+                        e.target.style.cursor = 'se-resize';
+                    } else if (e.clientX - rect.left < 5) {
+                        e.target.style.cursor = 'sw-resize';
+                    } else {
+                        e.target.style.cursor = 's-resize';
+                    }
+                } else if (rect.width - (e.clientX - rect.left) < 5) {
+                    e.target.style.cursor = 'e-resize';
+                } else if (e.clientX - rect.left < 5) {
+                    e.target.style.cursor = 'w-resize';
+                } else {
+                    e.target.style.cursor = '';
+                }
+            }
+        }
+
+        // Move
+        if (e.which == 1 && editorAction && editorAction.d) {
+            if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' ||  editorAction.d == 'se-resize') {
+                editorAction.e.style.width = (editorAction.w + (e.clientX - editorAction.x)) + 'px';
+
+                if (e.shiftKey) {
+                    var newHeight = (e.clientX - editorAction.x) * (editorAction.h / editorAction.w);
+                    editorAction.e.style.height = editorAction.h + newHeight + 'px';
+                } else {
+                    var newHeight =  null;
+                }
+            }
+
+            if (! newHeight) {
+                if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
+                    if (! e.shiftKey) {
+                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y);
+                    }
+                }
+            }
+        }
+    }
+
+    var editorKeyUp = function(e) {
+        if (! editor.innerHTML) {
+            editor.innerHTML = '<div><br></div>';
+        }
+
+        if (typeof(obj.options.onkeyup) == 'function') { 
+            obj.options.onkeyup(e, el);
+        }
+    }
+
+
+    var editorKeyDown = function(e) {
+        // Check for URL
+        if (obj.options.parseURL == true) {
+            verifyEditor();
+        }
+
+        // Closable
+        if (typeof(obj.options.onenter) == 'function' && e.which == 13) {
+            var data = obj.getData();
+            obj.options.onenter(obj, el, data, e);
+        }
+
+        if (typeof(obj.options.onkeydown) == 'function') { 
+            obj.options.onkeydown(e, el);
+        }
+    }
+
+    var editorPaste = function(e) {
+        if (e.clipboardData || e.originalEvent.clipboardData) {
+            var html = (e.originalEvent || e).clipboardData.getData('text/html');
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            var file = (e.originalEvent || e).clipboardData.files
+        } else if (window.clipboardData) {
+            var html = window.clipboardData.getData('Html');
+            var text = window.clipboardData.getData('Text');
+            var file = window.clipboardData.files
+        }
+
+        if (file.length) {
+            // Paste a image from the clipboard
+            obj.addFile(file);
+        } else {
+            // Paste text
+            text = text.split('\r\n');
+            var str = '';
+            if (e.target.nodeName == 'DIV' && ! e.target.classList.contains('jeditor')) {
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i]) {
+                        str += text[i] + "<br>\r\n";
+                    }
+                }
+            } else {
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i]) {
+                        str += '<div>' + text[i] + '</div>';
+                    } else {
+                        str += '<div><br></div>';
+                    }
+                }
+            }
+            // Insert text
+            document.execCommand('insertHtml', false, str);
+
+            // Extra images from the paste
+            if (obj.options.acceptImages == true) {
+                extractImageFromHtml(html);
+            }
+        }
+
+        e.preventDefault();
+    }
+
+    var editorDragStart = function(e) {
+        if (editorAction && editorAction.e) {
+            e.preventDefault();
+        }
+    }
+
+    var editorDragEnter = function(e) {
+        if (editorAction || obj.options.dropZone == false) {
+            // Do nothing
+        } else {
+            el.style.border = '1px dashed #000';
+        }
+    }
+
+    var editorDragOver = function(e) {
+        if (editorAction || obj.options.dropZone == false) {
+            // Do nothing
+        } else {
+            if (editorTimer) {
+                clearTimeout(editorTimer);
+            }
+
+            editorTimer = setTimeout(function() {
+                el.style.border = '';
+            }, 100);
+        }
+    }
+
+    var editorDrop = function(e) {
+        if (editorAction || obj.options.dropZone == false) {
+            // Do nothing
+        } else {
+            // Position caret on the drop
+            var range = null;
+            if (document.caretRangeFromPoint) {
+                range=document.caretRangeFromPoint(e.clientX, e.clientY);
+            } else if (e.rangeParent) {
+                range=document.createRange();
+                range.setStart(e.rangeParent,e.rangeOffset);
+            }
+            var sel = window.getSelection();
+            sel.removeAllRanges();
+            sel.addRange(range);
+            sel.anchorNode.parentNode.focus();
+
+            var html = (e.originalEvent || e).dataTransfer.getData('text/html');
+            var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
+            var file = (e.originalEvent || e).dataTransfer.files;
+    
+            if (file.length) {
+                obj.addFile(file);
+            } else if (text) {
+                extractImageFromHtml(html);
+            }
+
+            el.style.border = '';
+            e.preventDefault();
+        }
+    }
+
+    var editorBlur = function() {
+        obj.options.onblur(obj, el, obj.getData());
+    }
+
+    var editorFocus = function() {
+        obj.options.onfocus(obj, el, obj.getData());
+    }
+
+    editor.addEventListener('mouseup', editorMouseUp);
+    editor.addEventListener('mousedown', editorMouseDown);
+    editor.addEventListener('mousemove', editorMouseMove);
+    editor.addEventListener('keyup', editorKeyUp);
+    editor.addEventListener('keydown', editorKeyDown);
+    editor.addEventListener('dragstart', editorDragStart);
+    editor.addEventListener('dragenter', editorDragEnter);
+    editor.addEventListener('dragover', editorDragOver);
+    editor.addEventListener('drop', editorDrop);
+    editor.addEventListener('paste', editorPaste);
+
+    // Blur
+    if (typeof(obj.options.onblur) == 'function') {
+        editor.addEventListener('blur', editorBlur);
+    }
+
+    // Focus
+    if (typeof(obj.options.onfocus) == 'function') {
+        editor.addEventListener('focus', editorFocus);
+    }
+
+    // Onload
+    if (typeof(obj.options.onload) == 'function') {
+        obj.options.onload(el, editor);
+    }
+
+    // Set value to the editor
+    editor.innerHTML = value;
+
+    // Append editor to the containre
+    el.appendChild(editor);
+
+    // Snippet
+    if (obj.options.snippet) {
+        appendElement(obj.options.snippet);
+    }
+
+    // Default toolbar
+    if (obj.options.toolbar == null) {
+        obj.options.toolbar = jSuites.editor.getDefaultToolbar();
+    }
+
+    // Add toolbar
+    if (obj.options.toolbar) {
+        for (var i = 0; i < obj.options.toolbar.length; i++) {
+            if (obj.options.toolbar[i].icon) {
+                var item = document.createElement('div');
+                item.style.userSelect = 'none';
+                var itemIcon = document.createElement('i');
+                itemIcon.className = 'material-icons';
+                itemIcon.innerHTML = obj.options.toolbar[i].icon;
+                itemIcon.onclick = (function (a) {
+                    let b = a;
+                    return function () {
+                        obj.options.toolbar[b].onclick(el, obj, this)
+                    };
+                })(i);
+                item.appendChild(itemIcon);
+                toolbar.appendChild(item);
+            } else {
+                if (obj.options.toolbar[i].type == 'divisor') {
+                    var item = document.createElement('div');
+                    item.className = 'jeditor-toolbar-divisor';
+                    toolbar.appendChild(item);
+                } else if (obj.options.toolbar[i].type == 'button') {
+                    var item = document.createElement('div');
+                    item.classList.add('jeditor-toolbar-button');
+                    item.innerHTML = obj.options.toolbar[i].value;
+                    toolbar.appendChild(item);
+                }
+            }
+        }
+
+        el.appendChild(toolbar);
+    }
+
+    // Focus to the editor
+    if (obj.options.focus == true) {
+        jSuites.editor.setCursor(editor);
+    }
+
+    el.editor = obj;
+
+    return obj;
+});
+
+jSuites.editor.setCursor = function(element) {
+    element.focus();
+    document.execCommand('selectAll');
+    var sel = window.getSelection();
+    var range = sel.getRangeAt(0);
+    var node = range.endContainer;
+    var size = node.length;
+    range.setStart(node, size);
+    range.setEnd(node, size);
+    sel.removeAllRanges();
+    sel.addRange(range);
+}
+
+jSuites.editor.getDomain = function(url) {
+    return url.replace('http://','').replace('https://','').replace('www.','').split(/[/?#]/)[0].split(/:/g)[0];
+}
+
+jSuites.editor.detectUrl = function(text) {
+    var expression = /(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig;
+    var links = text.match(expression);
+
+    if (links) {
+        if (links[0].substr(0,3) == 'www') {
+            links[0] = 'http://' + links[0];
+        }
+    }
+
+    return links;
+}
+
+jSuites.editor.youtubeParser = function(url) {
+    var regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#\&\?]*).*/;
+    var match = url.match(regExp);
+
+    return (match && match[7].length == 11) ? match[7] : false;
+}
+
+jSuites.editor.getDefaultToolbar = function() { 
+    return [
+        {
+            icon:'undo',
+            onclick: function() {
+                document.execCommand('undo');
+            }
+        },
+        {
+            icon:'redo',
+            onclick: function() {
+                document.execCommand('redo');
+            }
+        },
+        {
+            type:'divisor'
+        },
+        {
+            icon:'format_bold',
+            onclick: function(a,b,c) {
+                document.execCommand('bold');
+
+                if (document.queryCommandState("bold")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_italic',
+            onclick: function(a,b,c) {
+                document.execCommand('italic');
+
+                if (document.queryCommandState("italic")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_underline',
+            onclick: function(a,b,c) {
+                document.execCommand('underline');
+
+                if (document.queryCommandState("underline")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            type:'divisor'
+        },
+        {
+            icon:'format_list_bulleted',
+            onclick: function(a,b,c) {
+                document.execCommand('insertUnorderedList');
+
+                if (document.queryCommandState("insertUnorderedList")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_list_numbered',
+            onclick: function(a,b,c) {
+                document.execCommand('insertOrderedList');
+
+                if (document.queryCommandState("insertOrderedList")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_indent_increase',
+            onclick: function(a,b,c) {
+                document.execCommand('indent', true, null);
+
+                if (document.queryCommandState("indent")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_indent_decrease',
+            onclick: function(a,b,c) {
+                document.execCommand('outdent');
+
+                if (document.queryCommandState("outdent")) {
+                    c.classList.add('selected');
+                } else {
+                    c.classList.remove('selected');
+                }
+            }
+        }
+        /*{
+            type:'select',
+            items: ['Verdana','Arial','Courier New'],
+            onchange: function() {
+            }
+        },
+        {
+            type:'select',
+            items: ['10px','12px','14px','16px','18px','20px','22px'],
+            onchange: function() {
+            }
+        },
+        {
+            icon:'format_align_left',
+            onclick: function() {
+                document.execCommand('JustifyLeft');
+
+                if (document.queryCommandState("JustifyLeft")) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_align_center',
+            onclick: function() {
+                document.execCommand('justifyCenter');
+
+                if (document.queryCommandState("justifyCenter")) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_align_right',
+            onclick: function() {
+                document.execCommand('justifyRight');
+
+                if (document.queryCommandState("justifyRight")) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_align_justify',
+            onclick: function() {
+                document.execCommand('justifyFull');
+
+                if (document.queryCommandState("justifyFull")) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            }
+        },
+        {
+            icon:'format_list_bulleted',
+            onclick: function() {
+                document.execCommand('insertUnorderedList');
+
+                if (document.queryCommandState("insertUnorderedList")) {
+                    this.classList.add('selected');
+                } else {
+                    this.classList.remove('selected');
+                }
+            }
+        }*/
+    ];
+}
+
 
 jSuites.image = (function(el, options) {
     var obj = {};
@@ -2995,7 +4389,11 @@ jSuites.mask = (function() {
             // Create mask token
             obj.prepare(mask);
             // Current value
-            var currentValue = e.target.value;
+            if (e.target.selectionStart < e.target.selectionEnd) {
+                var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+            } else {
+                var currentValue = e.target.value;
+            }
             if (currentValue) {
                 // Checking current value
                 for (var i = 0; i < currentValue.length; i++) {
@@ -3216,6 +4614,14 @@ jSuites.mask = (function() {
 
                     return false;
                 }
+            } else if (pieces[index] == '[-]') {
+                if (input == '-' || input == '+') {
+                    values[index] = input;
+                } else {
+                    values[index] = ' ';
+                }
+                index++;
+                return true;
             } else if (pieces[index] == '0') {
                 if (input.match(/[0-9]/g)) {
                     values[index] = input;
@@ -3312,6 +4718,9 @@ jSuites.mask = (function() {
                 } else if (mask[i] == '#' && mask[i+1] == ',' && mask[i+2] == '#' && mask[i+3] == '#') {
                     pieces.push('#,##');
                     i += 3;
+                } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
+                    pieces.push('[-]');
+                    i += 2;
                 } else {
                     pieces.push(mask[i]);
                 }
@@ -3385,6 +4794,496 @@ jSuites.mask = (function() {
     return obj;
 })();
 
+jSuites.mobile = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    if (jSuites.el) {
+        jSuites.el.addEventListener('mousedown', function(e) {
+            if (e.target.classList.contains('option-title')) {
+                if (e.target.classList.contains('selected')) {
+                    e.target.classList.remove('selected');
+                } else {
+                    e.target.classList.add('selected');
+                }
+            }
+        });
+    }
+
+    return obj;
+})();
+
+jSuites.pages = (function() {
+    // Create page container
+    var container = document.querySelector('.pages');
+    if (! container) {
+        var container = document.createElement('div');
+        container.className = 'pages';
+    }
+
+    // Append container to the application
+    if (jSuites.el) {
+        jSuites.el.appendChild(container);
+    } else {
+        document.body.appendChild(container);
+    }
+
+    // Current page
+    var current = null;
+
+    // Create a page
+    var createPage = function(options, callback) {
+        // Create page
+        var page = document.createElement('div');
+        page.classList.add('page');
+
+        // Always hidden
+        page.style.display = 'none';
+
+        // Keep options
+        page.options = options ? options : {};
+
+        if (! current) {
+            container.appendChild(page);
+        } else {
+            container.insertBefore(page, current.nextSibling);
+        }
+
+        jSuites.ajax({
+            url: page.options.url,
+            method: 'GET',
+            success: function(result) {
+                // Push to refresh controls
+                jSuites.refresh(page, page.options.onpush);
+
+                // Open page
+                page.innerHTML = result;
+                // Get javascript
+                var script = page.getElementsByTagName('script');
+                // Run possible inline scripts
+                for (var i = 0; i < script.length; i++) {
+                    // Get type
+                    var type = script[i].getAttribute('type');
+                    if (! type || type == 'text/javascript') {
+                        eval(script[i].innerHTML);
+                    }
+                }
+                // Set title
+                page.setTitle = function(text) {
+                    this.children[0].children[0].children[1].innerHTML = text;
+                }
+                // Show page
+                if (! page.options.closed) {
+                    showPage(page);
+                }
+                // Onload callback
+                if (typeof(page.options.onload) == 'function') {
+                    page.options.onload(page);
+                }
+                // Force callback
+                if (typeof(callback) == 'function') {
+                    callback(page);
+                }
+            }
+        });
+
+        return page;
+    }
+
+    var showPage = function(page, ignoreHistory, callback) {
+        if (current) {
+            if (current == page) {
+                current = page;
+            } else {
+                // Keep scroll in the top
+                window.scrollTo({ top: 0 });
+
+                // Show page
+                page.style.display = '';
+
+                var a = Array.prototype.indexOf.call(container.children, current);
+                var b = Array.prototype.indexOf.call(container.children, page);
+
+                // Leave
+                if (typeof(current.options.onleave) == 'function') {
+                    current.options.onleave(current, page, ignoreHistory);
+                }
+
+                jSuites.slideLeft(container, (a < b ? 0 : 1), function() {
+                    current.style.display = 'none';
+                    current = page;
+                });
+
+                // Enter
+                if (typeof(page.options.onenter) == 'function') {
+                    page.options.onenter(page, current, ignoreHistory);
+                }
+            }
+        } else {
+            // Show
+            page.style.display = '';
+
+            // Keep current
+            current = page;
+
+            // Enter
+            if (typeof(page.options.onenter) == 'function') {
+                page.options.onenter(page);
+            }
+        }
+
+        // Add history
+        if (! ignoreHistory) {
+            // Add history
+            window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
+        }
+
+        // Callback
+        if (typeof(callback) == 'function') {
+            callback(page);
+        }
+    }
+
+    // Init method
+    var obj = function(route, mixed) {
+        if (! obj.pages[route]) {
+            if (! route) {
+                alert('Error, no route provided');
+            } else {
+                if (typeof(mixed) == 'function') {
+                    var options = {};
+                    var callback = mixed;
+                } else {
+                    // Page options
+                    var options = mixed ? mixed : {};
+                }
+
+                // Closed
+                options.closed = mixed && mixed.closed ? 1 : 0;
+                // Keep Route
+                options.route = route;
+
+                // New page url
+                if (! options.url) {
+                    var routePath = route.split('#');
+                    options.url = jSuites.pages.path + routePath[0] + '.html';
+                }
+                // Title
+                if (! options.title) {
+                    options.title = 'Untitled';
+                }
+
+                // Create new page
+                obj.pages[route] = createPage(options, callback ? callback : null);
+            }
+        } else {
+            // Update config
+            if (mixed) {
+                // History
+                var ignoreHistory = 0;
+
+                if (typeof(mixed) == 'function') {
+                    var callback = mixed;
+                } else {
+                    if (typeof(mixed.onenter) == 'function') {
+                        obj.pages[route].options.onenter = mixed.onenter;
+                    }
+                    if (typeof(mixed.onleave) == 'function') {
+                        obj.pages[route].options.onleave = mixed.onleave;
+                    }
+
+                    // Ignore history
+                    ignoreHistory = mixed.ignoreHistory ? 1 : 0; 
+                }
+            }
+
+            showPage(obj.pages[route], ignoreHistory, callback ? callback : null);
+        }
+    }
+
+    obj.pages = {};
+
+    // Get page
+    obj.get = function(route) {
+        if (obj.pages[route]) {
+            return obj.pages[route]; 
+        }
+    }
+
+    obj.getContainer = function() {
+        return container;
+    }
+
+    obj.destroy = function() {
+        // Current is null
+        current = null;
+        // Destroy containers
+        obj.pages = {};
+        // Reset container
+        container.innerHTML = '';
+    }
+
+    return obj;
+})();
+
+// Path
+jSuites.pages.path = 'pages';
+
+// Panel
+jSuites.panel = (function() {
+    // No initial panel declared
+    var panel = null;
+
+    var obj = function(route) {
+        if (! panel) {
+            obj.create(jSuites.pages.path + route + '.html');
+        }
+
+        // Show panel
+        panel.style.display = '';
+
+        // Add animation
+        if (panel.classList.contains('panel-left')) {
+            jSuites.slideLeft(panel, 1);
+        } else {
+            jSuites.slideRight(panel, 1);
+        }
+    }
+
+    obj.create = function(route) {
+        if (! panel) {
+            // Create element
+            panel = document.createElement('div');
+            panel.classList.add('panel');
+            panel.classList.add('panel-left');
+            panel.style.display = 'none';
+
+            // Bind to the app
+            if (jSuites.el) {
+                jSuites.el.appendChild(panel);
+            } else {
+                document.body.appendChild(panel);
+            }
+        }
+
+        // Remote content
+        if (route) {
+	        var url = jSuites.pages.path + route + '.html';
+
+            jSuites.ajax({
+                url: url,
+                method: 'GET',
+                success: function(result) {
+                    // Set content
+                    panel.innerHTML = result;
+                    // Get javascript
+                    var script = panel.getElementsByTagName('script');
+                    // Run possible inline scripts
+                    for (var i = 0; i < script.length; i++) {
+                        // Get type
+                        var type = script[i].getAttribute('type');
+                        if (! type || type == 'text/javascript') {
+                            eval(script[i].innerHTML);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    obj.close = function() {
+        if (panel) {
+            // Animation
+            if (panel.classList.contains('panel-left')) {
+                jSuites.slideLeft(panel, 0, function() {
+                    panel.style.display = 'none';
+                });
+            } else {
+                jSuites.slideRight(panel, 0, function() {
+                    panel.style.display = 'none';
+                });
+            }
+        }
+    }
+
+    obj.get = function() {
+        return panel;
+    }
+
+    obj.destroy = function() {
+        panel.remove();
+        panel = null;
+    }
+
+    return obj;
+})();
+
+jSuites.toolbar = (function(el, options) {
+    var obj = {};
+    obj.options = options;
+
+    obj.selectItem = function(element) {
+        var elements = toolbarContent.children;
+        for (var i = 0; i < elements.length; i++) {
+            elements[i].classList.remove('selected');
+        }
+        element.classList.add('selected');
+    }
+
+    obj.hide = function() {
+        jSuites.slideBottom(toolbar, 0, function() {
+            toolbar.style.display = 'none';
+        });
+    }
+
+    obj.show = function() {
+        toolbar.style.display = '';
+        jSuites.slideBottom(toolbar, 1);
+    }
+
+    obj.get = function() {
+        return toolbar;
+    }
+
+    obj.setBadge = function(index, value) {
+        toolbarContent.children[index].children[1].firstChild.innerHTML = value;
+    }
+
+    obj.destroy = function() {
+        toolbar.remove();
+        toolbar = null;
+    }
+
+    var toolbar = document.createElement('div');
+    toolbar.classList.add('jtoolbar');
+    toolbar.onclick = function(e) {
+        var element = jSuites.getElement(e.target, 'jtoolbar-item');
+        if (element) {
+            obj.selectItem(element);
+        }
+    }
+
+    var toolbarContent = document.createElement('div');
+    toolbar.appendChild(toolbarContent);
+
+    for (var i = 0; i < options.items.length; i++) {
+        let toolbarItem = document.createElement('div');
+        toolbarItem.classList.add('jtoolbar-item');
+        if (options.items[i].route) {
+            toolbarItem.setAttribute('data-href', options.items[i].route);
+            jSuites.pages(options.items[i].route, {
+                closed: true,
+                onenter: function() {
+                    obj.selectItem(toolbarItem);
+                }
+            });
+        }
+
+        if (options.items[i].icon) {
+            var toolbarIcon = document.createElement('i');
+            toolbarIcon.classList.add('material-icons');
+            toolbarIcon.innerHTML = options.items[i].icon;
+            toolbarItem.appendChild(toolbarIcon);
+        }
+
+        var toolbarBadge = document.createElement('div');
+        toolbarBadge.classList.add('jbadge');
+        var toolbarBadgeContent = document.createElement('div');
+        toolbarBadgeContent.innerHTML = options.items[i].badge ? options.items[i].badge : '';
+        toolbarBadge.appendChild(toolbarBadgeContent);
+        toolbarItem.appendChild(toolbarBadge);
+
+        if (options.items[i].title) {
+            var toolbarTitle = document.createElement('span');
+            toolbarTitle.innerHTML = options.items[i].title;
+            toolbarItem.appendChild(toolbarTitle);
+        }
+
+        toolbarContent.appendChild(toolbarItem);
+    }
+
+    el.toolbar = obj;
+
+    el.appendChild(toolbar);
+
+    return obj;
+});
+
+jSuites.actionsheet = (function() {
+    var actionsheet = document.createElement('div');
+    actionsheet.className = 'jactionsheet';
+    actionsheet.style.display = 'none';
+
+    var actionContent = document.createElement('div');
+    actionContent.className = 'jactionsheet-content';
+    actionsheet.appendChild(actionContent);
+
+    var obj = function(options) {
+        if (options) {
+            obj.options = options;
+        }
+
+        // Reset container
+        actionContent.innerHTML = '';
+
+        // Create new elements
+        for (var i = 0; i < obj.options.length; i++) {
+            var actionGroup = document.createElement('div');
+            actionGroup.className = 'jactionsheet-group';
+
+            for (var j = 0; j < obj.options[i].length; j++) {
+                var v = obj.options[i][j];
+                var actionItem = document.createElement('div');
+                var actionInput = document.createElement('input');
+                actionInput.type = 'button';
+                actionInput.value = v.title;
+                if (v.className) {
+                    actionInput.className = v.className; 
+                }
+                if (v.onclick) {
+                    actionInput.onclick = v.onclick; 
+                }
+                if (v.action == 'cancel') {
+                    actionInput.style.color = 'red';
+                }
+                actionItem.appendChild(actionInput);
+                actionGroup.appendChild(actionItem);
+            }
+
+            actionContent.appendChild(actionGroup);
+        }
+
+        // Show
+        actionsheet.style.display = '';
+
+        // Append
+        jSuites.el.appendChild(actionsheet);
+
+        // Animation
+        jSuites.slideBottom(actionContent, true);
+    }
+
+    obj.close = function() {
+        if (actionsheet.style.display != 'none') {
+            // Remove any existing actionsheet
+            jSuites.slideBottom(actionContent, false, function() {
+                actionsheet.remove();
+                actionsheet.style.display = 'none';
+            });
+        }
+    }
+
+    var mouseUp = function(e) {
+        obj.close();
+    }
+
+    actionsheet.addEventListener('mouseup', mouseUp);
+
+    obj.options = {};
+
+    return obj;
+})();
+
 /**
  * (c) jSuites modal
  * https://github.com/paulhodel/jsuites
@@ -3399,13 +5298,13 @@ jSuites.modal = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        // Events
-        onopen:null,
-        onclose:null,
-        closed:false,
-        width:null,
-        height:null,
-        title:null,
+        url: null,
+        onopen: null,
+        onclose: null,
+        closed: false,
+        width: null,
+        height: null,
+        title: null,
     };
 
     // Loop through our object
@@ -3438,10 +5337,6 @@ jSuites.modal = (function(el, options) {
     // Title
     if (! el.getAttribute('title')) {
         el.classList.add('no-title');
-    }
-
-    if (! obj.options.closed) {
-        el.style.display = 'block';
     }
 
     obj.open = function() {
@@ -3482,6 +5377,24 @@ jSuites.modal = (function(el, options) {
         document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
 
         jSuites.modal.hasEvents = true;
+    }
+
+    if (obj.options.url) {
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            success: function(data) {
+                container.innerHTML = data;
+
+                if (! obj.options.closed) {
+                    obj.open();
+                }
+            }
+        });
+    } else {
+        if (! obj.options.closed) {
+            obj.open();
+        }
     }
 
     // Keep object available from the node
@@ -3543,6 +5456,910 @@ jSuites.modal.mouseDownControls = function(e) {
         }, 100);
     }
 }
+
+jSuites.notification = (function(options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        icon: null,
+        name: null,
+        date: null,
+        title: null,
+        message: null,
+        timeout: 4000,
+        autoHide: true,
+        closeable: true,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    var notification = document.createElement('div');
+    notification.className = 'jnotification';
+
+    var notificationContainer = document.createElement('div');
+    notificationContainer.className = 'jnotification-container';
+    notification.appendChild(notificationContainer);
+
+    var notificationHeader = document.createElement('div');
+    notificationHeader.className = 'jnotification-header';
+    notificationContainer.appendChild(notificationHeader);
+
+    var notificationImage = document.createElement('div');
+    notificationImage.className = 'jnotification-image';
+    notificationHeader.appendChild(notificationImage);
+
+    if (obj.options.icon) {
+        var notificationIcon = document.createElement('img');
+        notificationIcon.src = obj.options.icon;
+        notificationImage.appendChild(notificationIcon);
+    }
+
+    var notificationName = document.createElement('div');
+    notificationName.className = 'jnotification-name';
+    notificationHeader.appendChild(notificationName);
+    if (obj.options.name) {
+        notificationName.innerHTML = obj.options.name;
+    } else {
+        notificationName.innerHTML = 'Notification';
+    }
+
+    if (obj.options.closeable == true) {
+        var notificationClose = document.createElement('div');
+        notificationClose.className = 'jnotification-close';
+        notificationClose.onclick = function() {
+            obj.hide();
+        }
+        notificationHeader.appendChild(notificationClose);
+    }
+
+    var notificationDate = document.createElement('div');
+    notificationDate.className = 'jnotification-date';
+    notificationHeader.appendChild(notificationDate);
+
+    var notificationContent = document.createElement('div');
+    notificationContent.className = 'jnotification-content';
+    notificationContainer.appendChild(notificationContent);
+
+    if (obj.options.title) {
+        var notificationTitle = document.createElement('div');
+        notificationTitle.className = 'jnotification-title';
+        notificationTitle.innerHTML = obj.options.title;
+        notificationContent.appendChild(notificationTitle);
+    }
+
+    var notificationMessage = document.createElement('div');
+    notificationMessage.className = 'jnotification-message';
+    notificationMessage.innerHTML = obj.options.message;
+    notificationContent.appendChild(notificationMessage);
+
+    obj.show = function() {
+        document.body.appendChild(notification);
+        if (jSuites.getWindowWidth() > 800) { 
+            jSuites.fadeIn(notification);
+        } else {
+            jSuites.slideTop(notification, 1);
+        }
+    }
+
+    obj.hide = function() {
+        if (jSuites.getWindowWidth() > 800) { 
+            jSuites.fadeOut(notification, function() {
+                notification.parentNode.removeChild(notification);
+            });
+        } else {
+            jSuites.slideTop(notification, 0, function() {
+                notification.parentNode.removeChild(notification);
+            });
+        }
+    };
+
+    obj.show();
+
+    if (obj.options.autoHide == true) {
+        setTimeout(function() {
+            obj.hide();
+        }, obj.options.timeout);
+    }
+
+    if (jSuites.getWindowWidth() < 800) {
+        notification.addEventListener("swipeup", function(e) {
+            obj.hide();
+            e.preventDefault();
+            e.stopPropagation();
+        });
+    }
+
+    return obj;
+});
+
+jSuites.rating = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        number:5,
+        value:0,
+        tooltip: [ 'Very bad', 'Bad', 'Average', 'Good', 'Very good' ],
+        onchange:null,
+    };
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Class
+    el.classList.add('jrating');
+
+    // Add elements
+    for (var i = 0; i < obj.options.number; i++) {
+        var div = document.createElement('div');
+        div.setAttribute('data-index', (i + 1))
+        div.setAttribute('title', obj.options.tooltip[i])
+        el.appendChild(div);
+    }
+
+    // Set value
+    obj.setValue = function(index) {
+        for (var i = 0; i < obj.options.number; i++) {
+            if (i < index) {
+                el.children[i].classList.add('jrating-selected');
+            } else {
+                el.children[i].classList.remove('jrating-selected');
+            }
+        }
+
+        obj.options.value = index;
+
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, index);
+        }
+    }
+
+    obj.getValue = function() {
+        return obj.options.value;
+    }
+
+    if (obj.options.value) {
+        for (var i = 0; i < obj.options.number; i++) {
+            if (i < obj.options.value) {
+                el.children[i].classList.add('jrating-selected');
+            }
+        }
+    }
+
+    // Events
+    el.addEventListener("click", function(e) {
+        var index = e.target.getAttribute('data-index');
+        if (index == obj.options.value) {
+            obj.setValue(0);
+        } else {
+            obj.setValue(index);
+        }
+    });
+
+    el.addEventListener("mouseover", function(e) {
+        var index = e.target.getAttribute('data-index');
+        for (var i = 0; i < obj.options.number; i++) {
+            if (i < index) {
+                el.children[i].classList.add('jrating-over');
+            } else {
+                el.children[i].classList.remove('jrating-over');
+            }
+        }
+    });
+
+    el.addEventListener("mouseout", function(e) {
+        for (var i = 0; i < obj.options.number; i++) {
+            el.children[i].classList.remove('jrating-over');
+        }
+    });
+
+    el.rating = obj;
+
+    return obj;
+});
+
+/**
+ * (c) Image slider
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Image Slider
+ */
+
+jSuites.slider = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+    obj.currentImage = null;
+
+    if (options) {
+        obj.options = options;
+    }
+
+    // Items
+    obj.options.items = [];
+
+    if (! el.classList.contains('jslider')) {
+        el.classList.add('jslider');
+
+        // Create container
+        var container = document.createElement('div');
+        container.className = 'jslider-container';
+
+        // Move children inside
+        if (el.children.length > 0) {
+            // Keep children items
+            for (var i = 0; i < el.children.length; i++) {
+                obj.options.items.push(el.children[i]);
+            }
+        }
+        if (obj.options.items.length > 0) {
+            for (var i = 0; i < obj.options.items.length; i++) {
+                obj.options.items[i].classList.add('jfile');
+                var index = obj.options.items[i].src.lastIndexOf('/');
+                if (index < 0) {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src);
+                } else {
+                    obj.options.items[i].setAttribute('data-name', obj.options.items[i].src.substr(index + 1));
+                }
+                var index = obj.options.items[i].src.lastIndexOf('/');
+
+                container.appendChild(obj.options.items[i]);
+            }
+        }
+        el.appendChild(container);
+        // Add close buttom
+        var close = document.createElement('div');
+        close.className = 'jslider-close';
+        close.innerHTML = '';
+        close.onclick =  function() {
+            obj.close();
+        }
+        el.appendChild(close);
+    } else {
+        var container = el.querySelector('slider-container');
+    }
+
+    obj.show = function(target) {
+        if (! target) {
+            var target = container.children[0];
+        }
+
+        if (! container.classList.contains('jslider-preview')) {
+            container.classList.add('jslider-preview');
+            close.style.display = 'block';
+        }
+
+        // Hide all images
+        for (var i = 0; i < container.children.length; i++) {
+            container.children[i].style.display = 'none';
+        }
+
+        // Show clicked only
+        target.style.display = 'block';
+
+        // Is there any previous
+        if (target.previousSibling) {
+            container.classList.add('jslider-left');
+        } else {
+            container.classList.remove('jslider-left');
+        }
+
+        // Is there any next
+        if (target.nextSibling) {
+            container.classList.add('jslider-right');
+        } else {
+            container.classList.remove('jslider-right');
+        }
+
+        obj.currentImage = target;
+    }
+
+    obj.open = function() {
+        obj.show();
+
+        // Event
+        if (typeof(obj.options.onopen) == 'function') {
+            obj.options.onopen(el);
+        }
+    }
+
+    obj.close = function() {
+        container.classList.remove('jslider-preview');
+        container.classList.remove('jslider-left');
+        container.classList.remove('jslider-right');
+
+        for (var i = 0; i < container.children.length; i++) {
+            container.children[i].style.display = '';
+        }
+
+        close.style.display = '';
+
+        obj.currentImage = null;
+
+        // Event
+        if (typeof(obj.options.onclose) == 'function') {
+            obj.options.onclose(el);
+        }
+    }
+
+    obj.reset = function() {
+        container.innerHTML = '';
+    }
+
+    obj.addFile = function(v, ignoreEvents) {
+        var img = document.createElement('img');
+        img.setAttribute('data-lastmodified', v.lastmodified);
+        img.setAttribute('data-name', v.name);
+        img.setAttribute('data-size', v.size);
+        img.setAttribute('data-extension', v.extension);
+        img.setAttribute('data-cover', v.cover);
+        img.setAttribute('src', v.file);
+        img.className = 'jfile';
+        container.appendChild(img);
+        obj.options.items.push(img);
+
+        // Onchange
+        if (! ignoreEvents) {
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, v);
+            }
+        }
+    }
+
+    obj.addFiles = function(files) {
+        for (var i = 0; i < files.length; i++) {
+            obj.addFile(files[i]);
+        }
+    }
+
+    obj.next = function() {
+        if (obj.currentImage.nextSibling) {
+            obj.show(obj.currentImage.nextSibling);
+        }
+    }
+    
+    obj.prev = function() {
+        if (obj.currentImage.previousSibling) {
+            obj.show(obj.currentImage.previousSibling);
+        }
+    }
+
+    obj.getData = function() {
+        return jSuites.getFiles(container);
+    }
+
+    // Append data
+    if (obj.options.data && obj.options.data.length) {
+        for (var i = 0; i < obj.options.data.length; i++) {
+            if (obj.options.data[i]) {
+                obj.addFile(obj.options.data[i]);
+            }
+        }
+    }
+
+    // Allow insert
+    if (obj.options.allowAttachment) {
+        var attachmentInput = document.createElement('input');
+        attachmentInput.type = 'file';
+        attachmentInput.className = 'slider-attachment';
+        attachmentInput.setAttribute('accept', 'image/*');
+        attachmentInput.style.display = 'none';
+        attachmentInput.onchange = function() {
+            var reader = [];
+
+            for (var i = 0; i < this.files.length; i++) {
+                var type = this.files[i].type.split('/');
+
+                if (type[0] == 'image') {
+                    var extension = this.files[i].name;
+                    extension = extension.split('.');
+                    extension = extension[extension.length-1];
+
+                    var file = {
+                        size: this.files[i].size,
+                        name: this.files[i].name,
+                        extension: extension,
+                        cover: 0,
+                        lastmodified: this.files[i].lastModified,
+                    }
+
+                    reader[i] = new FileReader();
+                    reader[i].addEventListener("load", function (e) {
+                        file.file = e.target.result;
+                        obj.addFile(file);
+                    }, false);
+
+                    reader[i].readAsDataURL(this.files[i]);
+                } else {
+                    alert('The extension is not allowed');
+                }
+            };
+        }
+
+        var attachmentIcon = document.createElement('i');
+        attachmentIcon.innerHTML = 'attachment';
+        attachmentIcon.className = 'jslider-attach material-icons';
+        attachmentIcon.onclick = function() {
+            jSuites.click(attachmentInput);
+        }
+
+        el.appendChild(attachmentInput);
+        el.appendChild(attachmentIcon);
+    }
+
+    // Push to refresh
+    var longTouchTimer = null;
+
+    var mouseDown = function(e) {
+        if (e.target.tagName == 'IMG') {
+            // Remove
+            var targetImage = e.target;
+            longTouchTimer = setTimeout(function() {
+                if (e.target.src.substr(0,4) == 'data') {
+                    e.target.remove();
+                } else {
+                    if (e.target.classList.contains('jremove')) {
+                        e.target.classList.remove('jremove');
+                    } else {
+                        e.target.classList.add('jremove');
+                    }
+                }
+
+                // Onchange
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, e.target);
+                }
+            }, 1000);
+        }
+    }
+
+    var mouseUp = function(e) {
+        if (longTouchTimer) {
+            clearTimeout(longTouchTimer);
+        }
+
+        // Open slider
+        if (e.target.tagName == 'IMG') {
+            if (! e.target.classList.contains('jremove')) {
+                obj.show(e.target);
+            }
+        } else {
+            // Arrow controls
+            if (e.target.clientWidth - e.offsetX < 40) {
+                // Show next image
+                obj.next();
+            } else if (e.offsetX < 40) {
+                // Show previous image
+                obj.prev();
+            }
+        }
+    }
+
+    container.addEventListener('mousedown', mouseDown);
+    container.addEventListener('touchstart', mouseDown);
+    container.addEventListener('mouseup', mouseUp);
+    container.addEventListener('touchend', mouseUp);
+
+    // Add global events
+    el.addEventListener("swipeleft", function(e) {
+        obj.next();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    el.addEventListener("swiperight", function(e) {
+        obj.prev();
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+
+    el.slider = obj;
+
+    return obj;
+});
+
+/**
+ * (c) jTools v1.0.1 - Element sorting
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Element drag and drop sorting
+ */
+
+jSuites.sorting = (function(el, options) {
+    el.classList.add('jsorting');
+
+    el.addEventListener('dragstart', function(e) {
+        e.target.classList.add('dragging');
+    });
+
+    el.addEventListener('dragover', function(e) {
+        e.preventDefault();
+
+        if (e.target.clientHeight / 2 > e.offsetY) {
+            e.path[0].style.borderTop = '1px dotted #ccc';
+            e.path[0].style.borderBottom = '';
+        } else {
+            e.path[0].style.borderTop = '';
+            e.path[0].style.borderBottom = '1px dotted #ccc';
+        }
+    });
+
+    el.addEventListener('dragleave', function(e) {
+        e.path[0].style.borderTop = '';
+        e.path[0].style.borderBottom = '';
+    });
+
+    el.addEventListener('dragend', function(e) {
+        e.path[1].querySelector('.dragging').classList.remove('dragging');
+    });
+
+    el.addEventListener('drop', function(e) {
+        var element = e.path[1].querySelector('.dragging');
+
+        if (e.target.clientHeight / 2 > e.offsetY) {
+            e.path[1].insertBefore(element, e.path[0]);
+        } else {
+            e.path[1].insertBefore(element, e.path[0].nextSibling);
+        }
+
+        e.path[0].style.borderTop = '';
+        e.path[0].style.borderBottom = '';
+    });
+
+    for (var i = 0; i < el.children.length; i++) {
+        el.children[i].setAttribute('draggable', 'true');
+    };
+
+    return el;
+});
+
+jSuites.tabs = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        onchange:null,
+    };
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Class
+    el.classList.add('jtabs');
+
+    // Elements
+    var headers = el.children[0];
+    var content = el.children[1];
+    headers.classList.add('jtabs-headers');
+    content.classList.add('jtabs-content');
+
+    // Set value
+    obj.open = function(index) {
+        for (var i = 0; i < headers.children.length; i++) {
+            headers.children[i].classList.remove('jtabs-selected');
+            if (content.children[i]) {
+                content.children[i].classList.remove('jtabs-selected');
+            }
+        }
+
+        headers.children[index].classList.add('jtabs-selected');
+        if (content.children[index]) {
+            content.children[index].classList.add('jtabs-selected');
+        }
+    }
+
+    // Events
+    headers.addEventListener("click", function(e) {
+        var index = Array.prototype.indexOf.call(headers.children, e.target);
+        if (index >= 0) {
+            obj.open(index);
+        }
+    });
+
+    obj.open(0);
+
+    el.tabs = obj;
+
+    return obj;
+});
+
+
+
+jSuites.tracker = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        url: null,
+        message: 'Are you sure? There are unsaved information in your form',
+        ignore: false,
+        currentHash: null,
+        submitButton:null,
+        onload: null,
+        onbeforesave: null,
+        onsave: null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    obj.setUrl = function(url) {
+        obj.options.url = url;
+    }
+
+    obj.load = function() {
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var elements = el.querySelectorAll("input, select, textarea");
+ 
+                for (var i = 0; i < elements.length; i++) {
+                    var name = elements[i].getAttribute('name');
+                    if (data[name]) {
+                        elements[i].value = data[name];
+                    }
+                }
+
+                if (typeof(obj.options.onload) == 'function') {
+                    obj.options.onload(el, data);
+                }
+            }
+        });
+    }
+
+    obj.save = function() {
+        var test = obj.validate();
+
+        if (test) {
+            jSuites.alert(test);
+        } else {
+            var data = obj.getElements(true);
+
+            if (typeof(obj.options.onbeforesave) == 'function') {
+                var data = obj.options.onbeforesave(el, data);
+
+                if (data === false) {
+                    console.log('Onbeforesave returned false');
+                    return; 
+                }
+            }
+
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(result) {
+                    jSuites.alert(result.message);
+
+                    if (typeof(obj.options.onsave) == 'function') {
+                        var data = obj.options.onsave(el, result);
+                    }
+
+                    obj.reset();
+                }
+            });
+        }
+    }
+
+    obj.validateElement = function(element) {
+        var emailChecker = function(data) {
+            var pattern = new RegExp(/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/);
+            return pattern.test(data) ? true : false; 
+        }
+
+        var passwordChecker = function(data) {
+            return (data.length > 5) ? true : false;
+        }
+
+        var addError = function(element) {
+            // Add error in the element
+            element.classList.add('error');
+            // Submit button
+            if (obj.options.submitButton) {
+                obj.options.submitButton.setAttribute('disabled', true);
+            }
+            // Return error message
+            return element.getAttribute('data-error') || 'There is an error in the form';
+        }
+
+        var delError = function(element) {
+            var error = false;
+            // Remove class from this element
+            element.classList.remove('error');
+            // Get elements in the form
+            var elements = el.querySelectorAll("input, select, textarea");
+            // Run all elements 
+            for (var i = 0; i < elements.length; i++) {
+                if (elements[i].getAttribute('data-validation')) {
+                    if (elements[i].classList.contains('error')) {
+                        error = true;
+                    }
+                }
+            }
+
+            if (obj.options.submitButton) {
+                if (error) {
+                    obj.options.submitButton.setAttribute('disabled', true);
+                } else {
+                    obj.options.submitButton.removeAttribute('disabled');
+                }
+            }
+        }
+
+        // Blank
+        var test = '';
+        if (! element.value) {
+            test = addError(element);
+        } else if (element.getAttribute('data-email') && ! emailChecker(element.value)) {
+            test = addError(element);
+        } else if (element.getAttribute('data-password') && ! emailChecker(element.value)) {
+            test = addError(element);
+        } else {
+            if (element.classList.contains('error')) {
+                delError(element);
+            }
+        }
+
+        return test;
+    }
+
+    // Run form validation
+    obj.validate = function() {
+        var test = '';
+        // Get elements in the form
+        var elements = el.querySelectorAll("input, select, textarea");
+        // Run all elements 
+        for (var i = 0; i < elements.length; i++) {
+            if (elements[i].getAttribute('data-validation')) {
+                if (test) {
+                    test += "<br>\r\n";
+                }
+                test += obj.validateElement(elements[i]);
+            }
+        }
+        return test;
+    }
+
+    // Check the form
+    obj.getError = function() {
+        // Validation
+        return obj.validation() ? true : false;
+    }
+
+    // Return the form hash
+    obj.setHash = function() {
+        return obj.getHash(obj.getElements());
+    }
+
+    // Get the form hash
+    obj.getHash = function(str) {
+        var hash = 0, i, chr;
+
+        if (str.length === 0) {
+            return hash;
+        } else {
+            for (i = 0; i < str.length; i++) {
+              chr = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + chr;
+              hash |= 0;
+            }
+        }
+
+        return hash;
+    }
+
+    // Is there any change in the form since start tracking?
+    obj.isChanged = function() {
+        var hash = obj.setHash();
+        return (obj.options.currentHash != hash);
+    }
+
+    // Restart tracking
+    obj.resetTracker = function() {
+        obj.options.currentHash = obj.setHash();
+        obj.options.ignore = false;
+    }
+
+    obj.reset = function() {
+        obj.options.currentHash = obj.setHash();
+        obj.options.ignore = false;
+    }
+
+    // Ignore flag
+    obj.setIgnore = function(ignoreFlag) {
+        obj.options.ignore = ignoreFlag ? true : false;
+    }
+
+    // Get form elements
+    obj.getElements = function(asArray) {
+        var data = {};
+        var elements = el.querySelectorAll("input, select, textarea");
+
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var name = element.name;
+            var value = element.value;
+
+            if (name) {
+                data[name] = value;
+            }
+        }
+
+        return asArray == true ? data : JSON.stringify(data);
+    }
+
+    // Start tracking in one second
+    setTimeout(function() {
+        obj.options.currentHash = obj.setHash();
+    }, 1000);
+
+    // Alert
+    window.addEventListener("beforeunload", function (e) {
+        if (obj.isChanged() && obj.options.ignore == false) {
+            var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
+
+            if (confirmationMessage) {
+                if (typeof e == 'undefined') {
+                    e = window.event;
+                }
+
+                if (e) {
+                    e.returnValue = confirmationMessage;
+                }
+
+                return confirmationMessage;
+            } else {
+                return void(0);
+            }
+        }
+    });
+
+    // Validations
+    el.addEventListener("keyup", function(e) {
+        if (e.target.getAttribute('data-validation')) {
+            obj.validateElement(e.target);
+        }
+    });
+
+    el.tracker = obj;
+
+    return obj;
+});
 
 
 

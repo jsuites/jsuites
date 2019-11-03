@@ -4,10 +4,14 @@ jSuites.tracker = (function(el, options) {
 
     // Default configuration
     var defaults = {
+        url: null,
         message: 'Are you sure? There are unsaved information in your form',
         ignore: false,
         currentHash: null,
         submitButton:null,
+        onload: null,
+        onbeforesave: null,
+        onsave: null,
     };
 
     // Loop through our object
@@ -16,6 +20,67 @@ jSuites.tracker = (function(el, options) {
             obj.options[property] = options[property];
         } else {
             obj.options[property] = defaults[property];
+        }
+    }
+
+    obj.setUrl = function(url) {
+        obj.options.url = url;
+    }
+
+    obj.load = function() {
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var elements = el.querySelectorAll("input, select, textarea");
+ 
+                for (var i = 0; i < elements.length; i++) {
+                    var name = elements[i].getAttribute('name');
+                    if (data[name]) {
+                        elements[i].value = data[name];
+                    }
+                }
+
+                if (typeof(obj.options.onload) == 'function') {
+                    obj.options.onload(el, data);
+                }
+            }
+        });
+    }
+
+    obj.save = function() {
+        var test = obj.validate();
+
+        if (test) {
+            jSuites.alert(test);
+        } else {
+            var data = obj.getElements(true);
+
+            if (typeof(obj.options.onbeforesave) == 'function') {
+                var data = obj.options.onbeforesave(el, data);
+
+                if (data === false) {
+                    console.log('Onbeforesave returned false');
+                    return; 
+                }
+            }
+
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'POST',
+                dataType: 'json',
+                data: data,
+                success: function(result) {
+                    jSuites.alert(result.message);
+
+                    if (typeof(obj.options.onsave) == 'function') {
+                        var data = obj.options.onsave(el, result);
+                    }
+
+                    obj.reset();
+                }
+            });
         }
     }
 
@@ -111,18 +176,25 @@ jSuites.tracker = (function(el, options) {
 
     // Get the form hash
     obj.getHash = function(str) {
-        return str.split('').reduce((prevHash, currVal) => ((prevHash << 5) - prevHash) + currVal.charCodeAt(0), 0);
+        var hash = 0, i, chr;
+
+        if (str.length === 0) {
+            return hash;
+        } else {
+            for (i = 0; i < str.length; i++) {
+              chr = str.charCodeAt(i);
+              hash = ((hash << 5) - hash) + chr;
+              hash |= 0;
+            }
+        }
+
+        return hash;
     }
 
     // Is there any change in the form since start tracking?
     obj.isChanged = function() {
         var hash = obj.setHash();
         return (obj.options.currentHash != hash);
-    }
-
-    // Change the ignore flag
-    obj.setIgnore = function(option) {
-        obj.options.ignore = option;
     }
 
     // Restart tracking
@@ -142,8 +214,8 @@ jSuites.tracker = (function(el, options) {
     }
 
     // Get form elements
-    obj.getElements = function() {
-        var ret = {};
+    obj.getElements = function(asArray) {
+        var data = {};
         var elements = el.querySelectorAll("input, select, textarea");
 
         for (var i = 0; i < elements.length; i++) {
@@ -152,11 +224,11 @@ jSuites.tracker = (function(el, options) {
             var value = element.value;
 
             if (name) {
-                ret[name] = value;
+                data[name] = value;
             }
         }
 
-        return JSON.stringify(ret);
+        return asArray == true ? data : JSON.stringify(data);
     }
 
     // Start tracking in one second

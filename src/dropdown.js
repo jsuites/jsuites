@@ -1,7 +1,6 @@
 /**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
+ * (c) 2013 jDropdown http://www.github.com/paulhodel/jdropdown
+ * 
  * @author: Paul Hodel <paul.hodel@gmail.com>
  * @description: Custom dropdowns
  */
@@ -26,15 +25,19 @@ jSuites.dropdown = (function(el, options) {
         data: [],
         multiple: false,
         autocomplete: false,
-        type:null,
-        width:null,
-        opened:false,
-        onchange:null,
-        onopen:null,
-        onclose:null,
-        onblur:null,
-        value:null,
-        placeholder:'',
+        type: null,
+        width: null,
+        opened: false,
+        onchange: null,
+        onload: null,
+        onopen: null,
+        onclose: null,
+        onblur: null,
+        oninsert: null,
+        allowInsert: false,
+        value: null,
+        placeholder: '',
+        position: false, // Fixed position
     };
 
     // Loop through our object
@@ -105,6 +108,12 @@ jSuites.dropdown = (function(el, options) {
         // Handler
         header.addEventListener('keyup', function(e) {
             obj.find(header.value);
+
+            if (! el.classList.contains('jdropdown-focus')) {
+                if (e.which > 65) {
+                    obj.open();
+                }
+            }
         });
     } else {
         header.setAttribute('readonly', 'readonly');
@@ -113,6 +122,22 @@ jSuites.dropdown = (function(el, options) {
     // Place holder
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
+    }
+
+    // Insert new elements
+    if (obj.options.allowInsert == true) {
+        el.classList.add('jdropdown-insert');
+
+        // Add button
+        var insertButton  = document.createElement('div');
+        insertButton.className = 'jdropdown-insert-button';
+        insertButton.innerHTML = '+';
+        insertButton.onclick = function() {
+            if (header.value) {
+                obj.addItem(header.value);
+            }
+        }
+        containerHeader.appendChild(insertButton);
     }
 
     // Append elements
@@ -125,17 +150,27 @@ jSuites.dropdown = (function(el, options) {
 
     obj.init = function() {
         if (obj.options.url) {
-            fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-                .then(function(data) {
-                    data.json().then(function(data) {
-                        if (data) {
-                            obj.options.data = data;
-                            obj.setData();
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data) {
+                        obj.options.data = data;
+                        obj.setData();
+
+                        if (typeof(obj.options.onload) == 'function') {
+                            obj.options.onload(el, obj, data);
                         }
-                    })
-                });
+                    }
+                }
+            });
         } else {
             obj.setData();
+
+            if (typeof(obj.options.onload) == 'function') {
+                obj.options.onload(el, obj, data);
+            }
         }
 
         // Values
@@ -153,14 +188,21 @@ jSuites.dropdown = (function(el, options) {
         }
     }
 
+    obj.getUrl = function() {
+        return obj.options.url;
+    }
+
     obj.setUrl = function(url) {
         obj.options.url = url;
-        fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-            .then(function(data) {
-                data.json().then(function(data) {
-                    obj.setData(data);
-                })
-            });
+
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                obj.setData(data);
+            }
+        });
     }
 
     obj.setData = function(data) {
@@ -248,10 +290,10 @@ jSuites.dropdown = (function(el, options) {
 
             // Add index property
             var items = content.querySelectorAll('.jdropdown-item');
-            [...items].forEach(function(v, k) {
-                obj.items[k] = v;
-                v.setAttribute('data-index', k);
-            });
+            for (var i = 0; i < items.length; i++) {
+                obj.items[i] = items[i];
+                items[i].setAttribute('data-index', i);
+            }
         }
 
         // Reset value
@@ -264,9 +306,9 @@ jSuites.dropdown = (function(el, options) {
         // Get selected items
         var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
-        [...items].forEach(function(v) {
-            result.push(v.text);
-        });
+        for (var i = 0; i < items.length; i++) {
+            result.push(items[i].text);
+        }
 
         if (asArray) {
             return result
@@ -281,9 +323,9 @@ jSuites.dropdown = (function(el, options) {
         // Get selected items
         var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
-        [...items].forEach(function(v) {
-            result.push(v.value);
-        });
+        for (var i = 0; i < items.length; i++) {
+            result.push(items[i].value);
+        }
 
         if (asArray) {
             return result;
@@ -300,8 +342,8 @@ jSuites.dropdown = (function(el, options) {
         } 
 
         // Set values
-        if (value) {
-            if (typeof(value.forEach) == 'function') {
+        if (value != null) {
+            if (Array.isArray(value)) {
                 for (var i = 0; i < obj.items.length; i++) {
                     value.forEach(function(val) {
                         if (obj.items[i].value == val) {
@@ -322,45 +364,62 @@ jSuites.dropdown = (function(el, options) {
         obj.updateLabel();
     }
 
+    obj.addItem = function() {
+        console.log(obj.items);
+    }
+
     obj.selectIndex = function(index) {
-        // Focus behaviour
-        if (! obj.options.multiple) {
-            // Update selected item
-            obj.items.forEach(function(v) {
-                v.classList.remove('jdropdown-cursor');
-                v.classList.remove('jdropdown-selected');
-            });
-            obj.items[index].classList.add('jdropdown-selected');
-            obj.items[index].classList.add('jdropdown-cursor');
-            // Close
-            obj.close();
-        } else {
-            // Toggle option
-            if (obj.items[index].classList.contains('jdropdown-selected')) {
-                obj.items[index].classList.remove('jdropdown-selected');
-                obj.items[index].classList.remove('jdropdown-cursor');
-            } else {
-                obj.items.forEach(function(v) {
-                    v.classList.remove('jdropdown-cursor');
-                });
-                obj.items[index].classList.add('jdropdown-selected');
-                obj.items[index].classList.add('jdropdown-cursor');
-            }
-            // Update cursor position
-            obj.currentIndex = index;
-
-            // Update labels for multiple dropdown
-            if (! obj.options.autocomplete) {
-                obj.updateLabel();
-            }
-        }
-
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
+        if (index >= 0) {
+            // Current selection
             var oldValue = obj.getValue();
-            var newValue = obj.items[index].value;
+            var oldLabel = obj.getText();
 
-            obj.options.onchange(el, index, oldValue, newValue);
+            // Focus behaviour
+            if (! obj.options.multiple) {
+                // Cursor
+                obj.items[index].classList.add('jdropdown-cursor');
+                // Unselect option
+                if (obj.items[index].classList.contains('jdropdown-selected')) {
+                    obj.items[index].classList.remove('jdropdown-selected');
+                } else {
+                    // Update selected item
+                    obj.items.forEach(function(v) {
+                        v.classList.remove('jdropdown-cursor');
+                        v.classList.remove('jdropdown-selected');
+                    });
+                    obj.items[index].classList.add('jdropdown-selected');
+                    // Close
+                    obj.close();
+                }
+            } else {
+                // Toggle option
+                if (obj.items[index].classList.contains('jdropdown-selected')) {
+                    obj.items[index].classList.remove('jdropdown-selected');
+                    obj.items[index].classList.remove('jdropdown-cursor');
+                } else {
+                    obj.items.forEach(function(v) {
+                        v.classList.remove('jdropdown-cursor');
+                    });
+                    obj.items[index].classList.add('jdropdown-selected');
+                    obj.items[index].classList.add('jdropdown-cursor');
+                }
+                // Update cursor position
+                obj.currentIndex = index;
+
+                // Update labels for multiple dropdown
+                if (! obj.options.autocomplete) {
+                    obj.updateLabel();
+                }
+            }
+
+            // Current selection
+            var newValue = obj.getValue();
+            var newLabel = obj.getText();
+
+            // Events
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, index, oldValue, newValue, oldLabel, newLabel);
+            }
         }
     }
 
@@ -472,7 +531,7 @@ jSuites.dropdown = (function(el, options) {
                 const rect = el.getBoundingClientRect();
                 const rectContainer = container.getBoundingClientRect();
                 container.style.minWidth = rect.width + 'px';
-                container.style.maxWidth = '100%';
+                // container.style.maxWidth = '100%';
 
                 if (obj.options.position) {
                     container.style.position = 'fixed';
@@ -483,9 +542,10 @@ jSuites.dropdown = (function(el, options) {
                     }
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = (-1 * (rectContainer.height)) + 'px';
+                        container.style.bottom = (rect.height) + 'px';
                     } else {
                         container.style.top = '';
+                        container.style.bottom = '';
                     }
                 }
             }
@@ -515,7 +575,9 @@ jSuites.dropdown = (function(el, options) {
             // Reset
             obj.currentIndex = null;
             // Blur
-            header.blur();
+            if (header.blur) {
+                header.blur();
+            }
             // Remove focus
             el.classList.remove('jdropdown-focus');
         }
@@ -535,6 +597,22 @@ jSuites.dropdown = (function(el, options) {
         });
         // Update labels
         obj.updateLabel();
+    }
+
+    obj.firstVisible = function() {
+        var newIndex = null;
+        for (var i = 0; i < obj.options.data.length; i++) {
+            if (obj.items[i].style.display != 'none') {
+                newIndex = i;
+                break;
+            }
+        }
+
+        if (newIndex == null) {
+            return false;
+        }
+
+        obj.updateCursor(newIndex);
     }
 
     obj.first = function() {
@@ -618,7 +696,11 @@ jSuites.dropdown = (function(el, options) {
     }
 
     if (! jSuites.dropdown.hasEvents) {
-        document.addEventListener('click', jSuites.dropdown.onclick);
+        if ('ontouchsend' in document.documentElement === true) {
+            document.addEventListener('touchsend', jSuites.dropdown.mouseup);
+        } else {
+            document.addEventListener('mouseup', jSuites.dropdown.mouseup);
+        }
         document.addEventListener('keydown', jSuites.dropdown.onkeydown);
 
         jSuites.dropdown.hasEvents = true;
@@ -633,7 +715,7 @@ jSuites.dropdown = (function(el, options) {
     return obj;
 });
 
-jSuites.dropdown.onclick = function(e) {
+jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.getElement(e.target, 'jdropdown');
     if (element) {
         var dropdown = element.dropdown;
@@ -696,19 +778,19 @@ jSuites.dropdown.onkeydown = function(e) {
         if (e.shiftKey) {
 
         } else {
-            if (e.which == 13 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
+            if (e.which == 13 || e.which == 27 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
                 // Move cursor
                 if (e.which == 13) {
                     element.selectIndex(index)
                 } else if (e.which == 38) {
                     if (index == null) {
-                        element.updateCursor(0);
+                        element.firstVisible();
                     } else if (index > 0) {
                         element.prev();
                     }
                 } else if (e.which == 40) {
                     if (index == null) {
-                        element.updateCursor(0);
+                        element.firstVisible();
                     } else if (index + 1 < element.options.data.length) {
                         element.next();
                     }
@@ -716,6 +798,8 @@ jSuites.dropdown.onkeydown = function(e) {
                     element.first();
                 } else if (e.which == 35) {
                     element.last();
+                } else if (e.which == 27) {
+                    element.close();
                 }
 
                 e.stopPropagation();

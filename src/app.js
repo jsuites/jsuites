@@ -31,21 +31,24 @@ var jSuites = function(options) {
             var x = e.changedTouches[0].pageX;
             var y = e.changedTouches[0].pageY;
         } else {
-            var x = (window.Event) ? e.pageX : event.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-            var y = (window.Event) ? e.pageY : event.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+            var x = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+            var y = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
         }
 
         return [ x, y ];
     }
 
     obj.click = function(el) {
-        // Create our event (with options)
-        var evt = new MouseEvent('click', {
-            bubbles: true,
-            cancelable: true,
-            view: window
-        });
-        el.dispatchEvent(evt);
+        if (el.click) {
+            el.click();
+        } else {
+            var evt = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+            el.dispatchEvent(evt);
+        }
     }
 
     obj.getElement = function(element, className) {
@@ -108,121 +111,274 @@ var jSuites = function(options) {
         return ret;
     }
 
+    obj.exists = function(url, __callback) {
+        var http = new XMLHttpRequest();
+        http.open('HEAD', url, false);
+        http.send();
+        if (http.status) {
+            __callback(http.status);
+        }
+    }
+
     obj.getFiles = function(element) {
         if (! element) {
             console.error('No element defined in the arguments of your method');
-        }
-        // Clear current data
-        var inputs = element.querySelectorAll('input');
-        for (var i = 0; i < inputs.length; i++) {
-            inputs[i].remove();
         }
 
         // Get attachments
         var files = element.querySelectorAll('.jfile');
 
         if (files.length > 0) {
+            var data = [];
             for (var i = 0; i < files.length; i++) {
-                var extension = files[i].getAttribute('data-name').toLowerCase().split('.');
-                var input = document.createElement('input');
-                input.setAttribute('type', 'hidden');
-                input.setAttribute('name', 'files[' + i + '][name]');
-                input.value = files[i].getAttribute('data-name').toLowerCase()
-                files[i].parentNode.appendChild(input);
+                var file = {};
 
-                var input = document.createElement('input');
-                input.setAttribute('type', 'hidden');
-                input.setAttribute('name', 'files[' + i + '][extension]');
-                input.value = extension[1];
-                files[i].parentNode.appendChild(input);
+                var src = files[i].getAttribute('src');
 
-                var input = document.createElement('input');
-                input.setAttribute('type', 'hidden');
-                input.setAttribute('name', 'files[' + i + '][size]');
-                input.value = files[i].getAttribute('data-size');
-                files[i].parentNode.appendChild(input);
-
-                var input = document.createElement('input');
-                input.setAttribute('type', 'hidden');
-                input.setAttribute('name', 'files[' + i + '][lastmodified]');
-                input.value = files[i].getAttribute('data-lastmodified');
-                files[i].parentNode.appendChild(input);
-
-                if (files[i].getAttribute('data-cover')) {
-                    var input = document.createElement('input');
-                    input.setAttribute('type', 'hidden');
-                    input.setAttribute('name', 'files[' + i + '][cover]');
-                    input.value = 1;
-                    files[i].parentNode.appendChild(input);
-                }
-
-                // File thumbs
-                var content = files[i].getAttribute('data-thumbs');
-
-                if (content) {
-                    if (content.substr(0,4) == 'data') {
-                        var content = files[i].getAttribute('data-thumbs').split(',');
-
-                        var input = document.createElement('input');
-                        input.setAttribute('type', 'hidden');
-                        input.setAttribute('name', 'files[' + i + '][thumbs]');
-                        input.value = content[1];
-                        files[i].parentNode.appendChild(input);
+                if (files[i].classList.contains('jremove')) {
+                    file.remove = 1;
+                } else {
+                    if (src.substr(0,4) == 'data') {
+                        file.content = src.substr(src.indexOf(',') + 1);
+                        file.extension = files[i].getAttribute('data-extension');
                     } else {
-                        var input = document.createElement('input');
-                        input.setAttribute('type', 'hidden');
-                        input.setAttribute('name', 'files[' + i + '][thumbs]');
-                        input.value = content;
-                        files[i].parentNode.appendChild(input);
+                        file.file = src;
+                        file.extension = files[i].getAttribute('data-extension');
+                        if (! file.extension) {
+                            file.extension =  src.substr(src.lastIndexOf('.') + 1);
+                        }
+                        if (jSuites.files[file.file]) {
+                            file.content = jSuites.files[file.file];
+                        }
+                    }
+
+                    // Optional file information
+                    if (files[i].getAttribute('data-name')) {
+                        file.name = files[i].getAttribute('data-name');
+                    }
+
+                    if (files[i].getAttribute('data-file')) {
+                        file.file = files[i].getAttribute('data-file');
+                    }
+
+                    if (files[i].getAttribute('data-size')) {
+                        file.size = files[i].getAttribute('data-size');
+                    }
+
+                    if (files[i].getAttribute('data-date')) {
+                        file.date = files[i].getAttribute('data-date');
+                    }
+
+                    if (files[i].getAttribute('data-cover')) {
+                        file.cover = files[i].getAttribute('data-cover');
                     }
                 }
 
-                // File content
-                var content = files[i].getAttribute('src');
+                // TODO SMALL thumbs?
 
-                if (content.substr(0,4) == 'data') {
-                    var content = files[i].getAttribute('src').split(',');
+                data[i] = file;
+            }
 
-                    var input = document.createElement('input');
-                    input.setAttribute('type', 'hidden');
-                    input.setAttribute('name', 'files[' + i + '][content]');
-                    input.value = content[1];
-                    files[i].parentNode.appendChild(input);
+            return data;
+        }
+    }
+
+    obj.ajax = function(options) {
+        if (! options.data) {
+            options.data = {};
+        }
+
+        if (options.type) {
+            options.method = options.type;
+        }
+
+        if (options.data) {
+            var data = [];
+            var keys = Object.keys(options.data);
+
+            if (keys.length) {
+                for (var i = 0; i < keys.length; i++) {
+                    if (typeof(options.data[keys[i]]) == 'object') {
+                        var o = options.data[keys[i]];
+                        for (var j = 0; j < o.length; j++) {
+                            if (typeof(o[j]) == 'string') {
+                                data.push(keys[i] + '[' + j + ']=' + encodeURIComponent(o[j]));
+                            } else {
+                                var prop = Object.keys(o[j]);
+                                for (var z = 0; z < prop.length; z++) {
+                                    data.push(keys[i] + '[' + j + '][' + prop[z] + ']=' + encodeURIComponent(o[j][prop[z]]));
+                                }
+                            }
+                        }
+                    } else {
+                        data.push(keys[i] + '=' + encodeURIComponent(options.data[keys[i]]));
+                    }
+                }
+            }
+
+            if (options.method == 'GET' && data.length > 0) {
+                if (options.url.indexOf('?') < 0) {
+                    options.url += '?';
+                }
+                options.url += data.join('&');
+            }
+        }
+
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.open(options.method, options.url, true);
+
+        if (options.method == 'POST') {
+            httpRequest.setRequestHeader('Accept', 'application/json');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        } else {
+            if (options.dataType == 'json') {
+                httpRequest.setRequestHeader('Content-Type', 'text/json');
+            }
+        }
+
+        // No cache
+        httpRequest.setRequestHeader('pragma', 'no-cache');
+        httpRequest.setRequestHeader('cache-control', 'no-cache');
+
+        httpRequest.onload = function() {
+            if (httpRequest.status === 200) {
+                if (options.dataType == 'json') {
+                    var result = JSON.parse(httpRequest.responseText);
                 } else {
-                    if (files[i].classList.contains('jremove')) {
-                        var input = document.createElement('input');
-                        input.setAttribute('type', 'hidden');
-                        input.setAttribute('name', 'files[' + i + '][remove]');
-                        input.value = 1;
-                        files[i].parentNode.appendChild(input);
+                    var result = httpRequest.responseText;
+                }
+
+                if (options.success && typeof(options.success) == 'function') {
+                    options.success(result);
+                }
+            } else {
+                if (options.error && typeof(options.error) == 'function') {
+                    options.error(httpRequest.responseText);
+                }
+            }
+
+            // Global complete method
+            if (options.multiple && options.multiple.length) {
+                // Get index of this request in the container
+                var index = options.multiple[options.multiple.indexOf(httpRequest)];
+                // Remove from the ajax requests container
+                options.multiple.splice(index, 1);
+                // Last one?
+                if (! options.multiple.length) {
+                    if (options.complete && typeof(options.complete) == 'function') {
+                        options.complete(result);
                     }
                 }
             }
         }
+
+        if (data) {
+            httpRequest.send(data.join('&'));
+        } else {
+            httpRequest.send();
+        }
+
+        return httpRequest;
     }
 
-    obj.ajax = function(postOptions) {
-        if (! postOptions.data) {
-            postOptions.data = {};
-        }
-        postOptions.data = new URLSearchParams(postOptions.data);
-
-        // Remote call
-        fetch(postOptions.url, {
-            method: postOptions.method ? postOptions.method : 'POST',
-            headers: new Headers({
-                'Accept': 'application/json',
-                'Content-type': 'application/x-www-form-urlencoded; charset=UTF-8'
-            }),
-            body: postOptions.data
-        })
-        .then(function(data) {
-            data.json().then(function(result) {
-                if (postOptions.success && typeof(postOptions.success) == 'function') {
-                    postOptions.success(result);
+    obj.slideLeft = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-left-in');
+            setTimeout(function() {
+                element.classList.remove('slide-left-in');
+                if (typeof(done) == 'function') {
+                    done();
                 }
-            })
-        });
+            }, 400);
+        } else {
+            element.classList.add('slide-left-out');
+            setTimeout(function() {
+                element.classList.remove('slide-left-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideRight = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-right-in');
+            setTimeout(function() {
+                element.classList.remove('slide-right-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-right-out');
+            setTimeout(function() {
+                element.classList.remove('slide-right-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideTop = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-top-in');
+            setTimeout(function() {
+                element.classList.remove('slide-top-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-top-out');
+            setTimeout(function() {
+                element.classList.remove('slide-top-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideBottom = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-bottom-in');
+            setTimeout(function() {
+                element.classList.remove('slide-bottom-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-bottom-out');
+            setTimeout(function() {
+                element.classList.remove('slide-bottom-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 100);
+        }
+    }
+
+    obj.fadeIn = function(element, done) {
+        element.classList.add('fade-in');
+        setTimeout(function() {
+            element.classList.remove('fade-in');
+            if (typeof(done) == 'function') {
+                done();
+            }
+        }, 2000);
+    }
+
+    obj.fadeOut = function(element, done) {
+        element.classList.add('fade-out');
+        setTimeout(function() {
+            element.classList.remove('fade-out');
+            if (typeof(done) == 'function') {
+                done();
+            }
+        }, 1000);
     }
 
     obj.keyDownControls = function(e) {
@@ -259,55 +415,86 @@ var jSuites = function(options) {
         }
     }
 
-    obj.actionDownControl = function(e) {
-        jSuites.touchTracker = jSuites.getPosition(e);
-        setTimeout(function() {
-            jSuites.touchTracker = null;
-        }, 300);
+    obj.actionUpControl = function(e) {
+        var element = null;
+        if (element = jSuites.getLinkElement(e.target)) {
+            var link = element.getAttribute('data-href');
+            if (link == '#back') {
+                window.history.back();
+            } else if (link == '#panel') {
+                jSuites.panel();
+            } else {
+                jSuites.pages(link);
+            }
+        }
     }
 
-    obj.actionUpControl = function(e) {
-        var position = jSuites.getPosition(e);
+    var controlSwipeLeft = function(e) {
+        var element = jSuites.getElement(e.target, 'option');
 
-        if (jSuites.touchTracker && (position[0] - jSuites.touchTracker[0]) > 100) {
-            // Left
-            var event = new CustomEvent("swipeleft");
-            document.dispatchEvent(event);
-        } else if (jSuites.touchTracker && (jSuites.touchTracker[0] - position[0]) > 100) {
-            // Right
-            var event = new CustomEvent("swiperight");
-            document.dispatchEvent(event);
+        if (element && element.querySelector('.option-actions')) {
+            element.scrollTo({
+                left: 100,
+                behavior: 'smooth'
+            });
         } else {
-            var element = null;
-            if (element = jSuites.getLinkElement(e.target)) {
-                var link = element.getAttribute('data-href');
-                if (link == 'back') {
-                    window.history.back();
-                } else {
-                    jSuites.page(link);
+            var element = jSuites.getElement(e.target, 'jcalendar');
+            if (element && jSuites.calendar.current) {
+                jSuites.calendar.current.prev();
+            } else {
+                var element = jSuites.panel.get();
+                if (element) {
+                    if (element.style.display != 'none') {
+                        jSuites.panel.close();
+                    }
                 }
             }
         }
     }
 
-    // Add events
-    document.addEventListener('touchstart', obj.actionDownControl);
-    document.addEventListener('touchend', obj.actionUpControl);
+    var controlSwipeRight = function(e) {
+        var element = jSuites.getElement(e.target, 'option');
+        if (element && element.querySelector('.option-actions')) {
+            element.scrollTo({
+                left: 0,
+                behavior: 'smooth'
+            });
+        } else {
+            var element = jSuites.getElement(e.target, 'jcalendar');
+            if (element && jSuites.calendar.current) {
+                jSuites.calendar.current.next();
+            } else {
+                var element = jSuites.panel.get();
+                if (element) {
+                    if (element.style.display == 'none') {
+                        jSuites.panel();
+                    }
+                }
+            }
+        }
+    }
+
+    // Create page container
+    document.addEventListener('swipeleft', controlSwipeLeft);
+    document.addEventListener('swiperight', controlSwipeRight);
     document.addEventListener('keydown', obj.keyDownControls);
 
+    if ('ontouchend' in document.documentElement === true) {
+        document.addEventListener('touchend', obj.actionUpControl);
+    } else {
+        document.addEventListener('mouseup', obj.actionUpControl);
+    }
+
+    // Pop state control
     window.onpopstate = function(e) {
         if (e.state && e.state.route) {
-            if (jSuites.page && jSuites.page.items && jSuites.page.items[e.state.route]) {
-                jSuites.page.items[e.state.route].show(true);
-                // Verify toolbar bind with this page
-                if (jSuites.page.items[e.state.route].options.toolbar) {
-                    jSuites.page.items[e.state.route].options.toolbar.selectItem(jSuites.page.items[e.state.route].options.toolbarItem);
-                }
+            if (jSuites.pages.get(e.state.route)) {
+                jSuites.pages(e.state.route, { ignoreHistory:true });
             }
         }
     }
-
-    obj.touchTracker = null;
 
     return obj;
 }();
+
+jSuites.files = [];

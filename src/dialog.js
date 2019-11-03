@@ -123,13 +123,13 @@ jSuites.dialog = (function() {
 jSuites.confirm = (function(message, onconfirm) {
     if (jSuites.getWindowWidth() < 800) {
         jSuites.dialog.open({
-            type:'confirm',
-            message:message,
-            title:'Confirmation',
-            onconfirm:onconfirm,
+            type: 'confirm',
+            message: message,
+            title: 'Confirmation',
+            onconfirm: onconfirm,
         });
     } else {
-        if (confirm('message')) {
+        if (confirm(message)) {
             onconfirm();
         }
     }

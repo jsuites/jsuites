@@ -54,7 +54,6 @@
 .jcalendar-content > table {
     width:100%;
     background-color:#fff;
-    border-top:1px solid #ddd;
 }
 
 .jcalendar-content > table > tbody td {
@@ -113,8 +112,8 @@
 
 .jcalendar-input {
     padding-right:18px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z'/%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3C/svg%3E");
-    background-position:right;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z'/%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3C/svg%3E");
+    background-position:top 50% right 5px;
     background-repeat:no-repeat;
     box-sizing: border-box;
 }
@@ -157,6 +156,7 @@
 .jcalendar-reset, .jcalendar-confirm {
     text-transform:uppercase;
     cursor:pointer;
+    color: var(--active-color);
 }
 
 .jcalendar-controls {
@@ -175,6 +175,8 @@
     -webkit-flex-flow: row wrap;
     justify-content: space-between;
     align-items:center;
+
+    border-bottom:1px solid #ddd;
 }
 
 .jcalendar-controls div {
@@ -196,6 +198,6 @@
     bottom:0px;
 }
 
-.jcalendar-fullsize .jcalendar-backdrop {
+.jcalendar-focus.jcalendar-fullsize .jcalendar-backdrop {
     display:block;
 }

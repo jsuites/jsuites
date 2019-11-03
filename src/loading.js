@@ -17,7 +17,7 @@ jSuites.loading = (function() {
     };
 
     obj.hide = function() {
-        loading.remove();
+        document.body.removeChild(loading);
     };
 
     return obj;

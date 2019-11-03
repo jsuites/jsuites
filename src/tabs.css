@@ -1,9 +1,12 @@
 .jtabs {
     position:relative;
+    max-width: calc(100vw - 24px);
 }
 .jtabs > .jtabs-headers {
     display:flex;
     padding:6px;
+    overflow-x:auto;
+    width:100%;
 }
 
 .jtabs > .jtabs-headers > div {
@@ -12,12 +15,13 @@
     padding-right:20px;
     margin-right:5px;
     margin-bottom:5px;
-    background-color:#eee;
+    background-color:#f4f4f4;
     cursor:pointer;
 }
 
 .jtabs > .jtabs-headers > div.jtabs-selected {
-    background-color:#ddd;
+    background-color:#eee;
+    border-bottom:2px solid black;
 }
 
 .jtabs > .jtabs-content > div {

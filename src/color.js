@@ -426,9 +426,11 @@ jSuites.color = (function(el, options) {
     content.appendChild(table);
     container.appendChild(content);
     container.onblur = function(e) {
-        if (jSuites.color.current) {
-            jSuites.color.current.close();
-        }
+        setTimeout(function() {
+            if (jSuites.color.current) { 
+                jSuites.color.current.close();
+            }
+        }, 200);
     }
 
     // Insert picker after the element

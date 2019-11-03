@@ -1,30 +1,43 @@
 .jlogin {
     width: 100%;
-    max-width:480px;
-    padding:20px;
     box-sizing: border-box;
     margin:0 auto;
     vertical-align:middle;
     border-radius: 5px;
     -webkit-border-radius: 5px;
     -moz-border-radius: 5px;
+    font-size:1em;
 }
 
-.jlogin > div > div {
+.jlogin-fullscreen {
+    position:absolute;
+    top:0px;
+    left:0px;
+    width:100%;
+    height:100%;
+    background-color:#fff;
+    z-index:9000;
+}
+
+.jlogin > form {
+    max-width:480px;
+    padding:20px;
+    margin: 0 auto;
+}
+
+.jlogin > form > div {
     margin-bottom:10px;
 }
 
 .jlogin label {
-    font-size:0.8em;
     display:block;
 }
 
-.jlogin > div > div > input {
+.jlogin > form > div > input {
     width:100%;
     outline:none;
     padding:15px;
     margin:0px;
-    font-size:1em;
 }
 
 .jlogin input[type='checkbox'] {
@@ -32,12 +45,14 @@
 }
 
 .jlogin input[type='button'] {
-    font-size:0.8em;
     padding:10px;
     background-color: #2c8ba9;
     border: 1px solid #2c8ba9;
     color: #fff;
     cursor:pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
 }
 
 .jlogin span
@@ -46,10 +61,11 @@
 }
 .jlogin img
 {
-    max-width:140px;
+    text-align:center;
+    max-width:220px;
 }
 
-.jlogin .logo
+.jlogin .jlogin-logo
 {
     text-align:center;
     padding:20px;
@@ -66,7 +82,6 @@
 
 .jlogin .facebookButton
 {
-    font-size:0.8em;
     padding:10px;
     background-color: #2c8ba9;
     border: 1px solid #2c8ba9;
@@ -81,11 +96,37 @@
 .jlogin .rememberButton
 {
     padding:10px;
+    display:none;
 }
 
-.jlogin .requestButton, .jlogin .cancelButton
+.jlogin .requestButton, .jlogin .cancelButton, .jlogin .newProfileButton
 {
     padding:20px;
+    padding-bottom:0px;
     text-align:center;
     cursor:pointer;
+}
+
+.jlogin-captcha img {
+    min-width:280px;
+}
+
+.jlogin-loading:before {
+  display: block;
+  position: absolute;
+  content: "";
+  left: -200px;
+  width: 200px;
+  height: 4px;
+  background-color: #2c8ba9;
+  animation: loading 2s linear infinite;
+}
+
+@keyframes loading {
+    from { left: -200px; width: 30%; }
+    50% { width: 30%; }
+    70% { width: 70%; }
+    80% { left: 50%; }
+    95% { left: 120%; }
+    to { left: 100%; }
 }

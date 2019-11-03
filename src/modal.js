@@ -12,13 +12,13 @@ jSuites.modal = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        // Events
-        onopen:null,
-        onclose:null,
-        closed:false,
-        width:null,
-        height:null,
-        title:null,
+        url: null,
+        onopen: null,
+        onclose: null,
+        closed: false,
+        width: null,
+        height: null,
+        title: null,
     };
 
     // Loop through our object
@@ -53,10 +53,6 @@ jSuites.modal = (function(el, options) {
         el.classList.add('no-title');
     }
 
-    if (! obj.options.closed) {
-        el.style.display = 'block';
-    }
-
     obj.open = function() {
         el.style.display = 'block';
 
@@ -68,6 +64,10 @@ jSuites.modal = (function(el, options) {
 
         // Current
         jSuites.modal.current = el;
+    }
+
+    obj.isOpen = function() {
+        return el.style.display != 'none' ? true : false;
     }
 
     obj.close = function() {
@@ -91,6 +91,24 @@ jSuites.modal = (function(el, options) {
         document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
 
         jSuites.modal.hasEvents = true;
+    }
+
+    if (obj.options.url) {
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'GET',
+            success: function(data) {
+                container.innerHTML = data;
+
+                if (! obj.options.closed) {
+                    obj.open();
+                }
+            }
+        });
+    } else {
+        if (! obj.options.closed) {
+            obj.open();
+        }
     }
 
     // Keep object available from the node

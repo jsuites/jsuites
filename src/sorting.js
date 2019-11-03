@@ -9,11 +9,11 @@
 jSuites.sorting = (function(el, options) {
     el.classList.add('jsorting');
 
-    el.addEventListener('dragstart', (e) => {
+    el.addEventListener('dragstart', function(e) {
         e.target.classList.add('dragging');
     });
 
-    el.addEventListener('dragover', (e) => {
+    el.addEventListener('dragover', function(e) {
         e.preventDefault();
 
         if (e.target.clientHeight / 2 > e.offsetY) {
@@ -25,16 +25,16 @@ jSuites.sorting = (function(el, options) {
         }
     });
 
-    el.addEventListener('dragleave', (e) => {
+    el.addEventListener('dragleave', function(e) {
         e.path[0].style.borderTop = '';
         e.path[0].style.borderBottom = '';
     });
 
-    el.addEventListener('dragend', (e) => {
+    el.addEventListener('dragend', function(e) {
         e.path[1].querySelector('.dragging').classList.remove('dragging');
     });
 
-    el.addEventListener('drop', (e) => {
+    el.addEventListener('drop', function(e) {
         var element = e.path[1].querySelector('.dragging');
 
         if (e.target.clientHeight / 2 > e.offsetY) {
@@ -47,9 +47,9 @@ jSuites.sorting = (function(el, options) {
         e.path[0].style.borderBottom = '';
     });
 
-    [...el.children].forEach(function(v) {
-        v.setAttribute('draggable', 'true');
-    });
+    for (var i = 0; i < el.children.length; i++) {
+        el.children[i].setAttribute('draggable', 'true');
+    };
 
     return el;
 });

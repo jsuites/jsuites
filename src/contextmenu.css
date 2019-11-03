@@ -1,11 +1,11 @@
 /**
  * Contextmenu v1.0.1
  * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
+ * https://github.com/paulhodel/jsuites
  */
  
 .jcontextmenu {
-    position:absolute;
+    position:fixed;
     z-index:10000;
     background:#fff;
     color: #555;

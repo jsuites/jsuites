@@ -29,11 +29,15 @@ jSuites.tabs = (function(el, options) {
     obj.open = function(index) {
         for (var i = 0; i < headers.children.length; i++) {
             headers.children[i].classList.remove('jtabs-selected');
-            content.children[i].classList.remove('jtabs-selected');
+            if (content.children[i]) {
+                content.children[i].classList.remove('jtabs-selected');
+            }
         }
 
         headers.children[index].classList.add('jtabs-selected');
-        content.children[index].classList.add('jtabs-selected');
+        if (content.children[index]) {
+            content.children[index].classList.add('jtabs-selected');
+        }
     }
 
     // Events
