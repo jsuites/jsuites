@@ -1411,6 +1411,7 @@ jSuites.calendar.getDateString = function(value, format) {
         if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] < 32) {
             var calendar = new Date(d[0], d[1]-1, d[2]);
             var weekday = new Array('Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday');
+            var months = new Array('Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec');
 
             d[1] = (d[1].length < 2 ? '0' : '') + d[1];
             d[2] = (d[2].length < 2 ? '0' : '') + d[2];
@@ -1424,6 +1425,7 @@ jSuites.calendar.getDateString = function(value, format) {
             value = value.replace('MM', d[1]);
             value = value.replace('YYYY', d[0]);
             value = value.replace('YY', d[0].substring(2,4));
+            value = value.replace('MON', months[parseInt(d[1])-1].toUpperCase());
 
             if (h) {
                 value = value.replace('HH24', h);
@@ -1456,11 +1458,10 @@ jSuites.calendar.isOpen = function(e) {
     }
 }
 
-if ('ontouchend' in document.documentElement === true) {
-    document.addEventListener("touchend", jSuites.calendar.isOpen);
-
+if ('ontouchstart' in document.documentElement === true) {
+    document.addEventListener("touchstart", jSuites.calendar.isOpen);
 } else {
-    document.addEventListener("mouseup", jSuites.calendar.isOpen);
+    document.addEventListener("mousedown", jSuites.calendar.isOpen);
 }
 
 /**
