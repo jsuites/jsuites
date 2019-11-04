@@ -740,6 +740,9 @@ jSuites.calendar = (function(el, options) {
     // Methods
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
+            if (jSuites.calendar.current) {
+                jSuites.calendar.current.close();
+            }
             // Current
             jSuites.calendar.current = obj;
             // Show calendar
