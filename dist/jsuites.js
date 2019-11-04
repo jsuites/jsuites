@@ -5724,21 +5724,7 @@ jSuites.mobile = (function(el, options) {
 })();
 
 jSuites.pages = (function() {
-    // Create page container
-    var container = document.querySelector('.pages');
-    if (! container) {
-        var container = document.createElement('div');
-        container.className = 'pages';
-    }
-
-    // Append container to the application
-    if (jSuites.el) {
-        jSuites.el.appendChild(container);
-    } else {
-        document.body.appendChild(container);
-    }
-
-    // Current page
+    var container = null;
     var current = null;
 
     // Create a page
@@ -5856,6 +5842,22 @@ jSuites.pages = (function() {
 
     // Init method
     var obj = function(route, mixed) {
+        // Create page container
+        if (! container) {
+            container = document.querySelector('.pages');
+            if (! container) {
+                container = document.createElement('div');
+                container.className = 'pages';
+            }
+
+            // Append container to the application
+            if (jSuites.el) {
+                jSuites.el.appendChild(container);
+            } else {
+                document.body.appendChild(container);
+            }
+        }
+
         if (! obj.pages[route]) {
             if (! route) {
                 alert('Error, no route provided');
@@ -6583,96 +6585,6 @@ jSuites.rating = (function(el, options) {
 
     return obj;
 });
-
-jSuites.refresh = (function(el, options) {
-    // Controls
-    var touchPosition = null;
-
-    // Push to refresh container
-    var pushToRefresh = document.createElement('div');
-    pushToRefresh.className = 'jrefresh';
-
-    // Page touch move
-    var pageTouchMove = function(e, page) {
-        if (typeof(page.options.onpush) == 'function') {
-            if (page.scrollTop < 5) {
-                if (! touchPosition) {
-                    touchPosition = {};
-                    touchPosition.x = e.touches[0].clientX;
-                    touchPosition.y = e.touches[0].clientY;
-                }
-
-                var height = e.touches[0].clientY - touchPosition.y;
-                if (height > 70) {
-                    if (! pushToRefresh.classList.contains('ready')) {
-                        pushToRefresh.classList.add('ready');
-                    }
-                } else {
-                    if (pushToRefresh.classList.contains('ready')) {
-                        pushToRefresh.classList.remove('ready');
-                    }
-                    pushToRefresh.style.height = height + 'px';
-
-                    if (height > 20) {
-                        if (! pushToRefresh.classList.contains('holding')) {
-                            pushToRefresh.classList.add('holding');
-                            page.insertBefore(pushToRefresh, page.firstChild);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // Page touch end
-    var pageTouchEnd = function(e, page) {
-        if (typeof(page.options.onpush) == 'function') {
-            // Remove holding
-            pushToRefresh.classList.remove('holding');
-            // Refresh or not refresh
-            if (! pushToRefresh.classList.contains('ready')) {
-                // Reset and not refresh
-                pushToRefresh.style.height = '';
-                obj.hide();
-            } else {
-                pushToRefresh.classList.remove('ready');
-                // Loading indication
-                setTimeout(function() {
-                    obj.hide();
-                }, 1000);
-
-                // Refresh
-                if (typeof(page.options.onpush) == 'function') {
-                    page.options.onpush(page);
-                }
-            }
-        }
-    }
-
-    var obj = function(element, callback) {
-        element.addEventListener('touchmove', function(e) {
-            pageTouchMove(e, element);
-        });
-        element.addEventListener('touchend', function(e) {
-            pageTouchEnd(e, element);
-        });
-        if (! element.options) {
-            element.options = {};
-        }
-        if (typeof(callback) == 'function') {
-            element.options.onpush = callback;
-        }
-    }
-
-    obj.hide = function() {
-        if (pushToRefresh.parentNode) {
-            pushToRefresh.parentNode.removeChild(pushToRefresh);
-        }
-        touchPosition = null;
-    }
-
-    return obj;
-})();
 
 /**
  * (c) Image slider
