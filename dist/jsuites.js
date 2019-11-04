@@ -772,6 +772,7 @@ jSuites.calendar = (function(el, options) {
                     } else {
                         calendarContainer.style.top = (rect.top + rect.height + 2) + 'px';
                     }
+                    calendarContainer.style.left = rect.left;
                 } else {
                     if (window.innerHeight < rect.bottom + rectContent.height) {
                         calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
@@ -2772,6 +2773,7 @@ jSuites.dropdown = (function(el, options) {
                     } else {
                         container.style.top = (rect.top + rect.height + 1) + 'px';
                     }
+                    container.style.left = rect.left;
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
                         container.style.bottom = (rect.height) + 'px';
