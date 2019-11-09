@@ -8,6 +8,14 @@ var jSuites = function(options) {
     obj.backdrop = document.createElement('div');
     obj.backdrop.classList.add('jbackdrop');
 
+    obj.guid = function() {
+        var guid = '';
+        for (var i = 0; i < 32; i++) {
+            guid += Math.floor(Math.random()*0xF).toString(0xF);
+        }
+        return guid;
+    }
+
     obj.getWindowWidth = function() {
         var w = window,
         d = document,

@@ -18,21 +18,7 @@ jSuites.mobile = (function(el, options) {
 })();
 
 jSuites.pages = (function() {
-    // Create page container
-    var container = document.querySelector('.pages');
-    if (! container) {
-        var container = document.createElement('div');
-        container.className = 'pages';
-    }
-
-    // Append container to the application
-    if (jSuites.el) {
-        jSuites.el.appendChild(container);
-    } else {
-        document.body.appendChild(container);
-    }
-
-    // Current page
+    var container = null;
     var current = null;
 
     // Create a page
@@ -150,6 +136,22 @@ jSuites.pages = (function() {
 
     // Init method
     var obj = function(route, mixed) {
+        // Create page container
+        if (! container) {
+            container = document.querySelector('.pages');
+            if (! container) {
+                container = document.createElement('div');
+                container.className = 'pages';
+            }
+
+            // Append container to the application
+            if (jSuites.el) {
+                jSuites.el.appendChild(container);
+            } else {
+                document.body.appendChild(container);
+            }
+        }
+
         if (! obj.pages[route]) {
             if (! route) {
                 alert('Error, no route provided');

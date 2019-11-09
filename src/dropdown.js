@@ -540,6 +540,7 @@ jSuites.dropdown = (function(el, options) {
                     } else {
                         container.style.top = (rect.top + rect.height + 1) + 'px';
                     }
+                    container.style.left = rect.left;
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
                         container.style.bottom = (rect.height) + 'px';
