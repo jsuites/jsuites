@@ -233,12 +233,14 @@ jSuites.mask = (function() {
                 } else {
                     return false;
                 }
-            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##') {
+            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##') {
                 if (input.match(/[0-9]/g)) {
                     if (pieces[index] == '#.##') {
                         var separator = '.';
                     } else if (pieces[index] == '#,##') {
                         var separator = ',';
+                    } else if (pieces[index] == '# ##') {
+                        var separator = ' ';
                     } else {
                         var separator = '';
                     }
@@ -269,6 +271,8 @@ jSuites.mask = (function() {
                     if (pieces[index] == '#.##' && input == '.') {
                         // Do nothing
                     } else if (pieces[index] == '#,##' && input == ',') {
+                        // Do nothing
+                    } else if (pieces[index] == '# ##' && input == ' ') {
                         // Do nothing
                     } else {
                         if (values[index]) {
@@ -393,6 +397,9 @@ jSuites.mask = (function() {
                     i += 3;
                 } else if (mask[i] == '#' && mask[i+1] == ',' && mask[i+2] == '#' && mask[i+3] == '#') {
                     pieces.push('#,##');
+                    i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == ' ' && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push('# ##');
                     i += 3;
                 } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
                     pieces.push('[-]');
