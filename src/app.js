@@ -2,7 +2,7 @@ var jSuites = function(options) {
     var obj = {}
 
     // Find root element
-    obj.el = document.querySelector('.app');
+    obj.el = document.querySelector('.japp');
 
     // Backdrop
     obj.backdrop = document.createElement('div');

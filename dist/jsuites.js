@@ -24,7 +24,7 @@ var jSuites = function(options) {
     var obj = {}
 
     // Find root element
-    obj.el = document.querySelector('.app');
+    obj.el = document.querySelector('.japp');
 
     // Backdrop
     obj.backdrop = document.createElement('div');
@@ -5865,6 +5865,7 @@ jSuites.pages = (function() {
 
     // Init method
     var obj = function(route, mixed) {
+
         // Create page container
         if (! container) {
             container = document.querySelector('.pages');
@@ -5955,7 +5956,9 @@ jSuites.pages = (function() {
         // Destroy containers
         obj.pages = {};
         // Reset container
-        container.innerHTML = '';
+        if (container) {
+            container.innerHTML = '';
+        }
     }
 
     return obj;

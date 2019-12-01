@@ -3,6 +3,8 @@
  * 
  * @author: Paul Hodel <paul.hodel@gmail.com>
  * @description: Custom dropdowns
+ * 
+ * TODO: create on the select element.
  */
 
 jSuites.dropdown = (function(el, options) {

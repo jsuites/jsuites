@@ -1638,16 +1638,16 @@
 
 @media only screen and (max-device-width : 800px)
 {
-    * {
+    .jsuites * {
         -webkit-tap-highlight-color: transparent;
         -webkit-touch-callout: none;
     }
 
-    html {
+    html.jsuites {
         height:100%;
     }
 
-    body {
+    .jsuites body {
         margin:0px;
         padding:0px;
         width:100%;
@@ -1658,12 +1658,12 @@
         background-color:#fff;
     }
 
-    input, select, textarea, div {
+    .jsuites input, .jsuites select, .jsuites textarea, .jsuites div {
         font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
     }
 }
 
-.app
+.japp
 {
     height:100%;
     box-sizing: border-box;
@@ -1671,7 +1671,7 @@
     background-color:#fafafa;
 }
 
-.warning::before {
+.jwarning::before {
     content:'No internet connection';
     background-color:red;
     color:#fff;
@@ -1686,29 +1686,29 @@
 }
 
 /*
-.app .activeHighLight
+.japp .activeHighLight
 {
     color:var(--active-color);
 }
 
-.app .active a, .app .active span, .app .active i
+.japp .active a, .japp .active span, .japp .active i
 {
     color:var(--active-color);
 }
 
-.app .no-padding
+.japp .no-padding
 {
     padding:0px;
 }
 
-.app .action
+.japp .action
 {
     color:var(--active-color);
     cursor:pointer;
 }
 
 
-.app i.action
+.japp i.action
 {
     position:absolute;
     right:0px;
@@ -1717,7 +1717,7 @@
 }
 */
 
-.app button
+.japp button
 {
     border-radius:4px;
     width:100%;
@@ -1728,32 +1728,32 @@
     outline:none;
 }
 
-.app button:active
+.japp button:active
 {
     border-color:1px solid #000;
     color:#000;
 }
 
-.app .red
+.japp .red
 {
     color:red;
     border-color:1px solid red;
 }
 
-.app .link
+.japp .link
 {
     color:var(--active-color);
     cursor:pointer;
 }
 
-.app .uppercase
+.japp .uppercase
 {
     text-transform:uppercase;
 }
 
 /** Navbar **/
 
-.app .navbar {
+.japp .navbar {
     position:fixed;
     top: 0;
     width: 100%;
@@ -1770,11 +1770,11 @@
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
 }
 
-.warning .navbar {
+.jwarning .navbar {
     top:16px;
 }
 
-.app .navbar-container {
+.japp .navbar-container {
     padding: 0 8px;
     position: absolute;
     left: 0;
@@ -1792,55 +1792,55 @@
     align-items:center;
 }
 
-.app .navbar-container div {
+.japp .navbar-container div {
     text-align:center;
 }
 
-.app .navbar-container div.title {
+.japp .navbar-container div.title {
     display: flex;
 }
 
-.app .navbar-container div.title div
+.japp .navbar-container div.title div
 {
     line-height:24px;
 }
 
-.app .navbar-container div.icon {
+.japp .navbar-container div.icon {
     width:24px;
 }
 
-.app .navbar-container div i {
+.japp .navbar-container div i {
     display:block;
 }
 
-.app .navbar-container div img {
+.japp .navbar-container div img {
     height:28px;
     display:block;
 }
 
-.app .navbar-container div.title div img {
+.japp .navbar-container div.title div img {
     border-radius:12px;
     width:24px;
     height:24px;
     margin-right:6px;
 }
 
-.app .navbar .icon {
+.japp .navbar .icon {
     color:var(--active-color);
 }
 
-.app .title {
+.japp .title {
     font-size:1.2em;
 }
 
-.app .block {
+.japp .block {
     padding:15px;
     color: #6d6d72;
     font-size:0.9em;
     box-sizing: border-box;
 }
 
-.app .block-title {
+.japp .block-title {
     text-transform: uppercase;
     color: #6d6d72;
     margin: 25px 15px 10px;
@@ -1853,29 +1853,29 @@
     font-size:0.9em;
 }
 
-.app .block-strong {
+.japp .block-strong {
     background-color:#fff;
     color: #000;
 }
 
-.app .block-border {
+.japp .block-border {
     border-top:1px solid #ddd;
     border-bottom:1px solid #ddd; 
 }
 
-.app .block-footer {
+.japp .block-footer {
 	text-transform: uppercase;
     padding:15px;
     color: #6d6d72;
     font-size:0.7em;
 }
 
-.app .block-collapse {
+.japp .block-collapse {
     max-height:100px;
     overflow-y:hidden;
 }
 
-.app .block-instruction {
+.japp .block-instruction {
     text-transform: uppercase;
     padding:15px;
     color: #6d6d72;
@@ -1883,14 +1883,14 @@
     text-align:center;
 }
 
-.app .pages {
+.japp .pages {
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
     height: 100%;
 }
 
-.app .page {
+.japp .page {
     padding-top: 45px;
     padding-bottom: 45px;
     min-height: 100%;
@@ -1908,33 +1908,33 @@
     padding-top: 60px;
 }
 
-.app .progressbar-container {
+.japp .progressbar-container {
     margin: 15px;
     margin-left: 0px;
     margin-right: 0px;
     margin-top: 5px;
 }
 
-.app .progressbar {
+.japp .progressbar {
     width:100%;
     border:1px solid var(--active-color);
     border-radius:1px;
 }
 
-.app .progressbar-title {
+.japp .progressbar-title {
     margin-bottom:2px;
     text-transform:uppercase;
     display:flex;
     justify-content:space-between;
 }
 
-.app .progressbar div {
+.japp .progressbar div {
     background-color:var(--active-color);
     height:4px;
     width:0%;
 }
 
-.app .panel {
+.japp .panel {
     position:fixed;
     top: 0;
     left: 0;
@@ -1950,18 +1950,18 @@
     padding:4px;
 }
 
-.app .panel-left {
+.japp .panel-left {
     -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
 }
 
-.app .panel a {
+.japp .panel a {
     color:var(--active-color);
 }
 
 /** Toolbar **/
 
-.app .jtoolbar
+.japp .jtoolbar
 {
     position:fixed;
     bottom: 0;
@@ -1976,7 +1976,7 @@
     padding:4px;
 }
 
-.app .jtoolbar > div
+.japp .jtoolbar > div
 {
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
@@ -1995,34 +1995,34 @@
     cursor:pointer;
 }
 
-.app .jtoolbar > div > div
+.japp .jtoolbar > div > div
 {
     text-align:center;
     flex:1;
     margin:auto;
 }
 
-.app .jtoolbar a
+.japp .jtoolbar a
 {
     text-decoration:none;
     display:inline-block;
 }
 
-.app .jtoolbar i
+.japp .jtoolbar i
 {
     color:#929292;
 }
 
-.app .jtoolbar span
+.japp .jtoolbar span
 {
     font-size:0.7em;
     display:block;
     color:#929292;
 }
 
-.app .jtoolbar .selected a,
-.app .jtoolbar .selected i,
-.app .jtoolbar .selected span
+.japp .jtoolbar .selected a,
+.japp .jtoolbar .selected i,
+.japp .jtoolbar .selected span
 {
     color:var(--active-color);
 }
@@ -2030,7 +2030,7 @@
 
 /** Options **/
 
-.app .options
+.japp .options
 {
     background-color:#fff;
     border-top:1px solid #e6e6e8;
@@ -2039,12 +2039,12 @@
     margin-top:10px;
 }
 
-.app .options:empty
+.japp .options:empty
 {
     display:none;
 }
 
-.app .options .option
+.japp .options .option
 {
     padding-top:10px;
     padding-bottom:10px;
@@ -2069,17 +2069,17 @@
     flex-wrap:nowrap;
 }
 
-.app .options .option:last-child
+.japp .options .option:last-child
 {
     border-bottom:0px;
 }
 
-.app .options label
+.japp .options label
 {
     width:100%;
 }
 
-.app .options input[type='text'], .app .options textarea
+.japp .options input[type='text'], .japp .options textarea
 {
     outline:none;
     border:1px solid transparent;
@@ -2090,17 +2090,17 @@
     box-sizing:border-box;
 }
 
-.app .options textarea
+.japp .options textarea
 {
     height:100px;
 }
 
-.app .options input[type='checkbox'], .app .options input[type='radio']
+.japp .options input[type='checkbox'], .japp .options input[type='radio']
 {
     visibility: hidden;
 }
 
-.app .options input[type='checkbox'] ~ i, .app .options input[type='radio'] ~ i
+.japp .options input[type='checkbox'] ~ i, .japp .options input[type='radio'] ~ i
 {
     background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTkgMTYuMTdMNC44MyAxMmwtMS40MiAxLjQxTDkgMTkgMjEgN2wtMS40MS0xLjQxeiIgZmlsbD0iIzAwN2FmZiIvPjwvc3ZnPg==');
     background-repeat: no-repeat;
@@ -2112,12 +2112,12 @@
     height:24px;
 }
 
-.app .options input[type='checkbox']:checked ~ i, .app .options input[type='radio']:checked  ~ i
+.japp .options input[type='checkbox']:checked ~ i, .japp .options input[type='radio']:checked  ~ i
 {
     visibility: visible;
 }
 
-.app .options .option .jdropdown
+.japp .options .option .jdropdown
 {
      border-top: 0px solid #e6e6e8;
     border-bottom: 0px solid #e6e6e8;
@@ -2125,7 +2125,7 @@
     padding-bottom: 0px;
 }
 
-.app .options .icon {
+.japp .options .icon {
     float:left;
     margin-right:10px;
     max-width:40px;
@@ -2134,17 +2134,17 @@
     color:#929292;
 }
 
-.app .options .option .option-actions {
+.japp .options .option .option-actions {
     display:flex;
     transform: translateX(100%);
     width:0px;
 }
 
-.app .options .option .option-actions > div {
+.japp .options .option .option-actions > div {
     padding-right:5px;
 }
 
-.app .options .option .option-actions > div > i {
+.japp .options .option .option-actions > div > i {
     width:40px;
     height:40px;
     color:#fff;
@@ -2155,7 +2155,7 @@
     background-color:red;
 }
 
-.app .options .option .option-actions.small > div > i
+.japp .options .option .option-actions.small > div > i
 {
     color:#000;
     width:24px;
@@ -2166,7 +2166,7 @@
     background-color:transparent;
 }
 
-.app .options .option-title {
+.japp .options .option-title {
     display:block;
     padding-top:10px;
     padding-bottom:10px;
@@ -2175,7 +2175,7 @@
     vertical-align:center;
 }
 
-.app .options .option-title::after {
+.japp .options .option-title::after {
     content:'\e313';
     font-family: 'material icons';
     font-size:24px;
@@ -2186,22 +2186,22 @@
     line-height:24px;
 }
 
-.app .options .option-title.selected::after
+.japp .options .option-title.selected::after
 {
     content:'\e316';
 }
 
-.app .options .option-title.selected ~ div {
+.japp .options .option-title.selected ~ div {
     display:block;
 }
 
-.app .options .option-group {
+.japp .options .option-group {
     border-top:1px solid #e6e6e8;
     background-color:#fff;
     display:none;
 }
 
-.app .options .option-link:after {
+.japp .options .option-link:after {
     content:'\e315';
     font-family: 'material icons';
     color:var(--active-color);
@@ -2214,7 +2214,7 @@
     display:block;
 }
 
-.app .options .option-header {
+.japp .options .option-header {
     padding-left:10px;
     padding-right:10px;
     flex-grow:10;
@@ -2223,14 +2223,14 @@
     text-overflow: ellipsis;
 }
 
-.app .options .option .option-name {
+.japp .options .option .option-name {
     font-size:1em;
     text-overflow: ellipsis;
     width: 100%;
     overflow: hidden;
 }
 
-.app .options .option .option-small {
+.japp .options .option .option-small {
     font-size:0.7em;
     color: #6d6d72;
     text-overflow: ellipsis;
@@ -2239,21 +2239,21 @@
     display:block;
 }
 
-.app .options .option .option-image img {
+.japp .options .option .option-image img {
     width:40px;
     height:40px;
     border-radius:20px;
     display:block;
 }
 
-.app .options .option .option-image-small img {
+.japp .options .option .option-image-small img {
     width:24px;
     height:auto;
     border-radius:50px;
     display:block;
 }
 
-.app .options .option .option-image .option-badge {
+.japp .options .option .option-image .option-badge {
     position: absolute;
     background-color: red;
     color: #fff;
@@ -2266,7 +2266,7 @@
     margin: 28px;
 }
 
-.app .options .option .option-image-small .option-badge {
+.japp .options .option .option-image-small .option-badge {
     position: absolute;
     background-color: red;
     color: #fff;
@@ -2279,21 +2279,21 @@
     margin: 12px;
 }
 
-.app .options .option .option-badge.solid {
+.japp .options .option .option-badge.solid {
     background-color: red;
     color: red;
 }
 
-.app .options .option .option-badge.solid-green {
+.japp .options .option .option-badge.solid-green {
     background-color: green;
     color: green;
 }
 
-.app .options .option .option-badge:empty {
+.japp .options .option .option-badge:empty {
     display:none;
 }
 
-.app .options .option .option-date {
+.japp .options .option .option-date {
     float:right;
     font-size:0.6em;
     color:#888;
@@ -2301,11 +2301,11 @@
     white-space: nowrap;
 }
 
-.app .options .option .option-right {
+.japp .options .option .option-right {
     margin-right:15px;
 }
 
-.app .options .option .option-badget {
+.japp .options .option .option-badget {
     background-color:red;
     border-radius:12px;
     width:24px;
@@ -2316,13 +2316,13 @@
     text-align:center;
 }
 
-.app .options .option .option-badget:empty {
+.japp .options .option .option-badget:empty {
     display:none;
 }
 
 /** Badge **/
 
-.app .jbadge
+.japp .jbadge
 {
     position:relative;
     display:inline-block;
@@ -2330,7 +2330,7 @@
     left:-12px;
 }
 
-.app .jbadge > div
+.japp .jbadge > div
 {
     background-color:red;
     color:#fff;
@@ -2343,14 +2343,14 @@
     position:absolute;
 }
 
-.app .jbadge > div:empty
+.japp .jbadge > div:empty
 {
     display:none;
 }
 
 /** Picker **/
 
-.app .picker 
+.japp .picker 
 {
     background-color:#fff;
     border-top:1px solid #e6e6e8;
@@ -2363,7 +2363,7 @@
     z-index:700;
 }
 
-.app .picker .picker-options
+.japp .picker .picker-options
 {
     -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,.2)), linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,.2));
     -webkit-mask-size: 100% 50%;
@@ -2374,33 +2374,33 @@
     padding-bottom:100px;
 }
 
-.app .picker label
+.japp .picker label
 {
     display: block;
     padding-top: 10px;
     padding-bottom: 10px;
 }
 
-.app .picker .picker-selected
+.japp .picker .picker-selected
 {
     border-top:1px solid #e6e6e8;
     border-bottom:1px solid #e6e6e8;
 }
 
-.app .picker input
+.japp .picker input
 {
     display:none;
 }
 
 /** Topsearch **/
 
-.app .top-search {
+.japp .top-search {
     margin:0px;
     padding:10px;
     border-bottom:1px solid #ddd; 
 }
 
-.app .top-search input {
+.japp .top-search input {
     background-color: #e6e6e6;
     border: 0px;
     border-radius: 4px;
@@ -2412,7 +2412,7 @@
     width: 100%;
 }
 
-.app .searchbar-container i {
+.japp .searchbar-container i {
     position:absolute;
     margin-top:5px;
     margin-left:8px;
@@ -2421,19 +2421,19 @@
 
 /** Range **/
 
-.app .range
+.japp .range
 {
   -webkit-appearance: none;
   margin: 18px 0;
   width: 100%;
 }
 
-.app .range:focus
+.japp .range:focus
 {
   outline: none;
 }
 
-.app .range::-webkit-slider-runnable-track
+.japp .range::-webkit-slider-runnable-track
 {
     width: 100%;
     height: 4px;
@@ -2443,7 +2443,7 @@
     border-radius: 1.3px;
 }
 
-.app .range::-webkit-slider-thumb
+.japp .range::-webkit-slider-thumb
 {
     -webkit-appearance:none;
     appearance:none;
@@ -2457,7 +2457,7 @@
     box-shadow:0px 1px 3px 1px #bbb;
 }
 
-.app .range::-moz-range-track
+.japp .range::-moz-range-track
 {
     width:100%;
     cursor:pointer;
@@ -2466,7 +2466,7 @@
     border-radius:1.3px;
 }
 
-.app .range::-moz-range-thumb
+.japp .range::-moz-range-thumb
 {
     width:24px;
     height:24px;
@@ -2477,7 +2477,7 @@
     box-shadow:0px 1px 3px 1px #bbb;
 }
 
-.app .range::-ms-track
+.japp .range::-ms-track
 {
     width: 100%;
     cursor: pointer;
@@ -2489,19 +2489,19 @@
     border-radius:1.3px;
 }
 
-.app .range::-ms-fill-lower
+.japp .range::-ms-fill-lower
 {
     background:#ccc;
     height:5px;
 }
 
-.app .range::-ms-fill-upper
+.japp .range::-ms-fill-upper
 {
     background:#ccc;
     height:5px;
 }
 
-.app .range::-ms-thumb {
+.japp .range::-ms-thumb {
     width:24px;
     height:24px;
     background:#fff;
@@ -2511,12 +2511,12 @@
     box-shadow:0px 1px 3px 1px #bbb;
 }
 
-.app .range:focus::-ms-fill-lower
+.japp .range:focus::-ms-fill-lower
 {
   background: #ccc;
 }
 
-.app .range:focus::-ms-fill-upper
+.japp .range:focus::-ms-fill-upper
 {
   background: #ccc;
 }
@@ -2673,22 +2673,22 @@
 
 /** Placeholders **/
 
-.app .options input::-webkit-input-placeholder
+.japp .options input::-webkit-input-placeholder
 {
     text-tranform:uppercase;
 }
 
-.app .options input::-moz-placeholder
+.japp .options input::-moz-placeholder
 {
     text-tranform:uppercase;
 }
 
-.app .options input:-ms-input-placeholder
+.japp .options input:-ms-input-placeholder
 {
     text-tranform:uppercase;
 }
 
-.app .options input:-moz-placeholder
+.japp .options input:-moz-placeholder
 {
     text-tranform:uppercase;
 }

@@ -136,6 +136,7 @@ jSuites.pages = (function() {
 
     // Init method
     var obj = function(route, mixed) {
+
         // Create page container
         if (! container) {
             container = document.querySelector('.pages');
@@ -226,7 +227,9 @@ jSuites.pages = (function() {
         // Destroy containers
         obj.pages = {};
         // Reset container
-        container.innerHTML = '';
+        if (container) {
+            container.innerHTML = '';
+        }
     }
 
     return obj;
