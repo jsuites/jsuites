@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.3.1 - Javascript Web Components 
+ * (c) jSuites v2.3.2 - Javascript Web Components 
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -2843,7 +2843,7 @@ jSuites.dropdown = (function(el, options) {
                     } else {
                         container.style.top = (rect.top + rect.height + 1) + 'px';
                     }
-                    container.style.left = rect.left;
+                    container.style.left = rect.left + 'px';
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
                         container.style.bottom = (rect.height) + 'px';
