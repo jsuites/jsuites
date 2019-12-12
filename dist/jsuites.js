@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.3.2 - Javascript Web Components 
+ * (c) jSuites v2.3.1 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -780,7 +780,7 @@ jSuites.calendar = (function(el, options) {
                     } else {
                         calendarContainer.style.top = (rect.top + rect.height + 2) + 'px';
                     }
-                    calendarContainer.style.left = rect.left;
+                    calendarContainer.style.left = rect.left + 'px';
                 } else {
                     if (window.innerHeight < rect.bottom + rectContent.height) {
                         calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
@@ -1814,8 +1814,9 @@ jSuites.color = (function(el, options) {
                 if (window.innerHeight < rect.bottom + rectContent.height) {
                     content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
                 } else {
-                    content.style.top = (rect.top + rect.height + 2) + 'px';;
+                    content.style.top = (rect.top + rect.height + 2) + 'px';
                 }
+                content.style.left = rect.left + 'px';
             } else {
                 if (window.innerHeight < rect.bottom + rectContent.height) {
                     content.style.top = (-1 * (rectContent.height + 2)) + 'px';
