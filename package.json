@@ -27,7 +27,7 @@
         "javascript web components"
     ],
     "main": "dist/jsuites.js",
-    "version": "2.3.0",
+    "version": "2.3.1",
     "bugs": "https://github.com/paulhodel/jsuites/issues",
     "homepage": "https://github.com/paulhodel/jsuites",
     "docs": "https://bossanova.uk/jsuites",
