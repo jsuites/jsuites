@@ -2252,16 +2252,66 @@ jSuites.alert = function(message) {
 jSuites.dropdown = (function(el, options) {
     var obj = {};
     obj.options = {};
-    obj.items = [];
-    obj.groups = [];
 
-    if (options) {
-        obj.options = options;
-    }
-
-    // Global container
-    if (! jSuites.dropdown.current) {
-        jSuites.dropdown.current = null;
+    // If the element is a SELECT tag, create a configuration object
+    if (el.tagName == 'SELECT') {
+        var select = el;
+        if (! options) {
+            options = {};
+        }
+        // Prepare configuration
+        if (el.getAttribute('multiple') && (! options || options.multiple == undefined)) {
+            options.multiple = true;
+        }
+        if (el.getAttribute('placeholder') && (! options || options.placeholder == undefined)) {
+            options.placeholder = el.getAttribute('placeholder');
+        }
+        if (el.getAttribute('data-autocomplete') && (! options || options.autocomplete == undefined)) {
+            options.autocomplete = true;
+        }
+        if (! options || options.width == undefined) {
+            options.width = el.offsetWidth;
+        }
+        if (el.value && (! options || options.value == undefined)) {
+            options.value = el.value;
+        }
+        if (! options || options.data == undefined) {
+            options.data = [];
+            for (var j = 0; j < el.children.length; j++) {
+                if (el.children[j].tagName == 'OPTGROUP') {
+                    for (var i = 0; i < el.children[j].children.length; i++) {
+                        options.data.push({
+                            id: el.children[j].children[i].value,
+                            name: el.children[j].children[i].innerHTML,
+                            group: el.children[j].getAttribute('label'),
+                        });
+                    }
+                } else {
+                    options.data.push({
+                        id: el.children[j].value,
+                        name: el.children[j].innerHTML,
+                    });
+                }
+            }
+        }
+        if (! options || options.onchange == undefined) {
+            options.onchange = function(a,b,c,d) {
+                if (options.multiple == true) {
+                    if (obj.items[b].classList.contains('jdropdown-selected')) {
+                        select.options[b].setAttribute('selected', 'selected');
+                    } else {
+                        select.options[b].removeAttribute('selected');
+                    }
+                } else {
+                    select.value = d;
+                }
+            }
+        }
+        // Create DIV
+        var div = document.createElement('div');
+        el.parentNode.insertBefore(div, el);
+        el.style.display = 'none';
+        el = div;
     }
 
     // Default configuration
@@ -2292,6 +2342,15 @@ jSuites.dropdown = (function(el, options) {
             obj.options[property] = defaults[property];
         }
     }
+
+    // Global container
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
+    }
+
+    // Containers
+    obj.items = [];
+    obj.groups = [];
 
     // Create dropdown
     el.classList.add('jdropdown');
@@ -5544,14 +5603,6 @@ jSuites.mask = (function() {
 
                     return false;
                 }
-            } else if (pieces[index] == '[-]') {
-                if (input == '-' || input == '+') {
-                    values[index] = input;
-                } else {
-                    values[index] = ' ';
-                }
-                index++;
-                return true;
             } else if (pieces[index] == '0') {
                 if (input.match(/[0-9]/g)) {
                     values[index] = input;
@@ -5574,6 +5625,12 @@ jSuites.mask = (function() {
                         var v = 'a';
                     } else if (pieces[index] == '\\0') {
                         var v = '0';
+                    } else if (pieces[index] == '[-]') {
+                        if (input == '-' || input == '+') {
+                            var v = input;
+                        } else {
+                            var v = ' ';
+                        }
                     } else {
                         var v = pieces[index];
                     }
