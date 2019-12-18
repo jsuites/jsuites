@@ -2509,6 +2509,28 @@ jSuites.dropdown = (function(el, options) {
         });
     }
 
+    /* Possible data fields -- mapped to equivalent html elements except group and title, which get treated
+     * progmatically, image => html img tag
+     * ALERT: 'value' field will not map if using DIV type list instead of select type list
+     * data_options = [{
+     *                  'id':      'required',
+     *                  'image':   'optional',
+     *                  'title':   'optional',
+     *                  'name':    'required',
+     *                  'value':   'optional',
+     *                  'group':   'optional'
+     *              },];
+     *
+     * data_example = [
+     *                  {'id': '1', 'image':'', 'title': 'MS', 'name': 'Barbara', 'value': 'BB', 'group': 'GOODIE'},
+     *                  {'id': '2', 'image':'', 'title': 'MR', 'name': 'Gordon', 'value': 'GG', 'group': 'VILAIN'},
+     *              ];
+     * 
+     * Example use:
+     * onchange: function(el, index, oldValue, newValue, oldLabel, newLabel){
+     *              el.dropdown.items[index].id //or any of the data fields above like .title or .value
+     *          }
+     */
     obj.setData = function(data) {
         if (data) {
             obj.options.data = data;
@@ -2540,8 +2562,9 @@ jSuites.dropdown = (function(el, options) {
                 // Create item
                 items[k] = document.createElement('div');
                 items[k].className = 'jdropdown-item';
-                items[k].value = v.id;
+                items[k].id = v.id;
                 items[k].text = v.name;
+                items[k].value = v.value;
 
                 // Image
                 if (v.image) {
@@ -2638,7 +2661,7 @@ jSuites.dropdown = (function(el, options) {
         }
     }
 
-    obj.setValue = function(value) {
+    obj.setValue = function(id) {
         // Remove values
         var items = el.querySelectorAll('.jdropdown-selected');
         for (var j = 0; j < items.length; j++) {
@@ -2646,18 +2669,18 @@ jSuites.dropdown = (function(el, options) {
         } 
 
         // Set values
-        if (value != null) {
-            if (Array.isArray(value)) {
+        if (id != null) {
+            if (Array.isArray(id)) {
                 for (var i = 0; i < obj.items.length; i++) {
-                    value.forEach(function(val) {
-                        if (obj.items[i].value == val) {
+                    id.forEach(function(id_val) {
+                        if (obj.items[i].value == id_val) {
                             obj.items[i].classList.add('jdropdown-selected');
                         }
                     });
                 }
             } else {
                 for (var i = 0; i < obj.items.length; i++) {
-                    if (obj.items[i].value == value) {
+                    if (obj.items[i].id == id) {
                         obj.items[i].classList.add('jdropdown-selected');
                     }
                 }
