@@ -5322,15 +5322,51 @@ jSuites.mask = (function() {
     var values = []
     var pieces = [];
 
-    obj.run = function(value, mask, decimal) {
-        if (value && mask) {
-            if (! decimal) {
-                decimal = '.';
-            }
+    obj.run = function( value,             // ex. 1000 or "1000" or "1000.0" or ...
+                        mask,              // ex. "$ #,###.##"
+                        decimal,        // ex. '.'
+                        mask_decimal    // ex. ',' <- French style
+        ) {
+        // Convert value to string so that we can check that it's not a blank field
+        // this also ensures we capture 0 (zero) as a value that we will treat with the mask,
+        // rather than a "false" causing the function to return ''
+        // In the future, we may want to give users the option to select how they want
+        // 0 (zero) value represented
+
+        if (typeof decimal == 'undefined') {  // default parameter value if none specified  for decimal == '.'
+            decimal = '.';
+        }
+
+        if (typeof mask_decimal == 'undefined') {  // default parameter value if none specified for mask_decimal == decimal
+            mask_decimal = decimal;
+        }
+
+        if (value.toString().length && mask.toString().length) {
             if (value == Number(value)) {
-                var number = (''+value).split('.');
-                var value = number[0];
-                var valueDecimal = number[1];
+                var number = (''+value).split(decimal);
+                // Check if the function value argument (number) already has a decimal value
+                if(number.length > 1) {
+                    var value = number[0];
+                    var valueDecimal = '';
+
+                    // Does the mask call for decimal places to be displayed?
+                    if(mask.split(decimal).length > 1) {
+                        // Lets make sure we fill the missing decimals with 0 (zero) values to have the same number of sig-figs as the mask calls for
+                        valueDecimal = number[1];
+                        for (var sf = valueDecimal.toString().length; sf < mask.split(mask_decimal)[1].length; sf++) {
+                            valueDecimal += "0";
+                        }
+                    }
+                } else {
+                    var value = number[0];
+                    var valueDecimal = '';
+                    if(mask.split(decimal).length > 1) {
+                        for (var sf = valueDecimal.toString().length; sf < mask.split(mask_decimal)[1].length; sf++) {
+                            valueDecimal += "0";
+                        }
+                    }
+                }
+                
             } else {
                 value = '' + value;
             }
