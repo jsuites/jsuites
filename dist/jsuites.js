@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.3.1 - Javascript Web Components
+ * (c) jSuites v2.4.0 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -273,13 +273,23 @@ var jSuites = function(options) {
         httpRequest.onload = function() {
             if (httpRequest.status === 200) {
                 if (options.dataType == 'json') {
-                    var result = JSON.parse(httpRequest.responseText);
+                    try {
+                        var result = JSON.parse(httpRequest.responseText);
+
+                        if (options.success && typeof(options.success) == 'function') {
+                            options.success(result);
+                        }
+                    } catch(err) {
+                        if (options.error && typeof(options.error) == 'function') {
+                            options.error(result);
+                        }
+                    }
                 } else {
                     var result = httpRequest.responseText;
-                }
 
-                if (options.success && typeof(options.success) == 'function') {
-                    options.success(result);
+                    if (options.success && typeof(options.success) == 'function') {
+                        options.success(result);
+                    }
                 }
             } else {
                 if (options.error && typeof(options.error) == 'function') {
@@ -445,7 +455,7 @@ var jSuites = function(options) {
         }
     }
 
-    obj.actionUpControl = function(e) {
+    var actionUpControl = function(e) {
         var element = null;
         if (element = jSuites.getLinkElement(e.target)) {
             var link = element.getAttribute('data-href');
@@ -504,16 +514,34 @@ var jSuites = function(options) {
         }
     }
 
+    var actionOverControl = function(e) {
+        // Tooltip
+        if (jSuites.tooltip) {
+            jSuites.tooltip(e);
+        }
+    }
+
+    var actionOutControl = function(e) {
+        // Tooltip
+        if (jSuites.tooltip) {
+            jSuites.tooltip.hide();
+        }
+    }
+
     // Create page container
     document.addEventListener('swipeleft', controlSwipeLeft);
     document.addEventListener('swiperight', controlSwipeRight);
     document.addEventListener('keydown', obj.keyDownControls);
 
     if ('ontouchend' in document.documentElement === true) {
-        document.addEventListener('touchend', obj.actionUpControl);
+        document.addEventListener('touchend', actionUpControl);
     } else {
-        document.addEventListener('mouseup', obj.actionUpControl);
+        document.addEventListener('mouseup', actionUpControl);
     }
+
+    // Onmouseover
+    document.addEventListener('mouseover', actionOverControl);
+    document.addEventListener('mouseout', actionOutControl);
 
     // Pop state control
     window.onpopstate = function(e) {
@@ -1472,12 +1500,6 @@ if ('ontouchstart' in document.documentElement === true) {
     document.addEventListener("mousedown", jSuites.calendar.isOpen);
 }
 
-/**
- * Color Picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
-
 jSuites.color = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -2256,67 +2278,14 @@ jSuites.dropdown = (function(el, options) {
 
     // If the element is a SELECT tag, create a configuration object
     if (el.tagName == 'SELECT') {
-        var select = el;
-        if (! options) {
-            options = {};
-        }
-        // Prepare configuration
-        if (el.getAttribute('multiple') && (! options || options.multiple == undefined)) {
-            options.multiple = true;
-        }
-        if (el.getAttribute('placeholder') && (! options || options.placeholder == undefined)) {
-            options.placeholder = el.getAttribute('placeholder');
-        }
-        if (el.getAttribute('data-autocomplete') && (! options || options.autocomplete == undefined)) {
-            options.autocomplete = true;
-        }
-        if (! options || options.width == undefined) {
-            options.width = el.offsetWidth;
-        }
-        if (el.value && (! options || options.value == undefined)) {
-            options.value = el.value;
-        }
-        if (! options || options.data == undefined) {
-            options.data = [];
-            for (var j = 0; j < el.children.length; j++) {
-                if (el.children[j].tagName == 'OPTGROUP') {
-                    for (var i = 0; i < el.children[j].children.length; i++) {
-                        options.data.push({
-                            id: el.children[j].children[i].value,
-                            name: el.children[j].children[i].innerHTML,
-                            group: el.children[j].getAttribute('label'),
-                        });
-                    }
-                } else {
-                    options.data.push({
-                        id: el.children[j].value,
-                        name: el.children[j].innerHTML,
-                    });
-                }
-            }
-        }
-        if (! options || options.onchange == undefined) {
-            options.onchange = function(a,b,c,d) {
-                if (options.multiple == true) {
-                    if (obj.items[b].classList.contains('jdropdown-selected')) {
-                        select.options[b].setAttribute('selected', 'selected');
-                    } else {
-                        select.options[b].removeAttribute('selected');
-                    }
-                } else {
-                    select.value = d;
-                }
-            }
-        }
-        // Create DIV
-        var div = document.createElement('div');
-        el.parentNode.insertBefore(div, el);
-        el.style.display = 'none';
-        el = div;
+        var ret = jSuites.dropdown.extractFromDom(el, options);
+        el = ret.el;
+        options = ret.options;
     }
 
     // Default configuration
     var defaults = {
+        url: null,
         data: [],
         multiple: false,
         autocomplete: false,
@@ -2352,6 +2321,7 @@ jSuites.dropdown = (function(el, options) {
     // Containers
     obj.items = [];
     obj.groups = [];
+    obj.selected = [];
 
     // Create dropdown
     el.classList.add('jdropdown');
@@ -2369,6 +2339,7 @@ jSuites.dropdown = (function(el, options) {
         } else {
             if (obj.options.width) {
                 el.style.width = obj.options.width;
+                el.style.minWidth = obj.options.width;
             }
             el.classList.add('jdropdown-default');
             obj.options.type = 'default';
@@ -2410,8 +2381,15 @@ jSuites.dropdown = (function(el, options) {
         el.setAttribute('data-autocomplete', true);
 
         // Handler
+        var keyTimer = null;
         header.addEventListener('keyup', function(e) {
-            obj.find(header.value);
+            if (keyTimer) {
+                clearTimeout(keyTimer);
+            }
+            keyTimer = setTimeout(function() {
+                obj.find(header.value);
+                keyTimer = null;
+            }, 500);
 
             if (! el.classList.contains('jdropdown-focus')) {
                 if (e.which > 65) {
@@ -2424,12 +2402,16 @@ jSuites.dropdown = (function(el, options) {
     }
 
     // Place holder
+    if (! obj.options.placeholder && el.getAttribute('placeholder')) {
+        obj.options.placeholder = el.getAttribute('placeholder');
+    }
+
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
     }
 
     // Insert new elements
-    if (obj.options.allowInsert == true) {
+    /*if (obj.options.allowInsert == true) {
         el.classList.add('jdropdown-insert');
 
         // Add button
@@ -2442,16 +2424,23 @@ jSuites.dropdown = (function(el, options) {
             }
         }
         containerHeader.appendChild(insertButton);
-    }
+    }*/
 
     // Append elements
     containerHeader.appendChild(header);
-    container.appendChild(closeButton);
+    if (obj.options.type == 'searchbar') {
+        containerHeader.appendChild(closeButton);
+    } else {
+        container.appendChild(closeButton);
+    }
     container.appendChild(content);
     el.appendChild(containerHeader);
     el.appendChild(container);
     el.appendChild(backdrop);
 
+    /**
+     * Init dropdown
+     */
     obj.init = function() {
         if (obj.options.url) {
             jSuites.ajax({
@@ -2460,9 +2449,13 @@ jSuites.dropdown = (function(el, options) {
                 dataType: 'json',
                 success: function(data) {
                     if (data) {
-                        obj.options.data = data;
-                        obj.setData();
-
+                        // Set data
+                        obj.setData(data);
+                        // Set value
+                        if (obj.options.value != null) {
+                            obj.setValue(obj.options.value);
+                        }
+                        // Onload method
                         if (typeof(obj.options.onload) == 'function') {
                             obj.options.onload(el, obj, data);
                         }
@@ -2470,25 +2463,21 @@ jSuites.dropdown = (function(el, options) {
                 }
             });
         } else {
+            // Set data
             obj.setData();
-
+            // Set value
+            if (obj.options.value != null) {
+                obj.setValue(obj.options.value);
+            }
+            // Onload
             if (typeof(obj.options.onload) == 'function') {
                 obj.options.onload(el, obj, data);
             }
         }
 
-        // Values
-        obj.setValue(obj.options.value);
-
+        // Open dropdown
         if (obj.options.opened == true) {
             obj.open();
-        }
-
-        // Fix width - Workaround important to get the correct width
-        if (obj.options.type == 'default') {
-            setTimeout(function() {
-                container.style.minWidth = header.outerWidth;
-            }, 0);
         }
     }
 
@@ -2509,113 +2498,152 @@ jSuites.dropdown = (function(el, options) {
         });
     }
 
+    /**
+     * Create a new item
+     */
+    obj.createItem = function(data) {
+        // Create item
+        var item = {};
+        item.element = document.createElement('div');
+        item.element.className = 'jdropdown-item';
+        item.value = data.id;
+        item.text = data.name;
+        item.textLowerCase = data.name.toLowerCase();
+
+        // Image
+        if (data.image) {
+            var image = document.createElement('img');
+            image.className = 'jdropdown-image';
+            image.src = data.image;
+            if (! data.title) {
+               image.classList.add('jdropdown-image-small');
+            }
+            item.element.appendChild(image);
+        }
+
+        // Set content
+        var node = document.createElement('div');
+        node.className = 'jdropdown-description';
+        node.innerHTML = data.name;
+
+        // Title
+        if (data.title) {
+            var title = document.createElement('div');
+            title.className = 'jdropdown-title';
+            title.innerHTML = data.title;
+            node.appendChild(title);
+        }
+
+        // Add node to item
+        item.element.appendChild(node);
+
+        return item;
+    }
+
     obj.setData = function(data) {
+        // Update data
         if (data) {
             obj.options.data = data;
-        } else {
-            var data = obj.options.data;
         }
+
+        // Data
+        var data = obj.options.data;
 
         // Make sure the content container is blank
         content.innerHTML = '';
 
-        // Containers
+        // Reset
+        obj.reset();
+
+        // Reset items
+        obj.items = [];
+
+        // Helpers
         var items = [];
         var groups = [];
 
-        // Foreach in the data to create all items
+        // Create elements
         if (data.length) {
-            data.forEach(function(v, k) {
+            // Prepare data
+            for (var i = 0; i < data.length; i++) {
                 // Compatibility
-                if (typeof(v) != 'object') {
-                    var value = v;
-                    v = {}
-                    v.id = value;
-                    v.name = value;
-
-                    // Fix array
-                    obj.options.data[k] = v;
+                if (typeof(data[i]) != 'object') {
+                    // Correct format
+                    obj.options.data[i] = data[i] = { id: data[i], name: data[i] };
                 }
 
-                // Create item
-                items[k] = document.createElement('div');
-                items[k].className = 'jdropdown-item';
-                items[k].value = v.id;
-                items[k].text = v.name;
-
-                // Image
-                if (v.image) {
-                    var image = document.createElement('img');
-                    image.className = 'jdropdown-image';
-                    image.src = v.image;
-                    if (! v.title) {
-                       image.classList.add('jdropdown-image-small');
+                // Process groups
+                if (data[i].group) {
+                    if (! groups[data[i].group]) {
+                        groups[data[i].group] = [];
                     }
-                    items[k].appendChild(image);
-                }
-
-                // Set content
-                var node = document.createElement('div');
-                node.className = 'jdropdown-description';
-                node.innerHTML = v.name;
-                items[k].appendChild(node);
-
-                // Title
-                if (v.title) {
-                    var title = document.createElement('div');
-                    title.className = 'jdropdown-title';
-                    title.innerHTML = v.title;
-                    node.appendChild(title);
-                }
-
-                // Append to the container
-                if (v.group) {
-                    if (! groups[v.group]) {
-                        groups[v.group] = document.createElement('div');
-                        groups[v.group].className = 'jdropdown-group-items';
-                    }
-                    groups[v.group].appendChild(items[k]);
+                    groups[data[i].group].push(i);
                 } else {
-                    content.appendChild(items[k]);
+                    items.push(i);
                 }
-            });
+            }
+
+            // Groups
+            var groupNames = Object.keys(groups);
 
             // Append groups in case exists
-            if (Object.keys(groups).length > 0) {
-                Object.keys(groups).forEach(function(v, k) {
+            if (groupNames.length > 0) {
+                for (var i = 0; i < groupNames.length; i++) {
+                    // Group container
                     var group = document.createElement('div');
                     group.className = 'jdropdown-group';
-                    group.innerHTML = '<div class="jdropdown-group-name">' + v + '<i class="jdropdown-group-arrow jdropdown-group-arrow-down"></i></div>';
-                    group.appendChild(groups[v]);
-                    obj.groups.push(group);
+                    // Group name
+                    var groupName = document.createElement('div');
+                    groupName.className = 'jdropdown-group-name';
+                    groupName.innerHTML = groupNames[i];
+                    // Group arrow
+                    var groupArrow = document.createElement('i');
+                    groupArrow.className = 'jdropdown-group-arrow jdropdown-group-arrow-down';
+                    groupName.appendChild(groupArrow);
+                    // Group items
+                    var groupContent = document.createElement('div');
+                    groupContent.className = 'jdropdown-group-items';
+                    for (var j = 0; j < groups[groupNames[i]].length; j++) {
+                        var item = obj.createItem(data[groups[groupNames[i]][j]]);
+                        groupContent.appendChild(item.element);
+                        // Items
+                        obj.items.push(item);
+                    }
+                    // Group itens
+                    group.appendChild(groupName);
+                    group.appendChild(groupArrow);
+                    group.appendChild(groupContent);
                     content.appendChild(group);
-                });
+                }
             }
 
-            // Add index property
-            var items = content.querySelectorAll('.jdropdown-item');
-            for (var i = 0; i < items.length; i++) {
-                obj.items[i] = items[i];
-                items[i].setAttribute('data-index', i);
+            if (items.length) {
+                for (var i = 0; i < items.length; i++) {
+                    var item = obj.createItem(data[items[i]]);
+                    obj.items.push(item);
+                    content.appendChild(item.element);
+                }
+            }
+
+            // Create the Indexes
+            for (var i = 0; i < obj.items.length; i++) {
+                obj.items[i].element.setAttribute('data-index', i);
             }
         }
-
-        // Reset value
-        obj.setValue(obj.options.value ? obj.options.value : '');
     }
 
     obj.getText = function(asArray) {
         // Result
         var result = [];
-        // Get selected items
-        var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
-        for (var i = 0; i < items.length; i++) {
-            result.push(items[i].text);
+        for (var i = 0; i < obj.selected.length; i++) {
+            if (obj.items[obj.selected[i]]) {
+                result.push(obj.items[obj.selected[i]].text);
+            }
         }
 
         if (asArray) {
-            return result
+            return result;
         } else {
             return result.join('; ');
         }
@@ -2624,11 +2652,11 @@ jSuites.dropdown = (function(el, options) {
     obj.getValue = function(asArray) {
         // Result
         var result = [];
-        // Get selected items
-        var items = el.querySelectorAll('.jdropdown-selected');
         // Append options
-        for (var i = 0; i < items.length; i++) {
-            result.push(items[i].value);
+        for (var i = 0; i < obj.selected.length; i++) {
+            if (obj.items[obj.selected[i]]) {
+                result.push(obj.items[obj.selected[i]].value);
+            }
         }
 
         if (asArray) {
@@ -2640,25 +2668,33 @@ jSuites.dropdown = (function(el, options) {
 
     obj.setValue = function(value) {
         // Remove values
-        var items = el.querySelectorAll('.jdropdown-selected');
-        for (var j = 0; j < items.length; j++) {
-            items[j].classList.remove('jdropdown-selected')
+        for (var i = 0; i < obj.selected.length; i++) {
+            obj.items[obj.selected[i]].element.classList.remove('jdropdown-selected')
         } 
+
+        // Reset selected
+        obj.selected = [];
 
         // Set values
         if (value != null) {
             if (Array.isArray(value)) {
                 for (var i = 0; i < obj.items.length; i++) {
-                    value.forEach(function(val) {
-                        if (obj.items[i].value == val) {
-                            obj.items[i].classList.add('jdropdown-selected');
+                    for (var j = 0; j < value.length; j++) {
+                        if (obj.items[i].value == value[j]) {
+                            // Keep index of the selected item
+                            obj.selected.push(i);
+                            // Visual selection
+                            obj.items[i].element.classList.add('jdropdown-selected');
                         }
-                    });
+                    }
                 }
             } else {
                 for (var i = 0; i < obj.items.length; i++) {
                     if (obj.items[i].value == value) {
-                        obj.items[i].classList.add('jdropdown-selected');
+                        // Keep index of the selected item
+                        obj.selected.push(i);
+                        // Visual selection
+                        obj.items[i].element.classList.add('jdropdown-selected');
                     }
                 }
             }
@@ -2668,47 +2704,54 @@ jSuites.dropdown = (function(el, options) {
         obj.updateLabel();
     }
 
-    obj.addItem = function() {
-        console.log(obj.items);
-    }
-
     obj.selectIndex = function(index) {
-        if (index >= 0) {
+        // Only select those existing elements
+        if (obj.items && obj.items[index]) {
+            var index = index = parseInt(index);
             // Current selection
             var oldValue = obj.getValue();
             var oldLabel = obj.getText();
 
+            // Remove cursor style
+            if (obj.currentIndex != null) {
+                obj.items[obj.currentIndex].element.classList.remove('jdropdown-cursor');
+            }
+            // Set cursor style
+            obj.items[index].element.classList.add('jdropdown-cursor');
+
+            // Update cursor position
+            obj.currentIndex = index;
+
             // Focus behaviour
             if (! obj.options.multiple) {
-                // Cursor
-                obj.items[index].classList.add('jdropdown-cursor');
                 // Unselect option
-                if (obj.items[index].classList.contains('jdropdown-selected')) {
-                    obj.items[index].classList.remove('jdropdown-selected');
+                if (obj.items[index].element.classList.contains('jdropdown-selected')) {
+                    // Reset selected
+                    obj.resetSelected();
                 } else {
+                    // Reset selected
+                    obj.resetSelected();
                     // Update selected item
-                    obj.items.forEach(function(v) {
-                        v.classList.remove('jdropdown-cursor');
-                        v.classList.remove('jdropdown-selected');
-                    });
-                    obj.items[index].classList.add('jdropdown-selected');
+                    obj.items[index].element.classList.add('jdropdown-selected');
+                    // Add to the selected list
+                    obj.selected.push(index);
                     // Close
                     obj.close();
                 }
             } else {
                 // Toggle option
-                if (obj.items[index].classList.contains('jdropdown-selected')) {
-                    obj.items[index].classList.remove('jdropdown-selected');
-                    obj.items[index].classList.remove('jdropdown-cursor');
+                if (obj.items[index].element.classList.contains('jdropdown-selected')) {
+                    obj.items[index].element.classList.remove('jdropdown-selected');
+                    // Remove from selected list
+                    var indexToRemove = obj.selected.indexOf(index);
+                    // Remove select
+                    obj.selected.splice(indexToRemove, 1);
                 } else {
-                    obj.items.forEach(function(v) {
-                        v.classList.remove('jdropdown-cursor');
-                    });
-                    obj.items[index].classList.add('jdropdown-selected');
-                    obj.items[index].classList.add('jdropdown-cursor');
+                    // Select element
+                    obj.items[index].element.classList.add('jdropdown-selected');
+                    // Add to the selected list
+                    obj.selected.push(index);
                 }
-                // Update cursor position
-                obj.currentIndex = index;
 
                 // Update labels for multiple dropdown
                 if (! obj.options.autocomplete) {
@@ -2728,47 +2771,30 @@ jSuites.dropdown = (function(el, options) {
     }
 
     obj.selectItem = function(item) {
-        var index = item.getAttribute('data-index');
         if (jSuites.dropdown.current) {
-            obj.selectIndex(item.getAttribute('data-index'));
-        } else {
-            // List
-            if (obj.options.type == 'list') {
-                if (! obj.options.multiple) {
-                    obj.items.forEach(function(k, v) {
-                        v.classList.remove('jdropdown-cursor');
-                        v.classList.remove('jdropdown-selected');
-                    });
-                    obj.items[index].classList.add('jdropdown-selected');
-                    obj.items[index].classList.add('jdropdown-cursor');
-                } else {
-                    // Toggle option
-                    if (obj.items[index].classList.contains('jdropdown-selected')) {
-                        obj.items[index].classList.remove('jdropdown-selected');
-                        obj.items[index].classList.remove('jdropdown-cursor');
-                    } else {
-                        obj.items.forEach(function(v) {
-                            v.classList.remove('jdropdown-cursor');
-                        });
-                        obj.items[index].classList.add('jdropdown-selected');
-                        obj.items[index].classList.add('jdropdown-cursor');
-                    }
-                    // Update cursor position
-                    obj.currentIndex = index;
-                }
+            var index = item.getAttribute('data-index');
+            if (index != null) {
+                obj.selectIndex(index);
             }
         }
     }
 
     obj.find = function(str) {
+        // Force lowercase
+        var str = str ? str.toLowerCase() : null;
+
         // Append options
         for (var i = 0; i < obj.items.length; i++) {
-            if (str == null || obj.items[i].classList.contains('jdropdown-selected') || obj.items[i].innerHTML.toLowerCase().indexOf(str.toLowerCase()) != -1) {
-                obj.items[i].style.display = '';
+            if (str == null || obj.items[i].textLowerCase.indexOf(str) != -1) {
+                obj.items[i].element.style.display = '';
             } else {
-                obj.items[i].style.display = 'none';
+                if (obj.selected.indexOf(i) == -1) {
+                    obj.items[i].element.style.display = 'none';
+                } else {
+                    obj.items[i].element.style.display = '';
+                }
             }
-        };
+        }
 
         var numVisibleItems = function(items) {
             var visible = 0;
@@ -2781,13 +2807,13 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Hide groups
-        for (var i = 0; i < obj.groups.length; i++) {
+        /*for (var i = 0; i < obj.groups.length; i++) {
             if (numVisibleItems(obj.groups[i].querySelectorAll('.jdropdown-item'))) {
                 obj.groups[i].children[0].style.display = '';
             } else {
                 obj.groups[i].children[0].style.display = 'none';
             }
-        }
+        }*/
     }
 
     obj.updateLabel = function() {
@@ -2811,7 +2837,7 @@ jSuites.dropdown = (function(el, options) {
             // Animation
             if (jSuites.getWindowWidth() < 800) {
                 if (obj.options.type == null || obj.options.type == 'picker') {
-                    container.classList.add('slide-bottom-in');
+                    jSuites.slideBottom(container, 1);
                 }
             }
 
@@ -2824,18 +2850,14 @@ jSuites.dropdown = (function(el, options) {
                 header.focus();
             }
 
-            // Selected
-            var selected = el.querySelector('.jdropdown-selected');
-            // Update cursor position
-            if (selected) {
-                obj.updateCursor(selected.getAttribute('data-index'));
-            }
+            // Set cursor for the first or first selected element
+            var cursor = (obj.selected && obj.selected[0]) ? obj.selected[0] : 0;
+            obj.updateCursor(cursor);
+
             // Container Size
             if (! obj.options.type || obj.options.type == 'default') {
                 const rect = el.getBoundingClientRect();
                 const rectContainer = container.getBoundingClientRect();
-                container.style.minWidth = rect.width + 'px';
-                // container.style.maxWidth = '100%';
 
                 if (obj.options.position) {
                     container.style.position = 'fixed';
@@ -2853,6 +2875,10 @@ jSuites.dropdown = (function(el, options) {
                         container.style.bottom = '';
                     }
                 }
+
+                if (rect.width > rectContainer.width) {
+                    container.style.width = rect.width;
+                }
             }
         }
 
@@ -2867,18 +2893,13 @@ jSuites.dropdown = (function(el, options) {
             // Remove controller
             jSuites.dropdown.current = null
             // Remove cursor
-            var cursor = el.querySelector('.jdropdown-cursor');
-            if (cursor) {
-                cursor.classList.remove('jdropdown-cursor');
-            }
+            obj.resetCursor();
             // Update labels
             obj.updateLabel();
             // Events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
-            // Reset
-            obj.currentIndex = null;
             // Blur
             if (header.blur) {
                 header.blur();
@@ -2890,24 +2911,81 @@ jSuites.dropdown = (function(el, options) {
         return obj.getValue();
     }
 
-    obj.reset = function() {
-        // Remove current cursor
-        var cursor = el.querySelector('.jdropdown-cursor');
-        if (cursor) {
-            cursor.classList.remove('jdropdown-cursor');
+    /**
+     * Update position cursor
+     */
+    obj.updateCursor = function(index) {
+        // Set new cursor
+        if (obj.items && obj.items[index] && obj.items[index].element) {
+            // Reset cursor
+            obj.resetCursor();
+
+            // Set new cursor
+            obj.items[index].element.classList.add('jdropdown-cursor');
+
+            // Update position
+            obj.currentIndex = parseInt(index);
+    
+            // Update scroll to the cursor element
+            var container = content.scrollTop;
+            var element = obj.items[obj.currentIndex].element;
+            content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
         }
+    }
+
+    /**
+     * Reset cursor
+     */
+    obj.resetCursor = function() {
+        // Remove current cursor
+        if (obj.currentIndex != null) {
+            // Remove visual cursor
+            if (obj.items && obj.items[obj.currentIndex]) {
+                obj.items[obj.currentIndex].element.classList.remove('jdropdown-cursor');
+            }
+            // Reset cursor
+            obj.currentIndex = null;
+        }
+    }
+
+    /**
+     * Reset cursor
+     */
+    obj.resetSelected = function() {
         // Unselected all
-        obj.items.forEach(function(v) {
-            v.classList.remove('jdropdown-selected');
-        });
+        if (obj.selected) {
+            // Remove visual selection
+            for (var i = 0; i < obj.selected.length; i++) {
+                if (obj.items[obj.selected[i]]) {
+                    obj.items[obj.selected[i]].element.classList.remove('jdropdown-selected');
+                }
+            }
+            // Reset current selected items
+            obj.selected = [];
+        }
+    }
+
+    /**
+     * Reset cursor and selected items
+     */
+    obj.reset = function() {
+        // Reset cursor
+        obj.resetCursor();
+
+        // Reset selected
+        obj.resetSelected();
+
         // Update labels
         obj.updateLabel();
     }
 
+    /**
+     * First visible item
+     */
     obj.firstVisible = function() {
         var newIndex = null;
-        for (var i = 0; i < obj.options.data.length; i++) {
-            if (obj.items[i].style.display != 'none') {
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items[i].element.style.display != 'none') {
                 newIndex = i;
                 break;
             }
@@ -2920,10 +2998,13 @@ jSuites.dropdown = (function(el, options) {
         obj.updateCursor(newIndex);
     }
 
+    /**
+     * Navigation
+     */
     obj.first = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items[i].style.display != 'none') {
+            if (obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -2937,8 +3018,8 @@ jSuites.dropdown = (function(el, options) {
 
     obj.last = function() {
         var newIndex = null;
-        for (var i = obj.currentIndex + 1; i < obj.options.data.length; i++) {
-            if (obj.items[i].style.display != 'none') {
+        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
+            if (obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -2952,8 +3033,8 @@ jSuites.dropdown = (function(el, options) {
 
     obj.next = function() {
         var newIndex = null;
-        for (var i = obj.currentIndex + 1; i < obj.options.data.length; i++) {
-            if (obj.items[i].style.display != 'none') {
+        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
+            if (obj.items[i].element.style.display != 'none') {
                 newIndex = i;
                 break;
             }
@@ -2969,7 +3050,7 @@ jSuites.dropdown = (function(el, options) {
     obj.prev = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items[i].style.display != 'none') {
+            if (obj.items[i].element.style.display != 'none') {
                 newIndex = i;
                 break;
             }
@@ -2980,24 +3061,6 @@ jSuites.dropdown = (function(el, options) {
         }
 
         obj.updateCursor(newIndex);
-    }
-
-    obj.updateCursor = function(index) {
-        // Update cursor
-        if (obj.items[obj.currentIndex]) {
-            obj.items[obj.currentIndex].classList.remove('jdropdown-cursor');
-        }
-        if (obj.items && obj.items[index]) {
-            obj.items[index].classList.add('jdropdown-cursor');
-
-            // Update position
-            obj.currentIndex = parseInt(index);
-    
-            // Update scroll
-            var container = content.scrollTop;
-            var element = obj.items[obj.currentIndex];
-            content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
-        }
     }
 
     if (! jSuites.dropdown.hasEvents) {
@@ -3019,6 +3082,8 @@ jSuites.dropdown = (function(el, options) {
 
     return obj;
 });
+
+jSuites.dropdown.hasEvents = false;
 
 jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.getElement(e.target, 'jdropdown');
@@ -3112,6 +3177,69 @@ jSuites.dropdown.onkeydown = function(e) {
             }
         }
     }
+}
+
+jSuites.dropdown.extractFromDom = function(el, options) {
+    // Keep reference
+    var select = el;
+    if (! options) {
+        options = {};
+    }
+    // Prepare configuration
+    if (el.getAttribute('multiple') && (! options || options.multiple == undefined)) {
+        options.multiple = true;
+    }
+    if (el.getAttribute('placeholder') && (! options || options.placeholder == undefined)) {
+        options.placeholder = el.getAttribute('placeholder');
+    }
+    if (el.getAttribute('data-autocomplete') && (! options || options.autocomplete == undefined)) {
+        options.autocomplete = true;
+    }
+    if (! options || options.width == undefined) {
+        options.width = el.offsetWidth;
+    }
+    if (el.value && (! options || options.value == undefined)) {
+        options.value = el.value;
+    }
+    if (! options || options.data == undefined) {
+        options.data = [];
+        for (var j = 0; j < el.children.length; j++) {
+            if (el.children[j].tagName == 'OPTGROUP') {
+                for (var i = 0; i < el.children[j].children.length; i++) {
+                    options.data.push({
+                        id: el.children[j].children[i].value,
+                        name: el.children[j].children[i].innerHTML,
+                        group: el.children[j].getAttribute('label'),
+                    });
+                }
+            } else {
+                options.data.push({
+                    id: el.children[j].value,
+                    name: el.children[j].innerHTML,
+                });
+            }
+        }
+    }
+    if (! options || options.onchange == undefined) {
+        options.onchange = function(a,b,c,d) {
+            if (options.multiple == true) {
+                if (obj.items[b].classList.contains('jdropdown-selected')) {
+                    select.options[b].setAttribute('selected', 'selected');
+                } else {
+                    select.options[b].removeAttribute('selected');
+                }
+            } else {
+                select.value = d;
+            }
+        }
+    }
+    // Create DIV
+    var div = document.createElement('div');
+    el.parentNode.insertBefore(div, el);
+    el.style.display = 'none';
+    el = div;
+
+    return { el:el, options:options };
 }
 
 /**
@@ -3348,6 +3476,10 @@ jSuites.editor = (function(el, options) {
                 }
             }
         }, 1000);
+    }
+
+    obj.parseContent = function() {
+        verifyEditor();
     }
 
     /**
@@ -3990,8 +4122,8 @@ jSuites.editor = (function(el, options) {
     }
 
     // Focus to the editor
-    if (obj.options.focus == true) {
-        jSuites.editor.setCursor(editor);
+    if (obj.options.focus) {
+        jSuites.editor.setCursor(editor, obj.options.focus == 'initial' ? true : false);
     }
 
     el.editor = obj;
@@ -3999,13 +4131,18 @@ jSuites.editor = (function(el, options) {
     return obj;
 });
 
-jSuites.editor.setCursor = function(element) {
+jSuites.editor.setCursor = function(element, first) {
     element.focus();
     document.execCommand('selectAll');
     var sel = window.getSelection();
     var range = sel.getRangeAt(0);
-    var node = range.endContainer;
-    var size = node.length;
+    if (first == true) {
+        var node = range.startContainer;
+        var size = 0;
+    } else {
+        var node = range.endContainer;
+        var size = node.length;
+    }
     range.setStart(node, size);
     range.setEnd(node, size);
     sel.removeAllRanges();
@@ -4483,6 +4620,7 @@ jSuites.login = (function(el, options) {
         facebookUrl: null,
         maxHeight: null,
         onload: null,
+        onerror: null,
         message: null,
         logo: null,
         newProfile: false,
@@ -5028,9 +5166,13 @@ jSuites.login = (function(el, options) {
                 // Callback
                 onsuccess(result);
             },
-            error: function() {
+            error: function(result) {
                 // Error
                 el.classList.remove('jlogin-loading');
+
+                if (typeof(obj.options.onerror) == 'function') {
+                    obj.options.onerror(result);
+                }
             }
         });
     }

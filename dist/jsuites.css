@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components
+ * (c) jSuites v2.4.0 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -9,8 +9,10 @@
  * MIT License
  *
  */
-
-/** General **/
+ 
+:root {
+    --button-color: #298BA8; 
+}
 
 .jdragging {
     opacity:0.2;
@@ -705,7 +707,7 @@
 
 .jdropdown-focus .jdropdown-container
 {
-    display:block;
+    transform: translate3d(0,0,0);
 }
 
 .jdropdown-focus .jdropdown-header
@@ -746,7 +748,10 @@
 
 .jdropdown-container
 {
-    display:none;
+    min-width: inherit;
+    transform: translate3d(-10000px,0,0);
+    position:absolute;
+    z-index:9001;
 }
 
 .jdropdown-close
@@ -818,8 +823,6 @@
 
 .jdropdown-default .jdropdown-container
 {
-    position:absolute;
-    z-index:9001;
     background-color:#fff;
 }
 
@@ -925,7 +928,6 @@
     width:100%;
     background-color:#fff;
     box-sizing: border-box;
-    z-index:9000;
 }
 
 .jdropdown-picker .jdropdown-close
@@ -1005,7 +1007,6 @@
     min-height:100%;
     background-color:#fafafa;
     padding:0px;
-    padding-top:40px !important;
     z-index:9001;
 }
 
@@ -1018,6 +1019,7 @@
     top:0px;
     left:0px;
     width:100%;
+    z-index:9002;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header
@@ -1030,6 +1032,11 @@
     padding-right:60px !important;
 }
 
+.jdropdown-searchbar.jdropdown-focus .jdropdown-content
+{
+    padding-top:40px;
+}
+    
 .jdropdown-searchbar.jdropdown-focus .jdropdown-close
 {
     display:block;
@@ -1044,6 +1051,11 @@
     text-transform:uppercase;
     font-size:1em;
     padding-right:30px;
+}
+
+.jdropdown-searchbar .jdropdown-container
+{
+    width:100%;
 }
 
 .jdropdown-searchbar .jdropdown-close
@@ -1547,8 +1559,8 @@
 
 .jlogin input[type='button'] {
     padding:10px;
-    background-color: #2c8ba9;
-    border: 1px solid #2c8ba9;
+    background-color: var(--button-color);
+    border: 1px solid var(--button-color);
     color: #fff;
     cursor:pointer;
     -webkit-appearance: none;
@@ -1584,8 +1596,8 @@
 .jlogin .facebookButton
 {
     padding:10px;
-    background-color: #2c8ba9;
-    border: 1px solid #2c8ba9;
+    background-color: var(--button-color);
+    border: 1px solid var(--button-color);
     color: #fff;
     text-align:center;
     background-repeat:no-repeat;
@@ -1613,14 +1625,15 @@
 }
 
 .jlogin-loading:before {
-  display: block;
-  position: absolute;
-  content: "";
-  left: -200px;
-  width: 200px;
-  height: 4px;
-  background-color: #2c8ba9;
-  animation: loading 2s linear infinite;
+    content: "";
+    display: block;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 200px;
+    height: 4px;
+    background-color: var(--button-color);
+    animation: loading 2s linear infinite;
 }
 
 @keyframes loading {
