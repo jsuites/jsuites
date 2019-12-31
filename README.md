@@ -65,8 +65,8 @@ Examples
 * [Dropdown and autocomplete component](https://bossanova.uk/jsuites/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Date and datetime picker](https://bossanova.uk/jsuites/date-and-datetime-picker)\
-A very simple date and datetime picker full responsive and easy integration
+* [Javascript calendar, date and datetime picker](https://bossanova.uk/jsuites/javascript-calendar)\
+A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
 * [Javascript string and number mask](https://bossanova.uk/jsuites/date-and-datetime-picker)\
 A simple javascript mask plugin
