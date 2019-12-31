@@ -55,8 +55,8 @@ jSuites.dropdown(document.getElementById('dropdown1'), {
 </script>
 </html>
 ```
-The same code can render in differnet ways\
-![Automatically Responsive](https://bossanova.uk/templates/jsuites/img/dropdown.png)
+The same code can render in different ways, by directive type: default, picker or searchbar\
+![Javascript dropdown](https://bossanova.uk/templates/jsuites/img/dropdown.png)
 
 
 Examples
@@ -68,10 +68,10 @@ Full examples on how to handle simple, advanced, autocomplete and conditional dr
 * [Javascript calendar, date and datetime picker](https://bossanova.uk/jsuites/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
-* [Javascript string and number mask](https://bossanova.uk/jsuites/date-and-datetime-picker)\
+* [Javascript mask](https://bossanova.uk/jsuites/javascript-mask)\
 A simple javascript mask plugin
 
-* [Javascript color picker plugin](https://bossanova.uk/jsuites/javascript-mask)\
+* [Javascript color picker plugin](https://bossanova.uk/jsuites/color-picker)\
 Vanilla javascript colorpicker plugin
 
 * [Javascript contextmenu plugin](https://bossanova.uk/jsuites/contextmenu)\
@@ -101,6 +101,6 @@ jSuites is released under the [MIT license]. Copyrights belong to Paul Hodel <pa
 
 ## Other resources
 
-- [jExcel Official](https://bossanova.uk/jexcel)
+- [jExcel CE Official](https://bossanova.uk/jexcel/v3)
 - [jExcel Pro Official](https://jexcel.net/v3)
 - [Banda Base](https://base.mus.br)
