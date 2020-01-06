@@ -298,13 +298,13 @@ var jSuites = function(options) {
             }
 
             // Global complete method
-            if (options.multiple && options.multiple.length) {
+            if (obj.ajax.requests && obj.ajax.requests.length) {
                 // Get index of this request in the container
-                var index = options.multiple[options.multiple.indexOf(httpRequest)];
+                var index = obj.ajax.requests.indexOf(httpRequest)
                 // Remove from the ajax requests container
-                options.multiple.splice(index, 1);
+                obj.ajax.requests.splice(index, 1);
                 // Last one?
-                if (! options.multiple.length) {
+                if (! obj.ajax.requests.length) {
                     if (options.complete && typeof(options.complete) == 'function') {
                         options.complete(result);
                     }
@@ -318,8 +318,12 @@ var jSuites = function(options) {
             httpRequest.send();
         }
 
+        obj.ajax.requests.push(httpRequest);
+
         return httpRequest;
     }
+
+    obj.ajax.requests = [];
 
     obj.slideLeft = function(element, direction, done) {
         if (direction == true) {
@@ -2302,6 +2306,7 @@ jSuites.dropdown = (function(el, options) {
         value: null,
         placeholder: '',
         position: false, // Fixed position
+        filter: null,
     };
 
     // Loop through our object
@@ -3987,7 +3992,7 @@ jSuites.editor = (function(el, options) {
         if (editorAction || obj.options.dropZone == false) {
             // Do nothing
         } else {
-            el.style.border = '1px dashed #000';
+            el.classList.add('jeditor-dragging');
         }
     }
 
@@ -4000,7 +4005,7 @@ jSuites.editor = (function(el, options) {
             }
 
             editorTimer = setTimeout(function() {
-                el.style.border = '';
+                el.classList.remove('jeditor-dragging');
             }, 100);
         }
     }
@@ -4032,7 +4037,7 @@ jSuites.editor = (function(el, options) {
                 extractImageFromHtml(html);
             }
 
-            el.style.border = '';
+            el.classList.remove('jeditor-dragging');
             e.preventDefault();
         }
     }
@@ -6602,7 +6607,7 @@ jSuites.notification = (function(options) {
     // Default configuration
     var defaults = {
         icon: null,
-        name: null,
+        name: 'Notification',
         date: null,
         title: null,
         message: null,
@@ -6643,12 +6648,8 @@ jSuites.notification = (function(options) {
 
     var notificationName = document.createElement('div');
     notificationName.className = 'jnotification-name';
+    notificationName.innerHTML = obj.options.name;
     notificationHeader.appendChild(notificationName);
-    if (obj.options.name) {
-        notificationName.innerHTML = obj.options.name;
-    } else {
-        notificationName.innerHTML = 'Notification';
-    }
 
     if (obj.options.closeable == true) {
         var notificationClose = document.createElement('div');
@@ -7175,7 +7176,9 @@ jSuites.tabs = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        onchange:null,
+        data: null,
+        onchange: null,
+        onload: null,
     };
 
     // Loop through the initial configuration
@@ -7190,11 +7193,60 @@ jSuites.tabs = (function(el, options) {
     // Class
     el.classList.add('jtabs');
 
-    // Elements
-    var headers = el.children[0];
-    var content = el.children[1];
-    headers.classList.add('jtabs-headers');
-    content.classList.add('jtabs-content');
+    // Create from data
+    if (obj.options.data) {
+        // Make sure the component is blank
+        el.innerHTML = '';
+        var headers = document.createElement('div');
+        var content = document.createElement('div');
+        headers.classList.add('jtabs-headers');
+        content.classList.add('jtabs-content');
+        el.appendChild(headers);
+        el.appendChild(content);
+
+        for (var i = 0; i < obj.options.data.length; i++) {
+            var headersItem = document.createElement('div');
+            headers.appendChild(headersItem);
+            var contentItem = document.createElement('div');
+            content.appendChild(contentItem);
+
+            headersItem.innerHTML = obj.options.data[i].title;
+            if (obj.options.data[i].content) {
+                contentItem.innerHTML = obj.options.data[i].content;
+            } else if (obj.options.data[i].url) {
+                jSuites.ajax({
+                    url: obj.options.data[i].url,
+                    type: 'GET',
+                    success: function(result) {
+                        contentItem.innerHTML = result;
+                    },
+                    complete: function() {
+                        if (typeof(obj.options.onload) == 'function') {
+                            obj.options.onload(el);
+                        }
+                    }
+                });
+            }
+        }
+    } else if (el.children[0] && el.children[1]) {
+        // Create from existing elements
+        var headers = el.children[0];
+        var content = el.children[1];
+        headers.classList.add('jtabs-headers');
+        content.classList.add('jtabs-content');
+    }
+
+    // Border
+    var border = document.createElement('div');
+    border.className = 'jtabs-border';
+    el.appendChild(border);
+
+    var setBorder = function(index) {
+        var rect = headers.children[index].getBoundingClientRect();
+        border.style.width = rect.width + 'px';
+        border.style.top = rect.top + rect.height - 2 + 'px';
+        border.style.left = rect.left + 'px';
+    }
 
     // Set value
     obj.open = function(index) {
@@ -7209,6 +7261,11 @@ jSuites.tabs = (function(el, options) {
         if (content.children[index]) {
             content.children[index].classList.add('jtabs-selected');
         }
+
+        // Set border
+        setTimeout(function() {
+            setBorder(index);
+        }, 10);
     }
 
     // Events

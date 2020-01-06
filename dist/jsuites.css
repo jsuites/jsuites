@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.4.0 - Javascript Web Components
+ * (c) jSuites Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -24,7 +24,7 @@
     background-repeat: no-repeat;
     background-size: 100px;
     background-position: center;
-    background-color: rgb(230, 230, 230, 0.1);
+    background-color: rgba(230, 230, 230, 0.1);
     border: 1px dotted #eee;
     cursor: pointer;
     box-sizing: border-box;
@@ -246,6 +246,48 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.jbutton {
+    padding:4px;
+    padding-left:10px;
+    padding-right:20px;
+    border:1px solid #ddd;
+    display:inline-flex;
+    border-radius:4px;
+    cursor:pointer;
+    line-height: 24px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.jbutton.blue {
+    border:1px solid transparent;
+    color:#fff;
+    background-color:#1a73e8;
+}
+
+.jbutton::before {
+    content: attr(data-icon);
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    line-height: 24px;
+    font-family: 'Material icons';
+    color: #999;
+    margin-right:2px;
+}
+
+.jbutton.blue::before {
+    color: #fff;
+}
+
+.jbutton:hover {
+    background-color: #eee;
+}
+
+.jbutton.blue:hover {
+    background-color: #1a73e8;
+    opacity: 0.8;
 }
 
 /**
@@ -1210,6 +1252,10 @@
     border:1px solid #ccc;
 }
 
+.jeditor-dragging {
+     border:1px dashed #000;
+}
+
 .jeditor-container.jeditor-padding {
     padding:10px;
 }
@@ -1259,6 +1305,13 @@
     padding-right:20px;
 }
 
+.jeditor-toolbar div {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;          /* Likely future */   
+}
+
 .jeditor-toolbar div i {
     display:block;
     font-size:20px;
@@ -1266,11 +1319,6 @@
     height:20px;
     line-height:20px;
     color:#777;
-    
-    -webkit-user-select: none;  /* Chrome all / Safari all */
-    -moz-user-select: none;     /* Firefox all */
-    -ms-user-select: none;      /* IE 10+ */
-    user-select: none;          /* Likely future */   
 }
 
 .jeditor-toolbar select {
@@ -2728,14 +2776,6 @@
 }
 
 
-/**
- * (c) jTools Modal page
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Modal page
- */
-
 .jmodal {
     position:fixed;
     top:50%;
@@ -2808,7 +2848,7 @@
     -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     padding:12px;
-    border-radius: 12px;
+    border-radius: 8px;
 }
 
 .jnotification-close {
@@ -2849,6 +2889,7 @@
     text-transform: uppercase;
     font-size:0.9em;
     flex:1;
+    letter-spacing: 0.1em;
 }
 
 @media (min-width: 320px) and (max-width: 800px) {
@@ -2857,7 +2898,7 @@
         width: 100%;
     }
     .jnotification-container {
-        background: rgb(255,255,255,0.95);
+        background: rgba(255,255,255,0.95);
         border: 1px solid #eee;
     }
 }
@@ -2868,7 +2909,7 @@
     }
     .jnotification-container {
         backgroun-color: #000;
-        background: rgb(92,92,92);
+        background: rgba(92,92,92);
         background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
         color: #fff;
         width: 320px;
@@ -3000,29 +3041,28 @@
 
 
 .jtabs {
-    position:relative;
     max-width: calc(100vw - 24px);
 }
 .jtabs > .jtabs-headers {
     display:flex;
     padding:6px;
     overflow-x:auto;
-    width:100%;
 }
 
 .jtabs > .jtabs-headers > div {
-    padding:10px;
+    padding: 8px;
     padding-left:20px;
     padding-right:20px;
     margin-right:5px;
     margin-bottom:5px;
     background-color:#f4f4f4;
+    color: #888;
     cursor:pointer;
 }
 
 .jtabs > .jtabs-headers > div.jtabs-selected {
     background-color:#eee;
-    border-bottom:2px solid black;
+    color: #000;
 }
 
 .jtabs > .jtabs-content > div {
@@ -3032,6 +3072,15 @@
 
 .jtabs > .jtabs-content > div.jtabs-selected {
     display:block;
+}
+
+.jtabs > .jtabs-border {
+    position: absolute;
+    height: 2px;
+    background-color: #000;
+    transform-origin: left;
+    transition: all .2s cubic-bezier(0.4,0,0.2,1);
+    transition-property: color,left,transform;
 }
 
 
