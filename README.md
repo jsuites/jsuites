@@ -8,7 +8,7 @@ jSuites is a collection of lightweight common required javascript web components
 
 The first version includes several common javascript tools in various frontend applications. jSuites is fully and easily integrated with any framework and tools. The first collection brings the following plugins:
 
-* Nice clean and responsive calendar/time picker. This is integrated with jExcel and bring flexibility and responsiveness to your apps and web-based systems;
+* Nice clean and responsive javascript calendar, date and time picker. This is integrated with jExcel and bring flexibility and responsiveness to your apps and web-based systems;
 * Our multi-purpose dropdown aims to give the user the best experience picking one or more options from a list. With a simple directive, you can render that in different modes, such as select box, search bar, mobile picker or a simple list.
 * The form tracker will give the chance to track changes from basic to highly dynamic forms in order to remember the user to save their form changes before leaving the page. This is basically the "Are you sure"? javascript plugin.
 * A simple color picker
@@ -55,8 +55,8 @@ jSuites.dropdown(document.getElementById('dropdown1'), {
 </script>
 </html>
 ```
-The same code can render in differnet ways\
-![Automatically Responsive](https://bossanova.uk/templates/jsuites/img/dropdown.png)
+The same code can render in different ways, by directive type: default, picker or searchbar\
+![Javascript dropdown](https://bossanova.uk/templates/jsuites/img/dropdown.png)
 
 
 Examples
@@ -65,13 +65,13 @@ Examples
 * [Dropdown and autocomplete component](https://bossanova.uk/jsuites/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Date and datetime picker](https://bossanova.uk/jsuites/date-and-datetime-picker)\
-A very simple date and datetime picker full responsive and easy integration
+* [Javascript calendar, date and datetime picker](https://bossanova.uk/jsuites/javascript-calendar)\
+A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
-* [Javascript string and number mask](https://bossanova.uk/jsuites/date-and-datetime-picker)\
+* [Javascript mask](https://bossanova.uk/jsuites/javascript-mask)\
 A simple javascript mask plugin
 
-* [Javascript color picker plugin](https://bossanova.uk/jsuites/javascript-mask)\
+* [Javascript color picker plugin](https://bossanova.uk/jsuites/color-picker)\
 Vanilla javascript colorpicker plugin
 
 * [Javascript contextmenu plugin](https://bossanova.uk/jsuites/contextmenu)\
@@ -101,6 +101,6 @@ jSuites is released under the [MIT license]. Copyrights belong to Paul Hodel <pa
 
 ## Other resources
 
-- [jExcel Official](https://bossanova.uk/jexcel)
+- [jExcel CE Official](https://bossanova.uk/jexcel/v3)
 - [jExcel Pro Official](https://jexcel.net/v3)
 - [Banda Base](https://base.mus.br)
