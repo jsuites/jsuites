@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.4.0 - Javascript Plugins
+ * (c) jSuites v2.3.1 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -23,12 +23,29 @@
 var jSuites = function(options) {
     var obj = {}
 
-    // Find root element
-    obj.el = document.querySelector('.japp');
+    obj.init = function() {
+        // Find root element
+        var app = document.querySelector('.japp');
 
-    // Backdrop
-    obj.backdrop = document.createElement('div');
-    obj.backdrop.classList.add('jbackdrop');
+        // Root element
+        if (app) {
+            obj.el = app;
+        } else {
+            obj.el = document.body;
+        }
+
+        // Backdrop
+        obj.backdrop = document.createElement('div');
+        obj.backdrop.classList.add('jbackdrop');
+        obj.backdrop.show = function() {
+            obj.el.appendChild(obj.backdrop);
+        }
+        obj.backdrop.hide = function() {
+            if (obj.backdrop.parentNode) {
+                obj.el.removeChild(obj.backdrop);
+            }
+        }
+    }
 
     obj.guid = function() {
         var guid = '';
@@ -546,6 +563,9 @@ var jSuites = function(options) {
     // Onmouseover
     document.addEventListener('mouseover', actionOverControl);
     document.addEventListener('mouseout', actionOutControl);
+    document.addEventListener('DOMContentLoaded', function() {
+        obj.init();
+    });
 
     // Pop state control
     window.onpopstate = function(e) {
@@ -1536,7 +1556,7 @@ jSuites.color = (function(el, options) {
     var z = 0;
 
     var palette = {
-        "red": {
+          "red": {
             "50": "#ffebee",
             "100": "#ffcdd2",
             "200": "#ef9a9a",
@@ -1746,17 +1766,17 @@ jSuites.color = (function(el, options) {
     var y = 0;
     var colors = [];
 
-    Object.keys(palette).forEach(function(col) {
-        y = 0;
-        Object.keys(palette[col]).forEach(function(shade) {
-            if (! colors[y]) {
-                colors[y] = [];
+    var col = Object.keys(palette);
+    var shade = Object.keys(palette[col[0]]);
+
+    for (var i = 0; i < col.length; i++) {
+        for (var j = 0; j < shade.length; j++) {
+            if (! colors[j]) {
+                colors[j] = [];
             }
-            colors[y][x] = palette[col][shade];
-            y++;
-        });
-        x++;
-    });
+            colors[j][i] = palette[col[i]][shade[j]];
+        }
+    };
 
     // Table container
     var container = document.createElement('div');
@@ -1810,19 +1830,21 @@ jSuites.color = (function(el, options) {
             const rectContent = content.getBoundingClientRect();
 
             if (jSuites.getWindowWidth() < 800) {
+                content.style.position = 'fixed';
                 content.style.top = '';
-                content.style.left = '0px';
                 content.style.bottom = '0px';
                 jSuites.slideBottom(content, 1);
+                jSuites.backdrop.show();
             } else {
                 const rect = el.getBoundingClientRect();
 
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
+                    content.style.top = -1 * (rectContent.height + 2) + 'px';
                 } else {
-                    content.style.top = (rect.top + rect.height + 2) + 'px';
+                    content.style.top = rect.height + 'px';
                 }
-                content.style.left = rect.left + 'px';
+
+                content.style.position = '';
                 content.style.bottom = '';
             }
 
@@ -1840,6 +1862,10 @@ jSuites.color = (function(el, options) {
                 obj.options.onclose(el);
             }
             container.classList.remove('jcolor-focus');
+        }
+
+        if (jSuites.getWindowWidth() < 800) {
+            jSuites.backdrop.hide();
         }
 
         return obj.options.value;
@@ -1879,21 +1905,26 @@ jSuites.color = (function(el, options) {
     /**
      * If element is focus open the picker
      */
-    el.addEventListener("focus", function(e) {
+    el.addEventListener("mouseup", function(e) {
         obj.open();
     });
 
     // Select color
-    container.addEventListener("click", function(e) {
+    container.addEventListener("mousedown", function(e) {
         if (e.target.tagName == 'TD') {
             jSuites.color.current.setValue(e.target.getAttribute('data-value'));
             jSuites.color.current.close();
         }
     });
 
-    // Possible to focus the container
-    container.setAttribute('tabindex', '900');
+    // Close controller
+    document.addEventListener("mousedown", function(e) {
+        if (jSuites.color.current) {
+            jSuites.color.current.close();
+        }
+    });
 
+    // Placeholder
     if (obj.options.placeholder) {
         el.setAttribute('placeholder', obj.options.placeholder);
     }
@@ -1901,13 +1932,6 @@ jSuites.color = (function(el, options) {
     // Append to the table
     content.appendChild(table);
     container.appendChild(content);
-    container.onblur = function(e) {
-        setTimeout(function() {
-            if (jSuites.color.current) { 
-                jSuites.color.current.close();
-            }
-        }, 200);
-    }
 
     // Insert picker after the element
     el.parentNode.insertBefore(container, el);
@@ -6459,15 +6483,21 @@ jSuites.modal = (function(el, options) {
 
     obj.open = function() {
         el.style.display = 'block';
-
+        // Fullscreen
+        const rect = el.getBoundingClientRect();
+        if (jSuites.getWindowWidth() < rect.width) {
+            el.classList.add('jmodal_fullscreen');
+            jSuites.slideBottom(el, 1);
+        } else {
+            // Backdrop
+            jSuites.backdrop.show();
+        }
+        // Current
+        jSuites.modal.current = el;
+        // Event
         if (typeof(obj.options.onopen) == 'function') {
             obj.options.onopen(el);
         }
-        // Backdrop
-        document.body.appendChild(jSuites.backdrop);
-
-        // Current
-        jSuites.modal.current = el;
     }
 
     obj.isOpen = function() {
@@ -6476,15 +6506,16 @@ jSuites.modal = (function(el, options) {
 
     obj.close = function() {
         el.style.display = 'none';
-
+        // Backdrop
+        jSuites.backdrop.hide();
+        // Current
+        jSuites.modal.current = null;
+        // Remove fullscreen class
+        el.classList.remove('jmodal_fullscreen');
+        // Event
         if (typeof(obj.options.onclose) == 'function') {
             obj.options.onclose(el);
         }
-        // Backdrop
-        jSuites.backdrop.remove();
-
-        // Current
-        jSuites.modal.current = null;
     }
 
     if (! jSuites.modal.hasEvents) {
@@ -6701,10 +6732,10 @@ jSuites.rating = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        number:5,
-        value:0,
+        number: 5,
+        value: 0,
         tooltip: [ 'Very bad', 'Bad', 'Average', 'Good', 'Very good' ],
-        onchange:null,
+        onchange: null,
     };
 
     // Loop through the initial configuration
@@ -6759,10 +6790,12 @@ jSuites.rating = (function(el, options) {
     // Events
     el.addEventListener("click", function(e) {
         var index = e.target.getAttribute('data-index');
-        if (index == obj.options.value) {
-            obj.setValue(0);
-        } else {
-            obj.setValue(index);
+        if (index != undefined) {
+            if (index == obj.options.value) {
+                obj.setValue(0);
+            } else {
+                obj.setValue(index);
+            }
         }
     });
 
@@ -7254,6 +7287,475 @@ jSuites.tabs = (function(el, options) {
     obj.open(0);
 
     el.tabs = obj;
+
+    return obj;
+});
+
+jSuites.tags = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        placeholder: null,
+        limit: null,
+        valid: null,
+        search: null,
+        value: null,
+        onbeforechange: null,
+        onchange: null,
+        onfocus: null,
+        onblur: null,
+        onload: null,
+        colors: null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Search helpers
+    var searchContainer = null;
+    var searchTerms = null;
+    var searchIndex = 0;
+    var searchTimer = 0;
+
+    obj.add = function(value) {
+        if (typeof(obj.options.onbeforechange) == 'function') {
+            value = obj.options.onbeforechange(el, obj, value);
+        }
+        // Close search
+        if (searchContainer) {
+            searchContainer.style.display = '';
+        }
+        // Get node
+        var node = getSelectionStart();
+        var div = document.createElement('div');
+        div.innerHTML = value ? value : '<br>';
+        if (node && node.parentNode.classList.contains('jtags')) { 
+            el.insertBefore(div, node.nextSibling);
+        } else {
+            el.appendChild(div);
+        }
+        // Filter
+        filter();
+        // Place caret
+        setTimeout(function() {
+            caret(div);
+        }, 0);
+
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, value);
+        }
+    }
+
+    obj.getData = function() {
+        var data = [];
+        for (var i = 0; i < el.children.length; i++) {
+            var value = obj.getValue(i);
+            if (value) {
+                var id = el.children[i].getAttribute('data-id');
+                if (! id) {
+                    id = value;
+                }
+                data.push({ id: id, value: value });
+            }
+        }
+        return data;
+    }
+
+    obj.getValue = function(index) {
+        var value = null;
+
+        if (index != null) {
+            // Get one individual value
+            value = el.children[index].innerText.replace("\n", "");
+        } else {
+            // Get all
+            var data = [];
+            for (var i = 0; i < el.children.length; i++) {
+                value = el.children[i].innerText.replace("\n", "");
+                if (value) {
+                    data.push(obj.getValue(i));
+                }
+            }
+            value = data.join(',');
+        }
+
+        return value;
+    }
+
+    obj.setValue = function(value) {
+        if (typeof(obj.options.onbeforechange) == 'function') {
+            value = obj.options.onbeforechange(el, obj, value);
+        }
+
+        var values = value.split(',');
+        for (var i = 0; i < values.length; i++) {
+            var div = document.createElement('div');
+            div.innerHTML = values[i];
+            el.appendChild(div);
+        }
+
+        filter();
+
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, value);
+        }
+    }
+
+    obj.selectIndex = function(item) {
+        // Reset terms
+        searchTerms = '';
+        var node = getSelectionStart();
+        // Append text to the caret
+        node.innerText = item.children[1].innerText;
+        // Set node id
+        if (item.children[1].getAttribute('data-id')) {
+            node.setAttribute('data-id', item.children[1].getAttribute('data-id'));
+        }
+        // Close container
+        if (searchContainer) {
+            searchContainer.style.display = '';
+            searchContainer.innerHTML = '';
+        }
+        // Remove any error
+        node.classList.remove('jtags_error');
+        // Add new item
+        obj.add();
+    }
+
+    obj.reset = function() {
+        el.innerHTML = '<div><br></div>';
+    }
+
+    obj.isValid = function() {
+        var test = 0;
+        for (var i = 0; i < el.children.length; i++) {
+            if (el.children[i].classList.contains('jtags_error')) {
+                test++;
+            }
+        }
+        return test == 0 ? true : false;
+    }
+
+    obj.search = function(node) {
+        // Create and append search container to the DOM
+        if (! searchContainer) {
+            var div = document.createElement('div');
+            div.style.position = 'relative';
+            el.parentNode.insertBefore(div, el.nextSibling);
+
+            // Create container
+            searchContainer = document.createElement('div');
+            searchContainer.classList.add('jtags_search');
+            div.appendChild(searchContainer);
+        }
+
+        // Search for
+        var terms = node.anchorNode.nodeValue;
+
+        // Search
+        if (node.anchorNode.nodeValue && terms != searchTerms) {
+            // Terms
+            searchTerms = node.anchorNode.nodeValue;
+            // Reset index
+            searchIndex = 0;
+            // Get remove results
+            jSuites.ajax({
+                url: obj.options.search + searchTerms,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    // Reset container
+                    searchContainer.innerHTML = '';
+
+                    // Print results
+                    if (! data.length) {
+                        // Show container
+                        searchContainer.style.display = '';
+                    } else {
+                        // Show container
+                        searchContainer.style.display = 'block';
+
+                        // Show items
+                        var len = data.length < 11 ? data.length : 10;
+                        for (var i = 0; i < len; i++) {
+                            var div = document.createElement('div');
+                            if (i == 0) {
+                                div.classList.add('selected');
+                            }
+                            var img = document.createElement('img');
+                            if (data[i].image) {
+                                img.src = data[i].image;
+                            } else {
+                                img.style.display = 'none';
+                            }
+                            div.appendChild(img);
+
+                            var item = document.createElement('div');
+                            item.setAttribute('data-id', data[i].id);
+                            item.innerHTML = data[i].name;
+                            div.onclick = function() {
+                                // Add item
+                                obj.selectIndex(this);
+                            }
+                            div.appendChild(item);
+                            // Append item to the container
+                            searchContainer.appendChild(div);
+                        }
+                    }
+                }
+            });
+        }
+    }
+
+    var getRandomColor = function(index) {
+        var rand = function(min, max) {
+            return min + Math.random() * (max - min);
+        }
+        return 'hsl(' + rand(1, 360) + ',' + rand(40, 70) + '%,' + rand(65, 72) + '%)';
+    }
+
+    var filter = function() {
+        for (var i = 0; i < el.children.length; i++) {
+            // Create label design
+            if (! obj.getValue(i)) {
+                el.children[i].classList.remove('jtags_label');
+            } else {
+                el.children[i].classList.add('jtags_label');
+
+                // Validation in place
+                if (typeof(obj.options.valid) == 'function') {
+                    if (obj.getValue(i)) {
+                        if (! obj.options.valid(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-id'))) {
+                            el.children[i].classList.add('jtags_error');
+                        } else {
+                            el.children[i].classList.remove('jtags_error');
+                        }
+                    } else {
+                        el.children[i].classList.remove('jtags_error');
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Caret in the element node
+     */
+    var caret = function(e) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        range.setStart(e, e.innerText.length);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    }
+
+    var getSelectionStart = function() {
+        var node = document.getSelection().anchorNode;
+        return (node.nodeType == 3 ? node.parentNode : node);
+    }
+
+    var anchorOffset = 0;
+
+    var tagsKeyDown = function(e) {
+        // Anchoroffset
+        anchorOffset = window.getSelection().anchorOffset;
+
+        // Verify content
+        if (! el.children.length) {
+            var div = document.createElement('div');
+            div.innerHTML = '<br>';
+            el.appendChild(div);
+        }
+        // Comma
+        if (e.which == 9 || e.which == 186 || e.which == 188) {
+            var n = window.getSelection().anchorOffset;
+            if (n > 1) {
+                obj.add();
+                e.preventDefault();
+            }
+        } else if (e.which == 13) {
+            // Enter
+            if (searchContainer && searchContainer.style.display != '') {
+                obj.selectIndex(searchContainer.children[searchIndex]);
+            } else {
+                var n = window.getSelection().anchorOffset;
+                if (n > 1) {
+                    obj.add();
+                }
+            }
+            e.preventDefault();
+        } else if (e.which == 38) {
+            // Up
+            if (searchContainer && searchContainer.style.display != '') {
+                searchContainer.children[searchIndex].classList.remove('selected');
+                if (searchIndex > 0) {
+                    searchIndex--;
+                }
+                searchContainer.children[searchIndex].classList.add('selected');
+                e.preventDefault();
+            }
+        } else if (e.which == 40) {
+            // Down
+            if (searchContainer && searchContainer.style.display != '') {
+                searchContainer.children[searchIndex].classList.remove('selected');
+                if (searchIndex < 9) {
+                    searchIndex++;
+                }
+                searchContainer.children[searchIndex].classList.add('selected');
+                e.preventDefault();
+            }
+        }
+    }
+
+    var tagsKeyUp = function(e) {
+        if (e.which == 39) {
+            var n = window.getSelection().anchorOffset;
+            if (n > 1 && n == anchorOffset) {
+                obj.add();
+            }
+        } else if (e.which == 13 || e.which == 38 || e.which == 40) {
+            e.preventDefault();
+        } else {
+            if (searchTimer) {
+                clearTimeout(searchTimer);
+            }
+
+            searchTimer = setTimeout(function() {
+                // Current node
+                var node = window.getSelection();
+                // Search
+                if (obj.options.search) {
+                    obj.search(node);
+                }
+                searchTimer = null;
+            }, 300);
+        }
+
+        filter();
+    }
+
+    var tagsPaste =  function(e) {
+        if (e.clipboardData || e.originalEvent.clipboardData) {
+            var html = (e.originalEvent || e).clipboardData.getData('text/html');
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            var file = (e.originalEvent || e).clipboardData.files
+        } else if (window.clipboardData) {
+            var html = window.clipboardData.getData('Html');
+            var text = window.clipboardData.getData('Text');
+            var file = window.clipboardData.files
+        }
+
+        if (file.length) {
+            // Paste a image from the clipboard
+            obj.addFile(file);
+        } else {
+            // Paste text
+            text = text.split('\r\n');
+            var str = '';
+            if (e.target.nodeName == 'DIV' && ! e.target.classList.contains('jtags')) {
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i]) {
+                        str += text[i] + "<br>\r\n";
+                    }
+                }
+            } else {
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i]) {
+                        str += '<div>' + text[i] + '</div>';
+                    }
+                }
+            }
+            // Insert text
+            document.execCommand('insertHtml', false, str);
+        }
+
+        e.preventDefault();
+    }
+
+    var tagsMouseUp = function(e) {
+        if (e.target.parentNode && e.target.parentNode.classList.contains('jtags')) {
+            if (e.target.classList.contains('jtags_label') || e.target.classList.contains('jtags_error')) {
+                var rect = e.target.getBoundingClientRect();
+                if (rect.width - (e.clientX - rect.left) < 16) {
+                    el.removeChild(e.target);
+                    el.focus();
+                }
+            }
+        }
+
+        if (searchContainer) {
+            searchContainer.style.display = '';
+        }
+    }
+
+    var tagsFocus = function(e) {
+        if (! el.children.length || obj.getValue(el.children.length - 1)) {
+            var div = document.createElement('div');
+            div.innerHTML = '<br>';
+            el.appendChild(div);
+        }
+
+        if (typeof(obj.options.onfocus) == 'function') {
+            obj.options.onfocus(el, obj, obj.getValue());
+        }
+    }
+
+    var tagsBlur = function(e) {
+        if (searchContainer) {
+            setTimeout(function() {
+                searchContainer.style.display = '';
+            }, 200);
+        }
+
+        for (var i = 0; i < el.children.length - 1; i++) {
+            // Create label design
+            if (! obj.getValue(i)) {
+                el.removeChild(el.children[i]);
+            }
+        }
+
+        if (typeof(obj.options.onblur) == 'function') {
+            obj.options.onblur(el, obj, obj.getValue());
+        }
+    }
+
+    el.addEventListener('mouseup', tagsMouseUp);
+    el.addEventListener('keydown', tagsKeyDown);
+    el.addEventListener('keyup', tagsKeyUp);
+    el.addEventListener('paste', tagsPaste);
+    el.addEventListener('focus', tagsFocus);
+    el.addEventListener('blur', tagsBlur);
+
+    // Prepare container
+    el.classList.add('jtags');
+    el.setAttribute('contenteditable', true);
+    el.setAttribute('spellcheck', false);
+
+    if (obj.options.placeholder) {
+        el.placeholder = obj.options.placeholder;
+    }
+
+    // Make sure element is empty
+    if (obj.options.value) {
+        obj.setValue(obj.options.value);
+    } else {
+        el.innerHTML = '<div><br></div>';
+    }
+
+    if (typeof(obj.options.onload) == 'function') {
+        obj.options.onload(el, obj);
+    }
+
+    el.tags = obj;
 
     return obj;
 });
