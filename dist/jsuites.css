@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components
+ * (c) jSuites Javascript Plugins
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -9,7 +9,9 @@
  * MIT License
  *
  */
- 
+
+/** General **/
+
 :root {
     --button-color: #298BA8; 
 }
@@ -495,22 +497,16 @@
 }
 
 
-/**
- * Color Picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
-
 .jcolor {
-    position:relative;
-    display:none;
-    outline:none;
+    position: relative;
+    display: none;
+    outline: none;
 }
 
 .jcolor-content {
-    position:absolute;
-    z-index:9000;
-    user-select:none;
+    position: fixed;
+    z-index: 9000;
+    user-select: none;
     -webkit-font-smoothing: antialiased;
     font-size: .875rem;
     letter-spacing: .2px;
@@ -518,7 +514,7 @@
     border-radius: 4px;
     -webkit-box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
     box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
-    padding:10px;
+    padding: 7px;
     background-color:#fff;
 }
 
@@ -2838,7 +2834,7 @@
 
 .jnotification {
     position: fixed;
-    z-index:10000;
+    z-index: 10000;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 10px;
@@ -2847,30 +2843,30 @@
 .jnotification-container {
     -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
-    padding:12px;
+    padding: 12px;
     border-radius: 8px;
 }
 
 .jnotification-close {
-    content:'';
+    content: '';
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
-    font-size:20px;
-    width:20px;
-    height:20px;
-    cursor:pointer;
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
 }
 
 .jnotification-title {
-    font-weight:bold;
+    font-weight: bold;
 }
 
 .jnotification-header {
-    display:flex;
-    padding-bottom:5px;
+    display: flex;
+    padding-bottom: 5px;
 }
 
 .jnotification-header:empty {
-    display:none;
+    display: none;
 }
 
 .jnotification-image {
@@ -2878,17 +2874,17 @@
 }
 
 .jnotification-image:empty {
-    display:none;
+    display: none;
 }
 
 .jnotification-image img {
-    width:24px;
+    width: 24px;
 }
 
 .jnotification-name {
     text-transform: uppercase;
-    font-size:0.9em;
-    flex:1;
+    font-size: 0.9em;
+    flex: 1;
     letter-spacing: 0.1em;
 }
 
@@ -3044,34 +3040,34 @@
     max-width: calc(100vw - 24px);
 }
 .jtabs > .jtabs-headers {
-    display:flex;
-    padding:6px;
-    overflow-x:auto;
+    display: flex;
+    padding: 6px;
+    overflow-x: auto;
 }
 
 .jtabs > .jtabs-headers > div {
     padding: 8px;
-    padding-left:20px;
-    padding-right:20px;
-    margin-right:5px;
-    margin-bottom:5px;
-    background-color:#f4f4f4;
+    padding-left: 20px;
+    padding-right: 20px;
+    margin-right: 5px;
+    margin-bottom: 5px;
+    background-color: #f4f4f4;
     color: #888;
-    cursor:pointer;
+    cursor: pointer;
 }
 
 .jtabs > .jtabs-headers > div.jtabs-selected {
-    background-color:#eee;
+    background-color: #eee;
     color: #000;
 }
 
 .jtabs > .jtabs-content > div {
-    display:none;
-    padding:10px;
+    display: none;
+    padding: 10px;
 }
 
 .jtabs > .jtabs-content > div.jtabs-selected {
-    display:block;
+    display: block;
 }
 
 .jtabs > .jtabs-border {
