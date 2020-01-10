@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.3.1 - Javascript Web Components
+ * (c) jSuites v2.5.0 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1905,6 +1905,10 @@ jSuites.color = (function(el, options) {
     /**
      * If element is focus open the picker
      */
+    el.addEventListener("focus", function(e) {
+        obj.open();
+    });
+
     el.addEventListener("mouseup", function(e) {
         obj.open();
     });
@@ -1923,6 +1927,9 @@ jSuites.color = (function(el, options) {
             jSuites.color.current.close();
         }
     });
+
+    // Possible to focus the container
+    container.setAttribute('tabindex', '900');
 
     // Placeholder
     if (obj.options.placeholder) {
@@ -2880,9 +2887,7 @@ jSuites.dropdown = (function(el, options) {
                     }
                 }
 
-                if (rect.width > rectContainer.width) {
-                    container.style.width = rect.width;
-                }
+                container.style.minWidth = rect.width;
             }
         }
 
@@ -6521,9 +6526,13 @@ jSuites.modal = (function(el, options) {
     if (! jSuites.modal.hasEvents) {
         jSuites.modal.current = el;
 
-        document.addEventListener('mousedown', jSuites.modal.mouseDownControls);
-        document.addEventListener('mousemove', jSuites.modal.mouseMoveControls);
-        document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
+        if ('ontouchstart' in document.documentElement === true) {
+            document.addEventListener("touchstart", jSuites.modal.mouseDownControls);
+        } else {
+            document.addEventListener('mousedown', jSuites.modal.mouseDownControls);
+            document.addEventListener('mousemove', jSuites.modal.mouseMoveControls);
+            document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
+        }
 
         jSuites.modal.hasEvents = true;
     }
@@ -6580,9 +6589,11 @@ jSuites.modal.mouseDownControls = function(e) {
 
     if (e.target.classList.contains('jmodal')) {
         setTimeout(function() {
-
+            // Get target info
             var rect = e.target.getBoundingClientRect();
-            if (rect.width - (e.clientX - rect.left) < 50 && e.clientY - rect.top < 50) {
+            // Get x,y from the click
+            var position = jSuites.getPosition(e);
+            if (rect.width - (position[0] - rect.left) < 50 && position[1] - rect.top < 50) {
                 e.target.modal.close();
             } else {
                 if (e.target.getAttribute('title') && e.clientY - rect.top < 50) {
