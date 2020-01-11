@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.5.0 - Javascript Web Components
+ * (c) jSuites v2.5.1 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -35,14 +35,15 @@ var jSuites = function(options) {
         }
 
         // Backdrop
-        obj.backdrop = document.createElement('div');
-        obj.backdrop.classList.add('jbackdrop');
+        obj.backdrop = {};
+        obj.backdrop.element = document.createElement('div');
+        obj.backdrop.element.classList.add('jbackdrop');
         obj.backdrop.show = function() {
-            obj.el.appendChild(obj.backdrop);
+            obj.el.appendChild(obj.backdrop.element);
         }
         obj.backdrop.hide = function() {
-            if (obj.backdrop.parentNode) {
-                obj.el.removeChild(obj.backdrop);
+            if (obj.backdrop.element.parentNode) {
+                obj.el.removeChild(obj.backdrop.element);
             }
         }
     }

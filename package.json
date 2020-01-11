@@ -26,8 +26,8 @@
     "keywords": [
         "javascript plugins"
     ],
-    "main": "dist/jsuites.js",
-    "version": "2.5.0",
+    "main": "./dist/jsuites.js",
+    "version": "2.5.2",
     "bugs": "https://github.com/paulhodel/jsuites/issues",
     "homepage": "https://github.com/paulhodel/jsuites",
     "docs": "https://bossanova.uk/jsuites",
