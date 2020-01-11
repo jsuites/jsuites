@@ -540,15 +540,16 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' fill='white'/%3E%3C/svg%3E");
 }
 
-@media (max-device-width: 800px)
-{
-    .jcolor-content {
-        width:100%;
-        height:34%;
-        max-height:220px;
-        border-radius: 0px;
-    }
+.jcolor-fullscreen {
+    position: fixed;
+    bottom: 0px;
+    width:100%;
+    height:34%;
+    max-height:220px;
+    border-radius: 0px;
 }
+
+
 
 /**
  * Contextmenu v1.0.1

@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.5.3 - Javascript Web Components
+ * (c) jSuites v2.5.4 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1831,12 +1831,16 @@ jSuites.color = (function(el, options) {
             const rectContent = content.getBoundingClientRect();
 
             if (jSuites.getWindowWidth() < 800) {
-                content.style.position = 'fixed';
                 content.style.top = '';
-                content.style.bottom = '0px';
+                content.classList.add('jcolor-fullscreen');
                 jSuites.slideBottom(content, 1);
                 jSuites.backdrop(1);
             } else {
+                if (content.classList.contains('jcolor-fullscreen')) {
+                    content.classList.remove('jcolor-fullscreen');
+                    jSuites.backdrop(0);
+                }
+
                 const rect = el.getBoundingClientRect();
 
                 if (window.innerHeight < rect.bottom + rectContent.height) {
@@ -1844,9 +1848,6 @@ jSuites.color = (function(el, options) {
                 } else {
                     content.style.top = rect.height + 'px';
                 }
-
-                content.style.position = '';
-                content.style.bottom = '';
             }
 
             container.focus();
