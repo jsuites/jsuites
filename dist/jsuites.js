@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.5.1 - Javascript Web Components
+ * (c) jSuites v2.5.3 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -23,6 +23,9 @@
 var jSuites = function(options) {
     var obj = {}
 
+    var backdrop = document.createElement('div');
+    backdrop.classList.add('jbackdrop');
+
     obj.init = function() {
         // Find root element
         var app = document.querySelector('.japp');
@@ -33,17 +36,14 @@ var jSuites = function(options) {
         } else {
             obj.el = document.body;
         }
+    }
 
-        // Backdrop
-        obj.backdrop = {};
-        obj.backdrop.element = document.createElement('div');
-        obj.backdrop.element.classList.add('jbackdrop');
-        obj.backdrop.show = function() {
-            obj.el.appendChild(obj.backdrop.element);
-        }
-        obj.backdrop.hide = function() {
-            if (obj.backdrop.element.parentNode) {
-                obj.el.removeChild(obj.backdrop.element);
+    obj.backdrop = function(show) {
+        if (show) {
+            obj.el.appendChild(backdrop);
+        } else {
+            if (backdrop.parentNode) {
+                obj.el.removeChild(backdrop);
             }
         }
     }
@@ -1835,7 +1835,7 @@ jSuites.color = (function(el, options) {
                 content.style.top = '';
                 content.style.bottom = '0px';
                 jSuites.slideBottom(content, 1);
-                jSuites.backdrop.show();
+                jSuites.backdrop(1);
             } else {
                 const rect = el.getBoundingClientRect();
 
@@ -1866,7 +1866,7 @@ jSuites.color = (function(el, options) {
         }
 
         if (jSuites.getWindowWidth() < 800) {
-            jSuites.backdrop.hide();
+            jSuites.backdrop(0);
         }
 
         return obj.options.value;
@@ -6496,7 +6496,7 @@ jSuites.modal = (function(el, options) {
             jSuites.slideBottom(el, 1);
         } else {
             // Backdrop
-            jSuites.backdrop.show();
+            jSuites.backdrop(1);
         }
         // Current
         jSuites.modal.current = el;
@@ -6513,7 +6513,7 @@ jSuites.modal = (function(el, options) {
     obj.close = function() {
         el.style.display = 'none';
         // Backdrop
-        jSuites.backdrop.hide();
+        jSuites.backdrop(0);
         // Current
         jSuites.modal.current = null;
         // Remove fullscreen class
