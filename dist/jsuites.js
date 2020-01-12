@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.5.4 - Javascript Web Components
+ * (c) jSuites v2.5.5 - Javascript Web Components
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -13,9 +13,6 @@
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     global.jSuites = factory();
-
-    // Keep compatibility with jtools legacy
-    global.jApp = global.jSuites;
 }(this, (function () {
 
     'use strict';
@@ -2889,7 +2886,7 @@ jSuites.dropdown = (function(el, options) {
                     }
                 }
 
-                container.style.minWidth = rect.width;
+                container.style.minWidth = rect.width + 'px';
             }
         }
 
