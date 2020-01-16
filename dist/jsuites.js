@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites v2.5.5 - Javascript Web Components
+ * (c) jSuites Javascript Web Components (v2.7)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -20,9 +20,6 @@
 var jSuites = function(options) {
     var obj = {}
 
-    var backdrop = document.createElement('div');
-    backdrop.classList.add('jbackdrop');
-
     obj.init = function() {
         // Find root element
         var app = document.querySelector('.japp');
@@ -32,16 +29,6 @@ var jSuites = function(options) {
             obj.el = app;
         } else {
             obj.el = document.body;
-        }
-    }
-
-    obj.backdrop = function(show) {
-        if (show) {
-            obj.el.appendChild(backdrop);
-        } else {
-            if (backdrop.parentNode) {
-                obj.el.removeChild(backdrop);
-            }
         }
     }
 
@@ -442,13 +429,6 @@ var jSuites = function(options) {
 
     obj.keyDownControls = function(e) {
         if (e.which == 27) {
-            var nodes = document.querySelectorAll('.jmodal');
-            if (nodes.length > 0) {
-                for (var i = 0; i < nodes.length; i++) {
-                    nodes[i].modal.close();
-                }
-            }
-
             var nodes = document.querySelectorAll('.jslider');
             if (nodes.length > 0) {
                 for (var i = 0; i < nodes.length; i++) {
@@ -501,10 +481,12 @@ var jSuites = function(options) {
             if (element && jSuites.calendar.current) {
                 jSuites.calendar.current.prev();
             } else {
-                var element = jSuites.panel.get();
-                if (element) {
-                    if (element.style.display != 'none') {
-                        jSuites.panel.close();
+                if (jSuites.panel) {
+                    var element = jSuites.panel.get();
+                    if (element) {
+                        if (element.style.display != 'none') {
+                            jSuites.panel.close();
+                        }
                     }
                 }
             }
@@ -523,10 +505,12 @@ var jSuites = function(options) {
             if (element && jSuites.calendar.current) {
                 jSuites.calendar.current.next();
             } else {
-                var element = jSuites.panel.get();
-                if (element) {
-                    if (element.style.display == 'none') {
-                        jSuites.panel();
+                if (jSuites.panel) {
+                    var element = jSuites.panel.get();
+                    if (element) {
+                        if (element.style.display == 'none') {
+                            jSuites.panel();
+                        }
                     }
                 }
             }
@@ -872,7 +856,7 @@ jSuites.calendar = (function(el, options) {
             // Go to the previous month
             if (obj.date[1] < 2) {
                 obj.date[0] = obj.date[0] - 1;
-                obj.date[1] = 1;
+                obj.date[1] = 12;
             } else {
                 obj.date[1] = obj.date[1] - 1;
             }
@@ -1532,7 +1516,13 @@ jSuites.color = (function(el, options) {
         jSuites.color.current = null;
     }
 
-    // Default configuration
+    /**
+     * @typedef {Object} defaults
+     * @property {(string|Array)} value - Initial value of the compontent
+     * @property {string} placeholder - The default instruction text on the element
+     * @property {requestCallback} onchange - Method to be execute after any changes on the element
+     * @property {requestCallback} onclose - Method to be execute when the element is closed
+     */
     var defaults = {
         placeholder: '',
         value: null,
@@ -1548,10 +1538,6 @@ jSuites.color = (function(el, options) {
             obj.options[property] = defaults[property];
         }
     }
-
-    var x = 0;
-    var y = 0;
-    var z = 0;
 
     var palette = {
           "red": {
@@ -1776,13 +1762,32 @@ jSuites.color = (function(el, options) {
         }
     };
 
+    // Value
+    if (obj.options.value) {
+        el.value = obj.options.value;
+    }
+
     // Table container
     var container = document.createElement('div');
     container.className = 'jcolor';
 
+    // Table container
+    var backdrop = document.createElement('div');
+    backdrop.className = 'jcolor-backdrop';
+    container.appendChild(backdrop);
+
     // Content
     var content = document.createElement('div');
     content.className = 'jcolor-content';
+
+    // Close button
+    var closeButton  = document.createElement('div');
+    closeButton.className = 'jcolor-close';
+    closeButton.innerHTML = 'Done';
+    closeButton.onclick = function() {
+        obj.close();
+    }
+    content.appendChild(closeButton);
 
     // Table pallete
     var table = document.createElement('table');
@@ -1831,11 +1836,11 @@ jSuites.color = (function(el, options) {
                 content.style.top = '';
                 content.classList.add('jcolor-fullscreen');
                 jSuites.slideBottom(content, 1);
-                jSuites.backdrop(1);
+                backdrop.style.display = 'block';
             } else {
                 if (content.classList.contains('jcolor-fullscreen')) {
                     content.classList.remove('jcolor-fullscreen');
-                    jSuites.backdrop(0);
+                    backdrop.style.display = '';
                 }
 
                 const rect = el.getBoundingClientRect();
@@ -1863,9 +1868,8 @@ jSuites.color = (function(el, options) {
             container.classList.remove('jcolor-focus');
         }
 
-        if (jSuites.getWindowWidth() < 800) {
-            jSuites.backdrop(0);
-        }
+        // Make sure backdrop is hidden
+        backdrop.style.display = '';
 
         return obj.options.value;
     }
@@ -1908,12 +1912,12 @@ jSuites.color = (function(el, options) {
         obj.open();
     });
 
-    el.addEventListener("mouseup", function(e) {
+    el.addEventListener("mousedown", function(e) {
         obj.open();
     });
 
     // Select color
-    container.addEventListener("mousedown", function(e) {
+    container.addEventListener("mouseup", function(e) {
         if (e.target.tagName == 'TD') {
             jSuites.color.current.setValue(e.target.getAttribute('data-value'));
             jSuites.color.current.close();
@@ -1923,7 +1927,10 @@ jSuites.color = (function(el, options) {
     // Close controller
     document.addEventListener("mousedown", function(e) {
         if (jSuites.color.current) {
-            jSuites.color.current.close();
+            var element = jSuites.getElement(e.target, 'jcolor');
+            if (! element) {
+                jSuites.color.current.close();
+            }
         }
     });
 
@@ -1948,69 +1955,6 @@ jSuites.color = (function(el, options) {
     return obj;
 });
 
-jSuites.combo = (function(el, options) {
-    var obj = {};
-
-    if (options) {
-        obj.options = options;
-    }
-
-    // Reset
-    if (obj.options.reset == true) {
-        el.innerHTML = '';
-    }
-
-    // Blank option?
-    if (obj.options.blankOption) {
-        var option = document.createElement('option');
-        option.value = '';
-        el.appendChild(option);
-    }
-
-    // Load options from a remote URL
-    if (obj.options.url) {
-        fetch(obj.options.url, { headers: new Headers({ 'content-type': 'text/json' }) })
-            .then(function(data) {
-                data.json().then(function(data) {
-                    obj.options.data = data;
-
-                    Object.keys(data).forEach(function(k) {
-                        var option = document.createElement('option');
-
-                        if (data[k].id) {
-                            option.value = data[k].id;
-                            option.innerHTML = data[k].name;
-                        } else {
-                            option.value = k;
-                            option.innerHTML = data[k];
-                        }
-
-                        el.appendChild(option);
-                    });
-
-                    if (obj.options.value) {
-                        $(select).val(obj.options.value);
-                    }
-
-                    if (typeof(obj.options.onload) == 'function') {
-                        obj.options.onload(el);
-                    }
-                })
-            });
-    } else if (options.numeric) {
-        for (var i = obj.options.numeric[0]; i <= obj.options.numeric[1]; i++) {
-            var option = document.createElement('option');
-            option.value = i;
-            option.innerHTML = i;
-            el.appendChild(option);
-        }
-    }
-
-    el.combo = obj;
-
-    return obj;
-});
-
 
 jSuites.contextmenu = (function(el, options) {
     var obj = {};
@@ -2018,7 +1962,8 @@ jSuites.contextmenu = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        items:null,
+        items: null,
+        onclick: null,
     };
 
     // Loop through our object
@@ -2030,47 +1975,21 @@ jSuites.contextmenu = (function(el, options) {
         }
     }
 
-    obj.menu = document.createElement('ul');
-    obj.menu.classList.add('jcontextmenu');
-    obj.menu.setAttribute('tabindex', '900');
+    // Class definition
+    el.classList.add('jcontextmenu');
+    // Focusable
+    el.setAttribute('tabindex', '900');
 
     /**
      * Open contextmenu
      */
     obj.open = function(e, items) {
         if (items) {
+            // Update content
             obj.options.items = items;
+            // Create items
+            obj.create(items);
         }
-
-        // Reset content
-        obj.menu.innerHTML = '';
-
-        // Append items
-        for (var i = 0; i < obj.options.items.length; i++) {
-            if (obj.options.items[i].type && obj.options.items[i].type == 'line') {
-                var itemContainer = document.createElement('hr');
-            } else {
-                var itemContainer = document.createElement('li');
-                var itemText = document.createElement('a');
-                itemText.innerHTML = obj.options.items[i].title;
-
-                if (obj.options.items[i].disabled) {
-                    itemContainer.className = 'jcontextmenu-disabled';
-                } else if (obj.options.items[i].onclick) {
-                    itemContainer.onmouseup = obj.options.items[i].onclick;
-                }
-                itemContainer.appendChild(itemText);
-
-                if (obj.options.items[i].shortcut) {
-                    var itemShortCut = document.createElement('span');
-                    itemShortCut.innerHTML = obj.options.items[i].shortcut;
-                    itemContainer.appendChild(itemShortCut);
-                }
-            }
-
-            obj.menu.appendChild(itemContainer);
-        }
-
         // Coordinates
         if (e.target) {
             var x = e.clientX;
@@ -2080,21 +1999,25 @@ jSuites.contextmenu = (function(el, options) {
             var y = e.y;
         }
 
-        obj.menu.classList.add('jcontextmenu-focus');
-        obj.menu.focus();
+        el.classList.add('jcontextmenu-focus');
+        el.focus();
 
-        const rect = obj.menu.getBoundingClientRect();
+        const rect = el.getBoundingClientRect();
 
         if (window.innerHeight < y + rect.height) {
-            obj.menu.style.top = (y - rect.height) + 'px';
+            el.style.top = (y - rect.height) + 'px';
         } else {
-            obj.menu.style.top = y + 'px';
+            el.style.top = y + 'px';
         }
 
         if (window.innerWidth < x + rect.width) {
-            obj.menu.style.left = (x - rect.width) + 'px';
+            if (x - rect.width > 0) {
+                el.style.left = (x - rect.width) + 'px';
+            } else {
+                el.style.left = '10px';
+            }
         } else {
-            obj.menu.style.left = x + 'px';
+            el.style.left = x + 'px';
         }
     }
 
@@ -2102,25 +2025,105 @@ jSuites.contextmenu = (function(el, options) {
      * Close menu
      */
     obj.close = function() {
-        obj.menu.classList.remove('jcontextmenu-focus');
+        if (el.classList.contains('jcontextmenu-focus')) {
+            el.classList.remove('jcontextmenu-focus');
+        }
     }
 
-    el.addEventListener("click", function(e) {
-        obj.close();
-    });
+    /**
+     * Create items based on the declared objectd
+     * @param {object} items - List of object
+     */
+    obj.create = function(items) {
+        // Update content
+        el.innerHTML = '';
 
-    obj.menu.addEventListener('blur', function(e) {
-        obj.close();
+        // Append items
+        for (var i = 0; i < items.length; i++) {
+            if (items[i].type && items[i].type == 'line') {
+                var itemContainer = document.createElement('hr');
+            } else {
+                var itemContainer = document.createElement('div');
+                var itemText = document.createElement('a');
+                itemText.innerHTML = items[i].title;
+
+                if (items[i].disabled) {
+                    itemContainer.className = 'jcontextmenu-disabled';
+                } else if (items[i].onclick) {
+                    itemContainer.method = items[i].onclick;
+                    itemContainer.addEventListener("mouseup", function() {
+                        // Execute method
+                        this.method(this);
+                    });
+                }
+                itemContainer.appendChild(itemText);
+
+                if (items[i].shortcut) {
+                    var itemShortCut = document.createElement('span');
+                    itemShortCut.innerHTML = items[i].shortcut;
+                    itemContainer.appendChild(itemShortCut);
+                }
+            }
+
+            el.appendChild(itemContainer);
+        }
+    }
+
+    if (typeof(obj.options.onclick) == 'function') {
+        el.addEventListener('click', function(e) {
+            obj.options.onclick(obj);
+        });
+    }
+
+    el.addEventListener('blur', function(e) {
+        setTimeout(function() {
+            obj.close();
+        }, 120);
     });
 
     window.addEventListener("mousewheel", function() {
         obj.close();
     });
 
-    el.appendChild(obj.menu);
+    // Create items
+    if (obj.options.items) {
+        obj.create(obj.options.items);
+    }
+
     el.contextmenu = obj;
 
     return obj;
+});
+
+jSuites.contextmenu.getElement = function(element) {
+    var foundId = 0;
+
+    function path (element) {
+        if (element.parentNode && element.getAttribute('aria-contextmenu-id')) {
+            foundId = element.getAttribute('aria-contextmenu-id')
+        } else {
+            if (element.parentNode) {
+                path(element.parentNode);
+            }
+        }
+    }
+
+    path(element);
+
+    return foundId;
+}
+
+document.addEventListener("contextmenu", function(e) {
+    var id = jSuites.contextmenu.getElement(e.target);
+    if (id) {
+        var element = document.querySelector('#' + id);
+        if (! element) {
+            console.error('JSUITES: Contextmenu id not found');
+        } else {
+            element.contextmenu.open(e);
+            e.preventDefault();
+        }
+    }
 });
 
 /**
@@ -2272,15 +2275,6 @@ jSuites.alert = function(message) {
 }
 
 
-/**
- * (c) 2013 jDropdown http://www.github.com/paulhodel/jdropdown
- * 
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Custom dropdowns
- * 
- * TODO: create on the select element.
- */
-
 jSuites.dropdown = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -2301,17 +2295,14 @@ jSuites.dropdown = (function(el, options) {
         type: null,
         width: null,
         opened: false,
+        value: null,
+        placeholder: '',
+        position: false,
         onchange: null,
         onload: null,
         onopen: null,
         onclose: null,
         onblur: null,
-        oninsert: null,
-        allowInsert: false,
-        value: null,
-        placeholder: '',
-        position: false, // Fixed position
-        filter: null,
     };
 
     // Loop through our object
@@ -2419,22 +2410,6 @@ jSuites.dropdown = (function(el, options) {
     if (obj.options.placeholder) {
         header.setAttribute('placeholder', obj.options.placeholder);
     }
-
-    // Insert new elements
-    /*if (obj.options.allowInsert == true) {
-        el.classList.add('jdropdown-insert');
-
-        // Add button
-        var insertButton  = document.createElement('div');
-        insertButton.className = 'jdropdown-insert-button';
-        insertButton.innerHTML = '+';
-        insertButton.onclick = function() {
-            if (header.value) {
-                obj.addItem(header.value);
-            }
-        }
-        containerHeader.appendChild(insertButton);
-    }*/
 
     // Append elements
     containerHeader.appendChild(header);
@@ -6462,46 +6437,71 @@ jSuites.modal = (function(el, options) {
         }
     }
 
-    el.classList.add('jmodal');
-
-    if (obj.options.title) {
-        el.setAttribute('title', obj.options.title);
+    // Title
+    if (! obj.options.title && el.getAttribute('title')) {
+        obj.options.title = el.getAttribute('title');
     }
+
+    var temp = document.createElement('div');
+    for (var i = 0; i < el.children.length; i++) {
+        temp.appendChild(el.children[i]);
+    }
+
+    obj.content = document.createElement('div');
+    obj.content.className = 'jmodal_content';
+    obj.content.innerHTML = el.innerHTML;
+
+    for (var i = 0; i < temp.children.length; i++) {
+        obj.content.appendChild(temp.children[i]);
+    }
+
+    obj.container = document.createElement('div');
+    obj.container.className = 'jmodal';
+    obj.container.appendChild(obj.content);
+
     if (obj.options.width) {
-        el.style.width = obj.options.width;
+        obj.container.style.width = obj.options.width;
     }
     if (obj.options.height) {
-        el.style.height = obj.options.height;
+        obj.container.style.height = obj.options.height;
     }
+    if (obj.options.title) {
+        obj.container.setAttribute('title', obj.options.title);
+    } else {
+        obj.container.classList.add('no-title');
+    }
+    el.innerHTML = '';
+    el.style.display = 'none';
+    el.appendChild(obj.container);
 
-    var container = document.createElement('div');
-    for (var i = 0; i < el.children.length; i++) {
-        container.appendChild(el.children[i]);
-    }
-    el.appendChild(container);
-
-    // Title
-    if (! el.getAttribute('title')) {
-        el.classList.add('no-title');
-    }
+    // Backdrop
+    var backdrop = document.createElement('div');
+    backdrop.className = 'jmodal_backdrop';
+    el.appendChild(backdrop);
 
     obj.open = function() {
         el.style.display = 'block';
         // Fullscreen
-        const rect = el.getBoundingClientRect();
+        const rect = obj.container.getBoundingClientRect();
         if (jSuites.getWindowWidth() < rect.width) {
-            el.classList.add('jmodal_fullscreen');
-            jSuites.slideBottom(el, 1);
+            obj.container.style.top = '';
+            obj.container.style.left = '';
+            obj.container.classList.add('jmodal_fullscreen');
+            jSuites.slideBottom(obj.container, 1);
         } else {
-            // Backdrop
-            jSuites.backdrop(1);
+            backdrop.style.display = 'block';
         }
         // Current
-        jSuites.modal.current = el;
+        jSuites.modal.current = obj;
         // Event
         if (typeof(obj.options.onopen) == 'function') {
-            obj.options.onopen(el);
+            obj.options.onopen(el, obj);
         }
+    }
+
+    obj.resetPosition = function() {
+        obj.container.style.top = '';
+        obj.container.style.left = '';
     }
 
     obj.isOpen = function() {
@@ -6511,19 +6511,19 @@ jSuites.modal = (function(el, options) {
     obj.close = function() {
         el.style.display = 'none';
         // Backdrop
-        jSuites.backdrop(0);
+        backdrop.style.display = '';
         // Current
         jSuites.modal.current = null;
         // Remove fullscreen class
-        el.classList.remove('jmodal_fullscreen');
+        obj.container.classList.remove('jmodal_fullscreen');
         // Event
         if (typeof(obj.options.onclose) == 'function') {
-            obj.options.onclose(el);
+            obj.options.onclose(el, obj);
         }
     }
 
     if (! jSuites.modal.hasEvents) {
-        jSuites.modal.current = el;
+        jSuites.modal.current = obj;
 
         if ('ontouchstart' in document.documentElement === true) {
             document.addEventListener("touchstart", jSuites.modal.mouseDownControls);
@@ -6533,6 +6533,8 @@ jSuites.modal = (function(el, options) {
             document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
         }
 
+        document.addEventListener('keydown', jSuites.modal.keyDownControls);
+
         jSuites.modal.hasEvents = true;
     }
 
@@ -6541,7 +6543,7 @@ jSuites.modal = (function(el, options) {
             url: obj.options.url,
             method: 'GET',
             success: function(data) {
-                container.innerHTML = data;
+                obj.content.innerHTML = data;
 
                 if (! obj.options.closed) {
                     obj.open();
@@ -6563,9 +6565,17 @@ jSuites.modal = (function(el, options) {
 jSuites.modal.current = null;
 jSuites.modal.position = null;
 
+jSuites.modal.keyDownControls = function(e) {
+    if (e.which == 27) {
+        if (jSuites.modal.current) {
+            jSuites.modal.current.close();
+        }
+    }
+}
+
 jSuites.modal.mouseUpControls = function(e) {
     if (jSuites.modal.current) {
-        jSuites.modal.current.style.cursor = 'auto';
+        jSuites.modal.current.container.style.cursor = 'auto';
     }
     jSuites.modal.position = null;
 }
@@ -6574,11 +6584,11 @@ jSuites.modal.mouseMoveControls = function(e) {
     if (jSuites.modal.current && jSuites.modal.position) {
         if (e.which == 1 || e.which == 3) {
             var position = jSuites.modal.position;
-            jSuites.modal.current.style.top = (position[1] + (e.clientY - position[3]) + (position[5] / 2)) + 'px';
-            jSuites.modal.current.style.left = (position[0] + (e.clientX - position[2]) + (position[4] / 2)) + 'px';
-            jSuites.modal.current.style.cursor = 'move';
+            jSuites.modal.current.container.style.top = (position[1] + (e.clientY - position[3]) + (position[5] / 2)) + 'px';
+            jSuites.modal.current.container.style.left = (position[0] + (e.clientX - position[2]) + (position[4] / 2)) + 'px';
+            jSuites.modal.current.container.style.cursor = 'move';
         } else {
-            jSuites.modal.current.style.cursor = 'auto';
+            jSuites.modal.current.container.style.cursor = 'auto';
         }
     }
 }
@@ -6590,12 +6600,21 @@ jSuites.modal.mouseDownControls = function(e) {
         setTimeout(function() {
             // Get target info
             var rect = e.target.getBoundingClientRect();
-            // Get x,y from the click
-            var position = jSuites.getPosition(e);
-            if (rect.width - (position[0] - rect.left) < 50 && position[1] - rect.top < 50) {
-                e.target.modal.close();
+
+            if (e.changedTouches && e.changedTouches[0]) {
+                var x = e.changedTouches[0].clientX;
+                var y = e.changedTouches[0].clientY;
             } else {
-                if (e.target.getAttribute('title') && e.clientY - rect.top < 50) {
+                var x = e.clientX;
+                var y = e.clientY;
+            }
+
+            if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
+                setTimeout(function() {
+                    jSuites.modal.current.close();
+                }, 100);
+            } else {
+                if (e.target.getAttribute('title') && (y - rect.top) < 50) {
                     if (document.selection) {
                         document.selection.empty();
                     } else if ( window.getSelection ) {
@@ -6615,6 +6634,7 @@ jSuites.modal.mouseDownControls = function(e) {
         }, 100);
     }
 }
+
 
 jSuites.notification = (function(options) {
     var obj = {};
@@ -6774,6 +6794,7 @@ jSuites.rating = (function(el, options) {
             if (i < index) {
                 el.children[i].classList.add('jrating-selected');
             } else {
+                el.children[i].classList.remove('jrating-over');
                 el.children[i].classList.remove('jrating-selected');
             }
         }
@@ -6830,6 +6851,7 @@ jSuites.rating = (function(el, options) {
 
     return obj;
 });
+
 
 /**
  * (c) Image slider
@@ -7305,13 +7327,25 @@ jSuites.tags = (function(el, options) {
     var obj = {};
     obj.options = {};
 
-    // Default configuration
+    /**
+     * @typedef {Object} defaults
+     * @property {(string|Array)} value - Initial value of the compontent
+     * @property {number} limit - Max number of tags inside the element
+     * @property {string} search - The URL for suggestions
+     * @property {string} placeholder - The default instruction text on the element
+     * @property {validation} validation - Method to validate the tags
+     * @property {requestCallback} onbeforechange - Method to be execute before any changes on the element
+     * @property {requestCallback} onchange - Method to be execute after any changes on the element
+     * @property {requestCallback} onfocus - Method to be execute when on focus
+     * @property {requestCallback} onblur - Method to be execute when on blur
+     * @property {requestCallback} onload - Method to be execute when the element is loaded
+     */
     var defaults = {
-        placeholder: null,
-        limit: null,
-        valid: null,
-        search: null,
         value: null,
+        limit: null,
+        search: null,
+        placeholder: null,
+        validation: null,
         onbeforechange: null,
         onchange: null,
         onfocus: null,
@@ -7320,7 +7354,7 @@ jSuites.tags = (function(el, options) {
         colors: null,
     };
 
-    // Loop through our object
+    // Loop through though the default configuration
     for (var property in defaults) {
         if (options && options.hasOwnProperty(property)) {
             obj.options[property] = options[property];
@@ -7335,35 +7369,69 @@ jSuites.tags = (function(el, options) {
     var searchIndex = 0;
     var searchTimer = 0;
 
+    /**
+     * Add a new tag to the element
+     * @param {(?string|Array)} value - The value of the new element
+     */
     obj.add = function(value) {
         if (typeof(obj.options.onbeforechange) == 'function') {
-            value = obj.options.onbeforechange(el, obj, value);
+            var v = obj.options.onbeforechange(el, obj, value);
+            if (v != null) {
+                value = v;
+            }
         }
+
         // Close search
         if (searchContainer) {
             searchContainer.style.display = '';
         }
         // Get node
         var node = getSelectionStart();
-        var div = document.createElement('div');
-        div.innerHTML = value ? value : '<br>';
-        if (node && node.parentNode.classList.contains('jtags')) { 
-            el.insertBefore(div, node.nextSibling);
+
+        // Mix argument string or array
+        if (! value || typeof(value) == 'string') {
+            var div = document.createElement('div');
+            div.innerHTML = value ? value : '<br>';
+            if (node && node.parentNode.classList.contains('jtags')) {
+                el.insertBefore(div, node.nextSibling);
+            } else {
+                el.appendChild(div);
+            }
         } else {
+            if (node && node.parentNode.classList.contains('jtags')) {
+                if (! node.innerText.replace("\n", "")) {
+                    el.removeChild(node);
+                }
+            }
+
+            for (var i = 0; i < value.length; i++) {
+                var div = document.createElement('div');
+                div.innerHTML = value[i] ? value[i] : '<br>';
+                el.appendChild(div);
+            };
+
+            var div = document.createElement('div');
+            div.innerHTML = '<br>';
             el.appendChild(div);
         }
-        // Filter
-        filter();
+
         // Place caret
         setTimeout(function() {
             caret(div);
         }, 0);
 
+        // Filter
+        filter();
+
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value);
+            obj.options.onchange(el, obj, value ? value : '');
         }
     }
 
+    /**
+     * Get all tags in the element
+     * @return {Array} data - All tags as an array
+     */
     obj.getData = function() {
         var data = [];
         for (var i = 0; i < el.children.length; i++) {
@@ -7379,6 +7447,11 @@ jSuites.tags = (function(el, options) {
         return data;
     }
 
+    /**
+     * Get the value of one tag. Null for all tags
+     * @param {?number} index - Tag index number. Null for all tags.
+     * @return {string} value - All tags separated by comma
+     */
     obj.getValue = function(index) {
         var value = null;
 
@@ -7400,25 +7473,45 @@ jSuites.tags = (function(el, options) {
         return value;
     }
 
-    obj.setValue = function(value) {
-        if (typeof(obj.options.onbeforechange) == 'function') {
-            value = obj.options.onbeforechange(el, obj, value);
-        }
+    /**
+     * Set the value of the element based on a string separeted by (,|;|\r\n)
+     * @param {string} value - A string with the tags
+     */
+    obj.setValue = function(text) {
+        // Remove whitespaces
+        text = text.trim();
 
-        var values = value.split(',');
-        for (var i = 0; i < values.length; i++) {
-            var div = document.createElement('div');
-            div.innerHTML = values[i];
-            el.appendChild(div);
-        }
-
-        filter();
-
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value);
+        if (text) {
+            // Tags
+            var data = extractTags(text);
+            console.log(data);
+            // Add tags to the element
+            obj.add(data);
         }
     }
 
+    obj.reset = function() {
+        el.innerHTML = '<div><br></div>';
+    }
+
+    /**
+     * Verify if all tags in the element are valid
+     * @return {boolean}
+     */
+    obj.isValid = function() {
+        var test = 0;
+        for (var i = 0; i < el.children.length; i++) {
+            if (el.children[i].classList.contains('jtags_error')) {
+                test++;
+            }
+        }
+        return test == 0 ? true : false;
+    }
+
+    /**
+     * Add one element from the suggestions to the element
+     * @param {object} item - Node element in the suggestions container
+     */ 
     obj.selectIndex = function(item) {
         // Reset terms
         searchTerms = '';
@@ -7440,20 +7533,10 @@ jSuites.tags = (function(el, options) {
         obj.add();
     }
 
-    obj.reset = function() {
-        el.innerHTML = '<div><br></div>';
-    }
-
-    obj.isValid = function() {
-        var test = 0;
-        for (var i = 0; i < el.children.length; i++) {
-            if (el.children[i].classList.contains('jtags_error')) {
-                test++;
-            }
-        }
-        return test == 0 ? true : false;
-    }
-
+    /**
+     * Search for suggestions
+     * @param {object} node - Target node for any suggestions
+     */
     obj.search = function(node) {
         // Create and append search container to the DOM
         if (! searchContainer) {
@@ -7525,6 +7608,19 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    // Destroy tags element
+    obj.destroy = function() {
+        // Bind events
+        el.removeEventListener('mouseup', tagsMouseUp);
+        el.removeEventListener('keydown', tagsKeyDown);
+        el.removeEventListener('keyup', tagsKeyUp);
+        el.removeEventListener('paste', tagsPaste);
+        el.removeEventListener('focus', tagsFocus);
+        el.removeEventListener('blur', tagsBlur);
+        // Remove element
+        el.parentNode.removeChild(el);
+    }
+
     var getRandomColor = function(index) {
         var rand = function(min, max) {
             return min + Math.random() * (max - min);
@@ -7532,6 +7628,9 @@ jSuites.tags = (function(el, options) {
         return 'hsl(' + rand(1, 360) + ',' + rand(40, 70) + '%,' + rand(65, 72) + '%)';
     }
 
+    /**
+     * Filter tags
+     */
     var filter = function() {
         for (var i = 0; i < el.children.length; i++) {
             // Create label design
@@ -7541,9 +7640,9 @@ jSuites.tags = (function(el, options) {
                 el.children[i].classList.add('jtags_label');
 
                 // Validation in place
-                if (typeof(obj.options.valid) == 'function') {
+                if (typeof(obj.options.validation) == 'function') {
                     if (obj.getValue(i)) {
-                        if (! obj.options.valid(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-id'))) {
+                        if (! obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-id'))) {
                             el.children[i].classList.add('jtags_error');
                         } else {
                             el.children[i].classList.remove('jtags_error');
@@ -7557,7 +7656,7 @@ jSuites.tags = (function(el, options) {
     }
 
     /**
-     * Caret in the element node
+     * Place caret in the element node
      */
     var caret = function(e) {
         var range = document.createRange();
@@ -7568,13 +7667,59 @@ jSuites.tags = (function(el, options) {
         sel.addRange(range);
     }
 
+    /**
+     * Selection
+     */
     var getSelectionStart = function() {
         var node = document.getSelection().anchorNode;
-        return (node.nodeType == 3 ? node.parentNode : node);
+        if (node) {
+            return (node.nodeType == 3 ? node.parentNode : node);
+        } else {
+            return null;
+        }
     }
 
+    /**
+     * Extract tags from a string
+     * @param {string} text - Raw string
+     * @return {Array} data - Array with extracted tags
+     */
+    var extractTags = function(text) {
+        /** @type {Array} */
+        var data = [];
+
+        /** @type {string} */
+        var word = '';
+
+        // Remove whitespaces
+        text = text.trim();
+
+        if (text) {
+            for (var i = 0; i < text.length; i++) {
+                if (text[i] == ',' || text[i] == ';' || text[i] == '\r\n') {
+                    if (word) {
+                        data.push(word);
+                    }
+                } else {
+                    word += text[i];
+                }
+            }
+
+            if (word) {
+                data.push(word);
+            }
+        }
+
+        return data;
+    }
+
+    /** @type {number} */
     var anchorOffset = 0;
 
+    /**
+     * Processing event keydown on the element
+     * @param e {object}
+     */
     var tagsKeyDown = function(e) {
         // Anchoroffset
         anchorOffset = window.getSelection().anchorOffset;
@@ -7590,8 +7735,8 @@ jSuites.tags = (function(el, options) {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
                 obj.add();
-                e.preventDefault();
             }
+            e.preventDefault();
         } else if (e.which == 13) {
             // Enter
             if (searchContainer && searchContainer.style.display != '') {
@@ -7626,6 +7771,10 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    /**
+     * Processing event keyup on the element
+     * @param e {object}
+     */
     var tagsKeyUp = function(e) {
         if (e.which == 39) {
             var n = window.getSelection().anchorOffset;
@@ -7653,48 +7802,31 @@ jSuites.tags = (function(el, options) {
         filter();
     }
 
+    /**
+     * Processing event paste on the element
+     * @param e {object}
+     */
     var tagsPaste =  function(e) {
         if (e.clipboardData || e.originalEvent.clipboardData) {
             var html = (e.originalEvent || e).clipboardData.getData('text/html');
             var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-            var file = (e.originalEvent || e).clipboardData.files
         } else if (window.clipboardData) {
             var html = window.clipboardData.getData('Html');
             var text = window.clipboardData.getData('Text');
-            var file = window.clipboardData.files
         }
 
-        if (file.length) {
-            // Paste a image from the clipboard
-            obj.addFile(file);
-        } else {
-            // Paste text
-            text = text.split('\r\n');
-            var str = '';
-            if (e.target.nodeName == 'DIV' && ! e.target.classList.contains('jtags')) {
-                for (var i = 0; i < text.length; i++) {
-                    if (text[i]) {
-                        str += text[i] + "<br>\r\n";
-                    }
-                }
-            } else {
-                for (var i = 0; i < text.length; i++) {
-                    if (text[i]) {
-                        str += '<div>' + text[i] + '</div>';
-                    }
-                }
-            }
-            // Insert text
-            document.execCommand('insertHtml', false, str);
-        }
-
+        obj.setValue(text);
         e.preventDefault();
     }
 
+    /**
+     * Processing event mouseup on the element
+     * @param e {object}
+     */
     var tagsMouseUp = function(e) {
         if (e.target.parentNode && e.target.parentNode.classList.contains('jtags')) {
             if (e.target.classList.contains('jtags_label') || e.target.classList.contains('jtags_error')) {
-                var rect = e.target.getBoundingClientRect();
+                const rect = e.target.getBoundingClientRect();
                 if (rect.width - (e.clientX - rect.left) < 16) {
                     el.removeChild(e.target);
                     el.focus();
@@ -7707,6 +7839,10 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    /**
+     * Processing event focus on the element
+     * @param e {object}
+     */
     var tagsFocus = function(e) {
         if (! el.children.length || obj.getValue(el.children.length - 1)) {
             var div = document.createElement('div');
@@ -7719,6 +7855,10 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    /**
+     * Processing event blur on the element
+     * @param e {object}
+     */
     var tagsBlur = function(e) {
         if (searchContainer) {
             setTimeout(function() {
@@ -7738,6 +7878,7 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    // Bind events
     el.addEventListener('mouseup', tagsMouseUp);
     el.addEventListener('keydown', tagsKeyDown);
     el.addEventListener('keyup', tagsKeyUp);
