@@ -14,6 +14,7 @@
 
 :root {
     --button-color: #298BA8; 
+    --active-color: #007aff;
 }
 
 .jdragging {
@@ -42,52 +43,42 @@
 /** Animations **/
 .fade-in {
     animation: fade-in 2s forwards;
-    -webkit-animation: fade-in 2s forwards;
 }
 
 .fade-out {
     animation: fade-out 1s forwards;
-    -webkit-animation: fade-out 1s forwards;
 }
 
 .slide-left-in {
     animation: slide-left-in 0.4s forwards;
-    -webkit-animation: slide-left-in 0.4s forwards;
 }
 
 .slide-left-out {
     animation: slide-left-out 0.4s forwards;
-    -webkit-animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in {
     animation: slide-right-in 0.4s forwards;
-    -webkit-animation: slide-right-in 0.4s forwards;
 }
 
 .slide-right-out {
     animation: slide-right-out 0.4s forwards;
-    -webkit-animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in {
     animation: slide-top-in 0.4s forwards;
-    -webkit-animation: slide-top-in 0.4s forwards;
 }
 
 .slide-top-out {
     animation: slide-top-out 0.2s forwards;
-    -webkit-animation: slide-top-out 0.2s forwards;
 }
 
 .slide-bottom-in {
     animation: slide-bottom-in 0.4s forwards;
-    -webkit-animation: slide-bottom-in 0.4s forwards;
 }
 
 .slide-bottom-out {
     animation: slide-bottom-out 0.1s forwards;
-    -webkit-animation: slide-bottom-out 0.1s forwards;
 }
 
 /** Fadein and Fadeout **/
@@ -366,9 +357,9 @@
 }
 
 .jcalendar-weekday {
-    font-weight:550;
-    background-color:#fcfcfc;
-    padding:14px;
+    font-weight: 600;
+    background-color: #fcfcfc;
+    padding: 14px;
 }
 
 .jcalendar thead td {
@@ -585,7 +576,6 @@
     z-index:10000;
     background:#fff;
     color: #555;
-    font-family: sans-serif;
     font-size: 11px;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -609,11 +599,12 @@
 .jcontextmenu > div {
     box-sizing: border-box;
     display: block;
-    padding: 6px 6px 6px 28px;
+    padding: 8px 8px 8px 28px;
     width: 250px;
     position: relative;
     cursor: default;
     font-size: 11px;
+    font-family:sans-serif;
 }
 
 .jcontextmenu > div a {
@@ -703,17 +694,17 @@
 
 .jdialog .jdialog-header .jdialog-message
 {
-    padding:4px;
+    padding: 4px;
 }
 
 .jdialog .jdialog-footer
 {
-    border-top:1px solid #ccc;
+    border-top: 1px solid #ccc;
     display: flex;
-    flex-wrap:row wrap;
+    flex-wrap: wrap;
     align-content: stretch;
-    align-items:center;
-    text-align:center;
+    align-items: center;
+    text-align: center;
 }
 
 .jdialog .jdialog-footer > div
@@ -730,12 +721,12 @@
 
 .jdialog .jdialog-footer input
 {
-    border:0px;
-    margin:0px;
-    background-color:transparent;
-    color:var(--active-color);
-    width:100%;
-    outline:none;
+    border: 0px;
+    margin: 0px;
+    background-color: transparent;
+    color: var(--active-color);
+    width: 100%;
+    outline: none;
 }
 
 /**
@@ -1152,7 +1143,7 @@
 .jdropdown-searchbar .jdropdown-description {
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width:calc(100%-20px);
+    max-width: calc(100% - 20px);
 }
 
 .jdropdown-searchbar .jdropdown-content > .jdropdown-item:first-child
@@ -1327,11 +1318,11 @@
 }
 
 .jeditor-toolbar .jtoolbar-divisor {
-    width:2px;
-    heigh:28px;
-    padding:0px;
-    margin:4px;
-    background-color:#f2f2f2;
+    width: 2px;
+    height: 28px;
+    padding: 0px;
+    margin: 4px;
+    background-color: #f2f2f2;
 }
 
 .jeditor-toolbar select option {
@@ -1482,7 +1473,6 @@
     -khtml-user-drag: none;
     -moz-user-drag: none;
     -o-user-drag: none;
-    user-drag: none;
 }
 
 .jeditor img {
@@ -1685,10 +1675,6 @@
     to { left: 100%; }
 }
 
-:root {
-    --active-color:#007aff;
-}
-
 @media only screen and (max-device-width : 800px)
 {
     .jsuites * {
@@ -1770,38 +1756,33 @@
 }
 */
 
-.japp button
-{
-    border-radius:4px;
-    width:100%;
-    border-color:1px solid var(--active-color);
-    color:var(--active-color);
-    background-color:transparent;
-    padding:4px;
-    outline:none;
+.japp button {
+    border-radius: 4px;
+    width: 100%;
+    border: 1px solid var(--active-color);
+    color: var(--active-color);
+    background-color: transparent;
+    padding: 4px;
+    outline: none;
 }
 
-.japp button:active
-{
-    border-color:1px solid #000;
-    color:#000;
+.japp button:active {
+    border: 1px solid #000;
+    color: #000;
 }
 
-.japp .red
-{
-    color:red;
-    border-color:1px solid red;
+.japp .red {
+    color: red;
+    border-color: 1px solid red;
 }
 
-.japp .link
-{
-    color:var(--active-color);
-    cursor:pointer;
+.japp .link {
+    color: var(--active-color);
+    cursor: pointer;
 }
 
-.japp .uppercase
-{
-    text-transform:uppercase;
+.japp .uppercase {
+    text-transform: uppercase;
 }
 
 /** Navbar **/
@@ -2503,7 +2484,7 @@
     width: 100%;
     height: 4px;
     cursor: pointer;
-    animate: 0.2s;
+    animation: 0.2s;
     background: #ccc;
     border-radius: 1.3px;
 }
@@ -2526,7 +2507,7 @@
 {
     width:100%;
     cursor:pointer;
-    animate:0.2s;
+    animation:0.2s;
     background:#ccc;
     border-radius:1.3px;
 }
@@ -2546,7 +2527,7 @@
 {
     width: 100%;
     cursor: pointer;
-    animate: 0.2s;
+    animation: 0.2s;
     background: transparent;
     border-color: transparent;
     border-width: 16px 0;
@@ -2740,22 +2721,22 @@
 
 .japp .options input::-webkit-input-placeholder
 {
-    text-tranform:uppercase;
+    text-transform:uppercase;
 }
 
 .japp .options input::-moz-placeholder
 {
-    text-tranform:uppercase;
+    text-transform:uppercase;
 }
 
 .japp .options input:-ms-input-placeholder
 {
-    text-tranform:uppercase;
+    text-transform:uppercase;
 }
 
 .japp .options input:-moz-placeholder
 {
-    text-tranform:uppercase;
+    text-transform:uppercase;
 }
 
 ::placeholder
@@ -2943,8 +2924,8 @@
         bottom: 0px;
     }
     .jnotification-container {
-        backgroun-color: #000;
-        background: rgba(92,92,92);
+        background-color: #000;
+        background: rgba(92,92,92,1);
         background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
         color: #fff;
         width: 320px;
