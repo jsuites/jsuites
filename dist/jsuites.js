@@ -4080,7 +4080,7 @@ jSuites.editor = (function(el, options) {
                 itemIcon.className = 'material-icons';
                 itemIcon.innerHTML = obj.options.toolbar[i].icon;
                 itemIcon.onclick = (function (a) {
-                    let b = a;
+                    var b = a;
                     return function () {
                         obj.options.toolbar[b].onclick(el, obj, this)
                     };
@@ -6288,7 +6288,7 @@ jSuites.toolbar = (function(el, options) {
     toolbar.appendChild(toolbarContent);
 
     for (var i = 0; i < options.items.length; i++) {
-        let toolbarItem = document.createElement('div');
+        var toolbarItem = document.createElement('div');
         toolbarItem.classList.add('jtoolbar-item');
         if (options.items[i].route) {
             toolbarItem.setAttribute('data-href', options.items[i].route);
