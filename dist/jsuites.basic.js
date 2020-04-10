@@ -2344,7 +2344,7 @@ jSuites.dropdown = (function(el, options) {
         item.element.className = 'jdropdown-item';
         item.value = data.id;
         item.text = data.name;
-        item.textLowerCase = data.name.toLowerCase();
+        item.textLowerCase = '' + data.name.toLowerCase();
 
         // Image
         if (data.image) {
@@ -2698,14 +2698,17 @@ jSuites.dropdown = (function(el, options) {
                 if (obj.options.position) {
                     container.style.position = 'fixed';
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.top = (rect.top - rectContainer.height - 2) + 'px';
+                        container.style.top = '';
+                        container.style.bottom = (window.innerHeight - rect.top ) + 1 + 'px';
                     } else {
-                        container.style.top = (rect.top + rect.height + 1) + 'px';
+                        container.style.top = rect.bottom + 'px';
+                        container.style.bottom = '';
                     }
                     container.style.left = rect.left + 'px';
                 } else {
                     if (window.innerHeight < rect.bottom + rectContainer.height) {
-                        container.style.bottom = (rect.height) + 'px';
+                        container.style.top = '';
+                        container.style.bottom = rect.height + 1 + 'px';
                     } else {
                         container.style.top = '';
                         container.style.bottom = '';
