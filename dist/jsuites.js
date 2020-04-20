@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components (v2.7)
+ * (c) jSuites Javascript Web Components (v2.8)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -29,6 +29,15 @@ var jSuites = function(options) {
             obj.el = app;
         } else {
             obj.el = document.body;
+        }
+
+        // Loading modules
+        var modules = document.querySelectorAll('[data-autoload]');
+        for (var i = 0; i < modules.length; i++) {
+            var m = modules[i].getAttribute('data-autoload');
+            if (typeof(window[m]) == 'function') {
+                window[m](modules[i]);
+            }
         }
     }
 
@@ -258,6 +267,7 @@ var jSuites = function(options) {
 
         var httpRequest = new XMLHttpRequest();
         httpRequest.open(options.method, options.url, true);
+        httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
         if (options.method == 'POST') {
             httpRequest.setRequestHeader('Accept', 'application/json');
@@ -269,8 +279,20 @@ var jSuites = function(options) {
         }
 
         // No cache
-        httpRequest.setRequestHeader('pragma', 'no-cache');
-        httpRequest.setRequestHeader('cache-control', 'no-cache');
+        if (options.cache != true) {
+            httpRequest.setRequestHeader('pragma', 'no-cache');
+            httpRequest.setRequestHeader('cache-control', 'no-cache');
+        }
+
+        // Authentication
+        if (options.withCredentials == true) {
+            httpRequest.withCredentials = true
+        }
+
+        // Before send
+        if (typeof(options.beforeSend) == 'function') {
+            options.beforeSend(httpRequest);
+        }
 
         httpRequest.onload = function() {
             if (httpRequest.status === 200) {
@@ -574,6 +596,14 @@ jSuites.calendar = (function(el, options) {
 
     // Default configuration
     var defaults = {
+        // Data
+        data: null,
+        // Inline or not
+        type: null,
+        // Restrictions
+        validRange: null,
+        // Starting weekday - 0 for sunday, 6 for saturday
+        startingDay: null, 
         // Date format
         format: 'DD/MM/YYYY',
         // Allow keyboard date entry
@@ -614,8 +644,10 @@ jSuites.calendar = (function(el, options) {
     }
 
     // Value
-    if (! obj.options.value && el.value) {
-        obj.options.value = el.value;
+    if (! obj.options.value) {
+        if (el.tagName == 'INPUT' && el.value) {
+            obj.options.value = el.value;
+        }
     }
 
     // Make sure use upper case in the format
@@ -658,9 +690,6 @@ jSuites.calendar = (function(el, options) {
         return value;
     }
 
-    // Element
-    el.classList.add('jcalendar-input');
-
     // Calendar elements
     var calendarReset = document.createElement('div');
     calendarReset.className = 'jcalendar-reset';
@@ -685,8 +714,17 @@ jSuites.calendar = (function(el, options) {
     calendarContent.appendChild(calendarControls);
     calendarContainer.appendChild(calendarContent);
 
+    // Table container
+    var calendarTableContainer = document.createElement('div');
+    calendarTableContainer.className = 'jcalendar-table';
+    calendarContent.appendChild(calendarTableContainer);
+
     // Main element
-    var calendar = document.createElement('div');
+    if (el.tagName == 'INPUT') {
+        var calendar = document.createElement('div');
+    } else {
+        var calendar = el;
+    }
     calendar.className = 'jcalendar';
     calendar.appendChild(calendarContainer);
 
@@ -730,7 +768,7 @@ jSuites.calendar = (function(el, options) {
     calendarTable.appendChild(calendarHeader);
     calendarTable.appendChild(calendarBody);
     calendarTable.appendChild(calendarFooter);
-    calendarContent.appendChild(calendarTable);
+    calendarTableContainer.appendChild(calendarTable);
 
     var calendarSelectHour = document.createElement('select');
     calendarSelectHour.className = 'jcalendar-select';
@@ -759,8 +797,8 @@ jSuites.calendar = (function(el, options) {
     }
 
     // Footer controls
-    var calendarControls = document.createElement('div');
-    calendarControls.className = 'jcalendar-controls';
+    var calendarControlsFooter = document.createElement('div');
+    calendarControlsFooter.className = 'jcalendar-controls';
 
     var calendarControlsTime = document.createElement('div');
     calendarControlsTime.className = 'jcalendar-time';
@@ -768,16 +806,36 @@ jSuites.calendar = (function(el, options) {
     calendarControlsTime.appendChild(calendarSelectHour);
     calendarControlsTime.appendChild(calendarSelectMin);
 
+    var calendarControlsUpdateButton = document.createElement('input');
+    calendarControlsUpdateButton.setAttribute('type', 'button');
+    calendarControlsUpdateButton.className = 'jcalendar-update';
+    calendarControlsUpdateButton.value = 'Update';
+
     var calendarControlsUpdate = document.createElement('div');
     calendarControlsUpdate.style.flexGrow = '10';
-    calendarControlsUpdate.innerHTML = '<input type="button" class="jcalendar-update" value="Update">'
-    calendarControls.appendChild(calendarControlsTime);
-    calendarControls.appendChild(calendarControlsUpdate);
-    calendarContent.appendChild(calendarControls);
+    calendarControlsUpdate.appendChild(calendarControlsUpdateButton);
+    calendarControlsFooter.appendChild(calendarControlsTime);
+    calendarControlsFooter.appendChild(calendarControlsUpdate);
+    calendarContent.appendChild(calendarControlsFooter);
 
     var calendarBackdrop = document.createElement('div');
     calendarBackdrop.className = 'jcalendar-backdrop';
     calendar.appendChild(calendarBackdrop);
+
+    // Update actions button
+    var updateActions = function() {
+        var currentDay = calendar.querySelector('.jcalendar-selected');
+
+        if (currentDay && currentDay.classList.contains('jcalendar-disabled')) {
+            calendarControlsUpdateButton.setAttribute('disabled', 'disabled');
+            calendarSelectHour.setAttribute('disabled', 'disabled');
+            calendarSelectMin.setAttribute('disabled', 'disabled');
+        } else {
+            calendarControlsUpdateButton.removeAttribute('disabled');
+            calendarSelectHour.removeAttribute('disabled');
+            calendarSelectMin.removeAttribute('disabled');
+        }
+    }
 
     // Methods
     obj.open = function (value) {
@@ -827,22 +885,34 @@ jSuites.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        // Current
-        jSuites.calendar.current = null;
+        if (jSuites.calendar.current) {
+            // Current
+            jSuites.calendar.current = null;
 
-        if (update != false && el.tagName == 'INPUT') {
-            obj.setValue(obj.getValue());
+            if (update !== false) {
+                var element = calendar.querySelector('.jcalendar-selected');
+
+                if (typeof(update) == 'string') {
+                    var value = update;
+                } else if (element && element.classList.contains('jcalendar-disabled')) {
+                    var value = obj.options.value
+                } else {
+                    var value = obj.getValue();
+                }
+
+                obj.setValue(value);
+            }
+
+            // Events
+            if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
+                obj.options.onclose(el);
+            }
+
+            // Hide
+            calendar.classList.remove('jcalendar-focus');
         }
 
-        // Animation
-        if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
-            obj.options.onclose(el);
-        }
-
-        // Hide
-        calendar.classList.remove('jcalendar-focus');
-
-        return obj.getValue(); 
+        return obj.options.value;
     }
 
     obj.prev = function() {
@@ -876,10 +946,10 @@ jSuites.calendar = (function(el, options) {
         } else {
             // Go to the previous month
             if (obj.date[1] > 11) {
-                obj.date[0] = obj.date[0] + 1;
+                obj.date[0] = parseInt(obj.date[0]) + 1;
                 obj.date[1] = 1;
             } else {
-                obj.date[1] = obj.date[1] + 1;
+                obj.date[1] = parseInt(obj.date[1]) + 1;
             }
 
             // Update picker table of days
@@ -888,35 +958,42 @@ jSuites.calendar = (function(el, options) {
     }
 
     obj.setValue = function(val) {
-        if (val) {
-            // Keep value
-            obj.options.value = val;
-            // Set label
-            var value = obj.setLabel(val, obj.options.format);
-            var date = obj.options.value.split(' ');
-            if (! date[1]) {
-                date[1] = '00:00:00';
-            }
-            var time = date[1].split(':')
-            var date = date[0].split('-');
-            var y = parseInt(date[0]);
-            var m = parseInt(date[1]);
-            var d = parseInt(date[2]);
-            var h = parseInt(time[0]);
-            var i = parseInt(time[1]);
-            obj.date = [ y, m, d, h, i, 0 ];
-            var val = obj.setLabel(val, obj.options.format);
-
-            if (el.value != val) {
-                el.value = val;
-                // On change
-                if (typeof(obj.options.onchange) ==  'function') {
-                    obj.options.onchange(el, val, obj.date);
-                }
-            }
-
-            obj.getDays();
+        if (! val) {
+            val = '' + val;
         }
+        // Values
+        var newValue = val;
+        var oldValue = obj.options.value;
+        // Set label
+        var value = obj.setLabel(newValue, obj.options.format);
+        var date = newValue.split(' ');
+        if (! date[1]) {
+            date[1] = '00:00:00';
+        }
+        var time = date[1].split(':')
+        var date = date[0].split('-');
+        var y = parseInt(date[0]);
+        var m = parseInt(date[1]);
+        var d = parseInt(date[2]);
+        var h = parseInt(time[0]);
+        var i = parseInt(time[1]);
+        obj.date = [ y, m, d, h, i, 0 ];
+        var val = obj.setLabel(newValue, obj.options.format);
+
+        if (oldValue != newValue) {
+            // Input value
+            if (el.tagName == 'INPUT') {
+                el.value = val;
+            }
+            // New value
+            obj.options.value = newValue;
+            // On change
+            if (typeof(obj.options.onchange) ==  'function') {
+                obj.options.onchange(el, newValue, oldValue);
+            }
+        }
+
+        obj.getDays();
     }
 
     obj.getValue = function() {
@@ -932,35 +1009,38 @@ jSuites.calendar = (function(el, options) {
     }
 
     /**
-     * Update calendar
+     *  Calendar
      */
     obj.update = function(element) {
-        obj.date[2] = element.innerText;
-
-        if (! obj.options.time) {
-            obj.close();
+        if (element.classList.contains('jcalendar-disabled')) {
+            // Do nothing
         } else {
-            obj.date[3] = calendarSelectHour.value;
-            obj.date[4] = calendarSelectMin.value;
+            obj.date[2] = element.innerText;
+
+            if (! obj.options.time) {
+                obj.close();
+            } else {
+                obj.date[3] = calendarSelectHour.value;
+                obj.date[4] = calendarSelectMin.value;
+            }
+
+            var elements = calendar.querySelector('.jcalendar-selected');
+            if (elements) {
+                elements.classList.remove('jcalendar-selected');
+            }
+            element.classList.add('jcalendar-selected');
         }
 
-        var elements = calendar.querySelector('.jcalendar-selected');
-        if (elements) {
-            elements.classList.remove('jcalendar-selected');
-        }
-        element.classList.add('jcalendar-selected')
+        // Update
+        updateActions();
     }
 
     /**
      * Set to blank
      */
     obj.reset = function() {
-        // Clear element
-        obj.date = null;
-        // Reset element
-        el.value = '';
         // Close calendar
-        obj.close();
+        obj.close(false, '');
     }
 
     /**
@@ -970,38 +1050,40 @@ jSuites.calendar = (function(el, options) {
         // Mode
         obj.options.mode = 'days';
 
-        // Variables
-        var d = 0;
-        var today = 0;
-        var today_d = 0;
-        var calendar_day;
-
         // Setting current values in case of NULLs
         var date = new Date();
 
+        // Current selection
         var year = obj.date && obj.date[0] ? obj.date[0] : parseInt(date.getFullYear());
         var month = obj.date && obj.date[1] ? obj.date[1] : parseInt(date.getMonth()) + 1;
         var day = obj.date && obj.date[2] ? obj.date[2] : parseInt(date.getDay());
         var hour = obj.date && obj.date[3] ? obj.date[3] : parseInt(date.getHours());
         var min = obj.date && obj.date[4] ? obj.date[4] : parseInt(date.getMinutes());
 
+        // Selection container
         obj.date = [year, month, day, hour, min, 0 ];
 
         // Update title
         calendarLabelYear.innerHTML = year;
         calendarLabelMonth.innerHTML = obj.options.months[month - 1];
 
-        // Flag if this is the current month and year
-        if ((date.getMonth() == month-1) && (date.getFullYear() == year)) {
-            today = 1;
-            today_d = date.getDate();
-        }
+        // Current month and Year
+        var isCurrentMonthAndYear = (date.getMonth() == month - 1) && (date.getFullYear() == year) ? true : false;
+        var currentDay = date.getDate();
 
+        // Number of days in the month
         var date = new Date(year, month, 0, 0, 0);
-        var nd = date.getDate();
+        var numberOfDays = date.getDate();
 
-        var date = new Date(year, month-1, 0, hour, min);
-        var fd = date.getDay() + 1;
+        // First day
+        var date = new Date(year, month-1, 0, 0, 0);
+        var firstDay = date.getDay() + 1;
+
+        // Index value
+        var index = obj.options.startingDay || 0;
+
+        // First of day relative to the starting calendar weekday
+        firstDay = firstDay - index;
 
         // Reset table
         calendarBody.innerHTML = '';
@@ -1011,70 +1093,86 @@ jSuites.calendar = (function(el, options) {
         row.setAttribute('align', 'center');
         calendarBody.appendChild(row);
 
+        // Create weekdays row
         for (var i = 0; i < 7; i++) {
             var cell = document.createElement('td');
-            cell.setAttribute('width', '30');
             cell.classList.add('jcalendar-weekday')
-            cell.innerHTML = obj.options.weekdays_short[i];
+            cell.innerHTML = obj.options.weekdays_short[index];
             row.appendChild(cell);
+            // Next week day
+            index++;
+            // Restart index
+            if (index > 6) {
+                index = 0;
+            }
         }
 
-        // Avoid a blank line
-        if (fd == 7) {
-            var j = 7;
-        } else {
-            var j = 0;
-        }
+        // Index of days
+        var index = 0;
+        var d = 0;
+ 
+        // Calendar table
+        for (var j = 0; j < 5; j++) {
+            // Reset cells container
+            var row = document.createElement('tr');
+            row.setAttribute('align', 'center');
+            // Data control
+            var emptyRow = true;
+            // Create cells
+            for (var i = 0; i < 7; i++) {
+                // Create cell
+                var cell = document.createElement('td');
+                cell.classList.add('jcalendar-set-day');
 
-        // Days inside the table
-        var row = document.createElement('tr');
-        row.setAttribute('align', 'center');
-        calendarBody.appendChild(row);
-
-        // Days in the month
-        for (var i = j; i < (Math.ceil((nd + fd) / 7) * 7); i++) {
-            // Create row
-            if ((i > 0) && (!(i % 7))) {
-                var row = document.createElement('tr');
-                row.setAttribute('align', 'center');
-                calendarBody.appendChild(row);
-            }
-
-            if ((i >= fd) && (i < nd + fd)) {
-                d += 1;
-            } else {
-                d = 0;
-            }
-
-            // Create cell
-            var cell = document.createElement('td');
-            cell.setAttribute('width', '30');
-            cell.classList.add('jcalendar-set-day');
-            row.appendChild(cell);
-
-            if (d == 0) {
-                cell.innerHTML = '';
-            } else {
-                if (d < 10) {
-                    cell.innerHTML = 0 + d;
-                } else {
+                if (index >= firstDay && index < (firstDay + numberOfDays)) {
+                    // Day cell
+                    d++;
                     cell.innerHTML = d;
+
+                    // Selected
+                    if (d == day) {
+                        cell.classList.add('jcalendar-selected');
+                    }
+
+                    // Current selection day is today
+                    if (isCurrentMonthAndYear && currentDay == d) {
+                        cell.style.fontWeight = 'bold';
+                    }
+
+                    // Current selection day
+                    var current = jSuites.calendar.now(new Date(year, month-1, d), true);
+
+                    // Available ranges
+                    if (obj.options.validRange) {
+                        if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                            var test1 = true;
+                        } else {
+                            var test1 = false;
+                        }
+
+                        if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+                            var test2 = true;
+                        } else {
+                            var test2 = false;
+                        }
+
+                        if (! (test1 && test2)) {
+                            cell.classList.add('jcalendar-disabled');
+                        }
+                    }
+
+                    // Control
+                    emptyRow = false;
                 }
+                // Day cell
+                row.appendChild(cell);
+                // Index
+                index++;
             }
 
-            // Selected
-            if (d && d == day) {
-                cell.classList.add('jcalendar-selected');
-            }
-
-            // Sundays
-            if (! (i % 7)) {
-                cell.style.color = 'red';
-            }
-
-            // Today
-            if ((today == 1) && (today_d == d)) {
-                cell.style.fontWeight = 'bold';
+            // Add cell to the calendar body
+            if (emptyRow == false) {
+                calendarBody.appendChild(row);
             }
         }
 
@@ -1084,6 +1182,9 @@ jSuites.calendar = (function(el, options) {
         } else {
             calendarControlsTime.style.display = 'none';
         }
+
+        // Update
+        updateActions();
     }
 
     obj.getMonths = function() {
@@ -1145,18 +1246,6 @@ jSuites.calendar = (function(el, options) {
 
     obj.fromFormatted = function (value, format) {
         return jSuites.calendar.extractDateFromString(value, format);
-    }
-
-    // Add properties
-    el.setAttribute('autocomplete', 'off');
-    el.setAttribute('data-mask', obj.options.format.toLowerCase());
-
-    if (obj.options.readonly) {
-        el.setAttribute('readonly', 'readonly');
-    }
-
-    if (obj.options.placeholder) {
-        el.setAttribute('placeholder', obj.options.placeholder);
     }
 
     var mouseUpControls = function(e) {
@@ -1225,10 +1314,6 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
-    var verifyControls = function(e) {
-        console.log(e.target.className)
-    }
-
     // Handle events
     el.addEventListener("keyup", keyUpControls);
 
@@ -1266,7 +1351,23 @@ jSuites.calendar = (function(el, options) {
     }
 
     // Append element to the DOM
-    el.parentNode.insertBefore(calendar, el.nextSibling);
+    if (el.tagName == 'INPUT') {
+        el.parentNode.insertBefore(calendar, el.nextSibling);
+        // Add properties
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('data-mask', obj.options.format.toLowerCase());
+
+        if (obj.options.readonly) {
+            el.setAttribute('readonly', 'readonly');
+        }
+        if (obj.options.placeholder) {
+            el.setAttribute('placeholder', obj.options.placeholder);
+        }
+        // Element
+        el.classList.add('jcalendar-input');
+        // Value
+        el.value = obj.setLabel(obj.getValue(), obj.options.format);
+    }
 
     // Keep object available from the node
     el.calendar = obj;
@@ -1330,8 +1431,10 @@ jSuites.calendar.prettifyAll = function() {
     }
 }
 
-jSuites.calendar.now = function() {
-    var date = new Date();
+jSuites.calendar.now = function(date, dateOnly) {
+    if (! date) {
+        var date = new Date();
+    }
     var y = date.getFullYear();
     var m = date.getMonth() + 1;
     var d = date.getDate();
@@ -1348,7 +1451,11 @@ jSuites.calendar.now = function() {
         return value;
     }
 
-    return two(y) + '-' + two(m) + '-' + two(d) + ' ' + two(h) + ':' + two(i) + ':' + two(s);
+    if (dateOnly == true) {
+        return two(y) + '-' + two(m) + '-' + two(d);
+    } else {
+        return two(y) + '-' + two(m) + '-' + two(d) + ' ' + two(h) + ':' + two(i) + ':' + two(s);
+    }
 }
 
 // Helper to extract date from a string
@@ -1495,7 +1602,7 @@ jSuites.calendar.getDateString = function(value, format) {
 jSuites.calendar.isOpen = function(e) {
     if (jSuites.calendar.current) {
         if (! e.target.className || e.target.className.indexOf('jcalendar') == -1) {
-            jSuites.calendar.current.close();
+            jSuites.calendar.current.close(false, false);
         }
     }
 }
@@ -1528,6 +1635,7 @@ jSuites.color = (function(el, options) {
         value: null,
         onclose: null,
         onchange: null,
+        closeOnChange: true,
     };
 
     // Loop through our object
@@ -1846,9 +1954,9 @@ jSuites.color = (function(el, options) {
                 const rect = el.getBoundingClientRect();
 
                 if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = -1 * (rectContent.height + 2) + 'px';
+                    content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
                 } else {
-                    content.style.top = rect.height + 'px';
+                    content.style.top = '2px';
                 }
             }
 
@@ -1896,6 +2004,10 @@ jSuites.color = (function(el, options) {
         if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, color);
         }
+
+        if (obj.options.closeOnChange == true) {
+            obj.close();
+        }
     }
 
     /**
@@ -1913,14 +2025,22 @@ jSuites.color = (function(el, options) {
     });
 
     el.addEventListener("mousedown", function(e) {
+        if (! jSuites.color.current) {
+            setTimeout(function() {
         obj.open();
+                e.preventDefault();
+            }, 200);
+        }
     });
 
     // Select color
     container.addEventListener("mouseup", function(e) {
         if (e.target.tagName == 'TD') {
             jSuites.color.current.setValue(e.target.getAttribute('data-value'));
-            jSuites.color.current.close();
+
+            if (jSuites.color.current) {
+                jSuites.color.current.close();
+            }
         }
     });
 
@@ -1947,7 +2067,11 @@ jSuites.color = (function(el, options) {
     container.appendChild(content);
 
     // Insert picker after the element
-    el.parentNode.insertBefore(container, el);
+    if (el.tagName == 'INPUT') {
+        el.parentNode.insertBefore(container, el.nextSibling);
+    } else {
+        el.appendChild(container);
+    }
 
     // Keep object available from the node
     el.color = obj;
@@ -2534,6 +2658,9 @@ jSuites.dropdown = (function(el, options) {
         // Data
         var data = obj.options.data;
 
+        // Remove content from the DOM
+        container.removeChild(content);
+
         // Make sure the content container is blank
         content.innerHTML = '';
 
@@ -2615,6 +2742,9 @@ jSuites.dropdown = (function(el, options) {
                 obj.items[i].element.setAttribute('data-index', i);
             }
         }
+
+        // Re-insert the content to the container
+        container.appendChild(content);
     }
 
     obj.getText = function(asArray) {
@@ -4604,8 +4734,10 @@ jSuites.login = (function(el, options) {
         accessToken: null,
         deviceToken: null,
         facebookUrl: null,
+        facebookAuthentication: null,
         maxHeight: null,
         onload: null,
+        onsuccess: null,
         onerror: null,
         message: null,
         logo: null,
@@ -4613,6 +4745,7 @@ jSuites.login = (function(el, options) {
         newProfileUrl: false,
         newProfileLogin: false,
         fullscreen: false,
+        newPasswordValidation: null,
     };
 
     // Loop through our object
@@ -4713,7 +4846,7 @@ jSuites.login = (function(el, options) {
 
     // Password
     var labelPassword = document.createElement('label');
-    labelPassword.innerHTML = 'Password';
+    labelPassword.innerHTML = 'New password';
     var inputPassword = document.createElement('input');
     inputPassword.type = 'password';
     inputPassword.name = 'password';
@@ -4729,7 +4862,7 @@ jSuites.login = (function(el, options) {
 
     // Repeat password
     var labelRepeatPassword = document.createElement('label');
-    labelRepeatPassword.innerHTML = 'Password';
+    labelRepeatPassword.innerHTML = 'Repeat the new password';
     var inputRepeatPassword = document.createElement('input');
     inputRepeatPassword.type = 'password';
     inputRepeatPassword.name = 'password';
@@ -4841,7 +4974,9 @@ jSuites.login = (function(el, options) {
         container.appendChild(divName);
         container.appendChild(divUsername);
         container.appendChild(divActionButton);
-        container.appendChild(divFacebookButton);
+        if (obj.options.facebookAuthentication == true) {
+            container.appendChild(divFacebookButton);
+        }
         container.appendChild(divCancelButton);
 
         // Reset inputs
@@ -4924,7 +5059,9 @@ jSuites.login = (function(el, options) {
         container.appendChild(divUsername);
         container.appendChild(divPassword);
         container.appendChild(divActionButton);
-        container.appendChild(divFacebookButton);
+        if (obj.options.facebookAuthentication == true) {
+            container.appendChild(divFacebookButton);
+        }
         container.appendChild(divRequestButton);
         container.appendChild(divRememberButton);
         container.appendChild(divRequestButton);
@@ -5004,7 +5141,7 @@ jSuites.login = (function(el, options) {
                 jDestroy();
             }
 
-            fbLogin = window.open(this.facebookUrl, "_blank", "location=no,closebuttoncaption=Exit,disallowoverscroll=yes,toolbar=no");
+            fbLogin = window.open(obj.options.facebookUrl, "_blank", "location=no,closebuttoncaption=Exit,disallowoverscroll=yes,toolbar=no");
             fbLogin.addEventListener('loadstart', jStart);
             fbLogin.addEventListener('loaderror', jError);
             fbLogin.addEventListener('exit', jExit);
@@ -5026,6 +5163,24 @@ jSuites.login = (function(el, options) {
             var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
             if (! inputLogin.value || ! pattern.test(inputLogin.value)) {
                 var message = 'Invalid username, please use only characters and numbers';
+            }
+
+            if (message) {
+                obj.showMessage(message);
+                return false;
+            }
+        } else if (action == 'changeMyPassword') {
+            if (inputPassword.value.length < 3) {
+                var message = 'Password is too short';
+            } else  if (inputPassword.value != inputRepeatPassword.value) {
+                var message = 'Password should match';
+            } else {
+                if (typeof(obj.options.newPasswordValidation) == 'function') {
+                    var val = obj.options.newPasswordValidation(obj, inputPassword.value, inputPassword.value);
+                    if (val != undefined) {
+                        message = val;
+                    }
+                }
             }
 
             if (message) {
@@ -5103,8 +5258,8 @@ jSuites.login = (function(el, options) {
                 } else if (result.url) {
                     // App initialization
                     if (result.success == 1) {
-                        if (typeof(obj.options.onload) == 'function') {
-                            obj.options.onload(result);
+                        if (typeof(obj.options.onsuccess) == 'function') {
+                            obj.options.onsuccess(result);
                         } else {
                             if (result.message) {
                                 setTimeout(function() { window.location.href = result.url; }, 2000);
@@ -5163,7 +5318,12 @@ jSuites.login = (function(el, options) {
         });
     }
 
-    obj.requestAccess();
+    var queryString = window.location.href.split('?');
+    if (queryString[1] && queryString[1].length == 130 && queryString[1].substr(0,2) == 'h=') {
+        obj.changeMyPassword(queryString[1].substr(2));
+    } else {
+        obj.requestAccess();
+    }
 
     return obj;
 });
@@ -5496,37 +5656,39 @@ jSuites.mask = (function() {
     }
 
     obj.apply = function(e) {
-        var mask = e.target.getAttribute('data-mask');
-        if (mask && e.keyCode > 46) {
-            index = 0;
-            values = [];
-            // Create mask token
-            obj.prepare(mask);
-            // Current value
-            if (e.target.selectionStart < e.target.selectionEnd) {
-                var currentValue = e.target.value.substring(0, e.target.selectionStart); 
-            } else {
-                var currentValue = e.target.value;
-            }
-            if (currentValue) {
-                // Checking current value
-                for (var i = 0; i < currentValue.length; i++) {
-                    if (currentValue[i] != null) {
-                        obj.process(currentValue[i]);
+        if (e.target && ! e.target.getAttribute('readonly')) {
+            var mask = e.target.getAttribute('data-mask');
+            if (mask && e.keyCode > 46) {
+                index = 0;
+                values = [];
+                // Create mask token
+                obj.prepare(mask);
+                // Current value
+                if (e.target.selectionStart < e.target.selectionEnd) {
+                    var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                } else {
+                    var currentValue = e.target.value;
+                }
+                if (currentValue) {
+                    // Checking current value
+                    for (var i = 0; i < currentValue.length; i++) {
+                        if (currentValue[i] != null) {
+                            obj.process(currentValue[i]);
+                        }
                     }
                 }
+                // New input
+                obj.process(obj.fromKeyCode(e));
+                // Update value to the element
+                e.target.value = values.join('');
+                if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
+                    e.target.setAttribute('data-completed', 'true');
+                } else {
+                    e.target.setAttribute('data-completed', 'false');
+                }
+                // Prevent default
+                e.preventDefault();
             }
-            // New input
-            obj.process(obj.fromKeyCode(e));
-            // Update value to the element
-            e.target.value = values.join('');
-            if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
-                e.target.setAttribute('data-completed', 'true');
-            } else {
-                e.target.setAttribute('data-completed', 'false');
-            }
-            // Prevent default
-            e.preventDefault();
         }
     }
 
@@ -7220,8 +7382,15 @@ jSuites.tabs = (function(el, options) {
     // Default configuration
     var defaults = {
         data: null,
-        onchange: null,
+        allowCreate: false,
         onload: null,
+        onchange: null,
+        oncreate: null,
+        animation: false,
+        create: null,
+        autoName: false,
+        prefixName: '',
+        hideHeaders: false,
     };
 
     // Loop through the initial configuration
@@ -7235,6 +7404,99 @@ jSuites.tabs = (function(el, options) {
 
     // Class
     el.classList.add('jtabs');
+
+    if (obj.options.animation == true) {
+        // Border
+        var border = document.createElement('div');
+        border.className = 'jtabs-border';
+        el.appendChild(border);
+
+        var setBorder = function(index) {
+            var rect = headers.children[index].getBoundingClientRect();
+            var rectContent = content.children[index].getBoundingClientRect();
+            border.style.width = rect.width + 'px';
+            border.style.left = (rect.left - rectContent.left) + 'px';
+            border.style.top = rect.height + 'px';
+        }
+    }
+
+    // Set value
+    obj.open = function(index) {
+        for (var i = 0; i < headers.children.length; i++) {
+            headers.children[i].classList.remove('jtabs-selected');
+            if (content.children[i]) {
+                content.children[i].classList.remove('jtabs-selected');
+            }
+        }
+
+        headers.children[index].classList.add('jtabs-selected');
+        if (content.children[index]) {
+            content.children[index].classList.add('jtabs-selected');
+        }
+
+        // Hide
+        if (obj.options.hideHeaders == true && (headers.children.length < 2 && obj.options.allowCreate == false)) {
+            headers.style.display = 'none';
+        } else {
+            headers.style.display = '';
+            // Set border
+            if (obj.options.animation == true) {
+                setTimeout(function() {
+                    setBorder(index);
+                }, 100);
+            }
+        }
+    }
+
+    obj.selectIndex = function(a) {
+        var index = Array.prototype.indexOf.call(headers.children, a);
+        if (index >= 0) {
+            obj.open(index);
+        }
+    }
+
+    obj.create = function(title, div) {
+        if (typeof(obj.options.create) == 'function') {
+            obj.options.create();
+        } else {
+            obj.appendElement(title, div);
+
+            if (typeof(obj.options.oncreate) == 'function') {
+                obj.options.oncreate(el, div)
+            }
+        }
+    }
+
+    obj.appendElement = function(title, div) {
+        if (! title) {
+            if (obj.options.autoName == true) {
+                var title = obj.options.prefixName;
+                title += ' ' + (parseInt(content.children.length) + 1);
+            } else {
+                var title = prompt('Title?', '');
+            }
+        }
+
+        if (title) {
+            // Add headers
+            var header = document.createElement('div');
+            header.innerHTML = title;
+            if (obj.options.allowCreate) {
+                headers.insertBefore(header, headers.lastChild);
+            } else {
+                headers.appendChild(header);
+            }
+
+            // Add content
+            if (! div) {
+                var div = document.createElement('div');
+            }
+            content.appendChild(div);
+
+            // Open new tab
+            obj.selectIndex(header);
+        }
+    }
 
     // Create from data
     if (obj.options.data) {
@@ -7266,6 +7528,8 @@ jSuites.tabs = (function(el, options) {
                     complete: function() {
                         if (typeof(obj.options.onload) == 'function') {
                             obj.options.onload(el);
+
+                            obj.open(0);
                         }
                     }
                 });
@@ -7277,49 +7541,35 @@ jSuites.tabs = (function(el, options) {
         var content = el.children[1];
         headers.classList.add('jtabs-headers');
         content.classList.add('jtabs-content');
+    } else {
+        el.innerHTML = '';
+        var headers = document.createElement('div');
+        var content = document.createElement('div');
+        headers.classList.add('jtabs-headers');
+        content.classList.add('jtabs-content');
+        el.appendChild(headers);
+        el.appendChild(content);
     }
 
-    // Border
-    var border = document.createElement('div');
-    border.className = 'jtabs-border';
-    el.appendChild(border);
-
-    var setBorder = function(index) {
-        var rect = headers.children[index].getBoundingClientRect();
-        border.style.width = rect.width + 'px';
-        border.style.top = rect.top + rect.height - 2 + 'px';
-        border.style.left = rect.left + 'px';
-    }
-
-    // Set value
-    obj.open = function(index) {
-        for (var i = 0; i < headers.children.length; i++) {
-            headers.children[i].classList.remove('jtabs-selected');
-            if (content.children[i]) {
-                content.children[i].classList.remove('jtabs-selected');
-            }
-        }
-
-        headers.children[index].classList.add('jtabs-selected');
-        if (content.children[index]) {
-            content.children[index].classList.add('jtabs-selected');
-        }
-
-        // Set border
-        setTimeout(function() {
-            setBorder(index);
-        }, 10);
+    // New
+    if (obj.options.allowCreate == true) {
+        var add = document.createElement('i');
+        add.className = 'jtabs-add';
+        headers.appendChild(add);
     }
 
     // Events
     headers.addEventListener("click", function(e) {
-        var index = Array.prototype.indexOf.call(headers.children, e.target);
-        if (index >= 0) {
-            obj.open(index);
+        if (e.target.tagName == 'DIV') {
+            obj.selectIndex(e.target);
+        } else {
+            obj.create();
         }
     });
 
-    obj.open(0);
+    if (headers.children.length) {
+        obj.open(0);
+    }
 
     el.tabs = obj;
 
@@ -7346,6 +7596,7 @@ jSuites.tags = (function(el, options) {
     var defaults = {
         value: null,
         limit: null,
+        limitMessage: 'The limit of entries is: ',
         search: null,
         placeholder: null,
         validation: null,
@@ -7376,7 +7627,7 @@ jSuites.tags = (function(el, options) {
      * Add a new tag to the element
      * @param {(?string|Array)} value - The value of the new element
      */
-    obj.add = function(value) {
+    obj.add = function(value, focus) {
         if (typeof(obj.options.onbeforechange) == 'function') {
             var v = obj.options.onbeforechange(el, obj, value);
             if (v != null) {
@@ -7388,46 +7639,51 @@ jSuites.tags = (function(el, options) {
         if (searchContainer) {
             searchContainer.style.display = '';
         }
-        // Get node
-        var node = getSelectionStart();
 
-        // Mix argument string or array
-        if (! value || typeof(value) == 'string') {
-            var div = document.createElement('div');
-            div.innerHTML = value ? value : '<br>';
-            if (node && node.parentNode.classList.contains('jtags')) {
-                el.insertBefore(div, node.nextSibling);
-            } else {
-                el.appendChild(div);
-            }
+        if (obj.options.limit > 0 && el.children.length >= obj.options.limit) {
+            alert(obj.options.limitMessage + ' ' + obj.options.limit);
         } else {
-            if (node && node.parentNode.classList.contains('jtags')) {
-                if (! node.innerText.replace("\n", "")) {
-                    el.removeChild(node);
+            // Get node
+            var node = getSelectionStart();
+
+            // Mix argument string or array
+            if (! value || typeof(value) == 'string') {
+                var div = document.createElement('div');
+                div.innerHTML = value ? value : '<br>';
+                if (node && node.parentNode.classList.contains('jtags')) {
+                    el.insertBefore(div, node.nextSibling);
+                } else {
+                    el.appendChild(div);
+                }
+            } else {
+                if (node && node.parentNode.classList.contains('jtags')) {
+                    if (! node.innerText.replace("\n", "")) {
+                        el.removeChild(node);
+                    }
+                }
+
+                for (var i = 0; i <= value.length; i++) {
+                    if (! obj.options.limit || el.children.length < obj.options.limit) {
+                        var div = document.createElement('div');
+                        div.innerHTML = value[i] ? value[i] : '<br>';
+                        el.appendChild(div);
+                    }
                 }
             }
 
-            for (var i = 0; i < value.length; i++) {
-                var div = document.createElement('div');
-                div.innerHTML = value[i] ? value[i] : '<br>';
-                el.appendChild(div);
-            };
+            // Place caret
+            if (focus) {
+                setTimeout(function() {
+                    caret(div);
+                }, 0);
+            }
 
-            var div = document.createElement('div');
-            div.innerHTML = '<br>';
-            el.appendChild(div);
-        }
+            // Filter
+            filter();
 
-        // Place caret
-        setTimeout(function() {
-            caret(div);
-        }, 0);
-
-        // Filter
-        filter();
-
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value ? value : '');
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, obj, value ? value : '');
+            }
         }
     }
 
@@ -7487,7 +7743,6 @@ jSuites.tags = (function(el, options) {
         if (text) {
             // Tags
             var data = extractTags(text);
-            console.log(data);
             // Add tags to the element
             obj.add(data);
         }
@@ -7702,6 +7957,7 @@ jSuites.tags = (function(el, options) {
                 if (text[i] == ',' || text[i] == ';' || text[i] == '\r\n') {
                     if (word) {
                         data.push(word);
+                        word = '';
                     }
                 } else {
                     word += text[i];
@@ -7737,7 +7993,9 @@ jSuites.tags = (function(el, options) {
         if (e.which == 9 || e.which == 186 || e.which == 188) {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
-                obj.add();
+                if (! obj.options.limit || el.children.length < obj.options.limit) {
+                    obj.add('', true);
+                }
             }
             e.preventDefault();
         } else if (e.which == 13) {
@@ -7747,7 +8005,9 @@ jSuites.tags = (function(el, options) {
             } else {
                 var n = window.getSelection().anchorOffset;
                 if (n > 1) {
-                    obj.add();
+                    if (! obj.options.limit || el.children.length < obj.options.limit) {
+                        obj.add('', true);
+                    }
                 }
             }
             e.preventDefault();
@@ -7848,9 +8108,11 @@ jSuites.tags = (function(el, options) {
      */
     var tagsFocus = function(e) {
         if (! el.children.length || obj.getValue(el.children.length - 1)) {
-            var div = document.createElement('div');
-            div.innerHTML = '<br>';
-            el.appendChild(div);
+            if (! obj.options.limit || el.children.length < obj.options.limit) {
+                var div = document.createElement('div');
+                div.innerHTML = '<br>';
+                el.appendChild(div);
+            }
         }
 
         if (typeof(obj.options.onfocus) == 'function') {

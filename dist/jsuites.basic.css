@@ -274,19 +274,19 @@
     background-color:#fff;
 }
 
-.jcalendar-content > table {
+.jcalendar-table > table {
     width:100%;
     background-color:#fff;
 }
 
-.jcalendar-content > table > tbody td {
+.jcalendar-table > table > tbody td {
     box-sizing:border-box;
     cursor:pointer;
     padding:9px;
     font-size:0.9em;
 }
 
-.jcalendar-content > table > thead {
+.jcalendar-table > table > thead {
     cursor:pointer;
 }
 
@@ -296,7 +296,7 @@
 
 .jcalendar-header span {
     margin-right:4px;
-    font-size:1.2em;
+    font-size:1.1em;
     font-weight:bold;
 }
 
@@ -425,9 +425,15 @@
     display:block;
 }
 
+.jcalendar-sunday {
+    color: red;
+}
+.jcalendar-disabled {
+    color: #ccc;
+}
 
 .jcolor {
-    position: relative;
+    position: absolute;
     display: none;
     outline: none;
 }
@@ -534,7 +540,6 @@
     z-index:10000;
     background:#fff;
     color: #555;
-    font-family: sans-serif;
     font-size: 11px;
     -webkit-user-select: none;
     -moz-user-select: none;
@@ -558,11 +563,12 @@
 .jcontextmenu > div {
     box-sizing: border-box;
     display: block;
-    padding: 6px 6px 6px 28px;
+    padding: 8px 8px 8px 28px;
     width: 250px;
     position: relative;
     cursor: default;
     font-size: 11px;
+    font-family:sans-serif;
 }
 
 .jcontextmenu > div a {
@@ -1226,3 +1232,6 @@
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
+
+
+

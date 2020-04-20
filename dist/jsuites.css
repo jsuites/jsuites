@@ -316,19 +316,19 @@
     background-color:#fff;
 }
 
-.jcalendar-content > table {
+.jcalendar-table > table {
     width:100%;
     background-color:#fff;
 }
 
-.jcalendar-content > table > tbody td {
+.jcalendar-table > table > tbody td {
     box-sizing:border-box;
     cursor:pointer;
     padding:9px;
     font-size:0.9em;
 }
 
-.jcalendar-content > table > thead {
+.jcalendar-table > table > thead {
     cursor:pointer;
 }
 
@@ -338,7 +338,7 @@
 
 .jcalendar-header span {
     margin-right:4px;
-    font-size:1.2em;
+    font-size:1.1em;
     font-weight:bold;
 }
 
@@ -467,9 +467,15 @@
     display:block;
 }
 
+.jcalendar-sunday {
+    color: red;
+}
+.jcalendar-disabled {
+    color: #ccc;
+}
 
 .jcolor {
-    position: relative;
+    position: absolute;
     display: none;
     outline: none;
 }
@@ -3064,32 +3070,31 @@
 
 .jtabs {
     max-width: calc(100vw - 24px);
+    position: relative;
 }
 .jtabs > .jtabs-headers {
     display: flex;
-    padding: 6px;
     overflow-x: auto;
 }
 
 .jtabs > .jtabs-headers > div {
-    padding: 8px;
+    padding: 6px;
     padding-left: 20px;
     padding-right: 20px;
-    margin-right: 5px;
-    margin-bottom: 5px;
-    background-color: #f4f4f4;
-    color: #888;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-bottom: 1px;
+    background-color: #f1f1f1;
     cursor: pointer;
 }
 
 .jtabs > .jtabs-headers > div.jtabs-selected {
-    background-color: #eee;
+    background-color: #e8e8e8;
     color: #000;
 }
 
 .jtabs > .jtabs-content > div {
     display: none;
-    padding: 10px;
 }
 
 .jtabs > .jtabs-content > div.jtabs-selected {
@@ -3099,10 +3104,22 @@
 .jtabs > .jtabs-border {
     position: absolute;
     height: 2px;
-    background-color: #000;
+    background-color: #888;
     transform-origin: left;
     transition: all .2s cubic-bezier(0.4,0,0.2,1);
     transition-property: color,left,transform;
+}
+
+.jtabs .jtabs-add {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z' fill='%23bbbbbb'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    cursor: pointer;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    margin: 3px;
+    margin-left: 10px;
 }
 
 .jtags {
