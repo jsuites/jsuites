@@ -10,11 +10,18 @@
  *
  */
 
-/** General **/
-
 :root {
     --button-color: #298BA8; 
     --active-color: #007aff;
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .jdragging {
@@ -39,6 +46,7 @@
     opacity: 0.2;
     filter: alpha(opacity=20);
 }
+
 
 /** Animations **/
 .fade-in {
@@ -187,13 +195,6 @@
     100% { -webkit-transform: translateY(100%); }
 }
 
-
-@supports (-webkit-overflow-scrolling: touch) {
-    .app .options input:checked:before {
-        top:-12px;
-    }
-}
-
 @-webkit-keyframes spin {
     from {
         -webkit-transform:rotate(0deg);
@@ -212,13 +213,873 @@
     }
 }
 
-.unselectable {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
+.japp {
+    height: 100%;
+    box-sizing: border-box;
+    overflow: scroll;
+    background-color: #fafafa;
+}
+
+.japp .red {
+    color: red;
+    border-color: 1px solid red;
+}
+
+.japp .link {
+    color: var(--active-color);
+    cursor: pointer;
+}
+
+.japp button {
+    border-radius: 4px;
+    width: 100%;
+    border: 1px solid var(--active-color);
+    color: var(--active-color);
+    background-color: transparent;
+    padding: 4px;
+    outline: none;
+}
+
+.japp button:active {
+    border: 1px solid #000;
+    color: #000;
+}
+
+.japp.warning::before {
+    content: 'No internet connection';
+    background-color: red;
+    color: #fff;
+    padding: 2px;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 20000;
+    width: 100%;
+    font-size: 0.55em;
+    text-align: center;
+}
+
+japp.jwarning .page {
+    padding-top: 60px;
+}
+
+/** Navbar **/
+
+.japp .navbar {
+    position:fixed;
+    top: 0;
+    width: 100%;
+    z-index: 500;
+    margin: 0;
+    -webkit-backface-visibility: hidden;
+    -webkit-transform: translate3d(0,0,0);
+    -webkit-box-sizing: border-box;
+    backface-visibility: hidden;
+    box-sizing: border-box;
+    transform: translate3d(0,0,0);
+    height: 44px;
+    background-color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,.1);
+}
+
+.japp.jwarning .navbar {
+    top:16px;
+}
+
+.japp .navbar-container {
+    padding: 0 8px;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align:middle;
+
+    display: flex;
+
+    -webkit-flex-flow: row wrap;
+    justify-content: space-between;
+    align-items:center;
+}
+
+.japp .navbar-container div {
+    text-align:center;
+}
+
+.japp .navbar-container div.title {
+    display: flex;
+}
+
+.japp .navbar-container div.title div
+{
+    line-height:24px;
+}
+
+.japp .navbar-container div.icon {
+    width:24px;
+}
+
+.japp .navbar-container div i {
+    display:block;
+}
+
+.japp .navbar-container div img {
+    height:28px;
+    display:block;
+}
+
+.japp .navbar-container div.title div img {
+    border-radius:12px;
+    width:24px;
+    height:24px;
+    margin-right:6px;
+}
+
+.japp .navbar .icon {
+    color:var(--active-color);
+}
+
+.japp .title {
+    font-size:1.2em;
+}
+
+.japp .block {
+    padding:15px;
+    color: #6d6d72;
+    font-size:0.9em;
+    box-sizing: border-box;
+}
+
+.japp .block-title {
+    text-transform: uppercase;
+    color: #6d6d72;
+    margin: 25px 15px 10px;
+    line-height: 17px;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    line-height: 1;
+    font-size:0.9em;
+}
+
+.japp .block-strong {
+    background-color:#fff;
+    color: #000;
+}
+
+.japp .block-border {
+    border-top:1px solid #ddd;
+    border-bottom:1px solid #ddd; 
+}
+
+.japp .block-footer {
+    text-transform: uppercase;
+    padding:15px;
+    color: #6d6d72;
+    font-size:0.7em;
+}
+
+.japp .block-collapse {
+    max-height:100px;
+    overflow-y:hidden;
+}
+
+.japp .block-instruction {
+    text-transform: uppercase;
+    padding:15px;
+    color: #6d6d72;
+    font-size:0.7em;
+    text-align:center;
+}
+
+.japp .pages {
+    display: flex;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    height: 100%;
+}
+
+.japp .page {
+    padding-top: 45px;
+    padding-bottom: 45px;
+    min-height: 100%;
+    min-width: 100%;
+    box-sizing: border-box;
+    overflow-y: auto;
+    /*will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+    -webkit-perspective: 1000;*/
+}
+
+.japp .panel {
+    position:fixed;
+    top: 0;
+    left: 0;
+    margin: 0;
+    width:60vw;
+    max-width:220px;
+    height:100vh;
+    background: #fff;
+    z-index: 1003;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
+    padding:4px;
+}
+
+.japp .panel-left {
+    -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
+    box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
+}
+
+.japp .panel a {
+    color:var(--active-color);
+}
+
+
+/** Options **/
+
+.japp .options
+{
+    background-color:#fff;
+    border-top:1px solid #e6e6e8;
+    border-bottom:1px solid #e6e6e8;
+    padding-left:15px;
+    margin-top:10px;
+}
+
+.japp .options:empty
+{
+    display:none;
+}
+
+.japp .options .option
+{
+    padding-top:10px;
+    padding-bottom:10px;
+    text-transform:uppercase;
+    font-size:1em;
+    border-bottom:1px solid #e6e6e8;
+    overflow-x:hidden;
+
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align:middle;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-flow: row nowrap;
+    justify-content: space-between;
+    align-items:center;
+    flex-wrap:nowrap;
+}
+
+.japp .options .option:last-child
+{
+    border-bottom:0px;
+}
+
+.japp .options label
+{
+    width:100%;
+}
+
+.japp .options input[type='text'], .japp .options textarea
+{
+    outline:none;
+    border:1px solid transparent;
+    font-size:1em;
+    margin:0px;
+    padding:0px;
+    width:100%;
+    box-sizing:border-box;
+}
+
+.japp .options textarea
+{
+    height:100px;
+}
+
+.japp .options input[type='checkbox'], .japp .options input[type='radio']
+{
+    visibility: hidden;
+}
+
+.japp .options input[type='checkbox'] ~ i, .japp .options input[type='radio'] ~ i
+{
+    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTkgMTYuMTdMNC44MyAxMmwtMS40MiAxLjQxTDkgMTkgMjEgN2wtMS40MS0xLjQxeiIgZmlsbD0iIzAwN2FmZiIvPjwvc3ZnPg==');
+    background-repeat: no-repeat;
+    content:'';
+    visibility: hidden;
+    margin-right:10px;
+    line-height:24px;
+    width:24px;
+    height:24px;
+}
+
+.japp .options input[type='checkbox']:checked ~ i, .japp .options input[type='radio']:checked  ~ i
+{
+    visibility: visible;
+}
+
+.japp .options .jdropdown {
+    display: block;
+}
+
+.japp .options .jdropdown .jdropdown-header {
+    border: 0px;
+    border-bottom: 1px solid #e6e6e8;
+    padding: 0px;
+    text-transform: uppercase;
+    outline: none;
+}
+
+.japp .options .jdropdown:last-child .jdropdown-header {
+    border-bottom: 0px;
+}
+
+.japp .options .jdropdown-searchbar.jdropdown-focus .jdropdown-header {
+    border:0px;
+    padding: 5px;
+} 
+
+.japp .options .jcalendar-input {
+    background-position: top 50% right 8px;
+} 
+
+.japp .options .icon {
+    float:left;
+    margin-right:10px;
+    max-width:40px;
+    max-height:40px;
+    border-radius:20px;
+    color:#929292;
+}
+
+.japp .options .option .option-actions {
+    display:flex;
+    transform: translateX(100%);
+    width:0px;
+}
+
+.japp .options .option .option-actions > div {
+    padding-right:5px;
+}
+
+.japp .options .option .option-actions > div > i {
+    width:40px;
+    height:40px;
+    color:#fff;
+    font-size:24px;
+    line-height:40px;
+    text-align:center;
+    border-radius:30px;
+    background-color:red;
+}
+
+.japp .options .option .option-actions.small > div > i
+{
+    color:#000;
+    width:24px;
+    height:24px;
+    font-size:24px;
+    line-height:24px;
+    border-radius:24px;
+    background-color:transparent;
+}
+
+.japp .options .option-title {
+    display:block;
+    padding-top:10px;
+    padding-bottom:10px;
+    text-transform:uppercase;
+    font-size:1em;
+    vertical-align:center;
+}
+
+.japp .options .option-title::after {
+    content:'\e313';
+    font-family: 'material icons';
+    font-size:24px;
+    margin-right:10px;
+    float:right;
+    width:24px;
+    height:24px;
+    line-height:24px;
+}
+
+.japp .options .option-title.selected::after
+{
+    content:'\e316';
+}
+
+.japp .options .option-title.selected ~ div {
+    display:block;
+}
+
+.japp .options .option-group {
+    border-top:1px solid #e6e6e8;
+    background-color:#fff;
+    display:none;
+}
+
+.japp .options .option-link:after {
+    content:'\e315';
+    font-family: 'material icons';
+    color:var(--active-color);
+    font-size:24px;
+    margin-right:10px;
+    float:right;
+    width:24px;
+    height:24px;
+    line-height:24px;
+    display:block;
+}
+
+.japp .options .option-header {
+    padding-left:10px;
+    padding-right:10px;
+    flex-grow:10;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.japp .options .option .option-name {
+    font-size:1em;
+    text-overflow: ellipsis;
+    width: 100%;
+    overflow: hidden;
+}
+
+.japp .options .option .option-small {
+    font-size:0.7em;
+    color: #6d6d72;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display:block;
+}
+
+.japp .options .option .option-image img {
+    width:40px;
+    height:40px;
+    border-radius:20px;
+    display:block;
+}
+
+.japp .options .option .option-image-small img {
+    width:24px;
+    height:auto;
+    border-radius:50px;
+    display:block;
+}
+
+.japp .options .option .option-image .option-badge {
+    position: absolute;
+    background-color: red;
+    color: #fff;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 7px;
+    margin: 28px;
+}
+
+.japp .options .option .option-image-small .option-badge {
+    position: absolute;
+    background-color: red;
+    color: #fff;
+    width: 16px;
+    height: 16px;
+    line-height: 16px;
+    border-radius: 16px;
+    text-align: center;
+    font-size: 7px;
+    margin: 12px;
+}
+
+.japp .options .option .option-badge.solid {
+    background-color: red;
+    color: red;
+}
+
+.japp .options .option .option-badge.solid-green {
+    background-color: green;
+    color: green;
+}
+
+.japp .options .option .option-badge:empty {
+    display:none;
+}
+
+.japp .options .option .option-date {
+    float:right;
+    font-size:0.6em;
+    color:#888;
+    margin-right:15px;
+    white-space: nowrap;
+}
+
+.japp .options .option .option-right {
+    margin-right:15px;
+}
+
+.japp .options .option .option-badget {
+    background-color:red;
+    border-radius:12px;
+    width:24px;
+    height:24px;
+    line-height:24px;
+    font-size:0.7em;
+    color:#fff;
+    text-align:center;
+}
+
+.japp .options .option .option-badget:empty {
+    display:none;
+}
+
+.japp .options input::-webkit-input-placeholder
+{
+    text-transform:uppercase;
+}
+
+.japp .options input::-moz-placeholder
+{
+    text-transform:uppercase;
+}
+
+.japp .options input:-ms-input-placeholder
+{
+    text-transform:uppercase;
+}
+
+.japp .options input:-moz-placeholder
+{
+    text-transform:uppercase;
+}
+
+/** Actionsheet **/
+
+.jactionsheet
+{
+    position:fixed;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    min-height:100%;
+    z-index:10000;
+
+    background-color:rgba(0,0,0,0.5);
+    -webkit-transition-duration: .2s;
+    transition-duration: .2s;
+    display: flex;
+    -ms-flex-align: baseline;
+    -webkit-align-items: baseline;
+    -webkit-box-align: baseline;
+
+    align-items: baseline;
+}
+
+.jactionsheet .jactionsheet-content
+{
+    width:100%;
+    align-self: flex-end;
+}
+
+.jactionsheet .jactionsheet-title
+{
+    font-size:1em;
+    font-weight:bold;
+    padding:8px;
+}
+
+.jactionsheet .jactionsheet-message
+{
+    padding:4px;
+}
+
+.jactionsheet .jactionsheet-group
+{
+    box-sizing: border-box;
+    margin:10px;
+    background-color:#fff;
+    border-radius:5px;
+}
+
+.jactionsheet .jactionsheet-group > div
+{
+    font-size:1.4em;
+    font-weight:bold;
+    padding:4px;
+    border-top:1px solid #ccc;
+    text-align:center;
+    width:100%;
+}
+.jactionsheet .jactionsheet-group > div:first-child
+{
+    border-top:0px;
+}
+
+.jactionsheet .jactionsheet-group input
+{
+    border:0px;
+    margin:0px;
+    background-color:transparent;
+    color:var(--active-color);
+    width:100%;
+    outline:none;
+    font-size:1em;
+}
+
+.jactionsheet .jactionsheet-group input.jactionsheet-cancel
+{
+    color:red;
+}
+
+/** Badge **/
+
+.japp .jbadge
+{
+    position:relative;
+    display:inline-block;
+    top:-12px;
+    left:-12px;
+}
+
+.japp .jbadge > div
+{
+    background-color:red;
+    color:#fff;
+    width:16px;
+    height:16px;
+    line-height:16px;
+    border-radius:16px;
+    text-align:center;
+    font-size:8px;
+    position:absolute;
+}
+
+.japp .jbadge > div:empty
+{
+    display:none;
+}
+
+/** Progressbar **/
+
+
+.japp .progressbar-container {
+    margin: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 5px;
+}
+
+.japp .progressbar {
+    width:100%;
+    border:1px solid var(--active-color);
+    border-radius:1px;
+}
+
+.japp .progressbar-title {
+    margin-bottom:2px;
+    text-transform:uppercase;
+    display:flex;
+    justify-content:space-between;
+}
+
+.japp .progressbar div {
+    background-color:var(--active-color);
+    height:4px;
+    width:0%;
+}
+
+
+/** Topsearch **/
+
+.japp .top-search {
+    margin:0px;
+    padding:10px;
+    border-bottom:1px solid #ddd; 
+}
+
+.japp .top-search input {
+    background-color: #e6e6e6;
+    border: 0px;
+    border-radius: 4px;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 5px center;
+    padding-left: 32px;
+    width: 100%;
+    padding: 8px;
+}
+
+/** Range **/
+
+.japp .range
+{
+  -webkit-appearance: none;
+  margin: 18px 0;
+  width: 100%;
+}
+
+.japp .range:focus
+{
+  outline: none;
+}
+
+.japp .range::-webkit-slider-runnable-track
+{
+    width: 100%;
+    height: 4px;
+    cursor: pointer;
+    animation: 0.2s;
+    background: #ccc;
+    border-radius: 1.3px;
+}
+
+.japp .range::-webkit-slider-thumb
+{
+    -webkit-appearance:none;
+    appearance:none;
+    width:24px;
+    height:24px;
+    background:#fff;
+    cursor:pointer;
+    border-radius:24px;
+    margin-top:-10px;
+    border:0px;
+    box-shadow:0px 1px 3px 1px #bbb;
+}
+
+.japp .range::-moz-range-track
+{
+    width:100%;
+    cursor:pointer;
+    animation:0.2s;
+    background:#ccc;
+    border-radius:1.3px;
+}
+
+.japp .range::-moz-range-thumb
+{
+    width:24px;
+    height:24px;
+    background:#fff;
+    cursor:pointer;
+    border-radius:24px;
+    border:0px;
+    box-shadow:0px 1px 3px 1px #bbb;
+}
+
+.japp .range::-ms-track
+{
+    width: 100%;
+    cursor: pointer;
+    animation: 0.2s;
+    background: transparent;
+    border-color: transparent;
+    border-width: 16px 0;
+    color: transparent;
+    border-radius:1.3px;
+}
+
+.japp .range::-ms-fill-lower
+{
+    background:#ccc;
+    height:5px;
+}
+
+.japp .range::-ms-fill-upper
+{
+    background:#ccc;
+    height:5px;
+}
+
+.japp .range::-ms-thumb {
+    width:24px;
+    height:24px;
+    background:#fff;
+    cursor:pointer;
+    border-radius:24px;
+    border:0px;
+    box-shadow:0px 1px 3px 1px #bbb;
+}
+
+.japp .range:focus::-ms-fill-lower
+{
+  background: #ccc;
+}
+
+.japp .range:focus::-ms-fill-upper
+{
+  background: #ccc;
+}
+
+/** Placeholders **/
+
+.japp *::placeholder
+{
+    color: #cccccc;
+    opacity: 1;
+}
+
+.japp *:-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+.japp *::-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+.japp *::-webkit-input-placeholder
+{
+    color: #cccccc;
+}
+
+@supports (-webkit-overflow-scrolling: touch) {
+    .app .options input:checked:before {
+        top:-12px;
+    }
+}
+
+@media only screen and (max-device-width : 800px)
+{
+    .jsuites * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+    }
+
+    body.jsuites {
+        margin: 0px;
+        padding: 0px;
+        width: 100%;
+        height: 100%;
+        min-height: 100%;
+        line-height: 1.4;
+        font-family: -apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+        background-color: #fff;
+    }
+
+    .jsuites input, .jsuites select, .jsuites textarea, .jsuites div {
+        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    }
 }
 
 .jbutton {
@@ -270,7 +1131,7 @@
  */
  
 .jcalendar {
-    position:relative;
+    position:absolute;
     z-index:9000;
     display:none;
     box-sizing:border-box;
@@ -518,7 +1379,7 @@
     border:2px solid #000 !important;
     background-repeat:no-repeat;
     background-size: cover;
-    background-position:0 0;
+    background-position: center;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' fill='white'/%3E%3C/svg%3E");
 }
 
@@ -863,6 +1724,12 @@
     color: #000;
     display: flex;
     align-items: center;
+}
+
+.jdropdown-description
+{
+    text-overflow: ellipsis;
+    overflow: hidden;
 }
 
 .jdropdown-image
@@ -1261,94 +2128,6 @@
     padding:10px;
 }
 
-.jeditor-toolbar {
-    cursor: pointer;
-    display: -webkit-inline-box;
-    display: -webkit-inline-flex;
-    display: -ms-inline-flexbox;
-    display: inline-flex;
-    -webkit-align-items: center;
-    align-items: center;
-    border: none;
-    -webkit-border-radius: 2px;
-    border-radius: 2px;
-    -webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    margin: 0px;
-    margin-bottom:5px;
-    padding: 5px;
-    white-space: nowrap;
-    border-radius:2px;
-}
-
-.jeditor-toolbar .jeditor-toolbar-group {
-    background-color:#f3f3f3;
-}
-
-.jeditor-toolbar div {
-    padding:4px;
-}
-
-.jeditor-toolbar div.jeditor-toolbar-button {
-    padding-left:20px;
-    padding-right:20px;
-}
-
-.jeditor-toolbar div {
-    -webkit-user-select: none;  /* Chrome all / Safari all */
-    -moz-user-select: none;     /* Firefox all */
-    -ms-user-select: none;      /* IE 10+ */
-    user-select: none;          /* Likely future */   
-}
-
-.jeditor-toolbar div i {
-    display:block;
-    font-size:20px;
-    width:20px;
-    height:20px;
-    line-height:20px;
-    color:#777;
-}
-
-.jeditor-toolbar select {
-    border:0px;
-    background-color:transparent;
-    padding:0px;
-    padding-left:5px;
-    padding-right:5px;
-    display:block;
-    height:32px;
-    outline:none;
-    border-radius:4px;
-    margin:1px;
-}
-
-.jeditor-toolbar .jtoolbar-divisor {
-    width: 2px;
-    height: 28px;
-    padding: 0px;
-    margin: 4px;
-    background-color: #f2f2f2;
-}
-
-.jeditor-toolbar select option {
-    background-color:#fff;
-    padding:20px;
-}
-
-.jeditor-toolbar div:hover, .toolbar select:hover {
-    background-color:#f2f2f2;
-    border-radius:2px;
-}
-
-.jeditor-toolbar div:hover i {
-    color:#222;
-}
-
-.jeditor-toolbar div.selected {
-    background-color:#cecece;
-}
-
 .jeditor-thumbs {
     display:inline-block;
     margin-right:5px;
@@ -1412,49 +2191,45 @@
 
 /** Snippet **/
 
-.snippet {
+.jsnippet {
     margin-top:15px;
     cursor:pointer;
     border: 1px solid #eee;
     position:relative;
 }
 
-.snippet:focus {
+.jsnippet:focus {
     outline: none;
 }
 
-.snippet img {
-    width:25%;
-    max-width:120px;
-    float:left;
-    margin-right:10px;
-    margin-bottom:10px;
+.jsnippet img {
+    width:100%;
 }
 
-.snippet .snippet-title {
-    margin-top:15px;
+.jsnippet .jsnippet-title {
+    padding:15px;
     font-size:1.4em;
 }
 
-.snippet .snippet-description {
-    margin-top:5px;
+.jsnippet .jsnippet-description {
+    padding-left:15px;
+    padding-right:15px;
     font-size:1em;
 }
 
-.snippet .snippet-host {
-    margin-top:10px;
-    margin-bottom:10px;
+.jsnippet .jsnippet-host {
+    padding:15px;
     text-transform:uppercase;
     font-size:0.8em;
     color:#777;
     text-align:right;
 }
 
-.snippet .snippet-url {
+.jsnippet .jsnippet-url {
     display:none;
 }
 
-.jeditor .snippet:after {
+.jeditor .jsnippet:after {
     content:'';
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
     position:absolute;
@@ -1468,7 +2243,7 @@
     text-shadow: 0px 0px 5px #fff;
 }
 
-.snippet div, .snippet img {
+.jsnippet * {
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -1484,6 +2259,16 @@
 .jeditor img {
     border:2px solid transparent;
     box-sizing: border-box;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -o-user-select: none;
+    user-select: none;
+
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
 }
 
 .jeditor img:focus {
@@ -1498,7 +2283,9 @@
     height:60px;
 }
 
-
+.jeditor .jtoolbar {
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+}
 
 /**
  * (c) jLoading
@@ -1673,1099 +2460,13 @@
 }
 
 @keyframes loading {
-    from { left: -200px; width: 30%; }
-    50% { width: 30%; }
-    70% { width: 70%; }
-    80% { left: 50%; }
-    95% { left: 120%; }
+    from { left: 0px; width: 25%; }
+    25%  { width: 25%; }
+    50%  { width: 50%; }
+    75%  { left:  75%; }
+    100% { left:  100%; }
     to { left: 100%; }
 }
-
-@media only screen and (max-device-width : 800px)
-{
-    .jsuites * {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-    }
-
-    html.jsuites {
-        height:100%;
-    }
-
-    .jsuites body {
-        margin:0px;
-        padding:0px;
-        width:100%;
-        height:100%;
-        min-height:100%;
-        line-height:1.4;
-        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
-        background-color:#fff;
-    }
-
-    .jsuites input, .jsuites select, .jsuites textarea, .jsuites div {
-        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
-    }
-}
-
-.japp
-{
-    height:100%;
-    box-sizing: border-box;
-    overflow:scroll;
-    background-color:#fafafa;
-}
-
-.jwarning::before {
-    content:'No internet connection';
-    background-color:red;
-    color:#fff;
-    padding:2px;
-    position:fixed;
-    top:0px;
-    left:0px;
-    z-index:20000;
-    width:100%;
-    font-size:0.55em;
-    text-align:center;
-}
-
-/*
-.japp .activeHighLight
-{
-    color:var(--active-color);
-}
-
-.japp .active a, .japp .active span, .japp .active i
-{
-    color:var(--active-color);
-}
-
-.japp .no-padding
-{
-    padding:0px;
-}
-
-.japp .action
-{
-    color:var(--active-color);
-    cursor:pointer;
-}
-
-
-.japp i.action
-{
-    position:absolute;
-    right:0px;
-    margin-right:15px;
-    cursor:pointer;
-}
-*/
-
-.japp button {
-    border-radius: 4px;
-    width: 100%;
-    border: 1px solid var(--active-color);
-    color: var(--active-color);
-    background-color: transparent;
-    padding: 4px;
-    outline: none;
-}
-
-.japp button:active {
-    border: 1px solid #000;
-    color: #000;
-}
-
-.japp .red {
-    color: red;
-    border-color: 1px solid red;
-}
-
-.japp .link {
-    color: var(--active-color);
-    cursor: pointer;
-}
-
-.japp .uppercase {
-    text-transform: uppercase;
-}
-
-/** Navbar **/
-
-.japp .navbar {
-    position:fixed;
-    top: 0;
-    width: 100%;
-    z-index: 500;
-    margin: 0;
-    -webkit-backface-visibility: hidden;
-    -webkit-transform: translate3d(0,0,0);
-    -webkit-box-sizing: border-box;
-    backface-visibility: hidden;
-    box-sizing: border-box;
-    transform: translate3d(0,0,0);
-    height: 44px;
-    background-color: #fff;
-    box-shadow: 0 1px 2px rgba(0,0,0,.1);
-}
-
-.jwarning .navbar {
-    top:16px;
-}
-
-.japp .navbar-container {
-    padding: 0 8px;
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    vertical-align:middle;
-
-    display: flex;
-
-    -webkit-flex-flow: row wrap;
-    justify-content: space-between;
-    align-items:center;
-}
-
-.japp .navbar-container div {
-    text-align:center;
-}
-
-.japp .navbar-container div.title {
-    display: flex;
-}
-
-.japp .navbar-container div.title div
-{
-    line-height:24px;
-}
-
-.japp .navbar-container div.icon {
-    width:24px;
-}
-
-.japp .navbar-container div i {
-    display:block;
-}
-
-.japp .navbar-container div img {
-    height:28px;
-    display:block;
-}
-
-.japp .navbar-container div.title div img {
-    border-radius:12px;
-    width:24px;
-    height:24px;
-    margin-right:6px;
-}
-
-.japp .navbar .icon {
-    color:var(--active-color);
-}
-
-.japp .title {
-    font-size:1.2em;
-}
-
-.japp .block {
-    padding:15px;
-    color: #6d6d72;
-    font-size:0.9em;
-    box-sizing: border-box;
-}
-
-.japp .block-title {
-    text-transform: uppercase;
-    color: #6d6d72;
-    margin: 25px 15px 10px;
-    line-height: 17px;
-    position: relative;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    line-height: 1;
-    font-size:0.9em;
-}
-
-.japp .block-strong {
-    background-color:#fff;
-    color: #000;
-}
-
-.japp .block-border {
-    border-top:1px solid #ddd;
-    border-bottom:1px solid #ddd; 
-}
-
-.japp .block-footer {
-	text-transform: uppercase;
-    padding:15px;
-    color: #6d6d72;
-    font-size:0.7em;
-}
-
-.japp .block-collapse {
-    max-height:100px;
-    overflow-y:hidden;
-}
-
-.japp .block-instruction {
-    text-transform: uppercase;
-    padding:15px;
-    color: #6d6d72;
-    font-size:0.7em;
-    text-align:center;
-}
-
-.japp .pages {
-    display: flex;
-    flex-wrap: nowrap;
-    align-items: flex-start;
-    height: 100%;
-}
-
-.japp .page {
-    padding-top: 45px;
-    padding-bottom: 45px;
-    min-height: 100%;
-    min-width: 100%;
-    box-sizing: border-box;
-    overflow-y: auto;
-    /*will-change: scroll-position;
-    -webkit-overflow-scrolling: touch;
-    -webkit-transform: translateZ(0px);
-    -webkit-transform: translate3d(0,0,0);
-    -webkit-perspective: 1000;*/
-}
-
-.warning .page {
-    padding-top: 60px;
-}
-
-.japp .progressbar-container {
-    margin: 15px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-top: 5px;
-}
-
-.japp .progressbar {
-    width:100%;
-    border:1px solid var(--active-color);
-    border-radius:1px;
-}
-
-.japp .progressbar-title {
-    margin-bottom:2px;
-    text-transform:uppercase;
-    display:flex;
-    justify-content:space-between;
-}
-
-.japp .progressbar div {
-    background-color:var(--active-color);
-    height:4px;
-    width:0%;
-}
-
-.japp .panel {
-    position:fixed;
-    top: 0;
-    left: 0;
-    margin: 0;
-    width:60vw;
-    max-width:220px;
-    height:100vh;
-    background: #fff;
-    z-index: 1003;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
-    padding:4px;
-}
-
-.japp .panel-left {
-    -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
-    box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
-}
-
-.japp .panel a {
-    color:var(--active-color);
-}
-
-/** Toolbar **/
-
-.japp .jtoolbar
-{
-    position:fixed;
-    bottom: 0;
-    margin: 0;
-    left: 0;
-    width: 100%;
-    background: #f7f7f8;
-    z-index: 500;
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
-    padding:4px;
-}
-
-.japp .jtoolbar > div
-{
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    vertical-align:middle;
-
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-flow: row wrap;
-    justify-content: space-evenly;
-    align-items:center;
-    width: 100%;
-    cursor:pointer;
-}
-
-.japp .jtoolbar > div > div
-{
-    text-align:center;
-    flex:1;
-    margin:auto;
-}
-
-.japp .jtoolbar a
-{
-    text-decoration:none;
-    display:inline-block;
-}
-
-.japp .jtoolbar i
-{
-    color:#929292;
-}
-
-.japp .jtoolbar span
-{
-    font-size:0.7em;
-    display:block;
-    color:#929292;
-}
-
-.japp .jtoolbar .selected a,
-.japp .jtoolbar .selected i,
-.japp .jtoolbar .selected span
-{
-    color:var(--active-color);
-}
-
-
-/** Options **/
-
-.japp .options
-{
-    background-color:#fff;
-    border-top:1px solid #e6e6e8;
-    border-bottom:1px solid #e6e6e8;
-    padding-left:15px;
-    margin-top:10px;
-}
-
-.japp .options:empty
-{
-    display:none;
-}
-
-.japp .options .option
-{
-    padding-top:10px;
-    padding-bottom:10px;
-    text-transform:uppercase;
-    font-size:1em;
-    border-bottom:1px solid #e6e6e8;
-    overflow-x:hidden;
-
-    -webkit-box-sizing: border-box;
-    box-sizing: border-box;
-    vertical-align:middle;
-
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-flow: row nowrap;
-    justify-content: space-between;
-    align-items:center;
-    flex-wrap:nowrap;
-}
-
-.japp .options .option:last-child
-{
-    border-bottom:0px;
-}
-
-.japp .options label
-{
-    width:100%;
-}
-
-.japp .options input[type='text'], .japp .options textarea
-{
-    outline:none;
-    border:1px solid transparent;
-    font-size:1em;
-    margin:0px;
-    padding:0px;
-    width:100%;
-    box-sizing:border-box;
-}
-
-.japp .options textarea
-{
-    height:100px;
-}
-
-.japp .options input[type='checkbox'], .japp .options input[type='radio']
-{
-    visibility: hidden;
-}
-
-.japp .options input[type='checkbox'] ~ i, .japp .options input[type='radio'] ~ i
-{
-    background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PHBhdGggZD0iTTkgMTYuMTdMNC44MyAxMmwtMS40MiAxLjQxTDkgMTkgMjEgN2wtMS40MS0xLjQxeiIgZmlsbD0iIzAwN2FmZiIvPjwvc3ZnPg==');
-    background-repeat: no-repeat;
-    content:'';
-    visibility: hidden;
-    margin-right:10px;
-    line-height:24px;
-    width:24px;
-    height:24px;
-}
-
-.japp .options input[type='checkbox']:checked ~ i, .japp .options input[type='radio']:checked  ~ i
-{
-    visibility: visible;
-}
-
-.japp .options .jdropdown {
-    display: block;
-}
-
-.japp .options .jdropdown .jdropdown-header {
-    border: 0px;
-    border-bottom: 1px solid #e6e6e8;
-    padding: 15px;
-    text-transform: uppercase;
-}
-
-.japp .options .jdropdown:last-child .jdropdown-header {
-    border-bottom: 0px;
-}
-
-.japp .options .jdropdown-searchbar.jdropdown-focus .jdropdown-header {
-    border:0px;
-    padding: 5px;
-} 
-
-.japp .options .icon {
-    float:left;
-    margin-right:10px;
-    max-width:40px;
-    max-height:40px;
-    border-radius:20px;
-    color:#929292;
-}
-
-.japp .options .option .option-actions {
-    display:flex;
-    transform: translateX(100%);
-    width:0px;
-}
-
-.japp .options .option .option-actions > div {
-    padding-right:5px;
-}
-
-.japp .options .option .option-actions > div > i {
-    width:40px;
-    height:40px;
-    color:#fff;
-    font-size:24px;
-    line-height:40px;
-    text-align:center;
-    border-radius:30px;
-    background-color:red;
-}
-
-.japp .options .option .option-actions.small > div > i
-{
-    color:#000;
-    width:24px;
-    height:24px;
-    font-size:24px;
-    line-height:24px;
-    border-radius:24px;
-    background-color:transparent;
-}
-
-.japp .options .option-title {
-    display:block;
-    padding-top:10px;
-    padding-bottom:10px;
-    text-transform:uppercase;
-    font-size:1em;
-    vertical-align:center;
-}
-
-.japp .options .option-title::after {
-    content:'\e313';
-    font-family: 'material icons';
-    font-size:24px;
-    margin-right:10px;
-    float:right;
-    width:24px;
-    height:24px;
-    line-height:24px;
-}
-
-.japp .options .option-title.selected::after
-{
-    content:'\e316';
-}
-
-.japp .options .option-title.selected ~ div {
-    display:block;
-}
-
-.japp .options .option-group {
-    border-top:1px solid #e6e6e8;
-    background-color:#fff;
-    display:none;
-}
-
-.japp .options .option-link:after {
-    content:'\e315';
-    font-family: 'material icons';
-    color:var(--active-color);
-    font-size:24px;
-    margin-right:10px;
-    float:right;
-    width:24px;
-    height:24px;
-    line-height:24px;
-    display:block;
-}
-
-.japp .options .option-header {
-    padding-left:10px;
-    padding-right:10px;
-    flex-grow:10;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.japp .options .option .option-name {
-    font-size:1em;
-    text-overflow: ellipsis;
-    width: 100%;
-    overflow: hidden;
-}
-
-.japp .options .option .option-small {
-    font-size:0.7em;
-    color: #6d6d72;
-    text-overflow: ellipsis;
-    overflow: hidden;
-    white-space: nowrap;
-    display:block;
-}
-
-.japp .options .option .option-image img {
-    width:40px;
-    height:40px;
-    border-radius:20px;
-    display:block;
-}
-
-.japp .options .option .option-image-small img {
-    width:24px;
-    height:auto;
-    border-radius:50px;
-    display:block;
-}
-
-.japp .options .option .option-image .option-badge {
-    position: absolute;
-    background-color: red;
-    color: #fff;
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
-    border-radius: 16px;
-    text-align: center;
-    font-size: 7px;
-    margin: 28px;
-}
-
-.japp .options .option .option-image-small .option-badge {
-    position: absolute;
-    background-color: red;
-    color: #fff;
-    width: 16px;
-    height: 16px;
-    line-height: 16px;
-    border-radius: 16px;
-    text-align: center;
-    font-size: 7px;
-    margin: 12px;
-}
-
-.japp .options .option .option-badge.solid {
-    background-color: red;
-    color: red;
-}
-
-.japp .options .option .option-badge.solid-green {
-    background-color: green;
-    color: green;
-}
-
-.japp .options .option .option-badge:empty {
-    display:none;
-}
-
-.japp .options .option .option-date {
-    float:right;
-    font-size:0.6em;
-    color:#888;
-    margin-right:15px;
-    white-space: nowrap;
-}
-
-.japp .options .option .option-right {
-    margin-right:15px;
-}
-
-.japp .options .option .option-badget {
-    background-color:red;
-    border-radius:12px;
-    width:24px;
-    height:24px;
-    line-height:24px;
-    font-size:0.7em;
-    color:#fff;
-    text-align:center;
-}
-
-.japp .options .option .option-badget:empty {
-    display:none;
-}
-
-/** Badge **/
-
-.japp .jbadge
-{
-    position:relative;
-    display:inline-block;
-    top:-12px;
-    left:-12px;
-}
-
-.japp .jbadge > div
-{
-    background-color:red;
-    color:#fff;
-    width:16px;
-    height:16px;
-    line-height:16px;
-    border-radius:16px;
-    text-align:center;
-    font-size:8px;
-    position:absolute;
-}
-
-.japp .jbadge > div:empty
-{
-    display:none;
-}
-
-/** Picker **/
-
-.japp .picker 
-{
-    background-color:#fff;
-    border-top:1px solid #e6e6e8;
-    border-bottom:1px solid #e6e6e8;
-    padding-left:15px;
-    margin-top:10px;
-    position:absolute;
-    bottom:0px;
-    width:100%;
-    z-index:700;
-}
-
-.japp .picker .picker-options
-{
-    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,.2)), linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,.2));
-    -webkit-mask-size: 100% 50%;
-    -webkit-mask-repeat: no-repeat;
-    -webkit-mask-position: center bottom, top center;
-    overflow-y:scroll;
-    padding-top:100px;
-    padding-bottom:100px;
-}
-
-.japp .picker label
-{
-    display: block;
-    padding-top: 10px;
-    padding-bottom: 10px;
-}
-
-.japp .picker .picker-selected
-{
-    border-top:1px solid #e6e6e8;
-    border-bottom:1px solid #e6e6e8;
-}
-
-.japp .picker input
-{
-    display:none;
-}
-
-/** Topsearch **/
-
-.japp .top-search {
-    margin:0px;
-    padding:10px;
-    border-bottom:1px solid #ddd; 
-}
-
-.japp .top-search input {
-    background-color: #e6e6e6;
-    border: 0px;
-    border-radius: 4px;
-    outline: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: 5px center;
-    padding-left: 32px;
-    width: 100%;
-}
-
-.japp .searchbar-container i {
-    position:absolute;
-    margin-top:5px;
-    margin-left:8px;
-    color:#bbb;
-}
-
-/** Range **/
-
-.japp .range
-{
-  -webkit-appearance: none;
-  margin: 18px 0;
-  width: 100%;
-}
-
-.japp .range:focus
-{
-  outline: none;
-}
-
-.japp .range::-webkit-slider-runnable-track
-{
-    width: 100%;
-    height: 4px;
-    cursor: pointer;
-    animation: 0.2s;
-    background: #ccc;
-    border-radius: 1.3px;
-}
-
-.japp .range::-webkit-slider-thumb
-{
-    -webkit-appearance:none;
-    appearance:none;
-    width:24px;
-    height:24px;
-    background:#fff;
-    cursor:pointer;
-    border-radius:24px;
-    margin-top:-10px;
-    border:0px;
-    box-shadow:0px 1px 3px 1px #bbb;
-}
-
-.japp .range::-moz-range-track
-{
-    width:100%;
-    cursor:pointer;
-    animation:0.2s;
-    background:#ccc;
-    border-radius:1.3px;
-}
-
-.japp .range::-moz-range-thumb
-{
-    width:24px;
-    height:24px;
-    background:#fff;
-    cursor:pointer;
-    border-radius:24px;
-    border:0px;
-    box-shadow:0px 1px 3px 1px #bbb;
-}
-
-.japp .range::-ms-track
-{
-    width: 100%;
-    cursor: pointer;
-    animation: 0.2s;
-    background: transparent;
-    border-color: transparent;
-    border-width: 16px 0;
-    color: transparent;
-    border-radius:1.3px;
-}
-
-.japp .range::-ms-fill-lower
-{
-    background:#ccc;
-    height:5px;
-}
-
-.japp .range::-ms-fill-upper
-{
-    background:#ccc;
-    height:5px;
-}
-
-.japp .range::-ms-thumb {
-    width:24px;
-    height:24px;
-    background:#fff;
-    cursor:pointer;
-    border-radius:24px;
-    border:0px;
-    box-shadow:0px 1px 3px 1px #bbb;
-}
-
-.japp .range:focus::-ms-fill-lower
-{
-  background: #ccc;
-}
-
-.japp .range:focus::-ms-fill-upper
-{
-  background: #ccc;
-}
-
-
-/** Actionsheet **/
-
-.jactionsheet
-{
-    position:fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    min-height:100%;
-    z-index:10000;
-
-    background-color:rgba(0,0,0,0.5);
-    -webkit-transition-duration: .2s;
-    transition-duration: .2s;
-    display: flex;
-    -ms-flex-align: baseline;
-    -webkit-align-items: baseline;
-    -webkit-box-align: baseline;
-
-    align-items: baseline;
-}
-
-.jactionsheet .jactionsheet-content
-{
-    width:100%;
-    align-self: flex-end;
-}
-
-.jactionsheet .jactionsheet-title
-{
-    font-size:1em;
-    font-weight:bold;
-    padding:8px;
-}
-
-.jactionsheet .jactionsheet-message
-{
-    padding:4px;
-}
-
-.jactionsheet .jactionsheet-group
-{
-    box-sizing: border-box;
-    margin:10px;
-    background-color:#fff;
-    border-radius:5px;
-}
-
-.jactionsheet .jactionsheet-group > div
-{
-    font-size:1.4em;
-    font-weight:bold;
-    padding:4px;
-    border-top:1px solid #ccc;
-    text-align:center;
-    width:100%;
-}
-.jactionsheet .jactionsheet-group > div:first-child
-{
-    border-top:0px;
-}
-
-.jactionsheet .jactionsheet-group input
-{
-    border:0px;
-    margin:0px;
-    background-color:transparent;
-    color:var(--active-color);
-    width:100%;
-    outline:none;
-    font-size:1em;
-}
-
-.jactionsheet .jactionsheet-group input.jactionsheet-cancel
-{
-    color:red;
-}
-
-/** Toggle **/
-
-.jtoggle {
-    display: inline-block;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.jtoggle i {
-    position: relative;
-    display: inline-block;
-    margin-right: .5rem;
-    border-radius: 23px;
-    vertical-align: text-bottom;
-    transition: all 0.3s linear;
-    width: 46px !important;
-    height: 27px !important;
-    background: #e6e6e6 !important;
-    visibility: visible !important;
-}
-
-.jtoggle i::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: 42px;
-  height: 22px;
-  background-color: #fff;
-  border-radius: 11px;
-  transform: translate3d(2px, 2px, 0) scale3d(1, 1, 1);
-  transition: all 0.25s linear;
-}
-
-.jtoggle i::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: 22px;
-  height: 22px;
-  background-color: #fff;
-  border-radius: 11px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24);
-  transform: translate3d(2px, 2px, 0);
-  transition: all 0.2s ease-in-out;
-}
-
-.jtoggle:active i::after {
-  width: 28px;
-  transform: translate3d(2px, 2px, 0);
-}
-
-.jtoggle:active input:checked + i::after {
-    transform: translate3d(16px, 2px, 0);
-}
-
-.jtoggle input {
-    display: none;
-}
-
-.jtoggle input:checked + i {
-    background-color: #4BD763 !important;
-}
-
-.jtoggle input:checked + i::before {
-    transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0);
-}
-
-.jtoggle input:checked + i::after {
-    transform: translate3d(22px, 2px, 0);
-}
-
-/** Placeholders **/
-
-.japp .options input::-webkit-input-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input::-moz-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input:-ms-input-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input:-moz-placeholder
-{
-    text-transform:uppercase;
-}
-
-::placeholder
-{
-    color: #cccccc;
-    opacity: 1;
-}
-
-:-ms-input-placeholder
-{
-    color: #cccccc;
-}
-
-::-ms-input-placeholder
-{
-    color: #cccccc;
-}
-
-::-webkit-input-placeholder
-{
-    color: #cccccc;
-}
-
 
 .jmodal {
     position:fixed;
@@ -2803,6 +2504,7 @@
     padding:20px;
     overflow-y:auto;
     max-height:100%;
+    box-sizing: border-box;
 }
 .jmodal.no-title {
     padding-top:0px;
@@ -2975,6 +2677,27 @@
 }
 
 
+.jrefresh {
+    background-image: url("data:image/svg+xml,%3Csvg class='lds-typing' width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid'%3E%3Ccircle cx='27.5' cy='38.1294' r='5' fill='%23df1317'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.5s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='42.5' cy='38.9606' r='5' fill='%23e4934b'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.375s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='57.5' cy='48.6466' r='5' fill='%23e2bb8b'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.25s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='72.5' cy='62.5' r='5' fill='%23e1e7e7'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.125s'%3E%3C/animate%3E%3C/circle%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: 70px;
+    background-position: center;
+    backgrounnd-color: transparent;
+    width: 100%;
+    height: 70px;
+}
+
+.jrefresh.holding {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    background-size: 24px;
+}
+
+.jrefresh.ready {
+    transform: rotate(-180deg);
+    transition: transform 150ms ease;
+}
+
+
 /**
  * (c) Image slider
  * https://github.com/paulhodel/jtools
@@ -3067,6 +2790,64 @@
     display:none;
 }
 
+
+.jswitch {
+  display: inline-block;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.jswitch i {
+  position: relative;
+  display: inline-block;
+ margin-right: .5rem;
+  width: 46px;
+  height: 26px;
+  background-color: #e6e6e6;
+  border-radius: 23px;
+  vertical-align: text-bottom;
+  transition: all 0.3s linear;
+}
+
+.jswitch i::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 42px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 11px;
+  transform: translate3d(2px, 2px, 0) scale3d(1, 1, 1);
+  transition: all 0.25s linear;
+}
+
+.jswitch i::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 11px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24);
+  transform: translate3d(2px, 2px, 0);
+  transition: all 0.2s ease-in-out;
+}
+
+.jswitch:active i::after {
+  width: 28px;
+  transform: translate3d(2px, 2px, 0);
+}
+
+.jswitch:active input:checked + i::after { transform: translate3d(16px, 2px, 0); }
+
+.jswitch input { display: none; }
+
+.jswitch input:checked + i { background-color: #4BD763; }
+
+.jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
+
+.jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
 
 .jtabs {
     max-width: calc(100vw - 24px);
@@ -3236,5 +3017,197 @@
 .jtags_search .selected {
     background-color: #e8eaed;
 }
+
+/**
+ * (c) jTools Template renderer
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Template renderer
+ */
+
+.jtemplate-pagination {
+    display:flex;
+    cursor:pointer;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.jtemplate-pagination div {
+    text-align:center;
+    font-size:0.8em;
+    width:30px;
+    height:30px;
+    line-height:30px;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+.jtemplate-pagination div:hover {
+    background-color:#eee;
+}
+
+.jtemplate-results {
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+.app .jtemplate-empty {
+    text-align:center;
+    padding-top:10px;
+    padding-bottom:10px;
+    margin-right:10px;
+}
+
+
+.jtoolbar {
+    cursor: pointer;
+    border: none;
+    border-radius: 2px;
+    margin-bottom:5px;
+    white-space: nowrap;
+    display: inline-flex;
+    padding:4px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jtoolbar-mobile {
+    display: flex;
+    position:fixed;
+    bottom: 0;
+    margin: 0;
+    left: 0;
+    width: 100%;
+    background: #f7f7f8;
+    z-index: 500;
+    box-sizing: border-box;
+    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
+    border-radius: 0px;
+}
+
+.jtoolbar > div {
+    display: inline-flex;
+    align-items: center;
+    box-sizing: border-box;
+    vertical-align:middle;
+    justify-content: space-evenly;
+}
+
+.jtoolbar-mobile > div {
+    display: flex;
+    width: 100%;
+}
+
+.jtoolbar .jtoolbar-item {
+    position: relative;
+    text-align: center;
+    margin: auto;
+    padding: 2px;
+    padding-left:4px;
+    padding-right:4px;
+}
+
+.jtoolbar-mobile .jtoolbar-item {
+    flex:1;
+} 
+
+.jtoolbar .jtoolbar-divisor {
+    width: 2px;
+    height: 24px;
+    padding: 0px;
+    margin-left: 4px;
+    margin-right: 4px;
+    background-color: #f2f2f2;
+}
+
+
+.jtoolbar-mobile a
+{
+    text-decoration:none;
+    display:inline-block;
+}
+
+.jtoolbar-mobile i {
+    display: inline-flex !important;
+    color:#929292;
+}
+
+.jtoolbar-mobile span {
+    font-size:0.7em;
+    display:block;
+    color:#929292;
+}
+
+.jtoolbar-mobile .jtoolbar-selected a, .jtoolbar-mobile .jtoolbar-selected i, .jtoolbar-mobile .jtoolbar-selected span {
+    color:var(--active-color) !important;
+    background-color:transparent;
+}
+
+.jtoolbar-item {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jtoolbar-item i {
+    display: block;
+    color:#777;
+}
+
+.jtoolbar-item:hover {
+    background-color:#f2f2f2;
+}
+
+.jtoolbar-item:hover i {
+    color:#222;
+}
+
+.jtoolbar-item.jtoolbar-dropdown {
+    background-repeat: no-repeat;
+    background-position: top 50% right 0px;
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath d='M7 10l5 5 5-5H7z' fill='gray'/%3E%3C/svg%3E");
+    text-overflow: ellipsis;
+    cursor: pointer;
+    box-sizing: border-box;
+    text-align: left;
+}
+
+.jtoolbar-dropdown-header {
+    height: 24px;
+    line-height: 24px;
+}
+
+.jtoolbar-dropdown-content {
+    position: absolute;
+    display: none;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 1;
+    text-align: left;
+}
+
+.jtoolbar-dropdown-content div {
+    padding:6px;
+}
+
+.jtoolbar-focus .jtoolbar-dropdown-content {
+    display: block;
+}
+
+.jtoolbar-dropdown-content div:hover {
+    background-color:#efefef;
+}
+
+
 
 

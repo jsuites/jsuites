@@ -1,3 +1,15 @@
+
+/**
+ * (c) jSuites Javascript Web Components (v3)
+ *
+ * Author: Paul Hodel <paul.hodel@gmail.com>
+ * Website: https://bossanova.uk/jsuites/
+ * Description: Create amazing web based applications.
+ *
+ * MIT License
+ *
+ */
+
 class JsuitesCalendar extends HTMLElement {
     constructor() {
         // always call super() first
@@ -162,6 +174,99 @@ class JsuitesContextmenu extends HTMLElement {
 
 window.customElements.define('jsuites-contextmenu', JsuitesContextmenu);
 
+class JsuitesEditor extends HTMLElement {
+    constructor() {
+        // always call super() first
+        super();
+    }
+
+    init(o) {
+        this.el = document.createElement('div');
+
+        // Options
+        var options = {};
+        // Initial values
+        var toolbar = o.getAttribute('toolbar');
+        if (toolbar) {
+            options.toolbar = toolbar;
+        }
+
+        // Events
+        options.onload = function(el, obj) {
+            // Basic HTML event
+            var s = o.getAttribute('onload');
+            if (s) {
+                eval(s);
+            }
+            // Trigger event
+            var e = new CustomEvent("onload");
+            el.dispatchEvent(e);
+        }
+
+        options.onclick = function(el, obj) {
+            // Basic HTML event
+            var s = o.getAttribute('onclick');
+            if (s) {
+                eval(s);
+            }
+            // Trigger event
+            var e = new CustomEvent("onclick");
+            el.dispatchEvent(e);
+        }
+
+        options.onfocus = function(el, obj) {
+            // Basic HTML event
+            var s = o.getAttribute('onfocus');
+            if (s) {
+                eval(s);
+            }
+            // Trigger event
+            var e = new CustomEvent("onfocus");
+            el.dispatchEvent(e);
+        }
+
+        options.onblur = function(el, obj) {
+            // Basic HTML event
+            var s = o.getAttribute('onblur');
+            if (s) {
+                eval(s);
+            }
+            // Trigger event
+            var e = new CustomEvent("onblur");
+            el.dispatchEvent(e);
+        }
+
+        options.onclose = function(el, obj) {
+            // Basic HTML event
+            var s = o.getAttribute('onclose');
+            if (s) {
+                eval(s);
+            }
+            // Trigger event
+            var e = new CustomEvent("onclose");
+            el.dispatchEvent(e);
+        }
+
+        setTimeout(function() {
+            jSuites.editor(o, options);
+        }, 0);
+    }
+
+    connectedCallback() {
+        if (! this.el) {
+            this.init(this);
+        }
+    }
+
+    disconnectedCallback() {
+    }
+
+    attributeChangedCallback(name, oldVal, newVal) {
+    }
+}
+
+window.customElements.define('jsuites-editor', JsuitesEditor);
+
 class JsuitesModal extends HTMLElement {
     constructor() {
         // always call super() first
@@ -180,11 +285,11 @@ class JsuitesModal extends HTMLElement {
         }
         var width = o.getAttribute('width');
         if (width) {
-            options.width = width;
+            options.width = parseInt(width) + 'px';
         }
         var height = o.getAttribute('height');
         if (height) {
-            options.height = height;
+            options.height = parseInt(height) + 'px';
         }
         var closed = o.getAttribute('closed');
         if (closed) {
@@ -393,3 +498,5 @@ class JsuitesTags extends HTMLElement {
 }
 
 window.customElements.define('jsuites-tags', JsuitesTags);
+
+
