@@ -8986,6 +8986,11 @@ jSuites.toolbar = (function(el, options) {
             } else if (items[i].type == 'select' || items[i].type == 'dropdown') {
                 if (items[i].options) {
                     toolbarItem.classList.add('jtoolbar-dropdown');
+                    toolbarItem.setAttribute('tabindex', '0');
+                    toolbarItem.onblur = function() {
+                        this.classList.remove('jtoolbar-focus');
+                    }
+
                     // Dropdown header
                     if (items[i].content) {
                         var dropdown = document.createElement('div');
@@ -8995,24 +9000,35 @@ jSuites.toolbar = (function(el, options) {
                         dropdown.innerHTML = '';
                     }
                     dropdown.classList.add('jtoolbar-dropdown-header');
+                    dropdown.onclick = function(e) {
+                        if (this.parentNode.classList.contains('jtoolbar-focus')) {
+                            this.parentNode.classList.remove('jtoolbar-focus');
+                        } else {
+                            var e = this.parentNode.parentNode.querySelectorAll('.jtoolbar-item');
+                            for (var j = 0; j < e.length; j++) {
+                                e[j].classList.remove('jtoolbar-focus');
+                            }
+
+                            this.parentNode.classList.add('jtoolbar-focus');
+
+                            const rectHeader = this.getBoundingClientRect();
+                            const rectContent = this.nextSibling.getBoundingClientRect();
+
+                            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
+                                this.nextSibling.style.top = '';
+                                this.nextSibling.style.bottom = rectHeader.height + 1 + 'px';
+                            } else {
+                                this.nextSibling.style.top = '';
+                                this.nextSibling.style.bottom = '';
+                            }
+                        }
+                    }
 
                     // Dropdown
                     var dropdownContent = document.createElement('div');
                     dropdownContent.classList.add('jtoolbar-dropdown-content');
                     toolbarItem.appendChild(dropdown);
                     toolbarItem.appendChild(dropdownContent);
-                    toolbarItem.onclick = function() {
-                        if (this.classList.contains('jtoolbar-focus')) {
-                            this.classList.remove('jtoolbar-focus');
-                        } else {
-                            var e = this.parentNode.querySelectorAll('.jtoolbar-item');
-                            for (var j = 0; j < e.length; j++) {
-                                e[j].classList.remove('jtoolbar-focus');
-                            }
-
-                            this.classList.add('jtoolbar-focus');
-                        }
-                    }
 
                     for (var j = 0; j < items[i].options.length; j++) {
                         var dropdownItem = document.createElement('div');
@@ -9029,11 +9045,13 @@ jSuites.toolbar = (function(el, options) {
                         if (items[i].content) {
                             dropdownItem.onclick = function() {
                                 this.onchange(el, obj, this.p, this.v, this.k);
+                                this.p.classList.remove('jtoolbar-focus');
                             }
                         } else {
                             dropdownItem.onclick = function() {
                                 this.parentNode.parentNode.firstChild.innerHTML = this.innerHTML;
                                 this.onchange(el, obj, this.p, this.v, this.k);
+                                this.p.classList.remove('jtoolbar-focus');
                             }
                         }
                         dropdownContent.appendChild(dropdownItem);

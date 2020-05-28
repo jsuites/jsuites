@@ -2283,7 +2283,7 @@ japp.jwarning .page {
     height:60px;
 }
 
-.jeditor .jtoolbar {
+.jeditor-toolbar {
     box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
 }
 
@@ -3159,15 +3159,11 @@ japp.jwarning .page {
 
 .jtoolbar-item i {
     display: block;
-    color:#777;
+    color:#333;
 }
 
 .jtoolbar-item:hover {
     background-color:#f2f2f2;
-}
-
-.jtoolbar-item:hover i {
-    color:#222;
 }
 
 .jtoolbar-item.jtoolbar-dropdown {
@@ -3178,6 +3174,7 @@ japp.jwarning .page {
     cursor: pointer;
     box-sizing: border-box;
     text-align: left;
+    outline: none;
 }
 
 .jtoolbar-dropdown-header {
