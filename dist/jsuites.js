@@ -2177,19 +2177,36 @@ jSuites.contextmenu = (function(el, options) {
         });
     }
 
+    // Create items
+    if (obj.options.items) {
+        obj.create(obj.options.items);
+    }
+
     el.addEventListener('blur', function(e) {
         setTimeout(function() {
             obj.close();
         }, 120);
     });
 
-    window.addEventListener("mousewheel", function() {
-        obj.close();
-    });
+    if (! jSuites.contextmenu.hasEvents) {
+        window.addEventListener("mousewheel", function() {
+            obj.close();
+        });
 
-    // Create items
-    if (obj.options.items) {
-        obj.create(obj.options.items);
+        document.addEventListener("contextmenu", function(e) {
+            var id = jSuites.contextmenu.getElement(e.target);
+            if (id) {
+                var element = document.querySelector('#' + id);
+                if (! element) {
+                    console.error('JSUITES: Contextmenu id not found');
+                } else {
+                    element.contextmenu.open(e);
+                    e.preventDefault();
+                }
+            }
+        });
+
+        jSuites.contextmenu.hasEvents = true;
     }
 
     el.contextmenu = obj;
@@ -2214,19 +2231,6 @@ jSuites.contextmenu.getElement = function(element) {
 
     return foundId;
 }
-
-document.addEventListener("contextmenu", function(e) {
-    var id = jSuites.contextmenu.getElement(e.target);
-    if (id) {
-        var element = document.querySelector('#' + id);
-        if (! element) {
-            console.error('JSUITES: Contextmenu id not found');
-        } else {
-            element.contextmenu.open(e);
-            e.preventDefault();
-        }
-    }
-});
 
 /**
  * Dialog v1.0.1
@@ -4843,33 +4847,37 @@ jSuites.form = (function(el, options) {
         obj.options.currentHash = obj.setHash();
     }, 1000);
 
-    // Alert
-    window.addEventListener("beforeunload", function (e) {
-        if (obj.isChanged() && obj.options.ignore == false) {
-            var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
-
-            if (confirmationMessage) {
-                if (typeof e == 'undefined') {
-                    e = window.event;
-                }
-
-                if (e) {
-                    e.returnValue = confirmationMessage;
-                }
-
-                return confirmationMessage;
-            } else {
-                return void(0);
-            }
-        }
-    });
-
     // Validations
     el.addEventListener("keyup", function(e) {
         if (e.target.getAttribute('data-validation')) {
             obj.validateElement(e.target);
         }
     });
+
+    // Alert
+    if (! jSuites.form.hasEvents) {
+        window.addEventListener("beforeunload", function (e) {
+            if (obj.isChanged() && obj.options.ignore == false) {
+                var confirmationMessage =  obj.options.message? obj.options.message : "\o/";
+
+                if (confirmationMessage) {
+                    if (typeof e == 'undefined') {
+                        e = window.event;
+                    }
+
+                    if (e) {
+                        e.returnValue = confirmationMessage;
+                    }
+
+                    return confirmationMessage;
+                } else {
+                    return void(0);
+                }
+            }
+        });
+
+        jSuites.form.hasEvents = true;
+    }
 
     el.form = obj;
 
@@ -7485,11 +7493,15 @@ jSuites.slider = (function(el, options) {
         e.stopPropagation();
     });
 
-    document.addEventListener('keydown', function(e) {
-        if (e.which == 27) {
-            obj.close();
-        }
-    });
+    if (! jSuites.slider.hasEvents) {
+        document.addEventListener('keydown', function(e) {
+            if (e.which == 27) {
+                obj.close();
+            }
+        });
+
+        jSuites.slider.hasEvents = true;
+    }
 
     el.slider = obj;
 
