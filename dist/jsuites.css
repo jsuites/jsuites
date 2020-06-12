@@ -538,7 +538,7 @@ japp.jwarning .page {
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
     border-bottom: 1px solid #e6e6e8;
-    padding: 0px;
+    padding: 15px;
     text-transform: uppercase;
     outline: none;
 }
@@ -1648,7 +1648,7 @@ japp.jwarning .page {
     transform: translate3d(0,0,0);
 }
 
-.jdropdown-focus .jdropdown-header
+.jdropdown-default.jdropdown-focus .jdropdown-header
 {
     outline:auto 5px -webkit-focus-ring-color;
 }
@@ -1672,7 +1672,7 @@ japp.jwarning .page {
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
-    padding-right:24px;
+    padding-right:30px;
 }
 
 .jdropdown-insert-button
@@ -1730,6 +1730,7 @@ japp.jwarning .page {
 {
     text-overflow: ellipsis;
     overflow: hidden;
+    line-height: 1.5em;
 }
 
 .jdropdown-image
@@ -1804,8 +1805,7 @@ japp.jwarning .page {
 
 .jdropdown-default .jdropdown-cursor
 {
-    background-color:#1f93ff;
-    color:#fff;
+    background-color:#eee;
 }
 
 .jdropdown-default .jdropdown-selected
@@ -1833,15 +1833,33 @@ japp.jwarning .page {
     font-weight:bold;
 }
 
+.jdropdown-default .jdropdown-reset_ {
+    content:'x';
+    position:absolute;
+    top:0;
+    right:0;
+    margin:5px;
+    margin-right:10px;
+    font-size:12px;
+    width:12px;
+    cursor:pointer;
+    text-shadow: 0px 0px 5px #fff;
+    display:none;
+    line-height: 1.8em;
+}
+
+.jdropdown-default.jdropdown-focus .jdropdown-reset_ {
+    display:block;
+}
 
 /** Default render for mobile **/
 
-.jdropdown-picker.jdropdown-focus .jdropdown-header {
-    outline: none;
-}
-
 .jdropdown-picker.jdropdown-focus .jdropdown-backdrop {
     display:block;
+}
+
+.jdropdown-picker .jdropdown-header {
+    outline: none;
 }
 
 .jdropdown-picker .jdropdown-container
@@ -1943,12 +1961,15 @@ japp.jwarning .page {
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QzE1LjQxIDEyLjU5IDE2IDExLjExIDE2IDkuNSAxNiA1LjkxIDEzLjA5IDMgOS41IDNTMyA1LjkxIDMgOS41IDUuOTEgMTYgOS41IDE2YzEuNjEgMCAzLjA5LS41OSA0LjIzLTEuNTdsLjI3LjI4di43OWw1IDQuOTlMMjAuNDkgMTlsLTQuOTktNXptLTYgMEM3LjAxIDE0IDUgMTEuOTkgNSA5LjVTNy4wMSA1IDkuNSA1IDE0IDcuMDEgMTQgOS41IDExLjk5IDE0IDkuNSAxNHoiIGZpbGw9IiNlNmU2ZTgiLz48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PC9zdmc+);
     padding-left: 30px !important;
     padding-right: 60px !important;
-    outline: none;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-close
 {
     display:block;
+}
+
+.jdropdown-searchbar .jdropdown-header {
+    outline: none;
 }
 
 .jdropdown-searchbar .jdropdown-container
@@ -2850,7 +2871,7 @@ japp.jwarning .page {
 .jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
 
 .jtabs {
-    max-width: calc(100vw - 24px);
+    max-width: 100vw;
     position: relative;
 }
 .jtabs > .jtabs-headers {
@@ -2867,6 +2888,7 @@ japp.jwarning .page {
     margin-bottom: 1px;
     background-color: #f1f1f1;
     cursor: pointer;
+    white-space: nowrap;
 }
 
 .jtabs > .jtabs-headers > div.jtabs-selected {
@@ -3049,6 +3071,10 @@ japp.jwarning .page {
 
 .jtemplate-pagination div:hover {
     background-color:#eee;
+}
+
+.jtemplate-pagination:empty {
+    display:none;
 }
 
 .jtemplate-results {

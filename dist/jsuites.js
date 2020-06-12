@@ -36,27 +36,38 @@ jSuites.ajax = (function(options) {
     }
 
     if (options.data) {
-        var data = [];
-        var keys = Object.keys(options.data);
-
-        if (keys.length) {
-            for (var i = 0; i < keys.length; i++) {
-                if (typeof(options.data[keys[i]]) == 'object') {
-                    var o = options.data[keys[i]];
-                    for (var j = 0; j < o.length; j++) {
-                        if (typeof(o[j]) == 'string') {
-                            data.push(keys[i] + '[' + j + ']=' + encodeURIComponent(o[j]));
-                        } else {
-                            var prop = Object.keys(o[j]);
-                            for (var z = 0; z < prop.length; z++) {
-                                data.push(keys[i] + '[' + j + '][' + prop[z] + ']=' + encodeURIComponent(o[j][prop[z]]));
-                            }
-                        }
+        // Parse object to variables format
+        var parseData = function(value, key) {
+            var vars = [];
+            var keys = Object.keys(value);
+            if (keys.length) {
+                for (var i = 0; i < keys.length; i++) {
+                    if (key) {
+                        var k = key + '[' + keys[i] + ']';
+                    } else {
+                        var k = keys[i];
                     }
-                } else {
-                    data.push(keys[i] + '=' + encodeURIComponent(options.data[keys[i]]));
+
+                    if (typeof(value[keys[i]]) == 'object') {
+                        var r = parseData(value[keys[i]], k);
+                        var o = Object.keys(r);
+                        for (var j = 0; j < o.length; j++) {
+                            vars[o[j]] = r[o[j]];
+                        }
+                    } else {
+                        vars[k] = value[keys[i]];
+                    }
                 }
             }
+
+            return vars;
+        }
+
+        var data = [];
+        var d = parseData(options.data);
+        var k = Object.keys(d);
+        for (var i = 0; i < k.length; i++) {
+            data.push(k[i] + '=' + encodeURIComponent(d[k[i]]));
         }
 
         if (options.method == 'GET' && data.length > 0) {
@@ -807,6 +818,9 @@ jSuites.calendar = (function(el, options) {
     // Make sure use upper case in the format
     obj.options.format = obj.options.format.toUpperCase();
 
+    // Date
+    obj.date = null;
+
     if (obj.options.value) {
         var date = obj.options.value.split(' ');
         var time = date[1];
@@ -823,17 +837,20 @@ jSuites.calendar = (function(el, options) {
             var h = 0;
             var i = 0;
         }
-    } else {
-        var date = new Date();
-        var y = date.getFullYear();
-        var m = date.getMonth() + 1;
-        var d = date.getDate();
-        var h = date.getHours();
-        var i = date.getMinutes();
-    }
 
-    // Current value
-    obj.date = [ y, m, d, h, i, 0 ];
+        obj.date = [ y, m, d, h, i, 0 ];
+    } else {
+        if (obj.options.today) {
+            var date = new Date();
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            var d = date.getDate();
+            var h = date.getHours();
+            var i = date.getMinutes();
+
+            obj.date = [ y, m, d, h, i, 0 ];
+        }
+    }
 
     // Two digits
     var two = function(value) {
@@ -2142,7 +2159,7 @@ jSuites.contextmenu = (function(el, options) {
 
         // Append items
         for (var i = 0; i < items.length; i++) {
-            if (items[i].type && items[i].type == 'line') {
+            if (items[i].type && (items[i].type == 'line' || items[i].type == 'divisor')) {
                 var itemContainer = document.createElement('hr');
             } else {
                 var itemContainer = document.createElement('div');
@@ -2428,6 +2445,8 @@ jSuites.dropdown = (function(el, options) {
         data: [],
         multiple: false,
         autocomplete: false,
+        remoteSearch: false,
+        lazyLoading: false,
         type: null,
         width: null,
         maxWidth: null,
@@ -2441,7 +2460,6 @@ jSuites.dropdown = (function(el, options) {
         onclose: null,
         onfocus: null,
         onblur: null,
-        allowNewOptions: true,
     };
 
     // Loop through our object
@@ -2458,10 +2476,15 @@ jSuites.dropdown = (function(el, options) {
         jSuites.dropdown.current = null;
     }
 
+    // Force autocomplete search
+    if (obj.options.remoteSearch == true) {
+        obj.options.autocomplete = true;
+    }
+
     // Containers
     obj.items = [];
     obj.groups = [];
-    obj.selected = [];
+    obj.value = [];
 
     // Search options
     obj.search = '';
@@ -2496,15 +2519,16 @@ jSuites.dropdown = (function(el, options) {
     containerHeader.className = 'jdropdown-container-header';
 
     // Header
-    var header = document.createElement('input');
-    header.className = 'jdropdown-header';
+    obj.header = document.createElement('input');
+    obj.header.className = 'jdropdown-header';
+    obj.header.setAttribute('autocomplete', 'off');
     if (typeof(obj.options.onfocus) == 'function') {
-        header.onfocus = function() {
+        obj.header.onfocus = function() {
             obj.options.onfocus(el);
         }
     }
     if (typeof(obj.options.onblur) == 'function') {
-        header.onblur = function() {
+        obj.header.onblur = function() {
             obj.options.onblur(el);
         }
     }
@@ -2528,6 +2552,15 @@ jSuites.dropdown = (function(el, options) {
     closeButton.className = 'jdropdown-close';
     closeButton.innerHTML = 'Done';
 
+    // Reset button
+    var resetButton  = document.createElement('div');
+    resetButton.className = 'jdropdown-reset';
+    resetButton.innerHTML = 'x';
+    resetButton.onclick = function() {
+        obj.reset();
+        obj.close();
+    }
+
     // Create backdrop
     var backdrop  = document.createElement('div');
     backdrop.className = 'jdropdown-backdrop';
@@ -2538,23 +2571,22 @@ jSuites.dropdown = (function(el, options) {
 
         // Handler
         var keyTimer = null;
-        header.addEventListener('keyup', function(e) {
-            if (keyTimer) {
-                clearTimeout(keyTimer);
-            }
-            keyTimer = setTimeout(function() {
-                obj.find(header.value);
-                keyTimer = null;
-            }, 500);
+        obj.header.addEventListener('keyup', function(e) {
+            if (! keyTimer) {
+                if (obj.search != obj.header.value.trim()) {
+                    keyTimer = setTimeout(function() {
+                        obj.find(obj.header.value.trim());
+                        keyTimer = null;
+                    }, 400);
+                }
 
-            if (! el.classList.contains('jdropdown-focus')) {
-                if (e.which > 65) {
+                if (! el.classList.contains('jdropdown-focus')) {
                     obj.open();
                 }
             }
         });
     } else {
-        header.setAttribute('readonly', 'readonly');
+        obj.header.setAttribute('readonly', 'readonly');
     }
 
     // Place holder
@@ -2563,20 +2595,29 @@ jSuites.dropdown = (function(el, options) {
     }
 
     if (obj.options.placeholder) {
-        header.setAttribute('placeholder', obj.options.placeholder);
+        obj.header.setAttribute('placeholder', obj.options.placeholder);
     }
 
     // Append elements
-    containerHeader.appendChild(header);
+    containerHeader.appendChild(obj.header);
     if (obj.options.type == 'searchbar') {
         containerHeader.appendChild(closeButton);
     } else {
         container.appendChild(closeButton);
     }
+    if (! obj.options.type || obj.options.type == 'default') {
+        //containerHeader.appendChild(resetButton);
+    }
     container.appendChild(content);
     el.appendChild(containerHeader);
     el.appendChild(container);
     el.appendChild(backdrop);
+
+    var filter = function(a) {
+        return a.filter(function(v) {
+            return v;
+        });
+    }
 
     /**
      * Init dropdown
@@ -2611,7 +2652,7 @@ jSuites.dropdown = (function(el, options) {
             }
             // Onload
             if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data);
+                obj.options.onload(el, obj, obj.options.data);
             }
         }
 
@@ -2646,6 +2687,9 @@ jSuites.dropdown = (function(el, options) {
         if (! text && data.name) {
             text = data.name;
         }
+        if (! text.trim()) {
+            text = '&nbsp;';
+        }
         var value = data.value || '';
         if (! value && data.id) {
             value = data.id;
@@ -2658,6 +2702,16 @@ jSuites.dropdown = (function(el, options) {
         item.value = value;
         item.text = text;
         item.textLowerCase = item.text.toLowerCase();
+
+        // Id
+        if (data.id) {
+            item.element.setAttribute('id', data.id);
+        }
+
+        // Group reference
+        if (group) {
+            item.group = group;
+        }
 
         // Image
         if (data.image) {
@@ -2673,7 +2727,7 @@ jSuites.dropdown = (function(el, options) {
         // Set content
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        node.innerHTML = text;
+        node.innerHTML = text || '&nbsp;';
 
         // Title
         if (data.title) {
@@ -2683,9 +2737,10 @@ jSuites.dropdown = (function(el, options) {
             node.appendChild(title);
         }
 
-        // Group reference
-        if (group) {
-            item.group = group;
+        // Value
+        if (obj.value && obj.value[data.value]) {
+            item.element.classList.add('jdropdown-selected');
+            item.selected = true;
         }
 
         // Keep DOM accessible
@@ -2697,41 +2752,18 @@ jSuites.dropdown = (function(el, options) {
         return item;
     }
 
-    obj.setData = function(data) {
-        // Update data
-        if (data) {
-            obj.options.data = data;
-        }
-
-        // Data
-        var data = obj.options.data;
-
-        // Remove content from the DOM
-        container.removeChild(content);
-
-        // Make sure the content container is blank
-        content.innerHTML = '';
-
-        // Reset
-        obj.reset();
-
-        // Reset items
-        obj.items = [];
-
-        // Helpers
-        var items = [];
-        var groups = [];
-
+    obj.appendData = function(data) {
         // Create elements
         if (data.length) {
+            // Reset counter
+            obj.numOfItems = 0;
+
+            // Helpers
+            var items = [];
+            var groups = [];
+
             // Prepare data
             for (var i = 0; i < data.length; i++) {
-                // Compatibility
-                if (typeof(data[i]) != 'object') {
-                    // Correct format
-                    obj.options.data[i] = data[i] = { id: data[i], name: data[i] };
-                }
-
                 // Process groups
                 if (data[i].group) {
                     if (! groups[data[i].group]) {
@@ -2766,7 +2798,7 @@ jSuites.dropdown = (function(el, options) {
                     for (var j = 0; j < groups[groupNames[i]].length; j++) {
                         var item = obj.createItem(data[groups[groupNames[i]][j]], group);
 
-                        if (obj.numOfItems < 200) {
+                        if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
                             groupContent.appendChild(item.element);
                             obj.numOfItems++;
                         }
@@ -2788,152 +2820,191 @@ jSuites.dropdown = (function(el, options) {
             if (items.length) {
                 for (var i = 0; i < items.length; i++) {
                     var item = obj.createItem(data[items[i]]);
-                    if (obj.numOfItems < 200) {
+                    if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
                         content.appendChild(item.element);
                         obj.numOfItems++;
                     }
                 }
             }
         }
-
-        // Re-insert the content to the container
-        container.appendChild(content);
     }
 
+    obj.setData = function(data) {
+        // Update data
+        if (data) {
+            obj.options.data = data;
+        }
+
+        var data = obj.options.data;
+
+        // Prepare data
+        if (data.length) {
+            for (var i = 0; i < data.length; i++) {
+                // Compatibility
+                if (typeof(data[i]) != 'object') {
+                    // Correct format
+                    data[i] = {
+                        value: data[i],
+                        text: data[i]
+                    }
+                }
+            }
+
+            // Make sure the content container is blank
+            content.innerHTML = '';
+
+            // Reset
+            obj.reset();
+
+            // Reset items
+            obj.items = [];
+
+            // Append data
+            obj.appendData(data);
+        }
+    }
+
+    /**
+     * Get position of the item
+     */
+    obj.getPosition = function(value) {
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items[i].value == value) {
+                return i;
+            }
+        }
+
+        return 0;
+    }
+
+    /**
+     * Get dropdown current text
+     */
     obj.getText = function(asArray) {
-        // Result
-        var result = [];
-        // Append options
-        for (var i = 0; i < obj.selected.length; i++) {
-            if (obj.items[obj.selected[i]]) {
-                result.push(obj.items[obj.selected[i]].text);
-            }
+        var v = [];
+        var k = Object.keys(obj.value);
+        for (var i = 0; i < k.length; i++) {
+            v.push(obj.value[k[i]]);
         }
-
         if (asArray) {
-            return result;
+            return v;
         } else {
-            return result.join('; ');
+            return v.join('; ');
         }
     }
 
+    /**
+     * Get dropdown current value
+     */
     obj.getValue = function(asArray) {
-        // Result
-        var result = [];
-        // Append options
-        for (var i = 0; i < obj.selected.length; i++) {
-            if (obj.items[obj.selected[i]]) {
-                result.push(obj.items[obj.selected[i]].value);
-            }
-        }
-
         if (asArray) {
-            return result;
+            return Object.keys(obj.value);
         } else {
-            return result.join(';');
+            return Object.keys(obj.value).join(';');
         }
     }
 
     obj.setValue = function(value) {
-        // Remove values
-        for (var i = 0; i < obj.selected.length; i++) {
-            obj.items[obj.selected[i]].element.classList.remove('jdropdown-selected')
+        var setValue = function(item, value) {
+            if (obj.items[item].value == value) {
+                if (obj.items[item].element) {
+                    obj.items[item].element.classList.add('jdropdown-selected');
+                }
+                obj.items[item].selected = true;
+
+                // Push to the values container
+                obj.value[value] = obj.items[item].text;
+            }
+        }
+
+        // Old value
+        var oldValue = obj.getValue();
+
+        // Remove selected
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items[i].selected == true) {
+                if (obj.items[i].element) {
+                    obj.items[i].element.classList.remove('jdropdown-selected')
+                }
+                obj.items[i].selected = null;
+            }
         } 
 
-        // Reset selected
-        obj.selected = [];
+        // Reset
+        obj.value = [];
 
         // Set values
         if (value != null) {
-            if (Array.isArray(value)) {
+            if (! Array.isArray(value)) {
                 for (var i = 0; i < obj.items.length; i++) {
-                    for (var j = 0; j < value.length; j++) {
-                        if (obj.items[i].value == value[j]) {
-                            // Keep index of the selected item
-                            obj.selected.push(i);
-                            // Visual selection
-                            obj.items[i].element.classList.add('jdropdown-selected');
-                        }
-                    }
+                    setValue(i, value);
                 }
             } else {
                 for (var i = 0; i < obj.items.length; i++) {
-                    if (obj.items[i].value == value) {
-                        // Keep index of the selected item
-                        obj.selected.push(i);
-                        // Visual selection
-                        obj.items[i].element.classList.add('jdropdown-selected');
+                    for (var j = 0; j < value.length; j++) {
+                        setValue(i, value[j]);
                     }
                 }
             }
         }
 
-        // Update labels
-        obj.updateLabel();
+        obj.header.value = obj.getText();
+
+        // Events
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, null, oldValue, obj.getValue());
+        }
     }
 
+    obj.resetSelected = function() {
+        obj.setValue(null);
+    } 
+
     obj.selectIndex = function(index) {
+        // Make sure is a number
+        var index = parseInt(index);
+
         // Only select those existing elements
         if (obj.items && obj.items[index]) {
-            var index = index = parseInt(index);
             // Current selection
             var oldValue = obj.getValue();
-            var oldLabel = obj.getText();
 
-            // Remove cursor style
-            if (obj.currentIndex != null) {
-                obj.items[obj.currentIndex].element.classList.remove('jdropdown-cursor');
-            }
-            // Set cursor style
-            obj.items[index].element.classList.add('jdropdown-cursor');
+            // Reset cursor to a new position
+            obj.setCursor(index, false);
 
-            // Update cursor position
-            obj.currentIndex = index;
-
-            // Focus behaviour
+            // Behaviour
             if (! obj.options.multiple) {
-                // Unselect option
-                if (obj.items[index].element.classList.contains('jdropdown-selected')) {
-                    // Reset selected
-                    obj.resetSelected();
+                // Update value
+                if (! obj.value[obj.items[index].value]) {
+                    obj.setValue(obj.items[index].value);
                 } else {
-                    // Reset selected
-                    obj.resetSelected();
-                    // Update selected item
-                    obj.items[index].element.classList.add('jdropdown-selected');
-                    // Add to the selected list
-                    obj.selected.push(index);
-                    // Close
-                    obj.close();
+                    obj.setValue(null);
                 }
+                obj.close();
             } else {
                 // Toggle option
-                if (obj.items[index].element.classList.contains('jdropdown-selected')) {
+                if (obj.items[index].selected) {
                     obj.items[index].element.classList.remove('jdropdown-selected');
+                    obj.items[index].selected = false;
                     // Remove from selected list
-                    var indexToRemove = obj.selected.indexOf(index);
-                    // Remove select
-                    obj.selected.splice(indexToRemove, 1);
+                    delete obj.value[obj.items[index].value];
                 } else {
                     // Select element
                     obj.items[index].element.classList.add('jdropdown-selected');
+                    obj.items[index].selected = true;
                     // Add to the selected list
-                    obj.selected.push(index);
+                    obj.value[obj.items[index].value] = obj.items[index].text;
                 }
 
                 // Update labels for multiple dropdown
                 if (! obj.options.autocomplete) {
-                    obj.updateLabel();
+                    obj.header.value = obj.getText();
                 }
-            }
 
-            // Current selection
-            var newValue = obj.getValue();
-            var newLabel = obj.getText();
-
-            // Events
-            if (typeof(obj.options.onchange) == 'function') {
-                obj.options.onchange(el, index, oldValue, newValue, oldLabel, newLabel);
+                // Events
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, index, oldValue, obj.getValue());
+                }
             }
         }
     }
@@ -2945,57 +3016,89 @@ jSuites.dropdown = (function(el, options) {
     }
 
     obj.find = function(str) {
+        if (obj.search == str.trim()) {
+            return false;
+        }
+
+        // Results
+        obj.numOfItems = 0;
+
         // Search term
         obj.search = str;
 
         // Force lowercase
         var str = str ? str.toLowerCase() : '';
 
-        // Results
-        obj.results = [];
-        obj.numOfItems = 0;
+        // Remove current items in the remote search
+        if (obj.options.remoteSearch == true) {
+            obj.currentIndex = null;
+            obj.results = null;
+            jSuites.ajax({
+                url: obj.options.url + '?q=' + str,
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    // Reset items
+                    obj.items = [];
+                    content.innerHTML = '';
+                    obj.appendData(result);
 
-        // Append options
-        for (var i = 0; i < obj.items.length; i++) {
-            if (str == null || obj.items[i].textLowerCase.indexOf(str) != -1 || obj.selected.indexOf(i) > -1) {
-                obj.results.push(obj.items[i]);
+                    if (! result.length) {
+                        content.style.display = 'none';
+                    } else {
+                        content.style.display = '';
+                    }
+                }
+            });
+        } else {
+            // Reset search
+            obj.results = [];
 
-                if (obj.items[i].group && obj.items[i].group.children[2].children[0]) {
-                    // Remove all nodes
-                    while (obj.items[i].group.children[2].children[0]) {
-                        obj.items[i].group.children[2].removeChild(obj.items[i].group.children[2].children[0]);
+            // Append options
+            for (var i = 0; i < obj.items.length; i++) {
+                if (str == null || obj.items[i].textLowerCase.indexOf(str) != -1 || obj.value[obj.items[i].value] != undefined) {
+                    obj.results.push(obj.items[i]);
+
+                    if (obj.items[i].group && obj.items[i].group.children[2].children[0]) {
+                        // Remove all nodes
+                        while (obj.items[i].group.children[2].children[0]) {
+                            obj.items[i].group.children[2].removeChild(obj.items[i].group.children[2].children[0]);
+                        }
                     }
                 }
             }
-        }
 
-        // Remove all nodes
-        while (content.children[0]) {
-            content.removeChild(content.children[0]);
-        }
-
-        // Show 200 items at once
-        var number = obj.results.length || 0;
-        if (number > 200) {
-            number = 200;
-        }
-
-        for (var i = 0; i < number; i++) {
-            if (obj.results[i].group) {
-                if (! obj.results[i].group.parentNode) {
-                    content.appendChild(obj.results[i].group);
-                }
-                obj.results[i].group.children[2].appendChild(obj.results[i].element);
-            } else {
-                content.appendChild(obj.results[i].element);
+            // Remove all nodes
+            while (content.children[0]) {
+                content.removeChild(content.children[0]);
             }
-            obj.numOfItems++;
-        }
-    }
 
-    obj.updateLabel = function() {
-        // Update label
-        header.value = obj.getText();
+            // Show 200 items at once
+            var number = obj.results.length || 0;
+
+            // Lazyloading
+            if (obj.options.lazyLoading == true && number > 200) {
+                number = 200;
+            }
+
+            for (var i = 0; i < number; i++) {
+                if (obj.results[i].group) {
+                    if (! obj.results[i].group.parentNode) {
+                        content.appendChild(obj.results[i].group);
+                    }
+                    obj.results[i].group.children[2].appendChild(obj.results[i].element);
+                } else {
+                    content.appendChild(obj.results[i].element);
+                }
+                obj.numOfItems++;
+            }
+
+            if (! obj.results.length) {
+                content.style.display = 'none';
+            } else {
+                content.style.display = '';
+            }
+        }
     }
 
     obj.open = function() {
@@ -3020,14 +3123,17 @@ jSuites.dropdown = (function(el, options) {
 
             // Filter
             if (obj.options.autocomplete == true) {
-                header.value = obj.search;
-                header.focus();
+                obj.header.value = obj.search;
+                obj.header.focus();
             }
 
             // Set cursor for the first or first selected element
-            var cursor = (obj.selected && obj.selected[0]) ? obj.selected[0] : 0;
-            if (cursor) {
-                obj.updateCursor(cursor);
+            var k = Object.keys(obj.value);
+            if (k[0]) {
+                var cursor = obj.getPosition(k[0]);
+                if (cursor) {
+                    obj.setCursor(cursor);
+                }
             }
 
             // Container Size
@@ -3060,6 +3166,12 @@ jSuites.dropdown = (function(el, options) {
                 if (obj.options.maxWidth) {
                     container.style.maxWidth = obj.options.maxWidth;
                 }
+
+                if (! obj.items.length && obj.options.autocomplete == true) {
+                    content.style.display = 'none';
+                } else {
+                    content.style.display = '';
+                }
             }
         }
 
@@ -3074,16 +3186,16 @@ jSuites.dropdown = (function(el, options) {
             // Remove controller
             jSuites.dropdown.current = null
             // Remove cursor
-            obj.resetCursor();
+            obj.setCursor();
             // Update labels
-            obj.updateLabel();
+            obj.header.value = obj.getText();
             // Events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
             // Blur
-            if (header.blur) {
-                header.blur();
+            if (obj.header.blur) {
+                obj.header.blur();
             }
             // Remove focus
             el.classList.remove('jdropdown-focus');
@@ -3093,71 +3205,47 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
-     * Update position cursor
+     * Set cursor
      */
-    obj.updateCursor = function(index) {
-        // Set new cursor
-        if (obj.items && obj.items[index] && obj.items[index].element) {
-            // Reset cursor
-            obj.resetCursor();
-
-            // Set new cursor
-            obj.items[index].element.classList.add('jdropdown-cursor');
-
-            // Update position
-            obj.currentIndex = parseInt(index);
-    
-            // Update scroll to the cursor element
-            var container = content.scrollTop;
-            var element = obj.items[obj.currentIndex].element;
-            content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
-        }
-    }
-
-    /**
-     * Reset cursor
-     */
-    obj.resetCursor = function() {
+    obj.setCursor = function(index, setPosition) {
         // Remove current cursor
         if (obj.currentIndex != null) {
             // Remove visual cursor
             if (obj.items && obj.items[obj.currentIndex]) {
                 obj.items[obj.currentIndex].element.classList.remove('jdropdown-cursor');
             }
-            // Reset cursor
+        }
+
+        if (index == undefined) {
             obj.currentIndex = null;
+        } else {
+            parseInt(index);
+
+            obj.items[index].element.classList.add('jdropdown-cursor');
+            obj.currentIndex = index;
+
+            // Update scroll to the cursor element
+            if (setPosition !== false && obj.items[obj.currentIndex].element) {
+                var container = content.scrollTop;
+                var element = obj.items[obj.currentIndex].element;
+                content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
+            }
         }
     }
 
-    /**
-     * Reset cursor
-     */
-    obj.resetSelected = function() {
-        // Unselected all
-        if (obj.selected) {
-            // Remove visual selection
-            for (var i = 0; i < obj.selected.length; i++) {
-                if (obj.items[obj.selected[i]]) {
-                    obj.items[obj.selected[i]].element.classList.remove('jdropdown-selected');
-                }
-            }
-            // Reset current selected items
-            obj.selected = [];
-        }
-    }
+    // Compatibility
+    obj.resetCursor = obj.setCursor;
+    obj.updateCursor = obj.setCursor;
 
     /**
      * Reset cursor and selected items
      */
     obj.reset = function() {
         // Reset cursor
-        obj.resetCursor();
+        obj.setCursor();
 
         // Reset selected
-        obj.resetSelected();
-
-        // Update labels
-        obj.updateLabel();
+        obj.setValue(null);
     }
 
     /**
@@ -3176,7 +3264,7 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        obj.updateCursor(newIndex);
+        obj.setCursor(newIndex);
     }
 
     /**
@@ -3185,7 +3273,7 @@ jSuites.dropdown = (function(el, options) {
     obj.first = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -3194,13 +3282,13 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        obj.updateCursor(newIndex);
+        obj.setCursor(newIndex);
     }
 
     obj.last = function() {
         var newIndex = null;
         for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -3209,13 +3297,13 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        obj.updateCursor(newIndex);
+        obj.setCursor(newIndex);
     }
 
     obj.next = function() {
         var newIndex = null;
         for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items[i].element.parentNode) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
                 newIndex = i;
                 break;
             }
@@ -3225,13 +3313,13 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        obj.updateCursor(newIndex);
+        obj.setCursor(newIndex);
     }
 
     obj.prev = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items[i].element.parentNode) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
                 newIndex = i;
                 break;
             }
@@ -3241,7 +3329,7 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        obj.updateCursor(newIndex);
+        obj.setCursor(newIndex);
     }
 
     obj.loadUp = function() {
@@ -3297,10 +3385,12 @@ jSuites.dropdown = (function(el, options) {
     }
 
     // Lazyloading
-    jSuites.lazyLoading(content, {
-        loadUp: obj.loadUp,
-        loadDown: obj.loadDown,
-    });
+    if (obj.options.lazyLoading == true) {
+        jSuites.lazyLoading(content, {
+            loadUp: obj.loadUp,
+            loadDown: obj.loadDown,
+        });
+    }
 
     // Start dropdown
     obj.init();
@@ -3379,7 +3469,6 @@ jSuites.dropdown.mouseup = function(e) {
     }
 }
 
-
 // Keydown controls
 jSuites.dropdown.onkeydown = function(e) {
     if (jSuites.dropdown.current) {
@@ -3388,13 +3477,11 @@ jSuites.dropdown.onkeydown = function(e) {
         // Index
         var index = element.currentIndex;
 
-        if (e.shiftKey) {
-
-        } else {
+        if (! e.shiftKey) {
             if (e.which == 13 || e.which == 27 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
                 // Move cursor
                 if (e.which == 13) {
-                    element.selectIndex(index)
+                    element.selectIndex(index);
                 } else if (e.which == 38) {
                     if (index == null) {
                         element.firstVisible();
@@ -3404,7 +3491,7 @@ jSuites.dropdown.onkeydown = function(e) {
                 } else if (e.which == 40) {
                     if (index == null) {
                         element.firstVisible();
-                    } else if (index + 1 < element.options.data.length) {
+                    } else if (index + 1 < element.items.length) {
                         element.next();
                     }
                 } else if (e.which == 36) {
@@ -3450,15 +3537,15 @@ jSuites.dropdown.extractFromDom = function(el, options) {
             if (el.children[j].tagName == 'OPTGROUP') {
                 for (var i = 0; i < el.children[j].children.length; i++) {
                     options.data.push({
-                        id: el.children[j].children[i].value,
-                        name: el.children[j].children[i].innerHTML,
+                        value: el.children[j].children[i].value,
+                        text: el.children[j].children[i].innerHTML,
                         group: el.children[j].getAttribute('label'),
                     });
                 }
             } else {
                 options.data.push({
-                    id: el.children[j].value,
-                    name: el.children[j].innerHTML,
+                    value: el.children[j].value,
+                    text: el.children[j].innerHTML,
                 });
             }
         }
@@ -3777,6 +3864,10 @@ jSuites.editor = (function(el, options) {
     obj.setData = function(html) {
         editor.innerHTML = html;
         jSuites.editor.setCursor(editor, true);
+    }
+
+    obj.getText = function() {
+        return editor.innerText;
     }
 
     /**
@@ -4236,12 +4327,12 @@ jSuites.editor = (function(el, options) {
         }
     }
 
-    var editorBlur = function() {
-        obj.options.onblur(el, obj, obj.getData());
+    var editorBlur = function(e) {
+        obj.options.onblur(el, obj, e);
     }
 
-    var editorFocus = function() {
-        obj.options.onfocus(el, obj, obj.getData());
+    var editorFocus = function(e) {
+        obj.options.onfocus(el, obj, e);
     }
 
     editor.addEventListener('mouseup', editorMouseUp);
@@ -4914,6 +5005,9 @@ jSuites.form.getElements = function(el, asArray) {
         var value = element.value;
 
         if (name) {
+            if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
+                value = elements[i].checked;
+            }
             data[name] = value;
         }
     }
@@ -7545,50 +7639,94 @@ jSuites.slider = (function(el, options) {
  */
 
 jSuites.sorting = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    var defaults = {
+        pointer: null,
+        direction: null,
+        ondragstart: null,
+        ondragend: null,
+        ondrop: null,
+    }
+
+    var dragElement = null;
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
     el.classList.add('jsorting');
 
     el.addEventListener('dragstart', function(e) {
-        e.target.classList.add('jsorting_dragging');
+        var position = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+        dragElement = {
+            element: e.target,
+            o: position,
+            d: position
+        }
+        e.target.style.opacity = '0.25';
+
+        if (typeof(obj.options.ondragstart) == 'function') {
+            obj.options.ondragstart(el, e.target, e);
+        }
     });
 
     el.addEventListener('dragover', function(e) {
         e.preventDefault();
 
-        if (getElement(e.target) && ! e.target.classList.contains('jsorting')) {
-            if (e.target.clientHeight / 2 > e.offsetY) {
-                e.path[0].style.borderTop = '1px dotted red';
-                e.path[0].style.borderBottom = '';
-            } else {
-                e.path[0].style.borderTop = '';
-                e.path[0].style.borderBottom = '1px dotted red';
+        if (getElement(e.target) && dragElement) {
+            if (e.target.getAttribute('draggable') == 'true') {
+                if (! obj.options.direction) {
+                    var condition = e.target.clientHeight / 2 > e.offsetY;
+                } else {
+                    var condition = e.target.clientWidth / 2 > e.offsetX;
+                }
+
+                if (condition) {
+                    e.target.parentNode.insertBefore(dragElement.element, e.target);
+                } else {
+                    e.target.parentNode.insertBefore(dragElement.element, e.target.nextSibling);
+                }
+
+                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
             }
         }
     });
 
     el.addEventListener('dragleave', function(e) {
-        e.path[0].style.borderTop = '';
-        e.path[0].style.borderBottom = '';
+        e.preventDefault();
     });
 
     el.addEventListener('dragend', function(e) {
-        e.path[1].querySelector('.jsorting_dragging').classList.remove('jsorting_dragging');
+        e.preventDefault();
+
+        if (dragElement) {
+            if (typeof(obj.options.ondragend) == 'function') {
+                obj.options.ondragend(el, dragElement.element, e);
+            }
+
+            dragElement.element.style.opacity = '';
+            dragElement = null;
+        }
     });
 
     el.addEventListener('drop', function(e) {
         e.preventDefault();
 
-        if (getElement(e.target) && ! e.target.classList.contains('jsorting')) {
-            var element = e.path[1].querySelector('.jsorting_dragging');
-
-            if (e.target.clientHeight / 2 > e.offsetY) {
-                e.path[1].insertBefore(element, e.path[0]);
-            } else {
-                e.path[1].insertBefore(element, e.path[0].nextSibling);
+        if (dragElement && (dragElement.o != dragElement.d)) {
+            if (typeof(obj.options.ondrop) == 'function') {
+                obj.options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
             }
         }
 
-        e.path[0].style.borderTop = '';
-        e.path[0].style.borderBottom = '';
+        dragElement.element.style.opacity = '';
+        dragElement = null;
     });
 
     var getElement = function(element) {
@@ -7612,8 +7750,10 @@ jSuites.sorting = (function(el, options) {
     }
 
     for (var i = 0; i < el.children.length; i++) {
-        el.children[i].setAttribute('draggable', 'true');
-    };
+        if (! el.children[i].hasAttribute('draggable')) {
+            el.children[i].setAttribute('draggable', 'true');
+        }
+    }
 
     return el;
 });
@@ -7625,15 +7765,18 @@ jSuites.tabs = (function(el, options) {
     // Default configuration
     var defaults = {
         data: null,
+        position: null,
         allowCreate: false,
+        allowChangePosition: false,
+        onclick: null,
         onload: null,
         onchange: null,
         oncreate: null,
+        ondelete: null,
+        onbeforecreate: null,
+        onchangeposition: null,
         animation: false,
-        create: null,
-        autoName: false,
-        prefixName: '',
-        hideHeaders: false,
+        hideHeaders: false
     };
 
     // Loop through the initial configuration
@@ -7655,8 +7798,8 @@ jSuites.tabs = (function(el, options) {
         el.appendChild(border);
 
         var setBorder = function(index) {
-            var rect = headers.children[index].getBoundingClientRect();
-            var rectContent = content.children[index].getBoundingClientRect();
+            var rect = obj.headers.children[index].getBoundingClientRect();
+            var rectContent = obj.content.children[index].getBoundingClientRect();
             border.style.width = rect.width + 'px';
             border.style.left = (rect.left - rectContent.left) + 'px';
             border.style.top = rect.height + 'px';
@@ -7665,23 +7808,41 @@ jSuites.tabs = (function(el, options) {
 
     // Set value
     obj.open = function(index) {
-        for (var i = 0; i < headers.children.length; i++) {
-            headers.children[i].classList.remove('jtabs-selected');
-            if (content.children[i]) {
-                content.children[i].classList.remove('jtabs-selected');
+        var previous = null;
+        for (var i = 0; i < obj.headers.children.length; i++) {
+            if (obj.headers.children[i].classList.contains('jtabs-selected')) {
+                // Current one
+                previous = i;
+                // Remote selected
+                obj.headers.children[i].classList.remove('jtabs-selected');
+                if (obj.content.children[i]) {
+                    obj.content.children[i].classList.remove('jtabs-selected');
+                }
             }
         }
 
-        headers.children[index].classList.add('jtabs-selected');
-        if (content.children[index]) {
-            content.children[index].classList.add('jtabs-selected');
+        obj.headers.children[index].classList.add('jtabs-selected');
+        if (obj.content.children[index]) {
+            obj.content.children[index].classList.add('jtabs-selected');
+        }
+
+        if (previous != index && typeof(obj.options.onchange) == 'function') {
+            if (obj.content.children[index]) {
+                obj.options.onchange(el, obj, index, obj.headers.children[index], obj.content.children[index]);
+            }
+        }
+
+        if (obj.content.children[index]) {
+            if (typeof(obj.options.onclick) == 'function') {
+                obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
+            }
         }
 
         // Hide
-        if (obj.options.hideHeaders == true && (headers.children.length < 2 && obj.options.allowCreate == false)) {
-            headers.style.display = 'none';
+        if (obj.options.hideHeaders == true && (obj.headers.children.length < 2 && obj.options.allowCreate == false)) {
+            obj.headers.style.display = 'none';
         } else {
-            headers.style.display = '';
+            obj.headers.style.display = '';
             // Set border
             if (obj.options.animation == true) {
                 setTimeout(function() {
@@ -7692,52 +7853,140 @@ jSuites.tabs = (function(el, options) {
     }
 
     obj.selectIndex = function(a) {
-        var index = Array.prototype.indexOf.call(headers.children, a);
+        var index = Array.prototype.indexOf.call(obj.headers.children, a);
         if (index >= 0) {
             obj.open(index);
         }
     }
 
-    obj.create = function(title, div) {
-        if (typeof(obj.options.create) == 'function') {
-            obj.options.create();
-        } else {
-            obj.appendElement(title, div);
-
-            if (typeof(obj.options.oncreate) == 'function') {
-                obj.options.oncreate(el, div)
+    obj.create = function(title) {
+        if (typeof(obj.options.onbeforecreate) == 'function') {
+            var ret = obj.options.onbeforecreate();
+            if (ret === false) {
+                return false;
+            } else {
+                title = ret;
             }
+        }
+
+        var div = obj.appendElement(title);
+
+        if (typeof(obj.options.oncreate) == 'function') {
+            obj.options.oncreate(el, div)
+        }
+
+        return div;
+    }
+
+    obj.nextNumber = function() {
+        var num = 0;
+        for (var i = 0; i < obj.headers.children.length; i++) {
+            var tmp = obj.headers.children[i].innerText.match(/[0-9]/);
+            if (tmp > num) {
+                num = tmp;
+            }
+        }
+        if (! num) {
+            num = 1;
+        } else {
+            num++;
+        }
+
+        return num;
+    }
+
+    obj.deleteElement = function(index) {
+        if (! obj.headers.children[index]) {
+            return false;
+        } else {
+            obj.headers.removeChild(obj.headers.children[index]);
+            obj.content.removeChild(obj.content.children[index]);
+        }
+
+        obj.open(0);
+
+        if (typeof(obj.options.ondelete) == 'function') {
+            obj.options.ondelete(el, index)
         }
     }
 
-    obj.appendElement = function(title, div) {
+    obj.appendElement = function(title) {
         if (! title) {
-            if (obj.options.autoName == true) {
-                var title = obj.options.prefixName;
-                title += ' ' + (parseInt(content.children.length) + 1);
-            } else {
-                var title = prompt('Title?', '');
-            }
+            var title = prompt('Title?', '');
         }
 
         if (title) {
+            // Add content
+            var div = document.createElement('div');
+            obj.content.appendChild(div);
+
             // Add headers
             var header = document.createElement('div');
             header.innerHTML = title;
+            header.content = div;
             if (obj.options.allowCreate) {
-                headers.insertBefore(header, headers.lastChild);
+                obj.headers.insertBefore(header, obj.headers.lastChild);
             } else {
-                headers.appendChild(header);
+                obj.headers.appendChild(header);
             }
-
-            // Add content
-            if (! div) {
-                var div = document.createElement('div');
+            // Sortable
+            if (obj.options.allowChangePosition) {
+                header.setAttribute('draggable', 'true');
             }
-            content.appendChild(div);
-
             // Open new tab
             obj.selectIndex(header);
+
+            // Return element
+            return div;
+        }
+    }
+
+    obj.init = function() {
+        // New
+        if (obj.options.allowCreate == true) {
+            var add = document.createElement('i');
+            add.className = 'jtabs-add';
+            add.setAttribute('draggable', 'false');
+            obj.headers.appendChild(add);
+        }
+
+        // Events
+        obj.headers.addEventListener("click", function(e) {
+            if (e.target.tagName == 'DIV') {
+                obj.selectIndex(e.target);
+            } else {
+                obj.create();
+            }
+        });
+
+        obj.headers.addEventListener("contextmenu", function(e) {
+            if (e.target.tagName == 'DIV') {
+                obj.selectIndex(e.target);
+            }
+        });
+
+        if (obj.headers.children.length) {
+            obj.open(0);
+        }
+
+        if (obj.options.allowChangePosition == true) {
+            jSuites.sorting(obj.headers, {
+                direction: 1,
+                ondrop: function(a,b,c,d,e,f) {
+                    // Ondrop update position of content
+                    if (b > c) {
+                        obj.content.insertBefore(obj.content.children[b], obj.content.children[c]);
+                    } else {
+                        obj.content.insertBefore(obj.content.children[b], obj.content.children[c].nextSibling);
+                    }
+                    // Open destination tab
+                    obj.open(c);
+                    // Call event
+                    if (typeof(obj.options.onchangeposition) == 'function') {
+                        obj.options.onchangeposition(a,b,c,d,e,f);
+                    }
+                },
+            });
         }
     }
 
@@ -7745,18 +7994,18 @@ jSuites.tabs = (function(el, options) {
     if (obj.options.data) {
         // Make sure the component is blank
         el.innerHTML = '';
-        var headers = document.createElement('div');
-        var content = document.createElement('div');
-        headers.classList.add('jtabs-headers');
-        content.classList.add('jtabs-content');
-        el.appendChild(headers);
-        el.appendChild(content);
+        obj.headers = document.createElement('div');
+        obj.content = document.createElement('div');
+        obj.headers.classList.add('jtabs-headers');
+        obj.content.classList.add('jtabs-content');
+        el.appendChild(obj.headers);
+        el.appendChild(obj.content);
 
         for (var i = 0; i < obj.options.data.length; i++) {
             var headersItem = document.createElement('div');
-            headers.appendChild(headersItem);
+            obj.headers.appendChild(headersItem);
             var contentItem = document.createElement('div');
-            content.appendChild(contentItem);
+            obj.content.appendChild(contentItem);
 
             headersItem.innerHTML = obj.options.data[i].title;
             if (obj.options.data[i].content) {
@@ -7772,6 +8021,7 @@ jSuites.tabs = (function(el, options) {
                         if (typeof(obj.options.onload) == 'function') {
                             obj.options.onload(el);
 
+                            obj.init();
                             obj.open(0);
                         }
                     }
@@ -7780,38 +8030,20 @@ jSuites.tabs = (function(el, options) {
         }
     } else if (el.children[0] && el.children[1]) {
         // Create from existing elements
-        var headers = el.children[0];
-        var content = el.children[1];
-        headers.classList.add('jtabs-headers');
-        content.classList.add('jtabs-content');
+        obj.headers = el.children[0];
+        obj.content = el.children[1];
+        obj.headers.classList.add('jtabs-headers');
+        obj.content.classList.add('jtabs-content');
+        obj.init();
     } else {
         el.innerHTML = '';
-        var headers = document.createElement('div');
-        var content = document.createElement('div');
-        headers.classList.add('jtabs-headers');
-        content.classList.add('jtabs-content');
-        el.appendChild(headers);
-        el.appendChild(content);
-    }
-
-    // New
-    if (obj.options.allowCreate == true) {
-        var add = document.createElement('i');
-        add.className = 'jtabs-add';
-        headers.appendChild(add);
-    }
-
-    // Events
-    headers.addEventListener("click", function(e) {
-        if (e.target.tagName == 'DIV') {
-            obj.selectIndex(e.target);
-        } else {
-            obj.create();
-        }
-    });
-
-    if (headers.children.length) {
-        obj.open(0);
+        obj.headers = document.createElement('div');
+        obj.content = document.createElement('div');
+        obj.headers.classList.add('jtabs-headers');
+        obj.content.classList.add('jtabs-content');
+        el.appendChild(obj.headers);
+        el.appendChild(obj.content);
+        obj.init();
     }
 
     el.tabs = obj;
@@ -8463,17 +8695,19 @@ jSuites.template = (function(el, options) {
         numberOfPages: 0,
         template: null,
         render: null,
-        onload: null,
-        onchange: null,
         noRecordsFound: 'No records found',
         // Searchable
         search: null,
         searchInput: true,
-        // Search happens in the back end
+        searchPlaceHolder: '',
         searchValue: '',
+        // Remote search
         remoteData: null,
         // Pagination page number of items
         pagination: null,
+        onload: null,
+        onchange: null,
+        onsearch: null,
     }
 
     // Loop through our object
@@ -8496,21 +8730,25 @@ jSuites.template = (function(el, options) {
         // Search container
         var searchContainer = document.createElement('div');
         searchContainer.className = 'jtemplate-results';
-        var searchInput = document.createElement('input');
-        searchInput.value = obj.options.searchValue;
-        searchInput.onkeyup = function(e) {
+        obj.searchInput = document.createElement('input');
+        obj.searchInput.value = obj.options.searchValue;
+        obj.searchInput.onkeyup = function(e) {
             // Clear current trigger
             if (searchTimer) {
                 clearTimeout(searchTimer);
             }
             // Prepare search
             searchTimer = setTimeout(function() {
-                obj.search(searchInput.value.toLowerCase());
+                obj.search(obj.searchInput.value.toLowerCase());
                 searchTimer = null;
             }, 300)
         }
-        searchContainer.appendChild(searchInput);
+        searchContainer.appendChild(obj.searchInput);
         el.appendChild(searchContainer);
+
+        if (obj.options.searchPlaceHolder) {
+            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
+        }
     }
 
     // Pagination container
@@ -8860,6 +9098,10 @@ jSuites.template = (function(el, options) {
         }
 
         obj.render();
+
+        if (typeof(obj.options.onsearch) == 'function') {
+            obj.options.onsearch(el, obj, query);
+        }
     }
 
     obj.refresh = function() {
@@ -8917,6 +9159,7 @@ jSuites.toolbar = (function(el, options) {
         el = document.createElement('div');
         options.app.el.appendChild(el);
     }
+
     obj.selectItem = function(element) {
         var elements = toolbarContent.children;
         for (var i = 0; i < elements.length; i++) {
@@ -8968,7 +9211,12 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].tooltip) {
-                toolbarItem.setAttribute('title', toolbar[i].tooltip);
+                toolbarItem.setAttribute('title', items[i].tooltip);
+            }
+
+            // Id
+            if (items[i].id) {
+                toolbarItem.setAttribute('id', items[i].id);
             }
 
             if (! items[i].type || items[i].type == 'i') {
@@ -8995,7 +9243,7 @@ jSuites.toolbar = (function(el, options) {
                         toolbarTitle.innerHTML = items[i].title;
                         toolbarItem.appendChild(toolbarTitle);
                     } else {
-                        toolbarItem.setProperty('title', items[i].title);
+                        toolbarItem.setAttribute('title', items[i].title);
                     }
                 }
 
@@ -9121,6 +9369,8 @@ jSuites.toolbar = (function(el, options) {
     }
 
     el.classList.add('jtoolbar');
+
+    el.innerHTML = '';
     el.onclick = function(e) {
         var element = jSuites.findElement(e.target, 'jtoolbar-item');
         if (element) {
