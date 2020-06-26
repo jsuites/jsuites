@@ -1,0 +1,45 @@
+/**
+ * (c) jLoading
+ * https://github.com/paulhodel/jtools
+ *
+ * @author: Paul Hodel <paul.hodel@gmail.com>
+ * @description: Page loading spin
+ */
+
+.jloading {
+    position:fixed;
+    z-index:10001;
+    width:100%;
+    left:0;
+    right:0;
+    top:0;
+    bottom:0;
+    background-color: rgba(0,0,0,0.7);
+}
+
+.jloading::after {
+    content:'';
+    display:block;
+    margin:0 auto;
+    margin-top:50vh;
+    width:40px;
+    height:40px;
+    border-style:solid;
+    border-color:white;
+    border-top-color:transparent;
+    border-width:4px;
+    border-radius:50%;
+    -webkit-animation: spin .8s linear infinite;
+    animation: spin .8s linear infinite;
+}
+
+.jloading.spin {
+    background-color:transparent;
+}
+
+.jloading.spin::after {
+    margin:0 auto;
+    margin-top:80px;
+    border-color:#aaa;
+    border-top-color:transparent;
+}

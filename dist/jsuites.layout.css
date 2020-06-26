@@ -1,0 +1,286 @@
+
+/**
+ * (c) jSuites Javascript Web Components
+ *
+ * Author: Paul Hodel <paul.hodel@gmail.com>
+ * Website: https://bossanova.uk/jsuites/
+ * Description: Create amazing web based applications.
+ *
+ * MIT License
+ *
+ */
+
+/** Buttons **/
+
+.jbutton {
+    padding:4px;
+    padding-left:10px;
+    padding-right:20px;
+    border:1px solid #ddd;
+    display:inline-flex;
+    border-radius:4px;
+    cursor:pointer;
+    line-height: 24px;
+    -webkit-font-smoothing: antialiased;
+}
+
+.jbutton.blue {
+    border:1px solid transparent;
+    color:#fff;
+    background-color:#1a73e8;
+}
+
+.jbutton::before {
+    content: attr(data-icon);
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    line-height: 24px;
+    font-family: 'Material icons';
+    color: #999;
+    margin-right:2px;
+}
+
+.jbutton.blue::before {
+    color: #fff;
+}
+
+.jbutton:hover {
+    background-color: #eee;
+}
+
+.jbutton.blue:hover {
+    background-color: #1a73e8;
+    opacity: 0.8;
+}
+
+/** Switch **/
+
+.jswitch {
+    display: flex;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    align-items: center;
+}
+
+.jswitch i {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 26px;
+    background-color: #e6e6e6;
+    border-radius: 23px;
+    vertical-align: text-bottom;
+    transition: all 0.3s linear;
+}
+
+.jswitch i::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 42px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 11px;
+  transform: translate3d(2px, 2px, 0) scale3d(1, 1, 1);
+  transition: all 0.25s linear;
+}
+
+.jswitch i::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  width: 22px;
+  height: 22px;
+  background-color: #fff;
+  border-radius: 11px;
+  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24);
+  transform: translate3d(2px, 2px, 0);
+  transition: all 0.2s ease-in-out;
+}
+
+.jswitch:active i::after {
+  width: 28px;
+  transform: translate3d(2px, 2px, 0);
+}
+
+.jswitch:active input:checked + i::after { transform: translate3d(16px, 2px, 0); }
+
+.jswitch input { display: none; }
+
+.jswitch input:checked + i { background-color: #4BD763; }
+
+.jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
+
+.jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
+
+.jlogin {
+    width: 100%;
+    box-sizing: border-box;
+    margin:0 auto;
+    vertical-align:middle;
+    border-radius: 5px;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    font-size:1em;
+}
+
+.jlogin-fullscreen {
+    position:absolute;
+    top:0px;
+    left:0px;
+    width:100%;
+    height:100%;
+    background-color:#fff;
+    z-index:9000;
+}
+
+.jlogin > form {
+    max-width:480px;
+    padding:20px;
+    margin: 0 auto;
+}
+
+.jlogin > form > div {
+    margin-bottom:10px;
+}
+
+.jlogin label {
+    display:block;
+}
+
+.jlogin > form > div > input {
+    width:100%;
+    outline:none;
+    padding:15px;
+    margin:0px;
+}
+
+.jlogin input[type='checkbox'] {
+    float:left;
+}
+
+.jlogin input[type='button'] {
+    padding:10px;
+    background-color: var(--button-color);
+    border: 1px solid var(--button-color);
+    color: #fff;
+    cursor:pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+}
+
+.jlogin span
+{
+    margin:0 auto;
+}
+.jlogin img
+{
+    text-align:center;
+    max-width:220px;
+}
+
+.jlogin .jlogin-logo
+{
+    text-align:center;
+    padding:20px;
+}
+
+.jlogin .captcha
+{
+    width:100%;
+    margin-top:4px;
+    margin-bottom:4px;
+    border:1px solid #ccc;
+    display:block;
+}
+
+.jlogin .facebookButton
+{
+    padding:10px;
+    background-color: var(--button-color);
+    border: 1px solid var(--button-color);
+    color: #fff;
+    text-align:center;
+    background-repeat:no-repeat;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' width='24px' height='24px'%3E%3Cpath d='M19,3H5C3.895,3,3,3.895,3,5v14c0,1.105,0.895,2,2,2h7.621v-6.961h-2.343v-2.725h2.343V9.309 c0-2.324,1.421-3.591,3.495-3.591c0.699-0.002,1.397,0.034,2.092,0.105v2.43h-1.428c-1.13,0-1.35,0.534-1.35,1.322v1.735h2.7 l-0.351,2.725h-2.365V21H19c1.105,0,2-0.895,2-2V5C21,3.895,20.105,3,19,3z' fill='white'/%3E%3C/svg%3E%0A");
+    background-position:10px 40%;
+    cursor:pointer;
+}
+
+.jlogin .rememberButton
+{
+    padding:10px;
+    display:none;
+}
+
+.jlogin .requestButton, .jlogin .cancelButton, .jlogin .newProfileButton
+{
+    padding:20px;
+    padding-bottom:0px;
+    text-align:center;
+    cursor:pointer;
+}
+
+.jlogin-captcha img {
+    min-width:280px;
+}
+
+.jlogin-loading:before {
+    content: "";
+    display: block;
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    width: 200px;
+    height: 4px;
+    background-color: var(--button-color);
+    animation: loading 2s linear infinite;
+}
+
+@keyframes loading {
+    from { left: 0px; width: 25%; }
+    25%  { width: 25%; }
+    50%  { width: 50%; }
+    75%  { left:  75%; }
+    100% { left:  100%; }
+    to { left: 100%; }
+}
+
+.jtemplate-pagination {
+    display:flex;
+    cursor:pointer;
+    margin-top:10px;
+    margin-bottom:10px;
+}
+
+.jtemplate-pagination div {
+    text-align:center;
+    font-size:0.8em;
+    width:30px;
+    height:30px;
+    line-height:30px;
+    -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+    khtml-user-select: none; /* Konqueror HTML */
+    -moz-user-select: none; /* Firefox */
+    -ms-user-select: none; /* Internet Explorer/Edge */
+    user-select: none;
+}
+
+.jtemplate-pagination div:hover {
+    background-color:#eee;
+}
+
+.jtemplate-pagination:empty {
+    display:none;
+}
+
+.jtemplate-results {
+    margin-top:15px;
+    margin-bottom:15px;
+}
+
+
+
