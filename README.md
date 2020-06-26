@@ -2,6 +2,20 @@
 
 ## jSuites - The definitive common javascript web components
 
+New version!
+---------
+
+The most recent version Jsuites has been split in two distributions, and three totaly optional extensions.
+
+jsuites.js - Complete version.
+jsuites.basic.js - Only the necessary files for Jexcel.
+jsuites.webcomponents.js - To use jsuites as webcomponents.
+
+jsuites.layout.js - Extensions and helpers for layout. (Alpha version).
+jsuites.mobile.js - Extensions to group the webApp components. (Alpha version).
+
+The source code is now available per component. The documentation is still under improvements.
+
 About
 ---------
 jSuites is a collection of lightweight common required javascript web components. It is composed of fully responsive javascript vanilla plugins to help you bring the best user experience to your projects, independent of the platform.</p>
