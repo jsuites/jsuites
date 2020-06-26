@@ -5,7 +5,7 @@
 New version!
 ---------
 
-The most recent version Jsuites has been split in two distributions, and three totaly optional extensions.
+The most recent version Jsuites has been splited in two distributions, and there are two optional extensions.
 
 jsuites.js - Complete version.
 jsuites.basic.js - Only the necessary files for Jexcel.
