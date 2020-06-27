@@ -1,3 +1,7 @@
+jSuites.isNumeric = (function (num) {
+    return !isNaN(num)
+});
+
 jSuites.guid = function() {
     var guid = '';
     for (var i = 0; i < 32; i++) {

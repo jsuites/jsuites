@@ -4,18 +4,25 @@ jSuites.mask = (function() {
     var values = []
     var pieces = [];
 
+    /**
+     * Apply a mask over a value considering a custom decimal representation. Default: '.'
+     */
     obj.run = function(value, mask, decimal) {
-        if (value && mask) {
-            if (! decimal) {
+        if (value.toString().length && mask.toString().length) {
+            // Default decimal separator
+            if (typeof(decimal) == 'undefined') {
                 decimal = '.';
             }
-            if (value == Number(value)) {
+
+            if (jSuites.isNumeric(value)) {
                 var number = (''+value).split('.');
                 var value = number[0];
                 var valueDecimal = number[1];
             } else {
                 value = '' + value;
             }
+
+            // Helpers
             index = 0;
             values = [];
             // Create mask token

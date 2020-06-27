@@ -1,6 +1,5 @@
-
 /**
- * (c) jSuites Javascript Web Components (v3.2)
+ * (c) jSuites Javascript Web Components (v3.3.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1737,7 +1736,6 @@ jSuites.contextmenu = (function(el, options) {
         for (var i = 0; i < items.length; i++) {
             if (items[i].type && (items[i].type == 'line' || items[i].type == 'divisor')) {
                 var itemContainer = document.createElement('hr');
-                itemContainer.className = 'jcontextmenu-line';
             } else {
                 var itemContainer = document.createElement('div');
                 var itemText = document.createElement('a');
@@ -4031,6 +4029,10 @@ jSuites.editor.getDefaultToolbar = function() {
 }
 
 
+jSuites.isNumeric = (function (num) {
+    return !isNaN(num)
+});
+
 jSuites.guid = function() {
     var guid = '';
     for (var i = 0; i < 32; i++) {
@@ -4686,18 +4688,25 @@ jSuites.mask = (function() {
     var values = []
     var pieces = [];
 
+    /**
+     * Apply a mask over a value considering a custom decimal representation. Default: '.'
+     */
     obj.run = function(value, mask, decimal) {
-        if (value && mask) {
-            if (! decimal) {
+        if (value.toString().length && mask.toString().length) {
+            // Default decimal separator
+            if (typeof(decimal) == 'undefined') {
                 decimal = '.';
             }
-            if (value == Number(value)) {
+
+            if (jSuites.isNumeric(value)) {
                 var number = (''+value).split('.');
                 var value = number[0];
                 var valueDecimal = number[1];
             } else {
                 value = '' + value;
             }
+
+            // Helpers
             index = 0;
             values = [];
             // Create mask token
