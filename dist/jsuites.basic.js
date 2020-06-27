@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components (v3.3)
+ * (c) jSuites Javascript Web Components (v3.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1737,6 +1737,7 @@ jSuites.contextmenu = (function(el, options) {
         for (var i = 0; i < items.length; i++) {
             if (items[i].type && (items[i].type == 'line' || items[i].type == 'divisor')) {
                 var itemContainer = document.createElement('hr');
+                itemContainer.className = 'jcontextmenu-line';
             } else {
                 var itemContainer = document.createElement('div');
                 var itemText = document.createElement('a');

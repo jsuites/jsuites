@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components (v3.3.1)
+ * (c) jSuites Javascript Web Components (v3.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/

@@ -1,3 +1,22 @@
+
+/**
+ * (c) jSuites Javascript Web Components (v3.2)
+ *
+ * Author: Paul Hodel <paul.hodel@gmail.com>
+ * Website: https://bossanova.uk/jsuites/
+ * Description: Create amazing web based applications.
+ *
+ * MIT License
+ *
+ */
+;(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    global.jSuites = factory();
+}(this, (function () {
+
+    'use strict';
+
 jSuites.login = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -1360,3 +1379,9 @@ jSuites.template = (function(el, options) {
 
     return obj;
 });
+
+
+
+    return jSuites;
+
+})));
