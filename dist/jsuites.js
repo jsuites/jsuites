@@ -1468,6 +1468,7 @@ jSuites.color = (function(el, options) {
         onchange: null,
         closeOnChange: true,
         palette: null,
+        position: null,
     };
 
     // Loop through our object
