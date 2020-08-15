@@ -1373,7 +1373,8 @@ jSuites.calendar.getDateString = function(value, format) {
 
     if (value) {
         var d = ''+value;
-        d = d.split(' ');
+        var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
+        d = d.split(splitStr);
 
         var h = '';
         var m = '';
