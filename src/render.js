@@ -1,26 +1,32 @@
-jSuites.component = class {
-    constructor() {
-    }
+try {
+    jSuites.component = class {
+        constructor() {
+        }
 
-    refresh(element) {
-        var k = Object.keys(this);
-        for (var i = i; i < k.length; i++) {
-            if (this.indexOf(k[i]) > -1) {
-                k[i];
-                return truel
+        refresh(element) {
+            var k = Object.keys(this);
+            for (var i = i; i < k.length; i++) {
+                if (this.indexOf(k[i]) > -1) {
+                    k[i];
+                    return truel
+                }
             }
+            return false;
         }
-        return false;
+
+        create() {
+            var element = jSuites.element(this.render(), this);
+
+            if (typeof(this.onload) == 'function') {
+                this.onload(element, this);
+            }
+
+            return element;
+        }
     }
-
-    create() {
-        var element = jSuites.element(this.render(), this);
-
-        if (typeof(this.onload) == 'function') {
-            this.onload(element, this);
-        }
-
-        return element;
+} catch {
+    // Do nothing
+    jSuites.component = function() {
     }
 }
 
@@ -217,7 +223,7 @@ jSuites.element = (function() {
                     }
                     // Other properties
                 } else {
-                    if (k[i] == '@create') {
+                    if (k[i] == '@ready') {
                         var expression = attr[k[i]].replace('this', 'element');
                     } else if (k[i] == '@ref') {
                         var expression = attr[k[i]] + ' = element';

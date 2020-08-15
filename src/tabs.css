@@ -24,8 +24,13 @@
     color: #000;
 }
 
+.jtabs > .jtabs-content {
+    box-sizing: border-box;
+}
+
 .jtabs > .jtabs-content > div {
     display: none;
+    box-sizing: border-box;
 }
 
 .jtabs > .jtabs-content > div.jtabs-selected {

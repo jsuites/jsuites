@@ -154,6 +154,11 @@ jSuites.template = (function(el, options) {
         } else {
             obj.options.data.push(data);
         }
+        // If is empty remove indication
+        if (container.classList.contains('jtemplate-empty')) {
+            container.classList.remove('jtemplate-empty');
+            container.innerHTML = '';
+        }
         // Get content
         content.innerHTML = obj.options.template[Object.keys(options.template)[0]](data);
         // Add animation
@@ -180,6 +185,11 @@ jSuites.template = (function(el, options) {
             // Remove element from DOM
             jSuites.animation.fadeOut(element, function() {
                 element.parentNode.removeChild(element);
+
+                if (! container.innerHTML) {
+                    container.classList.add('jtemplate-empty');
+                    container.innerHTML = obj.options.noRecordsFound;
+                }
             });
         } else {
             console.error('Element not found');

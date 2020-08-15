@@ -72,12 +72,6 @@ jSuites.tabs = (function(el, options) {
             }
         }
 
-        if (obj.content.children[index]) {
-            if (typeof(obj.options.onclick) == 'function') {
-                obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
-            }
-        }
-
         // Hide
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 2 && obj.options.allowCreate == false)) {
             obj.headers.style.display = 'none';
@@ -97,6 +91,8 @@ jSuites.tabs = (function(el, options) {
         if (index >= 0) {
             obj.open(index);
         }
+
+        return index;
     }
 
     obj.create = function(title) {
@@ -193,9 +189,13 @@ jSuites.tabs = (function(el, options) {
         // Events
         obj.headers.addEventListener("click", function(e) {
             if (e.target.tagName == 'DIV') {
-                obj.selectIndex(e.target);
+                var index = obj.selectIndex(e.target);
             } else {
                 obj.create();
+            }
+
+            if (typeof(obj.options.onclick) == 'function') {
+                obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
             }
         });
 

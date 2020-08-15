@@ -23,6 +23,7 @@ jSuites.dropdown = (function(el, options) {
         opened: false,
         value: null,
         placeholder: '',
+        newOptions: false,
         position: false,
         onchange: null,
         onload: null,
@@ -30,6 +31,7 @@ jSuites.dropdown = (function(el, options) {
         onclose: null,
         onfocus: null,
         onblur: null,
+        oninsert: null,
     };
 
     // Loop through our object
@@ -102,6 +104,10 @@ jSuites.dropdown = (function(el, options) {
             obj.options.onblur(el);
         }
     }
+    
+    if (obj.options.newOptions == true) {
+        obj.header.classList.add('jdropdown-add');
+    }
 
     // Container
     var container = document.createElement('div');
@@ -110,12 +116,6 @@ jSuites.dropdown = (function(el, options) {
     // Dropdown content
     var content = document.createElement('div');
     content.className = 'jdropdown-content';
-
-    // New items
-    var newOptions = document.createElement('div');
-    newOptions.className = 'jdropdown-create-option';
-    newOptions.innerHTML = 'New option';
-    //container.appendChild(newOptions);
 
     // Close button
     var closeButton  = document.createElement('div');
@@ -256,6 +256,45 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
+     * Add a new item
+     */
+    obj.add = function(title) {
+        if (! title) {
+            var current = obj.options.autocomplete == true ? obj.header.value : '';
+            var title = prompt('Text', current);
+            if (! title) {
+                return false;
+            }
+        }
+
+        // Create new item
+        var item = {
+            value: jSuites.guid(),
+            text: title,
+        };
+
+        // Add item to the main list
+        obj.options.data.push(item);
+
+        var newItem = obj.createItem(item);
+
+        // Append DOM to the list
+        content.appendChild(newItem.element);
+
+        // Callback
+        if (typeof(obj.options.oninsert) == 'function') {
+            obj.options.oninsert(obj, newItem, item)
+        }
+
+        // Show content
+        if (content.style.display == 'none') {
+            content.style.display = '';
+        }
+
+        return item;
+    }
+
+    /**
      * Create a new item
      */
     obj.createItem = function(data, group) {
@@ -298,6 +337,11 @@ jSuites.dropdown = (function(el, options) {
                image.classList.add('jdropdown-image-small');
             }
             item.element.appendChild(image);
+        } else if (data.color) {
+            var color = document.createElement('div');
+            color.className = 'jdropdown-color';
+            color.style.backgroundColor = data.color;
+            item.element.appendChild(color);
         }
 
         // Set content
@@ -826,7 +870,7 @@ jSuites.dropdown = (function(el, options) {
     obj.firstVisible = function() {
         var newIndex = null;
         for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
                 break;
             }
@@ -845,7 +889,7 @@ jSuites.dropdown = (function(el, options) {
     obj.first = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -860,7 +904,7 @@ jSuites.dropdown = (function(el, options) {
     obj.last = function() {
         var newIndex = null;
         for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -981,20 +1025,24 @@ jSuites.dropdown.mouseup = function(e) {
         var dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
             if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
-                if (dropdown.options.autocomplete == false) {
-                    dropdown.close();
+                var rect = element.getBoundingClientRect();
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
                 } else {
-                    var rect = element.getBoundingClientRect();
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
 
-                    if (e.changedTouches && e.changedTouches[0]) {
-                        var x = e.changedTouches[0].clientX;
-                        var y = e.changedTouches[0].clientY;
+                if (rect.width - (x - rect.left) < 30) {
+                    if (e.target.classList.contains('jdropdown-add')) {
+                        dropdown.add();
                     } else {
-                        var x = e.clientX;
-                        var y = e.clientY;
+                        dropdown.close();
                     }
-
-                    if (rect.width - (x - rect.left) < 30) {
+                } else {
+                    if (dropdown.options.autocomplete == false) {
                         dropdown.close();
                     }
                 }

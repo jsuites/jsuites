@@ -5,6 +5,9 @@ jSuites.image = (function(el, options) {
     // Default configuration
     var defaults = {
         minWidth: false,
+        maxWidth: null,
+        maxHeight: null,
+        maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
         singleFile: true,
         remoteParser: null,
@@ -77,7 +80,7 @@ jSuites.image = (function(el, options) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     var data = {
-                        file: canvas.toDataURL(),
+                        file: obj.getDataURL(canvas, file.type),
                         extension: file.name.substr(file.name.lastIndexOf('.') + 1),
                         name: file.name,
                         size: file.size,
@@ -147,6 +150,30 @@ jSuites.image = (function(el, options) {
 
             img.src = src;
         }
+    }
+
+    obj.getCanvas = function(img) {
+        var canvas = document.createElement('canvas');
+        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
+        var r2 = (obj.options.maxHeight || img.height) / img.height;
+        var r = Math.min(r1, r2, 1);
+        canvas.width = img.width * r;
+        canvas.height = img.height * r;
+        return canvas;
+    }
+
+    obj.getDataURL = function(canvas, type) {
+        var compression = 0.92;
+        var lastContentLength = null;
+        var content = canvas.toDataURL(type, compression);
+        while (obj.options.maxJpegSizeBytes && type === 'image/jpeg' &&
+               content.length > obj.options.maxJpegSizeBytes && content.length !== lastContentLength) {
+            // Apply the compression
+            compression *= 0.9;
+            lastContentLength = content.length;
+            content = canvas.toDataURL(type, compression);
+        }
+        return content;
     }
 
     var attachmentInput = document.createElement('input');

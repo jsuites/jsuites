@@ -24,6 +24,16 @@ jSuites.ajax = (function(options, complete) {
         options.method = options.type;
     }
 
+    // Default method
+    if (! options.method) {
+        options.method = 'GET';
+    }
+
+    // Default type
+    if (! options.dataType) {
+        options.dataType = 'json';
+    }
+
     if (options.data) {
         // Parse object to variables format
         var parseData = function(value, key) {

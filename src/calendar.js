@@ -46,6 +46,7 @@ jSuites.calendar = (function(el, options) {
         onopen: null,
         onclose: null,
         onchange: null,
+        onupdate: null,
         // Internal mode controller
         mode: null,
         position: null,
@@ -124,6 +125,8 @@ jSuites.calendar = (function(el, options) {
 
     var calendarControls = document.createElement('div');
     calendarControls.className = 'jcalendar-controls'
+    calendarControls.style.borderBottom = '1px solid #ddd';
+
     if (obj.options.resetButton) {
         calendarControls.appendChild(calendarReset);
     }
@@ -134,7 +137,11 @@ jSuites.calendar = (function(el, options) {
 
     var calendarContent = document.createElement('div');
     calendarContent.className = 'jcalendar-content';
-    calendarContent.appendChild(calendarControls);
+
+    if (el.tagName == 'INPUT') {
+        calendarContent.appendChild(calendarControls);
+    }
+
     calendarContainer.appendChild(calendarContent);
 
     // Table container
@@ -145,10 +152,11 @@ jSuites.calendar = (function(el, options) {
     // Main element
     if (el.tagName == 'INPUT') {
         var calendar = document.createElement('div');
+        calendar.className = 'jcalendar';
     } else {
         var calendar = el;
+        calendar.className = 'jcalendar-inline';
     }
-    calendar.className = 'jcalendar';
     calendar.appendChild(calendarContainer);
 
     // Previous button
@@ -197,6 +205,11 @@ jSuites.calendar = (function(el, options) {
     calendarSelectHour.className = 'jcalendar-select';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
     }
 
     for (var i = 0; i < 24; i++) {
@@ -209,7 +222,12 @@ jSuites.calendar = (function(el, options) {
     var calendarSelectMin = document.createElement('select');
     calendarSelectMin.className = 'jcalendar-select';
     calendarSelectMin.onchange = function() {
-        obj.date[4] = this.value; 
+        obj.date[4] = this.value;
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
     }
 
     for (var i = 0; i < 60; i++) {
@@ -238,7 +256,12 @@ jSuites.calendar = (function(el, options) {
     calendarControlsUpdate.style.flexGrow = '10';
     calendarControlsUpdate.appendChild(calendarControlsUpdateButton);
     calendarControlsFooter.appendChild(calendarControlsTime);
-    calendarControlsFooter.appendChild(calendarControlsUpdate);
+    
+    // Only show the update button for input elements
+    if (el.tagName == 'INPUT') {
+        calendarControlsFooter.appendChild(calendarControlsUpdate);
+    }
+
     calendarContent.appendChild(calendarControlsFooter);
 
     var calendarBackdrop = document.createElement('div');
@@ -260,7 +283,9 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
-    // Methods
+    /**
+     * Open the calendar
+     */
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
             if (jSuites.calendar.current) {
@@ -457,6 +482,11 @@ jSuites.calendar = (function(el, options) {
                 elements.classList.remove('jcalendar-selected');
             }
             element.classList.add('jcalendar-selected');
+
+            // Event
+            if (typeof(obj.options.onupdate) == 'function') {
+                obj.options.onupdate(el, obj.getValue());
+            }
         }
 
         // Update
@@ -820,6 +850,14 @@ jSuites.calendar = (function(el, options) {
         el.classList.add('jcalendar-input');
         // Value
         el.value = obj.setLabel(obj.getValue(), obj.options.format);
+    } else {
+        // Get days
+        obj.getDays();
+        // Hour
+        if (obj.options.time) {
+            calendarSelectHour.value = obj.date[3];
+            calendarSelectMin.value = obj.date[4];
+        }
     }
 
     // Keep object available from the node

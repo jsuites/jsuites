@@ -6,8 +6,7 @@
  * @description: Custom dropdowns
  */
 
-.jdropdown
-{
+.jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -21,13 +20,11 @@
     display: inline-block;
 }
 
-.jdropdown-header::placeholder
-{
+.jdropdown-header::placeholder {
     color:#000;
 }
 
-.jdropdown-backdrop
-{
+.jdropdown-backdrop {
     position:fixed;
     top:0px;
     left:0px;
@@ -40,19 +37,20 @@
     display:none;
 }
 
-.jdropdown-focus
-{
+.jdropdown-focus {
     position:relative;
 }
 
-.jdropdown-focus .jdropdown-container
-{
+.jdropdown-focus .jdropdown-container {
     transform: translate3d(0,0,0);
 }
 
-.jdropdown-default.jdropdown-focus .jdropdown-header
-{
+.jdropdown-default.jdropdown-focus .jdropdown-header {
     outline:auto 5px -webkit-focus-ring-color;
+}
+
+.jdropdown-default.jdropdown-focus .jdropdown-header.jdropdown-add {
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
 }
 
 .jdropdown-container-header
@@ -517,4 +515,20 @@
 
 .app .jdropdown-item {
     text-transform:uppercase;
+}
+
+.jdropdown-create-container {
+    margin: 10px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 6px;
+}
+
+.jdropdown-color {
+    background-color: #fff;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
 }

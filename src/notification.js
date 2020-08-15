@@ -7,6 +7,7 @@ jSuites.notification = (function(options) {
         icon: null,
         name: 'Notification',
         date: null,
+        error: null,
         title: null,
         message: null,
         timeout: 4000,
@@ -25,6 +26,10 @@ jSuites.notification = (function(options) {
 
     var notification = document.createElement('div');
     notification.className = 'jnotification';
+
+    if (obj.options.error) {
+        notification.classList.add('jnotification-error');
+    }
 
     var notificationContainer = document.createElement('div');
     notificationContainer.className = 'jnotification-container';

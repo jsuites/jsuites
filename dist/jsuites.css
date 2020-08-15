@@ -235,11 +235,11 @@
     min-width:280px;
 }
 
-.jcalendar-focus {
+.jcalendar.jcalendar-focus {
     display:block;
 }
 
-.jcalendar-backdrop {
+.jcalendar .jcalendar-backdrop {
     position:fixed;
     top:0px;
     left:0px;
@@ -252,34 +252,18 @@
     display:none;
 }
 
-.jcalendar-container {
+.jcalendar .jcalendar-container {
     position:relative;
     box-sizing:border-box;
 }
 
-.jcalendar-content {
+.jcalendar .jcalendar-content {
     position:absolute;
     z-index:9001;
     -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     background-color:#fff;
-}
-
-.jcalendar-table > table {
-    width:100%;
-    background-color:#fff;
-}
-
-.jcalendar-table > table > tbody td {
-    box-sizing:border-box;
-    cursor:pointer;
-    padding:9px;
-    font-size:0.9em;
-}
-
-.jcalendar-table > table > thead {
-    cursor:pointer;
 }
 
 .jcalendar-header {
@@ -312,12 +296,29 @@
     padding: 14px;
 }
 
-.jcalendar thead td {
+.jcalendar-table > table {
+    width:100%;
+    background-color:#fff;
+}
+
+.jcalendar-table > table > thead {
+    cursor:pointer;
+}
+
+.jcalendar-table thead td {
     padding:10px;
     height:40px;
 }
 
-.jcalendar tfoot td {
+.jcalendar-table > table > tbody td {
+    box-sizing:border-box;
+    cursor:pointer;
+    padding:9px;
+    font-size:0.9em;
+}
+
+
+.jcalendar-table tfoot td {
     padding:10px;
 }
 
@@ -348,7 +349,7 @@
     width:100%;
 }
 
-.jcalendar select {
+.jcalendar-container select {
     width:55px;
     display:inline-block;
     border:0px;
@@ -359,8 +360,7 @@
     margin-right:10px;
 }
 
-.jcalendar select:first-child
-{
+.jcalendar-container select:first-child {
     margin-right:2px;
 }
 
@@ -390,8 +390,6 @@
     -webkit-flex-flow: row wrap;
     justify-content: space-between;
     align-items:center;
-
-    border-bottom:1px solid #ddd;
 }
 
 .jcalendar-controls div {
@@ -601,8 +599,7 @@
  * @description: Custom dropdowns
  */
 
-.jdropdown
-{
+.jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -616,13 +613,11 @@
     display: inline-block;
 }
 
-.jdropdown-header::placeholder
-{
+.jdropdown-header::placeholder {
     color:#000;
 }
 
-.jdropdown-backdrop
-{
+.jdropdown-backdrop {
     position:fixed;
     top:0px;
     left:0px;
@@ -635,19 +630,20 @@
     display:none;
 }
 
-.jdropdown-focus
-{
+.jdropdown-focus {
     position:relative;
 }
 
-.jdropdown-focus .jdropdown-container
-{
+.jdropdown-focus .jdropdown-container {
     transform: translate3d(0,0,0);
 }
 
-.jdropdown-default.jdropdown-focus .jdropdown-header
-{
+.jdropdown-default.jdropdown-focus .jdropdown-header {
     outline:auto 5px -webkit-focus-ring-color;
+}
+
+.jdropdown-default.jdropdown-focus .jdropdown-header.jdropdown-add {
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
 }
 
 .jdropdown-container-header
@@ -1114,6 +1110,22 @@
     text-transform:uppercase;
 }
 
+.jdropdown-create-container {
+    margin: 10px;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 6px;
+}
+
+.jdropdown-color {
+    background-color: #fff;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    width: 12px;
+    height: 12px;
+    margin-right: 6px;
+}
+
 /**
  * (c) jTools Text Editor
  * https://github.com/paulhodel/jtools
@@ -1141,7 +1153,7 @@
 }
 
 .jeditor-container.jeditor-padding .jeditor {
-    min-height:120px;
+    min-height:160px;
     margin-bottom:10px;
     padding:10px;
 }
@@ -1465,7 +1477,7 @@
 
 .jnotification-close {
     content: '';
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
     font-size: 20px;
     width: 20px;
     height: 20px;
@@ -1504,7 +1516,25 @@
     letter-spacing: 0.1em;
 }
 
-@media (min-width: 320px) and (max-width: 800px) {
+.jnotification {
+    bottom: 0px;
+}
+.jnotification-container {
+    background-color: #000;
+    background: rgba(92,92,92,1);
+    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
+    color: #fff;
+    width: 320px;
+    margin: 30px;
+    padding: 20px;
+}
+
+.jnotification-error .jnotification-container {
+    background: rgb(182,38,6);
+    background: linear-gradient(0deg, rgba(170,41,13,1) 0%, rgba(149,11,11,1) 100%);
+}
+
+@media (max-width: 800px) {
     .jnotification {
         top: 0px;
         width: 100%;
@@ -1513,20 +1543,12 @@
         background: rgba(255,255,255,0.95);
         border: 1px solid #eee;
     }
-}
-
-@media (min-width: 801px) {
-    .jnotification {
-        bottom: 0px;
+    .jnotification-error .jnotification-container {
+        background: rgba(255,255,255,0.95);
+        color: #790909;
     }
-    .jnotification-container {
-        background-color: #000;
-        background: rgba(92,92,92,1);
-        background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
-        color: #fff;
-        width: 320px;
-        margin: 30px;
-        padding: 20px;
+    .jnotification-close {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
     }
 }
 
@@ -1727,8 +1749,13 @@
     color: #000;
 }
 
+.jtabs > .jtabs-content {
+    box-sizing: border-box;
+}
+
 .jtabs > .jtabs-content > div {
     display: none;
+    box-sizing: border-box;
 }
 
 .jtabs > .jtabs-content > div.jtabs-selected {

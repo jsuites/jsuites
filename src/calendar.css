@@ -20,11 +20,11 @@
     min-width:280px;
 }
 
-.jcalendar-focus {
+.jcalendar.jcalendar-focus {
     display:block;
 }
 
-.jcalendar-backdrop {
+.jcalendar .jcalendar-backdrop {
     position:fixed;
     top:0px;
     left:0px;
@@ -37,34 +37,18 @@
     display:none;
 }
 
-.jcalendar-container {
+.jcalendar .jcalendar-container {
     position:relative;
     box-sizing:border-box;
 }
 
-.jcalendar-content {
+.jcalendar .jcalendar-content {
     position:absolute;
     z-index:9001;
     -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
     background-color:#fff;
-}
-
-.jcalendar-table > table {
-    width:100%;
-    background-color:#fff;
-}
-
-.jcalendar-table > table > tbody td {
-    box-sizing:border-box;
-    cursor:pointer;
-    padding:9px;
-    font-size:0.9em;
-}
-
-.jcalendar-table > table > thead {
-    cursor:pointer;
 }
 
 .jcalendar-header {
@@ -97,12 +81,29 @@
     padding: 14px;
 }
 
-.jcalendar thead td {
+.jcalendar-table > table {
+    width:100%;
+    background-color:#fff;
+}
+
+.jcalendar-table > table > thead {
+    cursor:pointer;
+}
+
+.jcalendar-table thead td {
     padding:10px;
     height:40px;
 }
 
-.jcalendar tfoot td {
+.jcalendar-table > table > tbody td {
+    box-sizing:border-box;
+    cursor:pointer;
+    padding:9px;
+    font-size:0.9em;
+}
+
+
+.jcalendar-table tfoot td {
     padding:10px;
 }
 
@@ -133,7 +134,7 @@
     width:100%;
 }
 
-.jcalendar select {
+.jcalendar-container select {
     width:55px;
     display:inline-block;
     border:0px;
@@ -144,8 +145,7 @@
     margin-right:10px;
 }
 
-.jcalendar select:first-child
-{
+.jcalendar-container select:first-child {
     margin-right:2px;
 }
 
@@ -175,8 +175,6 @@
     -webkit-flex-flow: row wrap;
     justify-content: space-between;
     align-items:center;
-
-    border-bottom:1px solid #ddd;
 }
 
 .jcalendar-controls div {

@@ -51,6 +51,16 @@ jSuites.ajax = (function(options, complete) {
         options.method = options.type;
     }
 
+    // Default method
+    if (! options.method) {
+        options.method = 'GET';
+    }
+
+    // Default type
+    if (! options.dataType) {
+        options.dataType = 'json';
+    }
+
     if (options.data) {
         // Parse object to variables format
         var parseData = function(value, key) {
@@ -369,6 +379,7 @@ jSuites.calendar = (function(el, options) {
         onopen: null,
         onclose: null,
         onchange: null,
+        onupdate: null,
         // Internal mode controller
         mode: null,
         position: null,
@@ -447,6 +458,8 @@ jSuites.calendar = (function(el, options) {
 
     var calendarControls = document.createElement('div');
     calendarControls.className = 'jcalendar-controls'
+    calendarControls.style.borderBottom = '1px solid #ddd';
+
     if (obj.options.resetButton) {
         calendarControls.appendChild(calendarReset);
     }
@@ -457,7 +470,11 @@ jSuites.calendar = (function(el, options) {
 
     var calendarContent = document.createElement('div');
     calendarContent.className = 'jcalendar-content';
-    calendarContent.appendChild(calendarControls);
+
+    if (el.tagName == 'INPUT') {
+        calendarContent.appendChild(calendarControls);
+    }
+
     calendarContainer.appendChild(calendarContent);
 
     // Table container
@@ -468,10 +485,11 @@ jSuites.calendar = (function(el, options) {
     // Main element
     if (el.tagName == 'INPUT') {
         var calendar = document.createElement('div');
+        calendar.className = 'jcalendar';
     } else {
         var calendar = el;
+        calendar.className = 'jcalendar-inline';
     }
-    calendar.className = 'jcalendar';
     calendar.appendChild(calendarContainer);
 
     // Previous button
@@ -520,6 +538,11 @@ jSuites.calendar = (function(el, options) {
     calendarSelectHour.className = 'jcalendar-select';
     calendarSelectHour.onchange = function() {
         obj.date[3] = this.value; 
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
     }
 
     for (var i = 0; i < 24; i++) {
@@ -532,7 +555,12 @@ jSuites.calendar = (function(el, options) {
     var calendarSelectMin = document.createElement('select');
     calendarSelectMin.className = 'jcalendar-select';
     calendarSelectMin.onchange = function() {
-        obj.date[4] = this.value; 
+        obj.date[4] = this.value;
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
     }
 
     for (var i = 0; i < 60; i++) {
@@ -561,7 +589,12 @@ jSuites.calendar = (function(el, options) {
     calendarControlsUpdate.style.flexGrow = '10';
     calendarControlsUpdate.appendChild(calendarControlsUpdateButton);
     calendarControlsFooter.appendChild(calendarControlsTime);
-    calendarControlsFooter.appendChild(calendarControlsUpdate);
+    
+    // Only show the update button for input elements
+    if (el.tagName == 'INPUT') {
+        calendarControlsFooter.appendChild(calendarControlsUpdate);
+    }
+
     calendarContent.appendChild(calendarControlsFooter);
 
     var calendarBackdrop = document.createElement('div');
@@ -583,7 +616,9 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
-    // Methods
+    /**
+     * Open the calendar
+     */
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
             if (jSuites.calendar.current) {
@@ -780,6 +815,11 @@ jSuites.calendar = (function(el, options) {
                 elements.classList.remove('jcalendar-selected');
             }
             element.classList.add('jcalendar-selected');
+
+            // Event
+            if (typeof(obj.options.onupdate) == 'function') {
+                obj.options.onupdate(el, obj.getValue());
+            }
         }
 
         // Update
@@ -1143,6 +1183,14 @@ jSuites.calendar = (function(el, options) {
         el.classList.add('jcalendar-input');
         // Value
         el.value = obj.setLabel(obj.getValue(), obj.options.format);
+    } else {
+        // Get days
+        obj.getDays();
+        // Hour
+        if (obj.options.time) {
+            calendarSelectHour.value = obj.date[3];
+            calendarSelectMin.value = obj.date[4];
+        }
     }
 
     // Keep object available from the node
@@ -1518,10 +1566,20 @@ jSuites.color = (function(el, options) {
 
                 const rect = el.getBoundingClientRect();
 
-                if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
+                if (obj.options.position) {
+                    content.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
+                    } else {
+                        content.style.top = (rect.top + rect.height + 2) + 'px';
+                    }
+                    content.style.left = rect.left + 'px';
                 } else {
-                    content.style.top = '2px';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
+                    } else {
+                        content.style.top = '2px';
+                    }
                 }
             }
 
@@ -1849,6 +1907,7 @@ jSuites.dropdown = (function(el, options) {
         opened: false,
         value: null,
         placeholder: '',
+        newOptions: false,
         position: false,
         onchange: null,
         onload: null,
@@ -1856,6 +1915,7 @@ jSuites.dropdown = (function(el, options) {
         onclose: null,
         onfocus: null,
         onblur: null,
+        oninsert: null,
     };
 
     // Loop through our object
@@ -1928,6 +1988,10 @@ jSuites.dropdown = (function(el, options) {
             obj.options.onblur(el);
         }
     }
+    
+    if (obj.options.newOptions == true) {
+        obj.header.classList.add('jdropdown-add');
+    }
 
     // Container
     var container = document.createElement('div');
@@ -1936,12 +2000,6 @@ jSuites.dropdown = (function(el, options) {
     // Dropdown content
     var content = document.createElement('div');
     content.className = 'jdropdown-content';
-
-    // New items
-    var newOptions = document.createElement('div');
-    newOptions.className = 'jdropdown-create-option';
-    newOptions.innerHTML = 'New option';
-    //container.appendChild(newOptions);
 
     // Close button
     var closeButton  = document.createElement('div');
@@ -2082,6 +2140,45 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
+     * Add a new item
+     */
+    obj.add = function(title) {
+        if (! title) {
+            var current = obj.options.autocomplete == true ? obj.header.value : '';
+            var title = prompt('Text', current);
+            if (! title) {
+                return false;
+            }
+        }
+
+        // Create new item
+        var item = {
+            value: jSuites.guid(),
+            text: title,
+        };
+
+        // Add item to the main list
+        obj.options.data.push(item);
+
+        var newItem = obj.createItem(item);
+
+        // Append DOM to the list
+        content.appendChild(newItem.element);
+
+        // Callback
+        if (typeof(obj.options.oninsert) == 'function') {
+            obj.options.oninsert(obj, newItem, item)
+        }
+
+        // Show content
+        if (content.style.display == 'none') {
+            content.style.display = '';
+        }
+
+        return item;
+    }
+
+    /**
      * Create a new item
      */
     obj.createItem = function(data, group) {
@@ -2124,6 +2221,11 @@ jSuites.dropdown = (function(el, options) {
                image.classList.add('jdropdown-image-small');
             }
             item.element.appendChild(image);
+        } else if (data.color) {
+            var color = document.createElement('div');
+            color.className = 'jdropdown-color';
+            color.style.backgroundColor = data.color;
+            item.element.appendChild(color);
         }
 
         // Set content
@@ -2652,7 +2754,7 @@ jSuites.dropdown = (function(el, options) {
     obj.firstVisible = function() {
         var newIndex = null;
         for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
                 break;
             }
@@ -2671,7 +2773,7 @@ jSuites.dropdown = (function(el, options) {
     obj.first = function() {
         var newIndex = null;
         for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -2686,7 +2788,7 @@ jSuites.dropdown = (function(el, options) {
     obj.last = function() {
         var newIndex = null;
         for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.style.display != 'none') {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
                 newIndex = i;
             }
         }
@@ -2807,20 +2909,24 @@ jSuites.dropdown.mouseup = function(e) {
         var dropdown = element.dropdown;
         if (e.target.classList.contains('jdropdown-header')) {
             if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
-                if (dropdown.options.autocomplete == false) {
-                    dropdown.close();
+                var rect = element.getBoundingClientRect();
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
                 } else {
-                    var rect = element.getBoundingClientRect();
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
 
-                    if (e.changedTouches && e.changedTouches[0]) {
-                        var x = e.changedTouches[0].clientX;
-                        var y = e.changedTouches[0].clientY;
+                if (rect.width - (x - rect.left) < 30) {
+                    if (e.target.classList.contains('jdropdown-add')) {
+                        dropdown.add();
                     } else {
-                        var x = e.clientX;
-                        var y = e.clientY;
+                        dropdown.close();
                     }
-
-                    if (rect.width - (x - rect.left) < 30) {
+                } else {
+                    if (dropdown.options.autocomplete == false) {
                         dropdown.close();
                     }
                 }
@@ -4034,11 +4140,10 @@ jSuites.isNumeric = (function (num) {
 });
 
 jSuites.guid = function() {
-    var guid = '';
-    for (var i = 0; i < 32; i++) {
-        guid += Math.floor(Math.random()*0xF).toString(0xF);
-    }
-    return guid;
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
 }
 
 jSuites.getWindowWidth = function() {
@@ -4388,6 +4493,9 @@ jSuites.image = (function(el, options) {
     // Default configuration
     var defaults = {
         minWidth: false,
+        maxWidth: null,
+        maxHeight: null,
+        maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
         singleFile: true,
         remoteParser: null,
@@ -4460,7 +4568,7 @@ jSuites.image = (function(el, options) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     var data = {
-                        file: canvas.toDataURL(),
+                        file: obj.getDataURL(canvas, file.type),
                         extension: file.name.substr(file.name.lastIndexOf('.') + 1),
                         name: file.name,
                         size: file.size,
@@ -4530,6 +4638,30 @@ jSuites.image = (function(el, options) {
 
             img.src = src;
         }
+    }
+
+    obj.getCanvas = function(img) {
+        var canvas = document.createElement('canvas');
+        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
+        var r2 = (obj.options.maxHeight || img.height) / img.height;
+        var r = Math.min(r1, r2, 1);
+        canvas.width = img.width * r;
+        canvas.height = img.height * r;
+        return canvas;
+    }
+
+    obj.getDataURL = function(canvas, type) {
+        var compression = 0.92;
+        var lastContentLength = null;
+        var content = canvas.toDataURL(type, compression);
+        while (obj.options.maxJpegSizeBytes && type === 'image/jpeg' &&
+               content.length > obj.options.maxJpegSizeBytes && content.length !== lastContentLength) {
+            // Apply the compression
+            compression *= 0.9;
+            lastContentLength = content.length;
+            content = canvas.toDataURL(type, compression);
+        }
+        return content;
     }
 
     var attachmentInput = document.createElement('input');
@@ -5180,6 +5312,7 @@ jSuites.notification = (function(options) {
         icon: null,
         name: 'Notification',
         date: null,
+        error: null,
         title: null,
         message: null,
         timeout: 4000,
@@ -5198,6 +5331,10 @@ jSuites.notification = (function(options) {
 
     var notification = document.createElement('div');
     notification.className = 'jnotification';
+
+    if (obj.options.error) {
+        notification.classList.add('jnotification-error');
+    }
 
     var notificationContainer = document.createElement('div');
     notificationContainer.className = 'jnotification-container';
@@ -5612,12 +5749,6 @@ jSuites.tabs = (function(el, options) {
             }
         }
 
-        if (obj.content.children[index]) {
-            if (typeof(obj.options.onclick) == 'function') {
-                obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
-            }
-        }
-
         // Hide
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 2 && obj.options.allowCreate == false)) {
             obj.headers.style.display = 'none';
@@ -5637,6 +5768,8 @@ jSuites.tabs = (function(el, options) {
         if (index >= 0) {
             obj.open(index);
         }
+
+        return index;
     }
 
     obj.create = function(title) {
@@ -5733,9 +5866,13 @@ jSuites.tabs = (function(el, options) {
         // Events
         obj.headers.addEventListener("click", function(e) {
             if (e.target.tagName == 'DIV') {
-                obj.selectIndex(e.target);
+                var index = obj.selectIndex(e.target);
             } else {
                 obj.create();
+            }
+
+            if (typeof(obj.options.onclick) == 'function') {
+                obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
             }
         });
 

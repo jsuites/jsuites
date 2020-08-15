@@ -71,6 +71,10 @@
     padding:20px;
 }
 
+.jlogin .jlogin-logo:empty {
+    display: none;
+}
+
 .jlogin .captcha
 {
     width:100%;

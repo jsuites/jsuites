@@ -22,6 +22,7 @@ jSuites.color = (function(el, options) {
         onchange: null,
         closeOnChange: true,
         palette: null,
+        position: null,
     };
 
     // Loop through our object
@@ -132,10 +133,20 @@ jSuites.color = (function(el, options) {
 
                 const rect = el.getBoundingClientRect();
 
-                if (window.innerHeight < rect.bottom + rectContent.height) {
-                    content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
+                if (obj.options.position) {
+                    content.style.position = 'fixed';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
+                    } else {
+                        content.style.top = (rect.top + rect.height + 2) + 'px';
+                    }
+                    content.style.left = rect.left + 'px';
                 } else {
-                    content.style.top = '2px';
+                    if (window.innerHeight < rect.bottom + rectContent.height) {
+                        content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
+                    } else {
+                        content.style.top = '2px';
+                    }
                 }
             }
 

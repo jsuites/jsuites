@@ -429,10 +429,10 @@ jSuites.tags = (function(el, options) {
         // Anchoroffset
         anchorOffset = window.getSelection().anchorOffset;
 
-        // Verify content
+        // If starts blank create the first element
         if (! el.children.length) {
             var div = document.createElement('div');
-            div.innerHTML = '<br>';
+            div.innerHTML = '<div><br/></div>';
             el.appendChild(div);
         }
         // Comma
@@ -477,6 +477,11 @@ jSuites.tags = (function(el, options) {
                 searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
+        } else if (e.which == 8) {
+            // Back space - do not let last item to be removed
+            if (el.children.length == 1 && window.getSelection().anchorOffset < 1) {
+                e.preventDefault();
+            }
         }
     }
 
@@ -486,11 +491,26 @@ jSuites.tags = (function(el, options) {
      */
     var tagsKeyUp = function(e) {
         if (e.which == 39) {
+            // Right arrow
             var n = window.getSelection().anchorOffset;
             if (n > 1 && n == anchorOffset) {
                 obj.add('', true);
             }
         } else if (e.which == 13 || e.which == 38 || e.which == 40) {
+            e.preventDefault();
+        } else if (e.which == 8) {
+            // Back space - add a new element just in case is blank
+            if (! el.innerHTML) {
+                obj.add('', true);
+            }
+            e.preventDefault();
+        } else if (e.which == 46) {
+            // Verify content and don't let blank element
+            if (! el.children.length) {
+                var div = document.createElement('div');
+                div.innerHTML = '<div><br/></div>';
+                el.appendChild(div);
+            }
             e.preventDefault();
         } else {
             if (searchTimer) {
