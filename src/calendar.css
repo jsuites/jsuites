@@ -206,3 +206,7 @@
 .jcalendar-disabled {
     color: #ccc;
 }
+
+.jcalendar-time {
+    display:flex;
+}

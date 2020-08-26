@@ -55,6 +55,10 @@ jSuites.color = (function(el, options) {
         el.value = obj.options.value;
     }
 
+    if (el.tagName == 'INPUT') {
+        el.classList.add('jcolor-input');
+    }
+
     // Table container
     var container = document.createElement('div');
     container.className = 'jcolor';

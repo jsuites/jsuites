@@ -1,12 +1,12 @@
 .jpicker {
     cursor: pointer;
     white-space: nowrap;
-    display: flex;
-    padding:4px;
+    display: inline-flex;
     -webkit-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    outline: none;
 }
 
 .jpicker-header {
@@ -38,7 +38,7 @@
     border-radius: 4px;
     background-color: #fff;
     padding: 4px;
-    z-index: 1;
+    z-index: 50;
     text-align: left;
 }
 

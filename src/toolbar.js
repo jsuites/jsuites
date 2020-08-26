@@ -136,94 +136,15 @@ jSuites.toolbar = (function(el, options) {
                     })(i);
                 }
             } else if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                if (items[i].options) {
-                    toolbarItem.classList.add('jtoolbar-dropdown');
-                    toolbarItem.setAttribute('tabindex', '0');
-                    toolbarItem.onblur = function() {
-                        this.classList.remove('jtoolbar-focus');
-                    }
-
-                    // Dropdown header
-                    if (items[i].content) {
-                        var dropdown = document.createElement('div');
-                        dropdown.innerHTML = '<i class="material-icons">' + items[i].content + '</i>';
-                    } else {
-                        var dropdown = document.createElement('div');
-                        dropdown.innerHTML = '';
-                    }
-                    dropdown.classList.add('jtoolbar-dropdown-header');
-                    dropdown.onclick = function(e) {
-                        if (this.parentNode.classList.contains('jtoolbar-focus')) {
-                            this.parentNode.classList.remove('jtoolbar-focus');
-                        } else {
-                            var e = this.parentNode.parentNode.querySelectorAll('.jtoolbar-item');
-                            for (var j = 0; j < e.length; j++) {
-                                e[j].classList.remove('jtoolbar-focus');
-                            }
-
-                            this.parentNode.classList.add('jtoolbar-focus');
-
-                            const rectHeader = this.getBoundingClientRect();
-                            const rectContent = this.nextSibling.getBoundingClientRect();
-
-                            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                                this.nextSibling.style.top = '';
-                                this.nextSibling.style.bottom = rectHeader.height + 1 + 'px';
-                            } else {
-                                this.nextSibling.style.top = '';
-                                this.nextSibling.style.bottom = '';
-                            }
+                if (typeof(items[i].onchange) == 'function') {
+                    // Event for picker has different arguments
+                    items[i].onchange = (function(o) {
+                        return function(a,b,c,d) {
+                            o(el, obj, a, c, d);
                         }
-                    }
-
-                    // Dropdown
-                    var dropdownContent = document.createElement('div');
-                    dropdownContent.classList.add('jtoolbar-dropdown-content');
-                    toolbarItem.appendChild(dropdown);
-                    toolbarItem.appendChild(dropdownContent);
-
-                    for (var j = 0; j < items[i].options.length; j++) {
-                        var dropdownItem = document.createElement('div');
-                        if (typeof(items[i].render) == 'function') {
-                            var value = items[i].render(items[i].options[j]);
-                        } else {
-                            var value = items[i].options[j];
-                        }
-                        dropdownItem.p = toolbarItem;
-                        dropdownItem.k = j;
-                        dropdownItem.v = items[i].options[j];
-                        dropdownItem.innerHTML = value;
-                        dropdownItem.onchange = items[i].onchange;
-                        if (items[i].content) {
-                            dropdownItem.onclick = function() {
-                                this.onchange(el, obj, this.p, this.v, this.k);
-                                this.p.classList.remove('jtoolbar-focus');
-                            }
-                        } else {
-                            dropdownItem.onclick = function() {
-                                this.parentNode.parentNode.firstChild.innerHTML = this.innerHTML;
-                                this.onchange(el, obj, this.p, this.v, this.k);
-                                this.p.classList.remove('jtoolbar-focus');
-                            }
-                        }
-                        dropdownContent.appendChild(dropdownItem);
-
-                        if (! items[i].content && j == 0) {
-                            dropdown.innerHTML = value;
-                        }
-                    }
+                    })(items[i].onchange);
                 }
-
-                if (items[i].onclick) {
-                    toolbarItem.onclick = (function (a) {
-                        var b = a;
-                        return function () {
-                            items[b].onclick(el, obj, this);
-                        };
-                    })(i);
-                }
-            } else if (items[i].type == 'color') {
-                toolbarItem
+                jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             }

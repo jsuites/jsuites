@@ -41,7 +41,7 @@ jSuites.form = (function(el, options) {
 
     if (! obj.options.validations.email) {
         obj.options.validations.email = function(data) {
-            var reg = new RegExp(/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/);
+            var reg = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
             return data && reg.test(data) ? true : false; 
         }
     }

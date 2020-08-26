@@ -75,23 +75,7 @@ jSuites.calendar = (function(el, options) {
     obj.date = null;
 
     if (obj.options.value) {
-        var date = obj.options.value.split(' ');
-        var time = date[1];
-        var date = date[0].split('-');
-        var y = parseInt(date[0]);
-        var m = parseInt(date[1]);
-        var d = parseInt(date[2]);
-
-        if (time) {
-            var time = time.split(':');
-            var h = parseInt(time[0]);
-            var i = parseInt(time[1]);
-        } else {
-            var h = 0;
-            var i = 0;
-        }
-
-        obj.date = [ y, m, d, h, i, 0 ];
+        obj.date = jSuites.calendar.toArray(obj.options.value);
     } else {
         if (obj.options.today) {
             var date = new Date();
@@ -103,15 +87,6 @@ jSuites.calendar = (function(el, options) {
 
             obj.date = [ y, m, d, h, i, 0 ];
         }
-    }
-
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
     }
 
     // Calendar elements
@@ -215,7 +190,7 @@ jSuites.calendar = (function(el, options) {
     for (var i = 0; i < 24; i++) {
         var element = document.createElement('option');
         element.value = i;
-        element.innerHTML = two(i);
+        element.innerHTML = jSuites.two(i);
         calendarSelectHour.appendChild(element);
     }
 
@@ -233,7 +208,7 @@ jSuites.calendar = (function(el, options) {
     for (var i = 0; i < 60; i++) {
         var element = document.createElement('option');
         element.value = i;
-        element.innerHTML = two(i);
+        element.innerHTML = jSuites.two(i);
         calendarSelectMin.appendChild(element);
     }
 
@@ -452,9 +427,9 @@ jSuites.calendar = (function(el, options) {
     obj.getValue = function() {
         if (obj.date) {
             if (obj.options.time) {
-                return two(obj.date[0]) + '-' + two(obj.date[1]) + '-' + two(obj.date[2]) + ' ' + two(obj.date[3]) + ':' + two(obj.date[4]) + ':' + two(0);
+                return jSuites.two(obj.date[0]) + '-' + jSuites.two(obj.date[1]) + '-' + jSuites.two(obj.date[2]) + ' ' + jSuites.two(obj.date[3]) + ':' + jSuites.two(obj.date[4]) + ':' + jSuites.two(0);
             } else {
-                return two(obj.date[0]) + '-' + two(obj.date[1]) + '-' + two(obj.date[2]) + ' ' + two(0) + ':' + two(0) + ':' + two(0);
+                return jSuites.two(obj.date[0]) + '-' + jSuites.two(obj.date[1]) + '-' + jSuites.two(obj.date[2]) + ' ' + jSuites.two(0) + ':' + jSuites.two(0) + ':' + jSuites.two(0);
             }
         } else {
             return "";
@@ -933,24 +908,39 @@ jSuites.calendar.now = function(date, dateOnly) {
     var i = date.getMinutes();
     var s = date.getSeconds();
 
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
-    }
-
     if (dateOnly == true) {
-        return two(y) + '-' + two(m) + '-' + two(d);
+        return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d);
     } else {
-        return two(y) + '-' + two(m) + '-' + two(d) + ' ' + two(h) + ':' + two(i) + ':' + two(s);
+        return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d) + ' ' + jSuites.two(h) + ':' + jSuites.two(i) + ':' + jSuites.two(s);
     }
+}
+
+jSuites.calendar.toArray = function(value) {
+    var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
+    var time = date[1];
+    var date = date[0].split('-');
+    var y = parseInt(date[0]);
+    var m = parseInt(date[1]);
+    var d = parseInt(date[2]);
+
+    if (time) {
+        var time = time.split(':');
+        var h = parseInt(time[0]);
+        var i = parseInt(time[1]);
+    } else {
+        var h = 0;
+        var i = 0;
+    }
+    return [ y, m, d, h, i, 0 ];
 }
 
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
+    if (date > 0 && Number(date) == date) {
+        var d = new Date(Math.round((date - 25569)*86400*1000));
+        return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+    }
+
     var v1 = '' + date;
     var v2 = format.replace(/[0-9]/g,'');
 
@@ -1012,9 +1002,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
 
     if (test == 1 && date.length == v2.length) {
         // Update source
-        var data = y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
-
-        return data;
+        return y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
     }
 
     return '';
@@ -1029,7 +1017,8 @@ jSuites.calendar.getDateString = function(value, format) {
 
     if (value) {
         var d = ''+value;
-        d = d.split(' ');
+        var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
+        d = d.split(splitStr);
 
         var h = '';
         var m = '';

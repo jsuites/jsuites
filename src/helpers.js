@@ -76,6 +76,15 @@ jSuites.findElement = function(element, condition) {
     return foundElement;
 }
 
+// Two digits
+jSuites.two = function(value) {
+    value = '' + value;
+    if (value.length == 1) {
+        value = '0' + value;
+    }
+    return value;
+}
+
 jSuites.sha512 = (function(str) {
     function int64(msint_32, lsint_32) {
         this.highOrder = msint_32;

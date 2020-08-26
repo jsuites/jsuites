@@ -4,6 +4,7 @@ jSuites.image = (function(el, options) {
 
     // Default configuration
     var defaults = {
+        input: false,
         minWidth: false,
         maxWidth: null,
         maxHeight: null,
@@ -28,6 +29,10 @@ jSuites.image = (function(el, options) {
 
     // Upload icon
     el.classList.add('jupload');
+
+    if (obj.options.input == true) {
+        el.classList.add('input');
+    }
 
     // Add image
     obj.addImage = function(file) {
@@ -185,7 +190,7 @@ jSuites.image = (function(el, options) {
         }
     }
 
-    el.addEventListener("dblclick", function(e) {
+    el.addEventListener("click", function(e) {
         jSuites.click(attachmentInput);
     });
 

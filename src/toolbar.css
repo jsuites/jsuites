@@ -1,3 +1,4 @@
+
 .jtoolbar {
     cursor: pointer;
     white-space: nowrap;
@@ -97,42 +98,13 @@
     background-color:#f2f2f2;
 }
 
-.jtoolbar-item.jtoolbar-dropdown {
-    background-repeat: no-repeat;
-    background-position: top 50% right 0px;
-    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath d='M7 10l5 5 5-5H7z' fill='gray'/%3E%3C/svg%3E");
-    text-overflow: ellipsis;
-    cursor: pointer;
-    box-sizing: border-box;
-    text-align: left;
-    outline: none;
-}
-
-.jtoolbar-dropdown-header {
+.jtoolbar .jpicker-header {
     height: 24px;
     line-height: 24px;
+    padding: 0px;
+    background-position: top 50% right 0px;
 }
 
-.jtoolbar-dropdown-content {
-    position: absolute;
-    display: none;
-    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    background-color: #fff;
-    padding: 4px;
-    z-index: 1;
-    text-align: left;
+.jtoolbar .jpicker-content div {
+    padding: 6px;
 }
-
-.jtoolbar-dropdown-content div {
-    padding:6px;
-}
-
-.jtoolbar-focus .jtoolbar-dropdown-content {
-    display: block;
-}
-
-.jtoolbar-dropdown-content div:hover {
-    background-color:#efefef;
-}
-

@@ -9,6 +9,9 @@ jSuites.picker = (function(el, options) {
         render: null,
         onchange: null,
         width: null,
+        header: true,
+        right: false,
+        content: false,
     };
 
     // Loop through the initial configuration
@@ -20,17 +23,34 @@ jSuites.picker = (function(el, options) {
         }
     }
 
+    // Legacy purpose only
+    if (options.options) {
+        obj.options.data = options.options;
+    }
+
+    // Default value
+    if (obj.options.value === null) {
+        obj.options.value = Object.keys(obj.options.data)[0];
+    }
+
+    var dropdownHeader = null;
+    var dropdownContent = null;
+
     // Class
     el.classList.add('jpicker');
+    el.setAttribute('tabindex', '900');
 
     /**
      * Create floating picker
      */
     obj.init = function() {
         // Dropdown Header
-        var dropdownHeader = document.createElement('div');
+        dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        dropdownHeader.setAttribute('tabindex', '900');
+
+        if (obj.options.header === false) {
+            dropdownHeader.style.display = 'none';
+        }
 
         // Width
         if (obj.options.width) {
@@ -39,27 +59,9 @@ jSuites.picker = (function(el, options) {
 
         // Start value
         dropdownHeader.innerHTML = obj.options.value && obj.options.data[obj.options.value] ? obj.options.data[obj.options.value] : '<div><br/></div>';
-        dropdownHeader.onclick = function(e) {
-            // Open picker
-            el.classList.add('jpicker-focus');
-
-            const rectHeader = dropdownHeader.getBoundingClientRect();
-            const rectContent = dropdownContent.getBoundingClientRect();
-
-            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
-            } else {
-                dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
-            }
-        }
-        dropdownHeader.onblur = function() {
-            setTimeout(function() {
-                el.classList.remove('jpicker-focus');
-            }, 250);
-        }
 
         // Dropdown content
-        var dropdownContent = document.createElement('div');
+        dropdownContent = document.createElement('div');
         dropdownContent.classList.add('jpicker-content');
         el.appendChild(dropdownHeader);
         el.appendChild(dropdownContent);
@@ -73,19 +75,13 @@ jSuites.picker = (function(el, options) {
             var dropdownItem = document.createElement('div');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
-
-            // Render type
-            if (typeof(obj.options.render) == 'function') {
-                var label = obj.options.render(obj.options.data[keys[i]]);
-            } else {
-                var label = obj.options.data[keys[i]];
-            }
-            dropdownItem.innerHTML = label;
-
+            // Label
+            dropdownItem.innerHTML = obj.getLabel(keys[i]);
             // Onchange
             dropdownItem.onclick = function() {
                 // Update label
-                dropdownHeader.innerHTML = this.innerHTML;
+                obj.setValue(this.k);
+
                 // Call method
                 if (typeof(obj.options.onchange) == 'function') {
                     obj.options.onchange(el, obj, this.v, this.k);
@@ -95,6 +91,59 @@ jSuites.picker = (function(el, options) {
             // Append
             dropdownContent.appendChild(dropdownItem);
         }
+
+        // Initial value
+        obj.setValue(obj.options.value);
+    }
+
+    obj.setValue = function(v) {
+        if (obj.options.content) {
+            var label = '<i class="material-icons">' + obj.options.content + '</i>';
+        } else {
+            var label = obj.getLabel(v);
+        }
+        dropdownHeader.innerHTML = label;
+    }
+
+    obj.getLabel = function(v) {
+        var label = obj.options.data[v];
+        if (typeof(obj.options.render) == 'function') {
+            label = obj.options.render(label);
+        }
+        return label;
+    }
+
+    obj.open = function() {
+        // Open picker
+        el.classList.add('jpicker-focus');
+        el.focus();
+
+        const rectHeader = dropdownHeader.getBoundingClientRect();
+        const rectContent = dropdownContent.getBoundingClientRect();
+
+        if (window.innerHeight < rectHeader.bottom + rectContent.height) {
+            dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
+        } else {
+            dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
+        }
+
+        if (obj.options.right === true) {
+            dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
+        }
+    }
+
+    el.onclick = function() {
+        if (! el.classList.contains('jpicker-focus')) {
+            obj.open();
+        } else {
+            el.classList.remove('jpicker-focus')
+        }
+    }
+
+    el.onblur = function() {
+        setTimeout(function() {
+            el.classList.remove('jpicker-focus');
+        }, 250);
     }
 
     obj.init();

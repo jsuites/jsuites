@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.3.2)
+ * (c) jSuites Javascript Web Components (v3.5.0)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -408,23 +408,7 @@ jSuites.calendar = (function(el, options) {
     obj.date = null;
 
     if (obj.options.value) {
-        var date = obj.options.value.split(' ');
-        var time = date[1];
-        var date = date[0].split('-');
-        var y = parseInt(date[0]);
-        var m = parseInt(date[1]);
-        var d = parseInt(date[2]);
-
-        if (time) {
-            var time = time.split(':');
-            var h = parseInt(time[0]);
-            var i = parseInt(time[1]);
-        } else {
-            var h = 0;
-            var i = 0;
-        }
-
-        obj.date = [ y, m, d, h, i, 0 ];
+        obj.date = jSuites.calendar.toArray(obj.options.value);
     } else {
         if (obj.options.today) {
             var date = new Date();
@@ -436,15 +420,6 @@ jSuites.calendar = (function(el, options) {
 
             obj.date = [ y, m, d, h, i, 0 ];
         }
-    }
-
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
     }
 
     // Calendar elements
@@ -548,7 +523,7 @@ jSuites.calendar = (function(el, options) {
     for (var i = 0; i < 24; i++) {
         var element = document.createElement('option');
         element.value = i;
-        element.innerHTML = two(i);
+        element.innerHTML = jSuites.two(i);
         calendarSelectHour.appendChild(element);
     }
 
@@ -566,7 +541,7 @@ jSuites.calendar = (function(el, options) {
     for (var i = 0; i < 60; i++) {
         var element = document.createElement('option');
         element.value = i;
-        element.innerHTML = two(i);
+        element.innerHTML = jSuites.two(i);
         calendarSelectMin.appendChild(element);
     }
 
@@ -785,9 +760,9 @@ jSuites.calendar = (function(el, options) {
     obj.getValue = function() {
         if (obj.date) {
             if (obj.options.time) {
-                return two(obj.date[0]) + '-' + two(obj.date[1]) + '-' + two(obj.date[2]) + ' ' + two(obj.date[3]) + ':' + two(obj.date[4]) + ':' + two(0);
+                return jSuites.two(obj.date[0]) + '-' + jSuites.two(obj.date[1]) + '-' + jSuites.two(obj.date[2]) + ' ' + jSuites.two(obj.date[3]) + ':' + jSuites.two(obj.date[4]) + ':' + jSuites.two(0);
             } else {
-                return two(obj.date[0]) + '-' + two(obj.date[1]) + '-' + two(obj.date[2]) + ' ' + two(0) + ':' + two(0) + ':' + two(0);
+                return jSuites.two(obj.date[0]) + '-' + jSuites.two(obj.date[1]) + '-' + jSuites.two(obj.date[2]) + ' ' + jSuites.two(0) + ':' + jSuites.two(0) + ':' + jSuites.two(0);
             }
         } else {
             return "";
@@ -1266,24 +1241,39 @@ jSuites.calendar.now = function(date, dateOnly) {
     var i = date.getMinutes();
     var s = date.getSeconds();
 
-    // Two digits
-    var two = function(value) {
-        value = '' + value;
-        if (value.length == 1) {
-            value = '0' + value;
-        }
-        return value;
-    }
-
     if (dateOnly == true) {
-        return two(y) + '-' + two(m) + '-' + two(d);
+        return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d);
     } else {
-        return two(y) + '-' + two(m) + '-' + two(d) + ' ' + two(h) + ':' + two(i) + ':' + two(s);
+        return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d) + ' ' + jSuites.two(h) + ':' + jSuites.two(i) + ':' + jSuites.two(s);
     }
+}
+
+jSuites.calendar.toArray = function(value) {
+    var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
+    var time = date[1];
+    var date = date[0].split('-');
+    var y = parseInt(date[0]);
+    var m = parseInt(date[1]);
+    var d = parseInt(date[2]);
+
+    if (time) {
+        var time = time.split(':');
+        var h = parseInt(time[0]);
+        var i = parseInt(time[1]);
+    } else {
+        var h = 0;
+        var i = 0;
+    }
+    return [ y, m, d, h, i, 0 ];
 }
 
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
+    if (date > 0 && Number(date) == date) {
+        var d = new Date(Math.round((date - 25569)*86400*1000));
+        return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+    }
+
     var v1 = '' + date;
     var v2 = format.replace(/[0-9]/g,'');
 
@@ -1345,9 +1335,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
 
     if (test == 1 && date.length == v2.length) {
         // Update source
-        var data = y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
-
-        return data;
+        return y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
     }
 
     return '';
@@ -1362,7 +1350,8 @@ jSuites.calendar.getDateString = function(value, format) {
 
     if (value) {
         var d = ''+value;
-        d = d.split(' ');
+        var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
+        d = d.split(splitStr);
 
         var h = '';
         var m = '';
@@ -1456,6 +1445,7 @@ jSuites.color = (function(el, options) {
         onchange: null,
         closeOnChange: true,
         palette: null,
+        position: null,
     };
 
     // Loop through our object
@@ -1486,6 +1476,10 @@ jSuites.color = (function(el, options) {
     // Value
     if (obj.options.value) {
         el.value = obj.options.value;
+    }
+
+    if (el.tagName == 'INPUT') {
+        el.classList.add('jcolor-input');
     }
 
     // Table container
@@ -4213,6 +4207,15 @@ jSuites.findElement = function(element, condition) {
     return foundElement;
 }
 
+// Two digits
+jSuites.two = function(value) {
+    value = '' + value;
+    if (value.length == 1) {
+        value = '0' + value;
+    }
+    return value;
+}
+
 jSuites.sha512 = (function(str) {
     function int64(msint_32, lsint_32) {
         this.highOrder = msint_32;
@@ -4492,6 +4495,7 @@ jSuites.image = (function(el, options) {
 
     // Default configuration
     var defaults = {
+        input: false,
         minWidth: false,
         maxWidth: null,
         maxHeight: null,
@@ -4516,6 +4520,10 @@ jSuites.image = (function(el, options) {
 
     // Upload icon
     el.classList.add('jupload');
+
+    if (obj.options.input == true) {
+        el.classList.add('input');
+    }
 
     // Add image
     obj.addImage = function(file) {
@@ -4673,7 +4681,7 @@ jSuites.image = (function(el, options) {
         }
     }
 
-    el.addEventListener("dblclick", function(e) {
+    el.addEventListener("click", function(e) {
         jSuites.click(attachmentInput);
     });
 
@@ -4733,6 +4741,7 @@ jSuites.image = (function(el, options) {
 
     return obj;
 });
+
 
 jSuites.lazyLoading = (function(el, options) {
     var obj = {}
@@ -5443,6 +5452,161 @@ jSuites.notification.isVisible = function() {
     return j && j.parentNode ? true : false;
 }
 
+jSuites.picker = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        value: null,
+        data: null,
+        render: null,
+        onchange: null,
+        width: null,
+        header: true,
+        right: false,
+        content: false,
+    };
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Legacy purpose only
+    if (options.options) {
+        obj.options.data = options.options;
+    }
+
+    // Default value
+    if (obj.options.value === null) {
+        obj.options.value = Object.keys(obj.options.data)[0];
+    }
+
+    var dropdownHeader = null;
+    var dropdownContent = null;
+
+    // Class
+    el.classList.add('jpicker');
+    el.setAttribute('tabindex', '900');
+
+    /**
+     * Create floating picker
+     */
+    obj.init = function() {
+        // Dropdown Header
+        dropdownHeader = document.createElement('div');
+        dropdownHeader.classList.add('jpicker-header');
+
+        if (obj.options.header === false) {
+            dropdownHeader.style.display = 'none';
+        }
+
+        // Width
+        if (obj.options.width) {
+            dropdownHeader.style.width = parseInt(obj.options.width) + 'px';
+        }
+
+        // Start value
+        dropdownHeader.innerHTML = obj.options.value && obj.options.data[obj.options.value] ? obj.options.data[obj.options.value] : '<div><br/></div>';
+
+        // Dropdown content
+        dropdownContent = document.createElement('div');
+        dropdownContent.classList.add('jpicker-content');
+        el.appendChild(dropdownHeader);
+        el.appendChild(dropdownContent);
+
+        // Create items
+        var keys = Object.keys(obj.options.data);
+
+        // Go though all options
+        for (var i = 0; i < keys.length; i++) {
+            // Item
+            var dropdownItem = document.createElement('div');
+            dropdownItem.k = keys[i];
+            dropdownItem.v = obj.options.data[keys[i]];
+            // Label
+            dropdownItem.innerHTML = obj.getLabel(keys[i]);
+            // Onchange
+            dropdownItem.onclick = function() {
+                // Update label
+                obj.setValue(this.k);
+
+                // Call method
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, obj, this.v, this.k);
+                }
+            }
+
+            // Append
+            dropdownContent.appendChild(dropdownItem);
+        }
+
+        // Initial value
+        obj.setValue(obj.options.value);
+    }
+
+    obj.setValue = function(v) {
+        if (obj.options.content) {
+            var label = '<i class="material-icons">' + obj.options.content + '</i>';
+        } else {
+            var label = obj.getLabel(v);
+        }
+        dropdownHeader.innerHTML = label;
+    }
+
+    obj.getLabel = function(v) {
+        var label = obj.options.data[v];
+        if (typeof(obj.options.render) == 'function') {
+            label = obj.options.render(label);
+        }
+        return label;
+    }
+
+    obj.open = function() {
+        // Open picker
+        el.classList.add('jpicker-focus');
+        el.focus();
+
+        const rectHeader = dropdownHeader.getBoundingClientRect();
+        const rectContent = dropdownContent.getBoundingClientRect();
+
+        if (window.innerHeight < rectHeader.bottom + rectContent.height) {
+            dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
+        } else {
+            dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
+        }
+
+        if (obj.options.right === true) {
+            dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
+        }
+    }
+
+    el.onclick = function() {
+        if (! el.classList.contains('jpicker-focus')) {
+            obj.open();
+        } else {
+            el.classList.remove('jpicker-focus')
+        }
+    }
+
+    el.onblur = function() {
+        setTimeout(function() {
+            el.classList.remove('jpicker-focus');
+        }, 250);
+    }
+
+    obj.init();
+
+    el.picker = obj;
+
+    return obj;
+});
+
 jSuites.rating = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -6106,94 +6270,15 @@ jSuites.toolbar = (function(el, options) {
                     })(i);
                 }
             } else if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                if (items[i].options) {
-                    toolbarItem.classList.add('jtoolbar-dropdown');
-                    toolbarItem.setAttribute('tabindex', '0');
-                    toolbarItem.onblur = function() {
-                        this.classList.remove('jtoolbar-focus');
-                    }
-
-                    // Dropdown header
-                    if (items[i].content) {
-                        var dropdown = document.createElement('div');
-                        dropdown.innerHTML = '<i class="material-icons">' + items[i].content + '</i>';
-                    } else {
-                        var dropdown = document.createElement('div');
-                        dropdown.innerHTML = '';
-                    }
-                    dropdown.classList.add('jtoolbar-dropdown-header');
-                    dropdown.onclick = function(e) {
-                        if (this.parentNode.classList.contains('jtoolbar-focus')) {
-                            this.parentNode.classList.remove('jtoolbar-focus');
-                        } else {
-                            var e = this.parentNode.parentNode.querySelectorAll('.jtoolbar-item');
-                            for (var j = 0; j < e.length; j++) {
-                                e[j].classList.remove('jtoolbar-focus');
-                            }
-
-                            this.parentNode.classList.add('jtoolbar-focus');
-
-                            const rectHeader = this.getBoundingClientRect();
-                            const rectContent = this.nextSibling.getBoundingClientRect();
-
-                            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                                this.nextSibling.style.top = '';
-                                this.nextSibling.style.bottom = rectHeader.height + 1 + 'px';
-                            } else {
-                                this.nextSibling.style.top = '';
-                                this.nextSibling.style.bottom = '';
-                            }
+                if (typeof(items[i].onchange) == 'function') {
+                    // Event for picker has different arguments
+                    items[i].onchange = (function(o) {
+                        return function(a,b,c,d) {
+                            o(el, obj, a, c, d);
                         }
-                    }
-
-                    // Dropdown
-                    var dropdownContent = document.createElement('div');
-                    dropdownContent.classList.add('jtoolbar-dropdown-content');
-                    toolbarItem.appendChild(dropdown);
-                    toolbarItem.appendChild(dropdownContent);
-
-                    for (var j = 0; j < items[i].options.length; j++) {
-                        var dropdownItem = document.createElement('div');
-                        if (typeof(items[i].render) == 'function') {
-                            var value = items[i].render(items[i].options[j]);
-                        } else {
-                            var value = items[i].options[j];
-                        }
-                        dropdownItem.p = toolbarItem;
-                        dropdownItem.k = j;
-                        dropdownItem.v = items[i].options[j];
-                        dropdownItem.innerHTML = value;
-                        dropdownItem.onchange = items[i].onchange;
-                        if (items[i].content) {
-                            dropdownItem.onclick = function() {
-                                this.onchange(el, obj, this.p, this.v, this.k);
-                                this.p.classList.remove('jtoolbar-focus');
-                            }
-                        } else {
-                            dropdownItem.onclick = function() {
-                                this.parentNode.parentNode.firstChild.innerHTML = this.innerHTML;
-                                this.onchange(el, obj, this.p, this.v, this.k);
-                                this.p.classList.remove('jtoolbar-focus');
-                            }
-                        }
-                        dropdownContent.appendChild(dropdownItem);
-
-                        if (! items[i].content && j == 0) {
-                            dropdown.innerHTML = value;
-                        }
-                    }
+                    })(items[i].onchange);
                 }
-
-                if (items[i].onclick) {
-                    toolbarItem.onclick = (function (a) {
-                        var b = a;
-                        return function () {
-                            items[b].onclick(el, obj, this);
-                        };
-                    })(i);
-                }
-            } else if (items[i].type == 'color') {
-                toolbarItem
+                jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             }
