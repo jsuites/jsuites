@@ -98,13 +98,32 @@
     background-color:#f2f2f2;
 }
 
+
+.jtoolbar .jpicker {
+    padding-left:0px;
+    padding-right:0px;
+}
+
 .jtoolbar .jpicker-header {
     height: 24px;
     line-height: 24px;
     padding: 0px;
+    padding-right: 20px;
+    padding-left: 4px;
     background-position: top 50% right 0px;
 }
 
 .jtoolbar .jpicker-content div {
     padding: 6px;
+}
+
+.jtoolbar-active {
+    background-color:#eee;
+}
+
+.jtoolbar .fa {
+    width: 24px;
+    height: 24px;
+    display: block;
+    line-height: 24px;
 }

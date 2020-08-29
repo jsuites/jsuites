@@ -92,6 +92,14 @@ jSuites.contextmenu = (function(el, options) {
                 var itemText = document.createElement('a');
                 itemText.innerHTML = items[i].title;
 
+                if (items[i].icon) {
+                    itemContainer.setAttribute('data-icon', items[i].icon)
+                }
+
+                if (items[i].id) {
+                    itemContainer.id = items[i].id;
+                }
+
                 if (items[i].disabled) {
                     itemContainer.className = 'jcontextmenu-disabled';
                 } else if (items[i].onclick) {

@@ -582,8 +582,8 @@
 
 .jcontextmenu > div {
     box-sizing: border-box;
-    display: block;
-    padding: 8px 8px 8px 28px;
+    display: flex;
+    padding: 8px 8px 8px 32px;
     width: 250px;
     position: relative;
     cursor: default;
@@ -591,13 +591,32 @@
     font-family:sans-serif;
 }
 
+.jcontextmenu > div::before {
+    content: attr(data-icon);
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    position: absolute;
+    left: 9px;
+}
+
 .jcontextmenu > div a {
     color: #555;
     text-decoration: none;
+    flex: 1;
 }
 
 .jcontextmenu > div span {
-    float: right;
     margin-right:10px;
 }
 
@@ -1343,12 +1362,6 @@
     height:60px;
 }
 
-.jeditor-toolbar {
-    border-radius: 2px;
-    margin-bottom: 5px;
-    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    display: inline-flex !important;
-}
 
 /**
  * (c) jLoading
@@ -1744,15 +1757,35 @@
     background-color:#f2f2f2;
 }
 
+
+.jtoolbar .jpicker {
+    padding-left:0px;
+    padding-right:0px;
+}
+
 .jtoolbar .jpicker-header {
     height: 24px;
     line-height: 24px;
     padding: 0px;
+    padding-right: 20px;
+    padding-left: 4px;
     background-position: top 50% right 0px;
 }
 
 .jtoolbar .jpicker-content div {
     padding: 6px;
 }
+
+.jtoolbar-active {
+    background-color:#eee;
+}
+
+.jtoolbar .fa {
+    width: 24px;
+    height: 24px;
+    display: block;
+    line-height: 24px;
+}
+
 
 

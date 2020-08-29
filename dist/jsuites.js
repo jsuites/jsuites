@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.5.0)
+ * (c) jSuites Javascript Web Components (v3.5.1)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1803,6 +1803,14 @@ jSuites.contextmenu = (function(el, options) {
                 var itemContainer = document.createElement('div');
                 var itemText = document.createElement('a');
                 itemText.innerHTML = items[i].title;
+
+                if (items[i].icon) {
+                    itemContainer.setAttribute('data-icon', items[i].icon)
+                }
+
+                if (items[i].id) {
+                    itemContainer.id = items[i].id;
+                }
 
                 if (items[i].disabled) {
                     itemContainer.className = 'jcontextmenu-disabled';
@@ -7821,6 +7829,7 @@ jSuites.toolbar = (function(el, options) {
     // Default configuration
     var defaults = {
         app: null,
+        container: false,
         badge: false,
         title: false,
         items: [],
@@ -7874,6 +7883,14 @@ jSuites.toolbar = (function(el, options) {
         el.innerHTML = '';
     }
 
+    var toggleState = function() {
+        if (this.classList.contains('jtoolbar-active')) {
+            this.classList.remove('jtoolbar-active');
+        } else {
+            this.classList.add('jtoolbar-active');
+        }
+    }
+
     obj.create = function(items) {
         // Reset anything in the toolbar
         toolbarContent.innerHTML = '';
@@ -7899,10 +7916,41 @@ jSuites.toolbar = (function(el, options) {
                 toolbarItem.setAttribute('id', items[i].id);
             }
 
-            if (! items[i].type || items[i].type == 'i') {
+            // Selected
+            if (items[i].state) {
+                toolbarItem.toggleState = toggleState;
+            }
+
+            if (items[i].active) {
+                toolbarItem.classList.add('jtoolbar-active');
+            }
+
+            if (items[i].type == 'select' || items[i].type == 'dropdown') {
+                if (typeof(items[i].onchange) == 'function') {
+                    // Event for picker has different arguments
+                    items[i].onchange = (function(o) {
+                        return function(a,b,c,d) {
+                            o(el, obj, a, c, d);
+                        }
+                    })(items[i].onchange);
+                }
+                jSuites.picker(toolbarItem, items[i]);
+            } else if (items[i].type == 'divisor') {
+                toolbarItem.classList.add('jtoolbar-divisor');
+            } else if (items[i].type == 'label') {
+                toolbarItem.classList.add('jtoolbar-label');
+                toolbarItem.innerHTML = items[i].content;
+            } else {
                 // Material icons
                 var toolbarIcon = document.createElement('i');
+                if (typeof(items[i].class) === 'undefined') {
                 toolbarIcon.classList.add('material-icons');
+                } else {
+                    var c = items[i].class.split(' ');
+                    for (var j = 0; j < c.length; j++) {
+                        toolbarIcon.classList.add(c[j]);
+                    }
+                }
                 toolbarIcon.innerHTML = items[i].content ? items[i].content : '';
                 toolbarItem.appendChild(toolbarIcon);
 
@@ -7943,33 +7991,26 @@ jSuites.toolbar = (function(el, options) {
                             obj.selectItem(this.toolbarItem);
                         }
                     });
-                } else if (items[i].onclick) {
+                }
+            }
+
+            if (items[i].onclick) {
                     toolbarItem.onclick = (function (a) {
-                        var b = a;
                         return function () {
-                            items[b].onclick(el, obj, this);
+                            items[a].onclick(el, obj, this);
                         };
                     })(i);
                 }
-            } else if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                if (typeof(items[i].onchange) == 'function') {
-                    // Event for picker has different arguments
-                    items[i].onchange = (function(o) {
-                        return function(a,b,c,d) {
-                            o(el, obj, a, c, d);
-                        }
-                    })(items[i].onchange);
-                }
-                jSuites.picker(toolbarItem, items[i]);
-            } else if (items[i].type == 'divisor') {
-                toolbarItem.classList.add('jtoolbar-divisor');
-            }
 
             toolbarContent.appendChild(toolbarItem);
         }
     }
 
     el.classList.add('jtoolbar');
+
+    if (obj.options.container == true) {
+        el.classList.add('jtoolbar-container');
+    }
 
     el.innerHTML = '';
     el.onclick = function(e) {

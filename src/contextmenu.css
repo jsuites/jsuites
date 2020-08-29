@@ -31,8 +31,8 @@
 
 .jcontextmenu > div {
     box-sizing: border-box;
-    display: block;
-    padding: 8px 8px 8px 28px;
+    display: flex;
+    padding: 8px 8px 8px 32px;
     width: 250px;
     position: relative;
     cursor: default;
@@ -40,13 +40,32 @@
     font-family:sans-serif;
 }
 
+.jcontextmenu > div::before {
+    content: attr(data-icon);
+    font-family: 'Material Icons';
+    font-weight: normal;
+    font-style: normal;
+    font-size: 16px;
+    line-height: 1;
+    letter-spacing: normal;
+    text-transform: none;
+    display: inline-block;
+    white-space: nowrap;
+    word-wrap: normal;
+    direction: ltr;
+    -webkit-font-feature-settings: 'liga';
+    -webkit-font-smoothing: antialiased;
+    position: absolute;
+    left: 9px;
+}
+
 .jcontextmenu > div a {
     color: #555;
     text-decoration: none;
+    flex: 1;
 }
 
 .jcontextmenu > div span {
-    float: right;
     margin-right:10px;
 }
 
