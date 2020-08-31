@@ -1,13 +1,12 @@
 /** Buttons **/
 
 .jbutton {
-    padding: 4px;
+    padding: 8px;
     padding-left: 15px;
     padding-right: 15px;
     border: 1px solid #ddd;
     border-radius: 2px;
     cursor:pointer;
-    line-height: 24px;
     -webkit-font-smoothing: antialiased;
     outline: none;
 }

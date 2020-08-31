@@ -807,6 +807,7 @@ jSuites.editor = (function(el, options) {
     if (obj.options.toolbar) {
         // Create toolbar
         jSuites.toolbar(toolbar, {
+            container: true,
             items: obj.options.toolbar
         });
         // Append to the DOM

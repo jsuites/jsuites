@@ -789,11 +789,6 @@ jSuites.calendar = (function(el, options) {
         } else {
             obj.date[2] = element.innerText;
 
-            if (calendar.querySelector('.jcalendar-selected') != element) {
-                calendar.querySelector('.jcalendar-selected').classList.remove('jcalendar-selected');
-                element.classList.add('jcalendar-selected');
-            }
-            
             if (! obj.options.time) {
                 obj.close();
             } else {

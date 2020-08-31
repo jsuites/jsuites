@@ -400,9 +400,9 @@ jSuites.tags = (function(el, options) {
 
         if (text) {
             for (var i = 0; i < text.length; i++) {
-                if (text[i] == ',' || text[i] == ';' || text[i] == '\r\n') {
+                if (text[i] == ',' || text[i] == ';' || text[i] == '\n') {
                     if (word) {
-                        data.push(word);
+                        data.push(word.trim());
                         word = '';
                     }
                 } else {
