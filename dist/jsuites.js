@@ -789,6 +789,11 @@ jSuites.calendar = (function(el, options) {
         } else {
             obj.date[2] = element.innerText;
 
+            if (calendar.querySelector('.jcalendar-selected') != element) {
+                calendar.querySelector('.jcalendar-selected').classList.remove('jcalendar-selected');
+                element.classList.add('jcalendar-selected');
+            }
+            
             if (! obj.options.time) {
                 obj.close();
             } else {
@@ -5327,6 +5332,7 @@ jSuites.mask = (function() {
                     obj.process(obj.fromKeyCode(e));
                     // Prevent default
                     e.preventDefault();
+                    e.stopImmediatePropagation();
                 }
                 // Update value to the element
                 e.target.value = values.join('');
