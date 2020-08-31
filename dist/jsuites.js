@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.5.1)
+ * (c) jSuites Javascript Web Components (v3.5.0)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -3898,6 +3898,7 @@ jSuites.editor = (function(el, options) {
     if (obj.options.toolbar) {
         // Create toolbar
         jSuites.toolbar(toolbar, {
+            container: true,
             items: obj.options.toolbar
         });
         // Append to the DOM
@@ -7581,9 +7582,9 @@ jSuites.tags = (function(el, options) {
 
         if (text) {
             for (var i = 0; i < text.length; i++) {
-                if (text[i] == ',' || text[i] == ';' || text[i] == '\r\n') {
+                if (text[i] == ',' || text[i] == ';' || text[i] == '\n') {
                     if (word) {
-                        data.push(word);
+                        data.push(word.trim());
                         word = '';
                     }
                 } else {
