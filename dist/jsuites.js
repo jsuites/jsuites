@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.5.0)
+ * (c) jSuites Javascript Web Components (v3.5.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1834,7 +1834,7 @@ jSuites.contextmenu = (function(el, options) {
             }
             itemContainer.appendChild(itemText);
 
-            if(item.submenu) {
+            if (item.submenu) {
                 var itemIconSubmenu = document.createElement('span');
                 itemIconSubmenu.innerHTML = "&#9658;";
                 itemContainer.appendChild(itemIconSubmenu);

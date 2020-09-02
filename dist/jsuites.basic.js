@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.5.1)
+ * (c) jSuites Javascript Web Components (v3.5.0)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1786,41 +1786,69 @@ jSuites.contextmenu = (function(el, options) {
 
         // Append items
         for (var i = 0; i < items.length; i++) {
-            if (items[i].type && (items[i].type == 'line' || items[i].type == 'divisor')) {
-                var itemContainer = document.createElement('hr');
-            } else {
-                var itemContainer = document.createElement('div');
-                var itemText = document.createElement('a');
-                itemText.innerHTML = items[i].title;
-
-                if (items[i].icon) {
-                    itemContainer.setAttribute('data-icon', items[i].icon)
-                }
-
-                if (items[i].id) {
-                    itemContainer.id = items[i].id;
-                }
-
-                if (items[i].disabled) {
-                    itemContainer.className = 'jcontextmenu-disabled';
-                } else if (items[i].onclick) {
-                    itemContainer.method = items[i].onclick;
-                    itemContainer.addEventListener("mouseup", function() {
-                        // Execute method
-                        this.method(this);
-                    });
-                }
-                itemContainer.appendChild(itemText);
-
-                if (items[i].shortcut) {
-                    var itemShortCut = document.createElement('span');
-                    itemShortCut.innerHTML = items[i].shortcut;
-                    itemContainer.appendChild(itemShortCut);
-                }
-            }
-
+            var itemContainer = createItemElement(items[i]);
             el.appendChild(itemContainer);
         }
+    }
+    
+    /**
+     * Private function for create a new Item element
+     * @param {type} item
+     * @returns {jsuitesL#15.jSuites.contextmenu.createItemElement.itemContainer}
+     */
+    function createItemElement(item) {
+        if (item.type && (item.type == 'line' || item.type == 'divisor')) {
+            var itemContainer = document.createElement('hr');
+        } else {
+            var itemContainer = document.createElement('div');
+            var itemText = document.createElement('a');
+            itemText.innerHTML = item.title;
+
+            if (item.icon) {
+                itemContainer.setAttribute('data-icon', item.icon);
+            }
+
+            if (item.id) {
+                itemContainer.id = item.id;
+            }
+
+            if (item.disabled) {
+                itemContainer.className = 'jcontextmenu-disabled';
+            } else if (item.onclick) {
+                itemContainer.method = item.onclick;
+                itemContainer.addEventListener("mouseup", function() {
+                    // Execute method
+                    this.method(this);
+                });
+            }
+            itemContainer.appendChild(itemText);
+
+            if (item.submenu) {
+                var itemIconSubmenu = document.createElement('span');
+                itemIconSubmenu.innerHTML = "&#9658;";
+                itemContainer.appendChild(itemIconSubmenu);
+                itemContainer.classList.add('jcontexthassubmenu');
+                var el_submenu = document.createElement('div');
+                // Class definition
+                el_submenu.classList.add('jcontextmenu');
+                // Focusable
+                el_submenu.setAttribute('tabindex', '900');
+                
+                // Append items
+                var submenu = item.submenu;
+                for (var i = 0; i < submenu.length; i++) {
+                    var itemContainerSubMenu = createItemElement(submenu[i]);
+                    el_submenu.appendChild(itemContainerSubMenu);
+                }
+
+                itemContainer.appendChild(el_submenu);
+            } else if (item.shortcut) {
+                var itemShortCut = document.createElement('span');
+                itemShortCut.innerHTML = item.shortcut;
+                itemContainer.appendChild(itemShortCut);
+            }
+        }
+        return itemContainer;
     }
 
     if (typeof(obj.options.onclick) == 'function') {
@@ -3887,6 +3915,7 @@ jSuites.editor = (function(el, options) {
     if (obj.options.toolbar) {
         // Create toolbar
         jSuites.toolbar(toolbar, {
+            container: true,
             items: obj.options.toolbar
         });
         // Append to the DOM
@@ -4916,6 +4945,7 @@ jSuites.mask = (function() {
                     obj.process(obj.fromKeyCode(e));
                     // Prevent default
                     e.preventDefault();
+                    e.stopImmediatePropagation();
                 }
                 // Update value to the element
                 e.target.value = values.join('');

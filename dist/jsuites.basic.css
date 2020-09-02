@@ -639,6 +639,20 @@
     background: transparent;
 }
 
+.jcontextmenu .jcontextmenu {
+  top: 4px;
+  left: 99%;
+  opacity: 0;
+  position: absolute;
+}
+
+.jcontextmenu > div:hover > .jcontextmenu {
+  display: block;
+  opacity: 1;
+  -webkit-transform: translate(0, 0) scale(1);
+  transform: translate(0, 0) scale(1);
+  pointer-events: auto;
+}
 
 /**
  * (c) 2013 jDropdown
@@ -1657,6 +1671,12 @@
     margin-left: 10px;
 }
 
+.jtoolbar-container {
+    border-radius: 2px;
+    margin-bottom: 5px;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    display: inline-flex !important;
+}
 
 .jtoolbar {
     cursor: pointer;
