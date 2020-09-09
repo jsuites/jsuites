@@ -956,7 +956,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     // Get month
     var m = v2.search("MM");
     m = v1.substr(m,2);
-    if (parseInt(m) != m || d > 12) {
+    if (parseInt(m) != m || m > 12) {
         test = 0;
     }
 
@@ -1051,10 +1051,11 @@ jSuites.calendar.getDateString = function(value, format) {
             value = format;
             value = value.replace('WD', weekday[calendar.getDay()]);
             value = value.replace('DD', d[2]);
+            value = value.replace('MON', months[parseInt(d[1])-1].toUpperCase());
+            value = value.replace('MMM', months[parseInt(d[1])-1].toUpperCase());
             value = value.replace('MM', d[1]);
             value = value.replace('YYYY', d[0]);
             value = value.replace('YY', d[0].substring(2,4));
-            value = value.replace('MON', months[parseInt(d[1])-1].toUpperCase());
 
             if (h) {
                 value = value.replace('HH24', h);

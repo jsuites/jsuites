@@ -302,9 +302,6 @@ jSuites.dropdown = (function(el, options) {
         if (! text && data.name) {
             text = data.name;
         }
-        if (! text.trim()) {
-            text = '&nbsp;';
-        }
         var value = data.value || '';
         if (! value && data.id) {
             value = data.id;
