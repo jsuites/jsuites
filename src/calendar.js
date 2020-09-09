@@ -977,7 +977,7 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     } else {
         h = '00';
     }
-    
+
     // Get minutes
     var i = v2.search("MI");
     if (i >= 0) {
