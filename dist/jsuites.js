@@ -3173,6 +3173,7 @@ jSuites.editor = (function(el, options) {
     // If element is textaera, then replace by div editor
     if(el.type == "textarea") {
         var textarea_editor = el;
+        obj.options["value"] = textarea_editor.value;
         var new_editor = document.createElement('div');
         new_editor.id = el.id + "_jsuites_editor";
         new_editor.addEventListener("input", function (e) {
