@@ -475,7 +475,8 @@
 }
 
 .jcolor-content table {
-    padding: 7px;
+    border-collapse: initial;
+    padding: 7px !important;
     box-sizing: border-box;
 }
 
@@ -489,6 +490,7 @@
 }
 
 .jcolor td {
+    padding: 7px;
     border:2px solid #fff;
 }
 

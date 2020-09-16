@@ -83,7 +83,6 @@ jSuites.mask = (function() {
                     obj.process(obj.fromKeyCode(e));
                     // Prevent default
                     e.preventDefault();
-                    e.stopImmediatePropagation();
                 }
                 // Update value to the element
                 e.target.value = values.join('');
