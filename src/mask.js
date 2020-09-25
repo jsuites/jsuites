@@ -15,7 +15,7 @@ jSuites.mask = (function() {
             }
 
             if (jSuites.isNumeric(value)) {
-                var number = (''+value).split('.');
+                var number = (''+value).split(decimal);
                 var value = number[0];
                 var valueDecimal = number[1];
             } else {
