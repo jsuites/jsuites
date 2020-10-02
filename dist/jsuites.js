@@ -8654,8 +8654,8 @@ jSuites.organogram = (function(el, options) {
     // Updates tree container dimensions
     var updateTreeContainerDimensions = function(){
         var treeContainer = ul.children[0];
-        treeContainer.style.width = treeContainer.offsetWidth * 3 + 'px';
-        treeContainer.style.height = treeContainer.offsetHeight * 3 + 'px'
+        treeContainer.style.width = treeContainer.children[1].offsetWidth * 4 + 'px';
+        treeContainer.style.height = treeContainer.children[1].offsetHeight * 4 + 'px'
     }
 
     var render = function (parent, container) {
