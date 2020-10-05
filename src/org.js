@@ -103,15 +103,24 @@ jSuites.organogram = (function(el, options) {
 
     var zoom = function(e) {
         e = event || window.event;
-
         // Current zoom
         var currentZoom = el.children[0].style.zoom * 1;
-
+        var prevWidth = el.children[0].offsetWidth;
+        var prevHeight = el.children[0].offsetHeight;
+        var widthVar, heightVar;
         // Action
         if (e.target.classList.contains('jorg-zoom-in') || e.deltaY < 0) {
             el.children[0].style.zoom = currentZoom + 0.05;
+            widthVar = prevWidth - el.children[0].offsetWidth;
+            heightVar = prevHeight - el.children[0].offsetHeight;
+            el.children[0].scrollLeft += (widthVar/2)
+            el.children[0].scrollTop += (heightVar/2)
         } else if (currentZoom > .5) {
             el.children[0].style.zoom = currentZoom - 0.05;
+            widthVar = el.children[0].offsetWidth - prevWidth;
+            heightVar = el.children[0].offsetHeight - prevHeight;
+            el.children[0].scrollLeft -= (widthVar/2);
+            el.children[0].scrollTop -= (heightVar/2);
         }
         e.preventDefault();
     }
