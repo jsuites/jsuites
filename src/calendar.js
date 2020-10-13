@@ -491,8 +491,8 @@ jSuites.calendar = (function(el, options) {
         var year = obj.date && obj.date[0] ? obj.date[0] : parseInt(date.getFullYear());
         var month = obj.date && obj.date[1] ? obj.date[1] : parseInt(date.getMonth()) + 1;
         var day = obj.date && obj.date[2] ? obj.date[2] : parseInt(date.getDate());
-        var hour = obj.date && obj.date[3] ? obj.date[3] : parseInt(date.getHours());
-        var min = obj.date && obj.date[4] ? obj.date[4] : parseInt(date.getMinutes());
+        var hour = obj.date && obj.date[3] || obj.date[3] == 0 ? obj.date[3] : parseInt(date.getHours());
+        var min = obj.date && obj.date[4] || obj.date[4] == 0 ? obj.date[4] : parseInt(date.getMinutes());
 
         // Selection container
         obj.date = [year, month, day, hour, min, 0 ];
