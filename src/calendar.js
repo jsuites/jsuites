@@ -487,12 +487,17 @@ jSuites.calendar = (function(el, options) {
         // Setting current values in case of NULLs
         var date = new Date();
 
+        if(obj.options.value)
+        {
+          obj.date = jSuites.calendar.toArray(obj.options.value);
+        }
+		
         // Current selection
-        var year = obj.date && obj.date[0] ? obj.date[0] : parseInt(date.getFullYear());
-        var month = obj.date && obj.date[1] ? obj.date[1] : parseInt(date.getMonth()) + 1;
-        var day = obj.date && obj.date[2] ? obj.date[2] : parseInt(date.getDate());
-        var hour = obj.date && obj.date[3] || obj.date[3] == 0 ? obj.date[3] : parseInt(date.getHours());
-        var min = obj.date && obj.date[4] || obj.date[4] == 0 ? obj.date[4] : parseInt(date.getMinutes());
+        var year = obj.date && obj.date.length > 0 ? obj.date[0] : parseInt(date.getFullYear());
+        var month = obj.date && obj.date.length > 1 ? obj.date[1] : parseInt(date.getMonth()) + 1;
+        var day = obj.date && obj.date.length > 2 ? obj.date[2] : parseInt(date.getDate());
+        var hour = obj.date && obj.date.length > 3 ? obj.date[3] : parseInt(date.getHours());
+        var min = obj.date && obj.date.length > 4 ? obj.date[4] : parseInt(date.getMinutes());
 
         // Selection container
         obj.date = [year, month, day, hour, min, 0 ];
