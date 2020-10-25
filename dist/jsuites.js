@@ -629,8 +629,8 @@ jSuites.calendar = (function(el, options) {
                 // Animation
                 jSuites.animation.slideBottom(calendarContent, 1);
             } else {
-                const rect = el.getBoundingClientRect();
-                const rectContent = calendarContent.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
+                var rectContent = calendarContent.getBoundingClientRect();
 
                 if (obj.options.position) {
                     calendarContainer.style.position = 'fixed';
@@ -1557,7 +1557,7 @@ jSuites.color = (function(el, options) {
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
-            const rectContent = content.getBoundingClientRect();
+            var rectContent = content.getBoundingClientRect();
 
             if (jSuites.getWindowWidth() < 800) {
                 content.style.top = '';
@@ -1570,7 +1570,7 @@ jSuites.color = (function(el, options) {
                     backdrop.style.display = '';
                 }
 
-                const rect = el.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
 
                 if (obj.options.position) {
                     content.style.position = 'fixed';
@@ -1759,7 +1759,7 @@ jSuites.contextmenu = (function(el, options) {
             el.classList.add('jcontextmenu-focus');
             el.focus();
 
-            const rect = el.getBoundingClientRect();
+            var rect = el.getBoundingClientRect();
 
             if (window.innerHeight < y + rect.height) {
                 el.style.top = (y - rect.height) + 'px';
@@ -2677,8 +2677,8 @@ jSuites.dropdown = (function(el, options) {
 
             // Container Size
             if (! obj.options.type || obj.options.type == 'default') {
-                const rect = el.getBoundingClientRect();
-                const rectContainer = container.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
+                var rectContainer = container.getBoundingClientRect();
 
                 if (obj.options.position) {
                     container.style.position = 'fixed';
@@ -5848,7 +5848,7 @@ jSuites.modal = (function(el, options) {
     obj.open = function() {
         el.style.display = 'block';
         // Fullscreen
-        const rect = obj.container.getBoundingClientRect();
+        var rect = obj.container.getBoundingClientRect();
         if (jSuites.getWindowWidth() < rect.width) {
             obj.container.style.top = '';
             obj.container.style.left = '';
@@ -6262,8 +6262,8 @@ jSuites.picker = (function(el, options) {
         el.classList.add('jpicker-focus');
         el.focus();
 
-        const rectHeader = dropdownHeader.getBoundingClientRect();
-        const rectContent = dropdownContent.getBoundingClientRect();
+        var rectHeader = dropdownHeader.getBoundingClientRect();
+        var rectContent = dropdownContent.getBoundingClientRect();
 
         if (window.innerHeight < rectHeader.bottom + rectContent.height) {
             dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
@@ -7777,7 +7777,7 @@ jSuites.tags = (function(el, options) {
     var tagsMouseUp = function(e) {
         if (e.target.parentNode && e.target.parentNode.classList.contains('jtags')) {
             if (e.target.classList.contains('jtags_label') || e.target.classList.contains('jtags_error')) {
-                const rect = e.target.getBoundingClientRect();
+                var rect = e.target.getBoundingClientRect();
                 if (rect.width - (e.clientX - rect.left) < 16) {
                     obj.remove(e.target);
                 }
