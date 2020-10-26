@@ -1,14 +1,32 @@
 /**
- * (c) jTools Text Editor
- * https://github.com/paulhodel/jtools
+ * (c) HTML Editor
+ * https://github.com/paulhodel/jsuites
  *
  * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline richtext editor
+ * @description: Inline simple richtext editor
  */
 
 jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};
+
+    // If element is textarea, then replace by div editor
+    if (el.tagName == 'TEXTAREA' || el.tagName == 'INPUT') {
+        // Current element
+        var element = el;
+        element.style.display = 'none';
+        // New Element
+        el = document.createElement('div');
+        // Value
+        if (! options.value) {
+            options.value = element.value;
+        }
+        // Event to populate the textarea
+        options.onblur = function(a,b,c) {
+            element.value = b.getData()
+        }
+        element.insertBefore(el);
+    }
 
     // Default configuration
     var defaults = {

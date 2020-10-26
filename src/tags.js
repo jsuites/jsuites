@@ -555,7 +555,7 @@ jSuites.tags = (function(el, options) {
     var tagsMouseUp = function(e) {
         if (e.target.parentNode && e.target.parentNode.classList.contains('jtags')) {
             if (e.target.classList.contains('jtags_label') || e.target.classList.contains('jtags_error')) {
-                const rect = e.target.getBoundingClientRect();
+                var rect = e.target.getBoundingClientRect();
                 if (rect.width - (e.clientX - rect.left) < 16) {
                     obj.remove(e.target);
                 }

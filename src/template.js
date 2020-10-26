@@ -84,7 +84,7 @@ jSuites.template = (function(el, options) {
 
     // Content
     var container = document.createElement('div');
-    container.className = 'jtemplate-content';
+    container.className = 'jtemplate-content options';
     el.appendChild(container);
 
     // Data container
@@ -145,6 +145,20 @@ jSuites.template = (function(el, options) {
         }
     }
 
+    /**
+     * Append data to the template and add to the DOMContainer
+     * @param data
+     * @param contentDOMContainer
+     */
+    obj.setContent = function(a, b) {
+        var c = obj.options.template[Object.keys(obj.options.template)[0]](a);
+        if ((c instanceof Element || c instanceof HTMLDocument)) {
+            b.appendChild(c);
+        } else {
+            b.innerHTML = c;
+        }
+    }
+
     obj.addItem = function(data, beginOfDataSet) {
         // Append itens
         var content = document.createElement('div');
@@ -160,7 +174,7 @@ jSuites.template = (function(el, options) {
             container.innerHTML = '';
         }
         // Get content
-        content.innerHTML = obj.options.template[Object.keys(options.template)[0]](data);
+        obj.setContent(data, content);
         // Add animation
         jSuites.animation.fadeIn(content.children[0]);
         // Add and do the animation
@@ -232,8 +246,8 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                content.innerHTML = obj.options.template[Object.keys(obj.options.template)[0]](data[i]);
-                content.children[0].dataReference = data[i]; 
+                obj.setContent(data[i], content)
+                content.children[0].dataReference = data[i]; // TODO: data[i] or i?
                 container.appendChild(content.children[0]);
             }
         }
@@ -307,7 +321,8 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                content.innerHTML = obj.options.template[Object.keys(obj.options.template)[0]](data[i]);
+                // Get content
+                obj.setContent(data[i], content);
                 content.children[0].dataReference = data[i]; 
                 container.appendChild(content.children[0]);
             }
@@ -337,7 +352,7 @@ jSuites.template = (function(el, options) {
             obj.renderTemplate();
 
             // Onload
-            if (forceLoad && typeof(obj.options.onload) == 'function') {
+            if (typeof(obj.options.onload) == 'function') {
                 obj.options.onload(el, obj);
             }
         }

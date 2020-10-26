@@ -561,11 +561,26 @@ jSuites.dropdown = (function(el, options) {
             }
         }
 
-        obj.header.value = obj.getText();
+        // New value
+        var newValue = obj.getValue();
 
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, null, oldValue, obj.getValue());
+        if (oldValue != newValue) {
+            // Label
+            obj.header.value = obj.getText();
+
+            // Value
+            obj.options.value = obj.getValue();
+
+            // Element value
+            el.value = obj.options.value;
+
+            // Events
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({ type: 'change', target: this });
+            }
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, null, oldValue, obj.options.value);
+            }
         }
     }
 
@@ -751,8 +766,8 @@ jSuites.dropdown = (function(el, options) {
 
             // Container Size
             if (! obj.options.type || obj.options.type == 'default') {
-                const rect = el.getBoundingClientRect();
-                const rectContainer = container.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
+                var rectContainer = container.getBoundingClientRect();
 
                 if (obj.options.position) {
                     container.style.position = 'fixed';
@@ -1010,6 +1025,7 @@ jSuites.dropdown = (function(el, options) {
 
     // Keep object available from the node
     el.dropdown = obj;
+    el.change = obj.setValue;
 
     return obj;
 });

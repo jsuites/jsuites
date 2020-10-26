@@ -156,16 +156,12 @@ jSuites.toolbar = (function(el, options) {
                     toolbarItem.route = items[i].route;
                     // Onclick for route
                     toolbarItem.onclick = function() {
-                        options.app.pages(this.route);
+                        obj.options.app.pages(this.route);
                     }
-
                     // Create pages
                     obj.options.app.pages(items[i].route, {
                         toolbarItem: toolbarItem,
-                        closed: true,
-                        onenter: function() {
-                            obj.selectItem(this.toolbarItem);
-                        }
+                        closed: true
                     });
                 }
             }

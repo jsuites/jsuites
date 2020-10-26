@@ -46,10 +46,14 @@ jSuites.contextmenu = (function(el, options) {
             el.classList.add('jcontextmenu-focus');
             el.focus();
 
-            const rect = el.getBoundingClientRect();
+            var rect = el.getBoundingClientRect();
 
             if (window.innerHeight < y + rect.height) {
-                el.style.top = (y - rect.height) + 'px';
+                var h = y - rect.height;
+                if (h < 0) {
+                    h = 0;
+                }
+                el.style.top = h + 'px';
             } else {
                 el.style.top = y + 'px';
             }
@@ -152,7 +156,7 @@ jSuites.contextmenu = (function(el, options) {
 
     if (typeof(obj.options.onclick) == 'function') {
         el.addEventListener('click', function(e) {
-            obj.options.onclick(obj);
+            obj.options.onclick(obj, e);
         });
     }
 

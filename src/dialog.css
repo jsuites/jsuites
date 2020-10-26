@@ -72,7 +72,7 @@
     padding:4px;
     border-left:1px solid #ccc;
     text-align:center;
-    width:100%;
+    flex: 1;
 }
 .jdialog .jdialog-footer > div:first-child
 {

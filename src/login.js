@@ -121,7 +121,7 @@ jSuites.login = (function(el, options) {
 
     // Password
     var labelPassword = document.createElement('label');
-    labelPassword.innerHTML = 'New password';
+    labelPassword.innerHTML = 'Password';
     var inputPassword = document.createElement('input');
     inputPassword.type = 'password';
     inputPassword.name = 'password';

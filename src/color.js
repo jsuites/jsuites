@@ -122,7 +122,7 @@ jSuites.color = (function(el, options) {
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
-            const rectContent = content.getBoundingClientRect();
+            var rectContent = content.getBoundingClientRect();
 
             if (jSuites.getWindowWidth() < 800) {
                 content.style.top = '';
@@ -135,7 +135,7 @@ jSuites.color = (function(el, options) {
                     backdrop.style.display = '';
                 }
 
-                const rect = el.getBoundingClientRect();
+                var rect = el.getBoundingClientRect();
 
                 if (obj.options.position) {
                     content.style.position = 'fixed';
@@ -271,6 +271,7 @@ jSuites.color = (function(el, options) {
 
     // Keep object available from the node
     el.color = obj;
+    el.change = obj.setValue;
 
     return obj;
 });

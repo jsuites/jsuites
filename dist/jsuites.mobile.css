@@ -15,6 +15,17 @@
     box-sizing: border-box;
     overflow: scroll;
     background-color: #fafafa;
+    line-height: 1.4;
+    font-size: 16px;
+    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+}
+
+.japp a {
+    text-decoration: none;
+}
+
+.japp input, .japp textarea, .japp select, .japp div {
+    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
 }
 
 .japp .red {
@@ -334,8 +345,8 @@ japp.jwarning .page {
 
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
+    padding: 0px;
     border-bottom: 1px solid #e6e6e8;
-    padding: 15px;
     text-transform: uppercase;
     outline: none;
 }
@@ -960,7 +971,7 @@ japp.jwarning .page {
     padding:4px;
     border-left:1px solid #ccc;
     text-align:center;
-    width:100%;
+    flex: 1;
 }
 .jdialog .jdialog-footer > div:first-child
 {

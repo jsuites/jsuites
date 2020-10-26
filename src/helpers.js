@@ -1,5 +1,5 @@
 jSuites.isNumeric = (function (num) {
-    return !isNaN(num)
+    return !isNaN(num) && num != null && num != '';
 });
 
 jSuites.guid = function() {

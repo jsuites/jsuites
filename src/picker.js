@@ -118,8 +118,8 @@ jSuites.picker = (function(el, options) {
         el.classList.add('jpicker-focus');
         el.focus();
 
-        const rectHeader = dropdownHeader.getBoundingClientRect();
-        const rectContent = dropdownContent.getBoundingClientRect();
+        var rectHeader = dropdownHeader.getBoundingClientRect();
+        var rectContent = dropdownContent.getBoundingClientRect();
 
         if (window.innerHeight < rectHeader.bottom + rectContent.height) {
             dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';

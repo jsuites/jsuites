@@ -75,7 +75,7 @@ jSuites.modal = (function(el, options) {
     obj.open = function() {
         el.style.display = 'block';
         // Fullscreen
-        const rect = obj.container.getBoundingClientRect();
+        var rect = obj.container.getBoundingClientRect();
         if (jSuites.getWindowWidth() < rect.width) {
             obj.container.style.top = '';
             obj.container.style.left = '';
