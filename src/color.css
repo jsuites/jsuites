@@ -80,8 +80,35 @@
     box-sizing: border-box;
 }
 
+.jcolor-reset {
+    font-size: 1em;
+    color: var(--active-color);
+    text-transform: uppercase;
+    font-weight: bold;
+    width: 100%;
+    box-sizing: border-box;
+    display: inline-block;
+    text-align: center;
+    padding-top: 5px;
+
+}
+
 .jcolor-fullscreen .jcolor-close {
     display: block;
+}
+
+.jcolor-fullscreen .jcolor-close-with-reset {
+    display: inline-block;
+    width: 50%;
+}
+
+.jcolor-fullscreen .jcolor-reset {
+    width: 50%;
+    text-align: left;
+    padding: 15px;
+     -webkit-box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
+    -moz-box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
+    box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
 }
 
 .jcolor-backdrop {
