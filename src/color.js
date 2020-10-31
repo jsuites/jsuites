@@ -306,5 +306,3 @@ jSuites.color = (function(el, options) {
 
     return obj;
 });
-
-    </script>
