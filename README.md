@@ -82,11 +82,17 @@ Full examples on how to handle simple, advanced, autocomplete and conditional dr
 * [Javascript calendar, date and datetime picker](https://bossanova.uk/jsuites/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
+* [Javascript tags plugin](https://bossanova.uk/jsuites/javascript-tags)\
+JavaScript tags and keywords managment plugin
+
+* [Javascript tabs plugin](https://bossanova.uk/jsuites/javascript-tabs)\
+JavaScript tabs plugin
+
 * [Javascript mask](https://bossanova.uk/jsuites/javascript-mask)\
 A simple javascript mask plugin
 
 * [Javascript color picker plugin](https://bossanova.uk/jsuites/color-picker)\
-Vanilla javascript colorpicker plugin
+Javascript color picker plugin
 
 * [Javascript contextmenu plugin](https://bossanova.uk/jsuites/contextmenu)\
 Vanilla javascript contextmenu plugin
@@ -94,14 +100,17 @@ Vanilla javascript contextmenu plugin
 * [Javascript image slider plugin](https://bossanova.uk/jsuites/image-slider)\
 Simple vanilla javascript image slider plugin
 
-* [Javascript mini HTML editor plugin with filter](https://bossanova.uk/jsuites/text-editor)\
-Simple vanilla javascript image slider plugin
-
 * [Tracking the form changes](https://bossanova.uk/jsuites/tracking-for-form-changes)\
 Alert the user for unsaved changes in a form before leave any page plugin.
 
 * [Javascript modal plugin](https://bossanova.uk/jsuites/modal)\
 Simple vanilla javascript modal plugin
+
+* [JavaSript general toolbar](https://bossanova.uk/jsuites/javascript-toolbar)\
+Micro vanilla javascript toolbar plugin
+
+* [Javascript mini HTML editor plugin with filter](https://bossanova.uk/jsuites/text-editor)\
+Simple vanilla javascript image slider plugin
 
 
 ## Official website
@@ -115,6 +124,9 @@ jSuites is released under the [MIT license]. Copyrights belong to Paul Hodel <pa
 
 ## Other resources
 
-- [jExcel CE Official](https://bossanova.uk/jexcel/v3)
-- [jExcel Pro Official](https://jexcel.net/v3)
+- [jExcel CE v3 Official](https://bossanova.uk/jexcel/v3)
+- [jExcel CE v4 Official](https://bossanova.uk/jexcel/v4)
+- [jExcel Pro v5 Official](https://jexcel.net/v5)
+- [jExcel Pro v7 Official](https://jexcel.net/v7)
+
 - [Banda Base](https://base.mus.br)
