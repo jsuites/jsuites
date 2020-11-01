@@ -45,6 +45,9 @@ jSuites.tags = (function(el, options) {
     var searchIndex = 0;
     var searchTimer = 0;
 
+    // Change methods
+    el.change = obj.setValue;
+
     /**
      * Add a new tag to the element
      * @param {(?string|Array)} value - The value of the new element
@@ -103,9 +106,8 @@ jSuites.tags = (function(el, options) {
             // Filter
             filter();
 
-            if (typeof(obj.options.onchange) == 'function') {
-                obj.options.onchange(el, obj, value ? value : '');
-            }
+            // Change
+            change();
         }
     }
 
@@ -186,6 +188,8 @@ jSuites.tags = (function(el, options) {
 
     obj.reset = function() {
         el.innerHTML = '<div><br></div>';
+
+        change();
     }
 
     /**
@@ -323,6 +327,16 @@ jSuites.tags = (function(el, options) {
         el.removeEventListener('blur', tagsBlur);
         // Remove element
         el.parentNode.removeChild(el);
+    }
+
+    var change = function() {
+        // Events
+        if (typeof(el.onchange) == 'function') {
+            el.onchange({ type: 'change', target: el });
+        }
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, value ? value : '');
+        }
     }
 
     var getRandomColor = function(index) {

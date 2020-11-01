@@ -28,6 +28,21 @@
     box-sizing: border-box;
 }
 
+.jcolor-controls {
+    display: flex;
+    padding: 10px;
+    padding-bottom: 0px;
+}
+
+.jcolor-controls div {
+    flex: 1;
+    font-size: 1em;
+    color: var(--active-color);
+    text-transform: uppercase;
+    font-weight: bold;
+    box-sizing: border-box;
+}
+
 .jcolor-content table {
     border-collapse: initial;
     padding: 7px !important;
@@ -51,7 +66,7 @@
 .jcolor-selected {
     border:2px solid #000 !important;
     background-repeat:no-repeat;
-    background-size: cover;
+    background-size: 16px;
     background-position: center;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' fill='white'/%3E%3C/svg%3E");
 }
@@ -65,50 +80,19 @@
     box-sizing: border-box;
 }
 
-.jcolor-close {
-    display: none;
-    font-size: 1em;
-    color: var(--active-color);
-    text-transform: uppercase;
-    text-align: right;
+.jcolor-fullscreen .jcolor-controls {
     padding: 15px;
-    font-weight: bold;
     -webkit-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     -moz-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
-    width: 100%;
-    box-sizing: border-box;
 }
 
 .jcolor-reset {
-    font-size: 1em;
-    color: var(--active-color);
-    text-transform: uppercase;
-    font-weight: bold;
-    width: 100%;
-    box-sizing: border-box;
-    display: inline-block;
-    text-align: center;
-    padding-top: 5px;
-
-}
-
-.jcolor-fullscreen .jcolor-close {
-    display: block;
-}
-
-.jcolor-fullscreen .jcolor-close-with-reset {
-    display: inline-block;
-    width: 50%;
-}
-
-.jcolor-fullscreen .jcolor-reset {
-    width: 50%;
     text-align: left;
-    padding: 15px;
-     -webkit-box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
-    -moz-box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
-    box-shadow: 0px 0px 1px 0px rgba(0,0,0,0.39);
+}
+
+.jcolor-close {
+    text-align: right;
 }
 
 .jcolor-backdrop {

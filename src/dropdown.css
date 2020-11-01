@@ -72,7 +72,7 @@
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
-    padding-right:30px;
+    padding-right:30px !important;
 }
 
 .jdropdown-insert-button

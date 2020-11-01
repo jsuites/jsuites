@@ -24,7 +24,7 @@
     left: 0;
     width: 100%;
     background: #f7f7f8;
-    z-index: 500;
+    z-index: 1;
     box-sizing: border-box;
     box-shadow: 0 -1px 2px rgba(0,0,0,.1);
     border-radius: 0px;

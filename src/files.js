@@ -31,8 +31,9 @@ jSuites.files = (function(element) {
                         if (! file.extension) {
                             file.extension =  src.substr(src.lastIndexOf('.') + 1);
                         }
-                        if (obj.files[file.file]) {
-                            file.content = obj.files[file.file];
+
+                        if (files[i].content) {
+                            file.content = files[i].content;
                         }
                     }
 
@@ -55,6 +56,8 @@ jSuites.files = (function(element) {
                 }
                 data[i] = file;
             }
+
+            obj.files = data;
 
             return data;
         }

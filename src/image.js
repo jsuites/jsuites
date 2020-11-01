@@ -144,7 +144,6 @@ jSuites.image = (function(el, options) {
 
                     // Keep base64 ready to go
                     var content = canvas.toDataURL();
-                    jSuites.files[data.file] = content.substr(content.indexOf(',') + 1);
 
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {

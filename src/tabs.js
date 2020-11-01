@@ -4,7 +4,7 @@ jSuites.tabs = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        data: null,
+        data: [],
         position: null,
         allowCreate: false,
         allowChangePosition: false,
@@ -16,8 +16,9 @@ jSuites.tabs = (function(el, options) {
         onbeforecreate: null,
         onchangeposition: null,
         animation: false,
-        hideHeaders: false
-    };
+        hideHeaders: false,
+        padding: null,
+    }
 
     // Loop through the initial configuration
     for (var property in defaults) {
@@ -31,18 +32,46 @@ jSuites.tabs = (function(el, options) {
     // Class
     el.classList.add('jtabs');
 
-    if (obj.options.animation == true) {
-        // Border
-        var border = document.createElement('div');
-        border.className = 'jtabs-border';
-        el.appendChild(border);
+    var prev = null;
+    var next = null;
+    var border = null;
 
-        var setBorder = function(index) {
-            var rect = obj.headers.children[index].getBoundingClientRect();
-            var rectContent = obj.content.children[index].getBoundingClientRect();
-            border.style.width = rect.width + 'px';
-            border.style.left = (rect.left - rectContent.left) + 'px';
-            border.style.top = rect.height + 'px';
+    // Helpers
+    var setBorder = function(index) {
+        var rect = obj.headers.children[index].getBoundingClientRect();
+        border.style.width = rect.width + 'px';
+        border.style.left = (obj.headers.children[index].offsetLeft) + 'px';
+        border.style.bottom = '0px';
+    }
+
+    var updateControls = function(x) {
+        if (typeof(obj.headers.scrollTo) == 'function') {
+            obj.headers.scrollTo({
+                left: x,
+                behavior: 'smooth',
+            });
+        } else {
+            obj.headers.scrollLeft = x;
+        }
+
+        if (x <= 1) {
+            prev.classList.add('disabled');
+        } else {
+            prev.classList.remove('disabled');
+        }
+
+        if (x >= obj.headers.scrollWidth - obj.headers.offsetWidth) {
+            next.classList.add('disabled');
+        } else {
+            next.classList.remove('disabled');
+        }
+
+        if (obj.headers.scrollWidth <= obj.headers.offsetWidth) {
+            prev.style.display = 'none';
+            next.style.display = 'none';
+        } else {
+            prev.style.display = '';
+            next.style.display = '';
         }
     }
 
@@ -73,15 +102,23 @@ jSuites.tabs = (function(el, options) {
         }
 
         // Hide
-        if (obj.options.hideHeaders == true && (obj.headers.children.length < 2 && obj.options.allowCreate == false)) {
-            obj.headers.style.display = 'none';
+        if (obj.options.hideHeaders == true && (obj.headers.children.length < 3 && obj.options.allowCreate == false)) {
+            obj.headers.parentNode.style.display = 'none';
         } else {
-            obj.headers.style.display = '';
+            obj.headers.parentNode.style.display = '';
             // Set border
             if (obj.options.animation == true) {
-                setTimeout(function() {
-                    setBorder(index);
-                }, 100);
+                setBorder(index);
+            }
+
+            var x1 = obj.headers.children[index].offsetLeft;
+            var x2 = x1 + obj.headers.children[index].offsetWidth;
+            var r1 = obj.headers.scrollLeft;
+            var r2 = r1 + obj.headers.offsetWidth;
+
+            if (! (r1 <= x1 && r2 >= x2)) {
+                // Out of the viewport
+                updateControls(x1 - 1);
             }
         }
     }
@@ -95,9 +132,17 @@ jSuites.tabs = (function(el, options) {
         return index;
     }
 
-    obj.create = function(title) {
+    obj.rename = function(i, title) {
+        if (! title) {
+            title = prompt('New title', obj.headers.children[i].innerText);
+        }
+        obj.headers.children[i].innerText = title;
+        obj.open(i);
+    }
+
+    obj.create = function(title, url) {
         if (typeof(obj.options.onbeforecreate) == 'function') {
-            var ret = obj.options.onbeforecreate();
+            var ret = obj.options.onbeforecreate(el);
             if (ret === false) {
                 return false;
             } else {
@@ -112,6 +157,10 @@ jSuites.tabs = (function(el, options) {
         }
 
         return div;
+    }
+
+    obj.remote = function(index) {
+        return obj.deleteElement(index);
     }
 
     obj.nextNumber = function() {
@@ -157,20 +206,17 @@ jSuites.tabs = (function(el, options) {
             obj.content.appendChild(div);
 
             // Add headers
-            var header = document.createElement('div');
-            header.innerHTML = title;
-            header.content = div;
-            if (obj.options.allowCreate) {
-                obj.headers.insertBefore(header, obj.headers.lastChild);
-            } else {
-                obj.headers.appendChild(header);
-            }
+            var h = document.createElement('div');
+            h.innerHTML = title;
+            h.content = div;
+            obj.headers.insertBefore(h, obj.headers.lastChild);
+
             // Sortable
             if (obj.options.allowChangePosition) {
-                header.setAttribute('draggable', 'true');
+                h.setAttribute('draggable', 'true');
             }
             // Open new tab
-            obj.selectIndex(header);
+            obj.selectIndex(h);
 
             // Return element
             return div;
@@ -178,21 +224,80 @@ jSuites.tabs = (function(el, options) {
     }
 
     obj.init = function() {
-        // New
+        el.innerHTML = '';
+
+        // Make sure the component is blank
+        obj.headers = document.createElement('div');
+        obj.content = document.createElement('div');
+        obj.headers.classList.add('jtabs-headers');
+        obj.content.classList.add('jtabs-content');
+
+        // Padding
+        if (obj.options.padding) {
+            obj.content.style.padding = parseInt(obj.options.padding) + 'px';
+        }
+
+        // Header
+        var header = document.createElement('div');
+        header.className = 'jtabs-headers-container';
+        header.appendChild(obj.headers);
+
+        // Controls
+        var controls = document.createElement('div');
+        controls.className = 'jtabs-controls';
+        controls.setAttribute('draggable', 'false');
+        header.appendChild(controls);
+
+        // Append DOM elements
+        el.appendChild(header);
+        el.appendChild(obj.content);
+
+        // New button
         if (obj.options.allowCreate == true) {
-            var add = document.createElement('i');
+            var add = document.createElement('div');
             add.className = 'jtabs-add';
-            add.setAttribute('draggable', 'false');
-            obj.headers.appendChild(add);
+            add.onclick = function() {
+                obj.create();
+            }
+            controls.appendChild(add);
+        }
+
+        prev = document.createElement('div');
+        prev.className = 'jtabs-prev';
+        prev.onclick = function() {
+            updateControls(obj.headers.scrollLeft - obj.headers.offsetWidth);
+        }
+        controls.appendChild(prev);
+
+        next = document.createElement('div');
+        next.className = 'jtabs-next';
+        next.onclick = function() {
+            updateControls(obj.headers.scrollLeft + obj.headers.offsetWidth);
+        }
+        controls.appendChild(next);
+
+        // Data
+        for (var i = 0; i < obj.options.data.length; i++) {
+            var headerItem = document.createElement('div');
+            var contentItem = document.createElement('div');
+            headerItem.innerText = obj.options.data[i].title;
+            contentItem.innerHTML = obj.options.data[i].content;
+            obj.headers.appendChild(headerItem);
+            obj.content.appendChild(contentItem);
+        }
+
+        // Animation
+        border = document.createElement('div');
+        border.className = 'jtabs-border';
+        obj.headers.appendChild(border);
+
+        if (obj.options.animation) {
+            el.classList.add('jtabs-animation');
         }
 
         // Events
         obj.headers.addEventListener("click", function(e) {
-            if (e.target.tagName == 'DIV') {
-                var index = obj.selectIndex(e.target);
-            } else {
-                obj.create();
-            }
+            var index = obj.selectIndex(e.target);
 
             if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
@@ -200,14 +305,16 @@ jSuites.tabs = (function(el, options) {
         });
 
         obj.headers.addEventListener("contextmenu", function(e) {
-            if (e.target.tagName == 'DIV') {
-                obj.selectIndex(e.target);
-            }
+            obj.selectIndex(e.target);
         });
 
         if (obj.headers.children.length) {
+            // Open first tab
             obj.open(0);
         }
+
+        // Update controls
+        updateControls(0);
 
         if (obj.options.allowChangePosition == true) {
             jSuites.sorting(obj.headers, {
@@ -228,61 +335,56 @@ jSuites.tabs = (function(el, options) {
                 },
             });
         }
+
+        if (typeof(obj.options.onload) == 'function') {
+            obj.options.onload(el, obj);
+        }
     }
+
+    // Loading existing nodes as the data
+    if (el.children[0] && el.children[1]) {
+        // Create from existing elements
+        for (var i = 0; i < el.children[0].children.length; i++) {
+            if (el.children[1].children[i] && el.children[0].children[i].innerHTML) {
+                var title = el.children[0].children[i].innerText;
+                var content = el.children[1].children[i].innerHTML;
+            } else {
+                var title = 'Tab ' + (i + 1);
+                var content = el.children[0].children[i].innerHTML;
+            }
+
+            obj.options.data.push({ title: title, content: content });
+        }
+    }
+
+    // Remote controller flag
+    var loadingRemoteData = false;
 
     // Create from data
     if (obj.options.data) {
-        // Make sure the component is blank
-        el.innerHTML = '';
-        obj.headers = document.createElement('div');
-        obj.content = document.createElement('div');
-        obj.headers.classList.add('jtabs-headers');
-        obj.content.classList.add('jtabs-content');
-        el.appendChild(obj.headers);
-        el.appendChild(obj.content);
-
+        // Append children
         for (var i = 0; i < obj.options.data.length; i++) {
-            var headersItem = document.createElement('div');
-            obj.headers.appendChild(headersItem);
-            var contentItem = document.createElement('div');
-            obj.content.appendChild(contentItem);
-
-            headersItem.innerHTML = obj.options.data[i].title;
-            if (obj.options.data[i].content) {
-                contentItem.innerHTML = obj.options.data[i].content;
-            } else if (obj.options.data[i].url) {
+            if (obj.options.data[i].url) {
                 jSuites.ajax({
                     url: obj.options.data[i].url,
                     type: 'GET',
+                    dataType: 'text/html',
+                    index: i,
                     success: function(result) {
-                        contentItem.innerHTML = result;
+                        obj.options.data[this.index].content = result;
                     },
                     complete: function() {
-                        if (typeof(obj.options.onload) == 'function') {
-                            obj.options.onload(el);
-
-                            obj.init();
-                            obj.open(0);
-                        }
+                        obj.init();
                     }
                 });
+
+                // Flag loading
+                loadingRemoteData = true;
             }
         }
-    } else if (el.children[0] && el.children[1]) {
-        // Create from existing elements
-        obj.headers = el.children[0];
-        obj.content = el.children[1];
-        obj.headers.classList.add('jtabs-headers');
-        obj.content.classList.add('jtabs-content');
-        obj.init();
-    } else {
-        el.innerHTML = '';
-        obj.headers = document.createElement('div');
-        obj.content = document.createElement('div');
-        obj.headers.classList.add('jtabs-headers');
-        obj.content.classList.add('jtabs-content');
-        el.appendChild(obj.headers);
-        el.appendChild(obj.content);
+    }
+
+    if (! loadingRemoteData) {
         obj.init();
     }
 

@@ -297,23 +297,20 @@ jSuites.dropdown = (function(el, options) {
     /**
      * Create a new item
      */
-    obj.createItem = function(data, group) {
-        var text = data.text || '';
-        if (! text && data.name) {
-            text = data.name;
+    obj.createItem = function(data, group, groupName) {
+        if (typeof(data.text) == 'undefined' && data.name) {
+            data.text = data.name;
         }
-        var value = data.value || '';
-        if (! value && data.id) {
-            value = data.id;
+        if (typeof(data.value) == 'undefined' && data.id) {
+            data.value = data.id;
         }
         // Create item
         var item = {};
         item.element = document.createElement('div');
         item.element.className = 'jdropdown-item';
         item.element.indexValue = obj.items.length;
-        item.value = value;
-        item.text = text;
-        item.textLowerCase = item.text.toLowerCase();
+        item.value = data.value;
+        item.text = data.text;
 
         // Id
         if (data.id) {
@@ -323,6 +320,7 @@ jSuites.dropdown = (function(el, options) {
         // Group reference
         if (group) {
             item.group = group;
+            item.groupName = groupName;
         }
 
         // Image
@@ -344,7 +342,7 @@ jSuites.dropdown = (function(el, options) {
         // Set content
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        node.innerHTML = text || '&nbsp;';
+        node.innerHTML = data.text || '&nbsp;';
 
         // Title
         if (data.title) {
@@ -352,6 +350,9 @@ jSuites.dropdown = (function(el, options) {
             title.className = 'jdropdown-title';
             title.innerHTML = data.title;
             node.appendChild(title);
+
+            // Keep text reference
+            item.title = data.title;
         }
 
         // Value
@@ -413,7 +414,7 @@ jSuites.dropdown = (function(el, options) {
                     var groupContent = document.createElement('div');
                     groupContent.className = 'jdropdown-group-items';
                     for (var j = 0; j < groups[groupNames[i]].length; j++) {
-                        var item = obj.createItem(data[groups[groupNames[i]][j]], group);
+                        var item = obj.createItem(data[groups[groupNames[i]][j]], group, groupNames[i]);
 
                         if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
                             groupContent.appendChild(item.element);
@@ -422,7 +423,6 @@ jSuites.dropdown = (function(el, options) {
                     }
                     // Group itens
                     group.appendChild(groupName);
-                    group.appendChild(groupArrow);
                     group.appendChild(groupContent);
                     // Keep group DOM
                     obj.groups.push(group);
@@ -547,7 +547,7 @@ jSuites.dropdown = (function(el, options) {
         obj.value = [];
 
         // Set values
-        if (value != null) {
+        if (value !== null) {
             if (! Array.isArray(value)) {
                 for (var i = 0; i < obj.items.length; i++) {
                     setValue(i, value);
@@ -648,14 +648,11 @@ jSuites.dropdown = (function(el, options) {
             return false;
         }
 
-        // Results
-        obj.numOfItems = 0;
-
         // Search term
         obj.search = str;
 
-        // Force lowercase
-        var str = str ? str.toLowerCase() : '';
+        // Results
+        obj.numOfItems = 0;
 
         // Remove current items in the remote search
         if (obj.options.remoteSearch == true) {
@@ -679,18 +676,28 @@ jSuites.dropdown = (function(el, options) {
                 }
             });
         } else {
+            // Search terms
+            str = new RegExp(str, 'gi');
+
             // Reset search
             obj.results = [];
 
             // Append options
             for (var i = 0; i < obj.items.length; i++) {
-                if (str == null || obj.items[i].textLowerCase.indexOf(str) != -1 || obj.value[obj.items[i].value] != undefined) {
+                // Item label
+                var label = obj.items[i].text;
+                // Item title
+                var title = obj.items[i].title || '';
+                // Group name
+                var groupName = obj.items[i].groupName || '';
+
+                if (str == null || obj.value[obj.items[i].value] != undefined || label.match(str) || title.match(str) || groupName.match(str)) {
                     obj.results.push(obj.items[i]);
 
-                    if (obj.items[i].group && obj.items[i].group.children[2].children[0]) {
+                    if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {
                         // Remove all nodes
-                        while (obj.items[i].group.children[2].children[0]) {
-                            obj.items[i].group.children[2].removeChild(obj.items[i].group.children[2].children[0]);
+                        while (obj.items[i].group.children[1].children[0]) {
+                            obj.items[i].group.children[1].removeChild(obj.items[i].group.children[1].children[0]);
                         }
                     }
                 }
@@ -714,7 +721,7 @@ jSuites.dropdown = (function(el, options) {
                     if (! obj.results[i].group.parentNode) {
                         content.appendChild(obj.results[i].group);
                     }
-                    obj.results[i].group.children[2].appendChild(obj.results[i].element);
+                    obj.results[i].group.children[1].appendChild(obj.results[i].element);
                 } else {
                     content.appendChild(obj.results[i].element);
                 }

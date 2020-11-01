@@ -428,7 +428,7 @@ jSuites.calendar = (function(el, options) {
 
             // Events
             if (typeof(el.onchange) == 'function') {
-                el.onchange({ type: 'change', target: this });
+                el.onchange({ type: 'change', target: el });
             }
             if (typeof(obj.options.onchange) ==  'function') {
                 obj.options.onchange(el, newValue, oldValue);

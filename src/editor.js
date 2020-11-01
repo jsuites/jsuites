@@ -45,7 +45,8 @@ jSuites.editor = (function(el, options) {
         dropAsAttachment: false,
         acceptImages: false,
         acceptFiles: false,
-        maxFileSize: 5000000, 
+        maxFileSize: 5000000,
+        allowImageResize: true,
         // Style
         border: true,
         padding: true,
@@ -58,6 +59,7 @@ jSuites.editor = (function(el, options) {
         onload: null,
         onkeyup: null,
         onkeydown: null,
+        onchange: null,
     };
 
     // Loop through our object
@@ -76,6 +78,9 @@ jSuites.editor = (function(el, options) {
 
     // Make sure element is empty
     el.innerHTML = '';
+
+    // Change method
+    el.change = obj.setValue;
 
     if (typeof(obj.options.onclick) == 'function') {
         el.onclick = function(e) {
@@ -126,6 +131,19 @@ jSuites.editor = (function(el, options) {
 
     if (! value) {
         var value = '<br>';
+    }
+
+    /**
+     * Onchange event controllers
+     */
+    var change = function() {
+        // Events
+        if (typeof(el.onchange) == 'function') {
+            el.onchange({ type: 'change', target: el });
+        }
+        if (typeof(obj.options.onchange) == 'function') { 
+            obj.options.onchange(el, obj, e);
+        }
     }
 
     /**
@@ -310,6 +328,8 @@ jSuites.editor = (function(el, options) {
         jSuites.editor.setCursor(editor, true);
     }
 
+    obj.setValue = obj.setData;
+
     obj.getText = function() {
         return editor.innerText;
     }
@@ -401,9 +421,15 @@ jSuites.editor = (function(el, options) {
                 newImage.className = 'jfile pdf';
 
                 insertNodeAtCaret(newImage);
-                jSuites.files[newImage.src] = data.result.substr(data.result.indexOf(',') + 1);
+
+                // Image content
+                newImage.content = data.result.substr(data.result.indexOf(',') + 1);
             });
         }
+    }
+
+    obj.getFiles = function() {
+        return jSuites.files(editor).get();
     }
 
     obj.addImage = function(src, name, size, date) {
@@ -449,7 +475,10 @@ jSuites.editor = (function(el, options) {
                     var content = canvas.toDataURL();
                     insertNodeAtCaret(newImage);
 
-                    jSuites.files[newImage.src] = content.substr(content.indexOf(',') + 1);
+                    // Image content
+                    newImage.content = content.substr(content.indexOf(',') + 1);
+
+                    change();
                 });
             };
 
@@ -590,7 +619,7 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.tagName == 'IMG') {
+        if (e.target.tagName == 'IMG' && obj.options.allowImageResize == true) {
             if (e.target.getAttribute('tabindex')) {
                 var rect = e.target.getBoundingClientRect();
                 if (e.clientY - rect.top < 5) {
@@ -650,6 +679,8 @@ jSuites.editor = (function(el, options) {
         if (typeof(obj.options.onkeyup) == 'function') { 
             obj.options.onkeyup(el, obj, e);
         }
+
+        change(e);
     }
 
 
