@@ -106,7 +106,7 @@ jSuites.color = (function(el, options) {
         for (var i = 0; i < obj.options.palette[j].length; i++) {
             var td = document.createElement('td');
             var color = obj.options.palette[j][i];
-            if (color.substr(0,1) !== '#') {
+            if (color.length < 7 && color.substr(0,1) !== '#') {
                 color = '#' + color;
             }
             td.style.backgroundColor = color;

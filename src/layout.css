@@ -118,6 +118,10 @@ section.middle {
     max-width:540px;
 }
 
+.nowrap {
+    flex-wrap:nowrap;
+}
+
 .center {
     text-align:center;
 }

@@ -342,13 +342,17 @@ jSuites.dropdown = (function(el, options) {
         // Set content
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        node.innerHTML = data.text || '&nbsp;';
+        if (data.text) {
+            node.innerText = data.text;
+        } else {
+            node.innerHTML = '&nbsp;'; 
+        }
 
         // Title
         if (data.title) {
             var title = document.createElement('div');
             title.className = 'jdropdown-title';
-            title.innerHTML = data.title;
+            title.innerText = data.title;
             node.appendChild(title);
 
             // Keep text reference

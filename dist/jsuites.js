@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.7.0)
+ * (c) jSuites Javascript Web Components (v3.7.1)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1662,7 +1662,7 @@ jSuites.color = (function(el, options) {
         for (var i = 0; i < obj.options.palette[j].length; i++) {
             var td = document.createElement('td');
             var color = obj.options.palette[j][i];
-            if (color.substr(0,1) !== '#') {
+            if (color.length < 7 && color.substr(0,1) !== '#') {
                 color = '#' + color;
             }
             td.style.backgroundColor = color;
@@ -2450,13 +2450,17 @@ jSuites.dropdown = (function(el, options) {
         // Set content
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        node.innerHTML = data.text || '&nbsp;';
+        if (data.text) {
+            node.innerText = data.text;
+        } else {
+            node.innerHTML = '&nbsp;'; 
+        }
 
         // Title
         if (data.title) {
             var title = document.createElement('div');
             title.className = 'jdropdown-title';
-            title.innerHTML = data.title;
+            title.innerText = data.title;
             node.appendChild(title);
 
             // Keep text reference
@@ -6409,6 +6413,14 @@ jSuites.palette = function(o) {
         ["03071e","370617","6a040f","9d0208","d00000","dc2f02","e85d04","f48c06","faa307","ffba08"],
         ["020619","320615","61040d","8c0207","bc0000","c82a02","d05203","db7f06","e19405","efab00"],
         ["020515","2d0513","58040c","7f0206","aa0000","b62602","b94903","c57205","ca8504","d89b00"],
+    ]
+
+    palette.baby = [
+        ["eddcd2","fff1e6","fde2e4","fad2e1","c5dedd","dbe7e4","f0efeb","d6e2e9","bcd4e6","99c1de"],
+        ["e1c4b3","ffd5b5","fab6ba","f5a8c4","aacecd","bfd5cf","dbd9d0","baceda","9dc0db","7eb1d5"],
+        ["daa990","ffb787","f88e95","f282a9","8fc4c3","a3c8be","cec9b3","9dbcce","82acd2","649dcb"],
+        ["d69070","ff9c5e","f66770","f05f8f","74bbb9","87bfae","c5b993","83aac3","699bca","4d89c2"],
+        ["c97d5d","f58443","eb4d57","e54a7b","66a9a7","78ae9c","b5a67e","7599b1","5c88b7","4978aa"],
     ]
 
     if (palette[o]) {
