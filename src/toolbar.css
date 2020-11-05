@@ -31,11 +31,13 @@
 }
 
 .jtoolbar > div {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     box-sizing: border-box;
     vertical-align:middle;
-    justify-content: space-evenly;
+    flex-wrap: wrap;
+    justify-content: left;
+    width: 100%;
 }
 
 .jtoolbar-mobile > div {
@@ -46,10 +48,11 @@
 .jtoolbar .jtoolbar-item {
     position: relative;
     text-align: center;
-    margin: auto;
+    /*margin: auto;*/
     padding: 2px;
     padding-left:4px;
     padding-right:4px;
+    flex: 0 0 1px;
 }
 
 .jtoolbar-mobile .jtoolbar-item {
