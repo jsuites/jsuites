@@ -103,6 +103,21 @@ jSuites.picker = (function(el, options) {
             var label = obj.getLabel(v);
         }
         dropdownHeader.innerHTML = label;
+
+        // Update value
+        obj.options.value = label;
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
+        }
     }
 
     obj.getLabel = function(v) {
@@ -148,6 +163,10 @@ jSuites.picker = (function(el, options) {
 
     obj.init();
 
+    // Change
+    el.change = obj.setValue;
+
+    // Reference
     el.picker = obj;
 
     return obj;

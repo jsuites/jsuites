@@ -45,9 +45,6 @@ jSuites.tags = (function(el, options) {
     var searchIndex = 0;
     var searchTimer = 0;
 
-    // Change methods
-    el.change = obj.setValue;
-
     /**
      * Add a new tag to the element
      * @param {(?string|Array)} value - The value of the new element
@@ -176,13 +173,17 @@ jSuites.tags = (function(el, options) {
      */
     obj.setValue = function(text) {
         // Remove whitespaces
-        text = text.trim();
+        text = (''+text).trim();
 
         if (text) {
             // Tags
             var data = extractTags(text);
+            // Reset
+            el.innerHTML = '';
             // Add tags to the element
             obj.add(data);
+        } else {
+            obj.reset();
         }
     }
 
@@ -330,12 +331,23 @@ jSuites.tags = (function(el, options) {
     }
 
     var change = function() {
-        // Events
-        if (typeof(el.onchange) == 'function') {
-            el.onchange({ type: 'change', target: el });
-        }
+        // Value
+        obj.options.value = obj.getValue();
+
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value ? value : '');
+            obj.options.onchange(el, obj, value);
+        }
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
         }
     }
 
@@ -620,6 +632,8 @@ jSuites.tags = (function(el, options) {
         if (typeof(obj.options.onblur) == 'function') {
             obj.options.onblur(el, obj, obj.getValue());
         }
+
+        change();
     }
 
     // Bind events
@@ -649,6 +663,9 @@ jSuites.tags = (function(el, options) {
     if (typeof(obj.options.onload) == 'function') {
         obj.options.onload(el, obj);
     }
+
+    // Change methods
+    el.change = obj.setValue;
 
     el.tags = obj;
 

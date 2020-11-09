@@ -46,6 +46,18 @@ jSuites.rating = (function(el, options) {
         if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, index);
         }
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
+        }
     }
 
     obj.getValue = function() {
@@ -89,6 +101,10 @@ jSuites.rating = (function(el, options) {
         }
     });
 
+    // Change
+    el.change = obj.setValue;
+
+    // Reference
     el.rating = obj;
 
     return obj;

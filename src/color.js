@@ -52,9 +52,6 @@ jSuites.color = (function(el, options) {
         el.value = obj.options.value;
     }
 
-    // Change
-    el.change = obj.setValue;
-
     if (el.tagName == 'INPUT') {
         el.classList.add('jcolor-input');
     }
@@ -207,8 +204,8 @@ jSuites.color = (function(el, options) {
         if (! color) {
             color = '';
         }
-        if (color !== obj.options.value) {
-            el.value = color;
+
+        if (color != obj.options.value) {
             obj.options.value = color;
 
             // Remove current selecded mark
@@ -222,13 +219,21 @@ jSuites.color = (function(el, options) {
                 obj.values[color].classList.add('jcolor-selected');
             }
 
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({ type: 'change', target: el });
-            }
-
             // Onchange
             if (typeof(obj.options.onchange) == 'function') {
                 obj.options.onchange(el, color);
+            }
+
+            // Lemonade JS
+            if (el.value != obj.options.value) {
+                el.value = obj.options.value;
+                if (typeof(el.onchange) == 'function') {
+                    el.onchange({
+                        type: 'change',
+                        target: el,
+                        value: el.value
+                    });
+                }
             }
         }
 
@@ -324,9 +329,12 @@ jSuites.color = (function(el, options) {
         el.appendChild(container);
     }
 
+    // Change
+    el.change = obj.setValue;
+
     // Keep object available from the node
     el.color = obj;
-    el.change = obj.setValue;
 
     return obj;
 });
+

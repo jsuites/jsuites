@@ -74,8 +74,13 @@ jSuites.dropdown = (function(el, options) {
         el.classList.add('jdropdown-picker');
     } else {
         if (jSuites.getWindowWidth() < 800) {
-            el.classList.add('jdropdown-picker');
-            obj.options.type = 'picker';
+            if (obj.options.autocomplete) {
+                el.classList.add('jdropdown-searchbar');
+                obj.options.type = 'searchbar';
+            } else {
+                el.classList.add('jdropdown-picker');
+                obj.options.type = 'picker';
+            }
         } else {
             if (obj.options.width) {
                 el.style.width = obj.options.width;
@@ -204,7 +209,7 @@ jSuites.dropdown = (function(el, options) {
                         obj.setData(data);
                         // Set value
                         if (obj.options.value != null) {
-                            obj.setValue(obj.options.value);
+                            obj.setValue(obj.options.value, true);
                         }
                         // Onload method
                         if (typeof(obj.options.onload) == 'function') {
@@ -224,7 +229,7 @@ jSuites.dropdown = (function(el, options) {
             obj.setData(data);
             // Set value
             if (obj.options.value != null) {
-                obj.setValue(obj.options.value);
+                obj.setValue(obj.options.value, true);
             }
             // Onload
             if (typeof(obj.options.onload) == 'function') {
@@ -521,7 +526,7 @@ jSuites.dropdown = (function(el, options) {
         }
     }
 
-    obj.setValue = function(value) {
+    obj.setValue = function(value, ignoreEvents) {
         var setValue = function(item, value) {
             if (obj.items[item].value == value) {
                 if (obj.items[item].element) {
@@ -569,21 +574,31 @@ jSuites.dropdown = (function(el, options) {
         var newValue = obj.getValue();
 
         if (oldValue != newValue) {
-            // Label
-            obj.header.value = obj.getText();
+            if (! el.classList.contains('jdropdown-focus')) {
+                // Label
+                obj.header.value = obj.getText();
+            }
 
             // Value
             obj.options.value = obj.getValue();
 
-            // Element value
-            el.value = obj.options.value;
-
             // Events
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({ type: 'change', target: this });
+            if (ignoreEvents !== true) {
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, null, oldValue, obj.options.value);
+                }
             }
-            if (typeof(obj.options.onchange) == 'function') {
-                obj.options.onchange(el, null, oldValue, obj.options.value);
+
+            // Lemonade JS
+            if (el.value != obj.options.value) {
+                el.value = obj.options.value;
+                if (typeof(el.onchange) == 'function') {
+                    el.onchange({
+                        type: 'change',
+                        target: el,
+                        value: el.value
+                    });
+                }
             }
         }
     }
@@ -614,29 +629,26 @@ jSuites.dropdown = (function(el, options) {
                 }
                 obj.close();
             } else {
+                var value = Object.keys(obj.value);
                 // Toggle option
                 if (obj.items[index].selected) {
                     obj.items[index].element.classList.remove('jdropdown-selected');
                     obj.items[index].selected = false;
                     // Remove from selected list
-                    delete obj.value[obj.items[index].value];
+                    var i = value.indexOf(''+obj.items[index].value);
+                    if (i != -1) {
+                        value.splice(i, 1);
+                    }
                 } else {
                     // Select element
                     obj.items[index].element.classList.add('jdropdown-selected');
                     obj.items[index].selected = true;
                     // Add to the selected list
-                    obj.value[obj.items[index].value] = obj.items[index].text;
+                    value.push(obj.items[index].value);
                 }
 
                 // Update labels for multiple dropdown
-                if (! obj.options.autocomplete) {
-                    obj.header.value = obj.getText();
-                }
-
-                // Events
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange(el, index, oldValue, obj.getValue());
-                }
+                obj.setValue(value);
             }
         }
     }
@@ -1034,9 +1046,11 @@ jSuites.dropdown = (function(el, options) {
     // Start dropdown
     obj.init();
 
+    // Change method
+    el.change = obj.setValue;
+
     // Keep object available from the node
     el.dropdown = obj;
-    el.change = obj.setValue;
 
     return obj;
 });

@@ -190,14 +190,21 @@ jSuites.app = (function(el, options) {
                         page.options.onleave(obj, component.current);
                     }
 
-                    jSuites.animation.slideLeft(pages, (a < b ? 0 : 1), function() {
+                    // Animation only on mobile
+                    var rect = pages.getBoundingClientRect();
+                    if (rect.width < 800) {
+                        jSuites.animation.slideLeft(pages, (a < b ? 0 : 1), function() {
+                            if (component.current != page) {
+                                component.current.style.display = 'none';
+                                pageIsReady();
+                            }
+                        });
+                    } else {
                         if (component.current != page) {
                             component.current.style.display = 'none';
-
-                            // Page is ready
                             pageIsReady();
                         }
-                    });
+                    }
                 }
             } else {
                 // Show
@@ -352,81 +359,8 @@ jSuites.app = (function(el, options) {
         return component;
     }();
 
-    obj.actionsheet = function() {
-        // Actionsheet container
-        var actionsheet = el.querySelector('.actionsheet');
-        if (! actionsheet) {
-            var actionsheet = document.createElement('div');
-            actionsheet.className = 'jactionsheet';
-            actionsheet.style.display = 'none';
-
-            var actionContent = document.createElement('div');
-            actionContent.className = 'jactionsheet-content';
-            actionsheet.appendChild(actionContent);
-            // Append actionsheet container to the application
-            el.appendChild(actionsheet);
-        }
-
-        var component = function(options) {
-            if (options) {
-                obj.actionsheet.options = options;
-            }
-
-            // Reset container
-            actionContent.innerHTML = '';
-
-            // Create new elements
-            for (var i = 0; i < obj.actionsheet.options.length; i++) {
-                var actionGroup = document.createElement('div');
-                actionGroup.className = 'jactionsheet-group';
-
-                for (var j = 0; j < obj.actionsheet.options[i].length; j++) {
-                    var v = obj.actionsheet.options[i][j];
-                    var actionItem = document.createElement('div');
-                    var actionInput = document.createElement('input');
-                    actionInput.type = 'button';
-                    actionInput.value = v.title;
-                    if (v.className) {
-                        actionInput.className = v.className; 
-                    }
-                    if (v.onclick) {
-                        actionInput.event = v.onclick; 
-                        actionInput.onclick = function() {
-                            this.event(obj, component, this);
-                        }
-                    }
-                    if (v.action == 'cancel') {
-                        actionInput.style.color = 'red';
-                    }
-                    actionItem.appendChild(actionInput);
-                    actionGroup.appendChild(actionItem);
-                }
-
-                actionContent.appendChild(actionGroup);
-            }
-
-            // Show
-            actionsheet.style.display = '';
-
-            // Animation
-            jSuites.animation.slideBottom(actionContent, true);
-        }
-
-        component.close = function() {
-            if (actionsheet.style.display != 'none') {
-                // Remove any existing actionsheet
-                jSuites.animation.slideBottom(actionContent, false, function() {
-                    actionsheet.style.display = 'none';
-                });
-            }
-        }
-
-        component.get = function() {
-            return actionsheet;
-        }
-
-        return component;
-    }();
+    // Actionsheet
+    obj.actionsheet = jSuites.actionsheet(el);
 
     /*
      * Parse javascript from an element
@@ -481,6 +415,14 @@ jSuites.app = (function(el, options) {
             }
         }
 
+        // Grouped buttons
+        if (e.target.parentNode.classList.contains('jbuttons-group')) {
+            for (var j = 0; j < e.target.parentNode.children.length; j++) {
+                e.target.parentNode.children[j].classList.remove('selected');
+            }
+            e.target.classList.add('selected');
+        }
+
         // App links
         actionElement = jSuites.findElement(e.target, function(e) {
             return e.tagName == 'A' && e.getAttribute('href') ? e : false;
@@ -519,7 +461,9 @@ jSuites.app = (function(el, options) {
         document.addEventListener('touchend', actionUp);
     } else {
         document.addEventListener('mousedown', actionDown);
-        document.addEventListener('mouseup', actionUp);
+        document.addEventListener('click', function(e) {
+            actionUp(e);
+        });
     }
 
     window.onpopstate = function(e) {
@@ -535,6 +479,78 @@ jSuites.app = (function(el, options) {
     }
 
     el.app = obj;
+
+    return obj;
+});
+
+jSuites.actionsheet = (function(el, options) {
+    var obj = function(options) {
+        // Reset container
+        actionContent.innerHTML = '';
+
+        // Create new elements
+        for (var i = 0; i < options.length; i++) {
+            var actionGroup = document.createElement('div');
+            actionGroup.className = 'jactionsheet-group';
+
+            for (var j = 0; j < options[i].length; j++) {
+                var v = options[i][j];
+                var actionItem = document.createElement('div');
+                var actionInput = document.createElement('input');
+                actionInput.type = 'button';
+                actionInput.value = v.title;
+                if (v.className) {
+                    actionInput.className = v.className; 
+                }
+                if (v.onclick) {
+                    actionInput.event = v.onclick; 
+                    actionInput.onclick = function() {
+                        this.event(component, this);
+                    }
+                }
+                if (v.action == 'cancel') {
+                    actionInput.style.color = 'red';
+                }
+                actionItem.appendChild(actionInput);
+                actionGroup.appendChild(actionItem);
+            }
+
+            actionContent.appendChild(actionGroup);
+        }
+
+        // Show
+        actionsheet.style.display = '';
+
+        // Animation
+        jSuites.animation.slideBottom(actionContent, true);
+    }
+
+    obj.close = function() {
+        if (actionsheet.style.display != 'none') {
+            // Remove any existing actionsheet
+            jSuites.animation.slideBottom(actionContent, false, function() {
+                actionsheet.style.display = 'none';
+            });
+        }
+    }
+
+    obj.get = function() {
+        return actionsheet;
+    }
+
+    // Init action sheet
+    var actionsheet = document.createElement('div');
+    actionsheet.className = 'jactionsheet';
+    actionsheet.style.display = 'none';
+
+    var actionContent = document.createElement('div');
+    actionContent.className = 'jactionsheet-content';
+    actionsheet.appendChild(actionContent);
+
+    // Append actionsheet container to the application
+    el.appendChild(actionsheet);
+
+    el.actionsheet = obj;
 
     return obj;
 });

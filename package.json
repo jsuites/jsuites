@@ -27,7 +27,7 @@
         "javascript plugins"
     ],
     "main": "dist/jsuites.js",
-    "version": "3.7.1",
+    "version": "3.8.0",
     "bugs": "https://github.com/paulhodel/jsuites/issues",
     "homepage": "https://github.com/paulhodel/jsuites",
     "docs": "https://bossanova.uk/jsuites",

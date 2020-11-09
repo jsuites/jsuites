@@ -612,14 +612,6 @@ section.middle {
 
 /* Admin */
 
-.breadcrumb {
-    display: flex;
-}
-
-.breadcrumb > div {
-    font-size: 0.9em;
-}
-
 .breadcrumb a {
     text-decoration:none;
     color:#000;

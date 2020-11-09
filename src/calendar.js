@@ -421,17 +421,20 @@ jSuites.calendar = (function(el, options) {
             // New value
             obj.options.value = newValue;
 
-            // Input value
-            if (el.tagName == 'INPUT') {
-                el.value = val;
-            }
-
-            // Events
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({ type: 'change', target: el });
-            }
             if (typeof(obj.options.onchange) ==  'function') {
                 obj.options.onchange(el, newValue, oldValue);
+            }
+
+            // Lemonade JS
+            if (el.value != val) {
+                el.value = val;
+                if (typeof(el.onchange) == 'function') {
+                    el.onchange({
+                        type: 'change',
+                        target: el,
+                        value: el.value
+                    });
+                }
             }
         }
 
@@ -857,9 +860,11 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
+    // Change method
+    el.change = obj.setValue;
+
     // Keep object available from the node
     el.calendar = obj;
-    el.change = obj.setValue;
 
     if (obj.options.opened == true) {
         obj.open();

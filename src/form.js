@@ -321,8 +321,15 @@ jSuites.form.setElements = function(el, data) {
 
     for (var i = 0; i < elements.length; i++) {
         var name = elements[i].getAttribute('name');
-        if (data[name]) {
-            elements[i].value = data[name];
+        var type = elements[i].getAttribute('type');
+        if (type == 'checkbox' || type == 'radio') {
+            if (data[name]) {
+                elements[i].checked = true;
+            }
+        } else {
+            if (data[name]) {
+                elements[i].value = data[name];
+            }
         }
     }
 }

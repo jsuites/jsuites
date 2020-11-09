@@ -79,9 +79,6 @@ jSuites.editor = (function(el, options) {
     // Make sure element is empty
     el.innerHTML = '';
 
-    // Change method
-    el.change = obj.setValue;
-
     if (typeof(obj.options.onclick) == 'function') {
         el.onclick = function(e) {
             obj.options.onclick(el, obj, e);
@@ -136,13 +133,24 @@ jSuites.editor = (function(el, options) {
     /**
      * Onchange event controllers
      */
-    var change = function() {
-        // Events
-        if (typeof(el.onchange) == 'function') {
-            el.onchange({ type: 'change', target: el });
-        }
+    var change = function(e) {
         if (typeof(obj.options.onchange) == 'function') { 
             obj.options.onchange(el, obj, e);
+        }
+
+        // Update value
+        obj.options.value = obj.getData();
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
         }
     }
 
@@ -327,8 +335,6 @@ jSuites.editor = (function(el, options) {
         editor.innerHTML = html;
         jSuites.editor.setCursor(editor, true);
     }
-
-    obj.setValue = obj.setData;
 
     obj.getText = function() {
         return editor.innerText;
@@ -679,8 +685,6 @@ jSuites.editor = (function(el, options) {
         if (typeof(obj.options.onkeyup) == 'function') { 
             obj.options.onkeyup(el, obj, e);
         }
-
-        change(e);
     }
 
 
@@ -803,11 +807,19 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorBlur = function(e) {
-        obj.options.onblur(el, obj, e);
+        // Blur
+        if (typeof(obj.options.onblur) == 'function') {
+            obj.options.onblur(el, obj, e);
+        }
+
+        change(e);
     }
 
     var editorFocus = function(e) {
-        obj.options.onfocus(el, obj, e);
+        // Focus
+        if (typeof(obj.options.onfocus) == 'function') {
+            obj.options.onfocus(el, obj, e);
+        }
     }
 
     editor.addEventListener('mouseup', editorMouseUp);
@@ -820,16 +832,8 @@ jSuites.editor = (function(el, options) {
     editor.addEventListener('dragover', editorDragOver);
     editor.addEventListener('drop', editorDrop);
     editor.addEventListener('paste', editorPaste);
-
-    // Blur
-    if (typeof(obj.options.onblur) == 'function') {
-        editor.addEventListener('blur', editorBlur);
-    }
-
-    // Focus
-    if (typeof(obj.options.onfocus) == 'function') {
-        editor.addEventListener('focus', editorFocus);
-    }
+    editor.addEventListener('focus', editorFocus);
+    editor.addEventListener('blur', editorBlur);
 
     // Onload
     if (typeof(obj.options.onload) == 'function') {
@@ -867,6 +871,9 @@ jSuites.editor = (function(el, options) {
     if (obj.options.focus) {
         jSuites.editor.setCursor(editor, obj.options.focus == 'initial' ? true : false);
     }
+
+    // Change method
+    el.change = obj.setData;
 
     el.editor = obj;
 

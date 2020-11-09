@@ -13,8 +13,7 @@
 .japp {
     height: 100%;
     box-sizing: border-box;
-    overflow: scroll;
-    background-color: #fafafa;
+    overflow: auto;
     line-height: 1.4;
     font-size: 16px;
     font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
@@ -204,7 +203,6 @@ japp.jwarning .page {
 }
 
 .japp .pages {
-    position: absolute;
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -342,6 +340,7 @@ japp.jwarning .page {
 }
 
 .japp .options .jdropdown {
+    width: 100%;
     display: block;
 }
 
