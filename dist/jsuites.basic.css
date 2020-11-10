@@ -1012,14 +1012,20 @@
     padding:0px;
     z-index:9001;
     overflow-y:scroll;
+    margin-top: 45px;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-container-header
 {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 9002;
     padding:10px;
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
-    max-height: 20px;
+    max-height: 30px;
+    width: 100%;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header

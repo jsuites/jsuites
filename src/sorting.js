@@ -1,11 +1,3 @@
-/**
- * (c) jTools v1.0.1 - Element sorting
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Element drag and drop sorting
- */
-
 jSuites.sorting = (function(el, options) {
     var obj = {};
     obj.options = {};

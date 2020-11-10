@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.0)
+ * (c) jSuites Javascript Web Components (v3.8.1)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -5007,7 +5007,9 @@ jSuites.image = (function(el, options) {
     }
 
     el.addEventListener("click", function(e) {
-        jSuites.click(attachmentInput);
+        if (e.target == el) { 
+            jSuites.click(attachmentInput);
+        }
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -6063,14 +6065,6 @@ jSuites.rating = (function(el, options) {
     return obj;
 });
 
-
-/**
- * (c) jTools v1.0.1 - Element sorting
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Element drag and drop sorting
- */
 
 jSuites.sorting = (function(el, options) {
     var obj = {};

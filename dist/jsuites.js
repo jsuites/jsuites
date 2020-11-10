@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.0)
+ * (c) jSuites Javascript Web Components (v3.8.1)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -5427,7 +5427,9 @@ jSuites.image = (function(el, options) {
     }
 
     el.addEventListener("click", function(e) {
-        jSuites.click(attachmentInput);
+        if (e.target == el) { 
+            jSuites.click(attachmentInput);
+        }
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -6078,6 +6080,7 @@ jSuites.modal = (function(el, options) {
         width: null,
         height: null,
         title: null,
+        padding: null,
     };
 
     // Loop through our object
@@ -6095,22 +6098,25 @@ jSuites.modal = (function(el, options) {
     }
 
     var temp = document.createElement('div');
-    for (var i = 0; i < el.children.length; i++) {
-        temp.appendChild(el.children[i]);
+    while (el.children[0]) {
+        temp.appendChild(el.children[0]);
     }
 
     obj.content = document.createElement('div');
     obj.content.className = 'jmodal_content';
     obj.content.innerHTML = el.innerHTML;
 
-    for (var i = 0; i < temp.children.length; i++) {
-        obj.content.appendChild(temp.children[i]);
+    while (temp.children[0]) {
+        obj.content.appendChild(temp.children[0]);
     }
 
     obj.container = document.createElement('div');
     obj.container.className = 'jmodal';
     obj.container.appendChild(obj.content);
 
+    if (obj.options.padding) {
+        obj.content.style.padding = obj.options.padding;
+    }
     if (obj.options.width) {
         obj.container.style.width = obj.options.width;
     }
@@ -7174,14 +7180,6 @@ jSuites.slider = (function(el, options) {
     return obj;
 });
 
-/**
- * (c) jTools v1.0.1 - Element sorting
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Element drag and drop sorting
- */
-
 jSuites.sorting = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -8041,7 +8039,7 @@ jSuites.tags = (function(el, options) {
         obj.options.value = obj.getValue();
 
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value);
+            obj.options.onchange(el, obj, obj.options.value);
         }
 
         // Lemonade JS

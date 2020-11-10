@@ -190,7 +190,9 @@ jSuites.image = (function(el, options) {
     }
 
     el.addEventListener("click", function(e) {
-        jSuites.click(attachmentInput);
+        if (e.target == el) { 
+            jSuites.click(attachmentInput);
+        }
     });
 
     el.addEventListener('dragenter', function(e) {

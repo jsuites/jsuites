@@ -335,7 +335,7 @@ jSuites.tags = (function(el, options) {
         obj.options.value = obj.getValue();
 
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, value);
+            obj.options.onchange(el, obj, obj.options.value);
         }
 
         // Lemonade JS
