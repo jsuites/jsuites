@@ -119,6 +119,9 @@ jSuites.contextmenu = (function(el, options) {
                 itemContainer.className = 'jcontextmenu-disabled';
             } else if (item.onclick) {
                 itemContainer.method = item.onclick;
+                itemContainer.addEventListener("mousedown", function(e) {
+                    e.preventDefault();
+                });
                 itemContainer.addEventListener("mouseup", function() {
                     // Execute method
                     this.method(this);
