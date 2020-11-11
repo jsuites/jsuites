@@ -461,7 +461,6 @@ jSuites.calendar = (function(el, options) {
             // Do nothing
         } else {
             obj.date[2] = element.innerText;
-
             var elements = calendar.querySelector('.jcalendar-selected');
             if (elements) {
                 elements.classList.remove('jcalendar-selected');
@@ -497,6 +496,7 @@ jSuites.calendar = (function(el, options) {
     /**
      * Get calendar days
      */
+
     obj.getDays = function() {
         // Mode
         obj.options.mode = 'days';
@@ -600,7 +600,7 @@ jSuites.calendar = (function(el, options) {
                         } else {
                             var test1 = false;
                         }
-
+                        
                         if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
                             var test2 = true;
                         } else {
@@ -658,7 +658,34 @@ jSuites.calendar = (function(el, options) {
             }
 
             var month = parseInt(i) + 1;
-            html += '<td class="jcalendar-set-month" data-value="' + month + '">' + months[i] +'</td>';
+            var classes = "jcalendar-set-month";
+            var year = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
+            var todayYear = new Date().getFullYear();
+            var todayMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
+            var current = year + '-' + (month/10 < 1 ? '0' + month : month)
+
+            if (obj.options.validRange) {
+                if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                    var test1 = true;
+                } else {
+                    var test1 = false;
+                }
+                
+                if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+                    var test2 = true;
+                } else {
+                    var test2 = false;
+                }
+
+                if (! (test1 && test2)) {
+                    classes += " jcalendar-disabled";
+                }
+            }
+
+            if(i + 1 == todayMonth && year == todayYear && !classes.includes('jcalendar-disabled')) {
+                classes += ' jcalendar-selected';
+            }
+            html += `<td class="${classes}" data-value="${month}">` + months[i] +'</td>';
         }
 
         html += '</tr></table></td>';
@@ -701,7 +728,6 @@ jSuites.calendar = (function(el, options) {
 
     var mouseUpControls = function(e) {
         var action = e.target.className;
-
         // Object id
         if (action == 'jcalendar-prev') {
             obj.prev();
@@ -730,6 +756,7 @@ jSuites.calendar = (function(el, options) {
             e.preventDefault();
         } else if (action == 'jcalendar-set-month') {
             obj.date[1] = parseInt(e.target.getAttribute('data-value'));
+            console.log(e.target)
             if (obj.options.type == 'year-month-picker') {
                 obj.close();
             } else {
