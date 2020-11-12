@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.1)
+ * (c) jSuites Javascript Web Components (v3.8.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -666,7 +666,7 @@ jSuites.calendar = (function(el, options) {
 
                 if (typeof(update) == 'string') {
                     var value = update;
-                } else if (element && element.classList.contains('jcalendar-disabled')) {
+                } else if (! element || element.classList.contains('jcalendar-disabled')) {
                     var value = obj.options.value
                 } else {
                     var value = obj.getValue();
@@ -800,16 +800,21 @@ jSuites.calendar = (function(el, options) {
     /**
      *  Calendar
      */
-    obj.update = function(element) {
+    obj.update = function(element, v) {
         if (element.classList.contains('jcalendar-disabled')) {
             // Do nothing
         } else {
-            obj.date[2] = element.innerText;
             var elements = calendar.querySelector('.jcalendar-selected');
             if (elements) {
                 elements.classList.remove('jcalendar-selected');
             }
             element.classList.add('jcalendar-selected');
+
+            if (element.classList.contains('jcalendar-set-month')) {
+                obj.date[1] = v;
+            } else {
+                obj.date[2] = element.innerText;
+            }
 
             if (! obj.options.time) {
                 obj.close();
@@ -840,7 +845,6 @@ jSuites.calendar = (function(el, options) {
     /**
      * Get calendar days
      */
-
     obj.getDays = function() {
         // Mode
         obj.options.mode = 'days';
@@ -944,7 +948,7 @@ jSuites.calendar = (function(el, options) {
                         } else {
                             var test1 = false;
                         }
-                        
+
                         if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
                             var test2 = true;
                         } else {
@@ -989,52 +993,82 @@ jSuites.calendar = (function(el, options) {
         // Loading month labels
         var months = obj.options.months;
 
+        // Value
+        var value = obj.options.value; 
+
+        // Current date
+        var date = new Date();
+        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
+        var selectedMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
+
+        if (! value) {
+            value = parseInt(date.getFullYear()) + '-' + jSuites.two(parseInt(date.getMonth()) + 1);
+        }
+        value = value.substr(0, 10).split('-');
+
         // Update title
         calendarLabelYear.innerHTML = obj.date[0];
         calendarLabelMonth.innerHTML = '';
 
-        // Create months table
-        var html = '<td colspan="7"><table width="100%"><tr align="center">';
+        var currentYear = parseInt(date.getFullYear());
+        var currentMonth = parseInt(date.getMonth());
 
-        for (i = 0; i < 12; i++) {
-            if ((i > 0) && (!(i % 4))) {
-                html += '</tr><tr align="center">';
+        // Table
+        var table = document.createElement('table');
+
+        // Row
+        var row = null;
+
+        // Calendar table
+        for (var i = 0; i < 12; i++) {
+            if (! (i % 4)) {
+                // Reset cells container
+                var row = document.createElement('tr');
+                row.setAttribute('align', 'center');
+                table.appendChild(row);
             }
 
-            var month = parseInt(i) + 1;
-            var classes = "jcalendar-set-month";
-            var year = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
-            var todayYear = new Date().getFullYear();
-            var todayMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
-            var current = year + '-' + (month/10 < 1 ? '0' + month : month)
+            // Create cell
+            var cell = document.createElement('td');
+            cell.classList.add('jcalendar-set-month');
+            cell.setAttribute('data-value', i+1);
+            cell.innerText = months[i];
 
             if (obj.options.validRange) {
-                if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                var current = selectedYear + '-' + jSuites.two(i+1);
+                if (! obj.options.validRange[0] || current >= obj.options.validRange[0].substr(0,7)) {
                     var test1 = true;
                 } else {
                     var test1 = false;
                 }
-                
-                if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+
+                if (! obj.options.validRange[1] || current <= obj.options.validRange[1].substr(0,7)) {
                     var test2 = true;
                 } else {
                     var test2 = false;
                 }
 
                 if (! (test1 && test2)) {
-                    classes += " jcalendar-disabled";
+                    cell.classList.add('jcalendar-disabled');
                 }
             }
 
-            if(i + 1 == todayMonth && year == todayYear && !classes.includes('jcalendar-disabled')) {
-                classes += ' jcalendar-selected';
+            if (selectedYear == value[0] && i+1 == value[1]) {
+                cell.classList.add('jcalendar-selected');
             }
-            html += `<td class="${classes}" data-value="${month}">` + months[i] +'</td>';
+
+            if (currentYear == selectedYear && currentMonth == i) {
+                cell.style.fontWeight = 'bold';
+            }
+
+            row.appendChild(cell);
         }
 
-        html += '</tr></table></td>';
+        calendarBody.innerHTML = '<tr><td colspan="7"></td></tr>';
+        calendarBody.children[0].children[0].appendChild(table);
 
-        calendarBody.innerHTML = html;
+        // Update
+        updateActions();
     }
 
     obj.getYears = function() { 
@@ -1060,6 +1094,9 @@ jSuites.calendar = (function(el, options) {
         html += '</tr></table></td>';
 
         calendarBody.innerHTML = html;
+
+        // Update
+        updateActions();
     }
 
     obj.setLabel = function(value, mixed) {
@@ -1072,6 +1109,7 @@ jSuites.calendar = (function(el, options) {
 
     var mouseUpControls = function(e) {
         var action = e.target.className;
+
         // Object id
         if (action == 'jcalendar-prev') {
             obj.prev();
@@ -1099,10 +1137,8 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
             e.preventDefault();
         } else if (action == 'jcalendar-set-month') {
-            obj.date[1] = parseInt(e.target.getAttribute('data-value'));
-            console.log(e.target)
             if (obj.options.type == 'year-month-picker') {
-                obj.close();
+                obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
             } else {
                 obj.getDays();
             }
@@ -2049,6 +2085,9 @@ jSuites.contextmenu = (function(el, options) {
                 itemContainer.className = 'jcontextmenu-disabled';
             } else if (item.onclick) {
                 itemContainer.method = item.onclick;
+                itemContainer.addEventListener("mousedown", function(e) {
+                    e.preventDefault();
+                });
                 itemContainer.addEventListener("mouseup", function() {
                     // Execute method
                     this.method(this);
@@ -4499,16 +4538,75 @@ jSuites.files = (function(element) {
     }
 
     var obj = {};
-    obj.files = [];
+
+    // DOM references
+    var D = [];
+
+    // Files container
+    obj.data = [];
+
+    /**
+     * Get list of files and properties
+     */
     obj.get = function() {
-        return obj.files;
+        return obj.data;
     }
+
+    /**
+     * Update the properties of files
+     */
+    obj.getNames = function(options) {
+        if (options && options.folder) {
+            var folder = options.folder;
+        } else {
+            var folder = '/media';
+        }
+
+        // Get attachments
+        var data = {};
+        for (var i = 0; i < D.length; i++) {
+            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
+                var name = D[i].src.split('/');
+                data[D[i].src] = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
+            }
+        }
+
+        return data;
+    }
+
+    /**
+     * Update the properties of files
+     */
+    obj.updateNames = function(options) {
+        if (options && options.folder) {
+            var folder = options.folder;
+        } else {
+            var folder = '/media';
+        }
+
+        // Get attachments
+        for (var i = 0; i < D.length; i++) {
+            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
+                var name = D[i].src.split('/');
+                D[i].src = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
+            }
+        }
+    }
+
+    /**
+     * Set list of files and properties for upload
+     */
     obj.set = function() {
+        // Reset references
+        D = [];
+        // Reset container
+        obj.data = [];
+
         // Get attachments
         var files = element.querySelectorAll('.jfile');
 
         if (files.length > 0) {
-            var data = [];
+            // Read all files
             for (var i = 0; i < files.length; i++) {
                 var file = {};
 
@@ -4517,8 +4615,8 @@ jSuites.files = (function(element) {
                 if (files[i].classList.contains('jremove')) {
                     file.remove = 1;
                 } else {
-                    if (src.substr(0,4) == 'data') {
-                        file.content = src.substr(src.indexOf(',') + 1);
+                    if (src.substr(0,5) == 'data:') {
+                        file.content = src.substr(5);
                         file.extension = files[i].getAttribute('data-extension');
                     } else {
                         file.file = src;
@@ -4549,12 +4647,15 @@ jSuites.files = (function(element) {
                         file.cover = files[i].getAttribute('data-cover');
                     }
                 }
-                data[i] = file;
+
+                // DOM reference
+                D.push(files[i]);
+
+                // Push file
+                obj.data.push(file);
             }
 
-            obj.files = data;
-
-            return data;
+            return obj.data;
         }
     }
 
@@ -5314,6 +5415,10 @@ jSuites.image = (function(el, options) {
         img.className = 'jfile';
         img.style.width = '100%';
 
+        if (file.content) {
+            img.content = file.content;
+        }
+
         return img;
     }
 
@@ -5355,12 +5460,20 @@ jSuites.image = (function(el, options) {
                         size: file.size,
                         lastmodified: file.lastModified,
                     }
+
+                    // Content
+                    if (this.src.substr(0,5) == 'data:') {
+                        var content = this.src.split(',');
+                        data.content = content[1];
+                    }
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 };
 
@@ -5403,15 +5516,19 @@ jSuites.image = (function(el, options) {
                         file: window.URL.createObjectURL(blob),
                         extension: extension
                     }
+
+                    // Content to be uploaded
+                    data.content = canvas.toDataURL();
+                    data.content = data.content.split(',');
+                    data.content = data.content[1];
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
-                    // Keep base64 ready to go
-                    var content = canvas.toDataURL();
-
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 });
             };
@@ -8609,269 +8726,6 @@ jSuites.toolbar = (function(el, options) {
     el.toolbar = obj;
 
     return obj;
-});
-
-jSuites.organogram = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-
-    // Default configuration
-    var defaults = {
-        data: null,
-        zoom: 1,
-        width: 800,
-        height: 600,
-        search: true,
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    var state = {
-        x: 0,
-        y: 0
-    }
-
-    var mountNodes = function(node, container) {
-        var li = document.createElement('li');
-        var span = document.createElement('span');
-        span.className = 'jorg-tf-nc';
-        span.innerHTML = `<div class="jorg-user-status" style="background:${node.status}"></div><div class="jorg-user-info"><div class='jorg-user-img'><img src="${node.img}"/></div><div class='jorg-user-content'><span>${node.name}</span><span>${node.role}</span></div>`;
-        span.setAttribute('id',node.id);
-        var ul = document.createElement('ul');
-        li.appendChild(span);
-        li.appendChild(ul);
-        container.appendChild(li);
-        return ul;
-    }
-
-    var setNodeVisibility = function(node) {
-        var className = "jorg-node-icon";
-        var icon = document.createElement('div');
-        var ulNode = node.nextElementSibling;
-        node.appendChild(icon);
-
-        if (ulNode) {
-            icon.className = className + ' remove';
-        } else {
-            icon.className = className + ' plus'
-            return ;
-        }
-
-        icon.addEventListener('click', function(e) {
-
-            if (node.nextElementSibling.style.display == 'none') {
-                node.nextElementSibling.style.display = 'inline-flex';
-                node.removeAttribute('visibility');
-                e.target.className = className + ' remove';
-            } else {
-                node.nextElementSibling.style.display = 'none';
-                node.setAttribute('visibility','hidden');
-                e.target.className = className + ' plus';
-            }
-        });
-    }
-
-    // Updates tree container dimensions
-    var updateTreeContainerDimensions = function(){
-        var treeContainer = ul.children[0];
-        treeContainer.style.width = treeContainer.children[1].offsetWidth * 4 + 'px';
-        treeContainer.style.height = treeContainer.children[1].offsetHeight * 4 + 'px'
-    }
-
-    var render = function (parent, container) {
-        for (var i = 0; i < obj.options.data.length; i ++) {
-            if (obj.options.data[i].parent === parent) {
-                var ul = mountNodes(obj.options.data[i],container);
-                render(obj.options.data[i].id, ul);
-            }
-        }
-
-        if (! container.childNodes.length) {
-            container.remove();
-        } else {
-            if (container.previousElementSibling) {
-                setNodeVisibility(container.previousElementSibling);
-            }
-        }
-
-        if (parent === obj.options.data.length) {
-            updateTreeContainerDimensions();
-            
-            var topLevelNode = findNode({ parent: 0 });
-            topLevelNode.scrollIntoView({
-                behavior: "auto",
-                block: "center" || "start",
-                inline: "center" || "start"
-            });
-            return 0;
-        }
-    }
-
-    var zoom = function(e) {
-        e = event || window.event;
-        // Current zoom
-        var currentZoom = el.children[0].style.zoom * 1;
-        var prevWidth = el.children[0].offsetWidth;
-        var prevHeight = el.children[0].offsetHeight;
-        var widthVar, heightVar;
-        // Action
-        if (e.target.classList.contains('jorg-zoom-in') || e.deltaY < 0) {
-            el.children[0].style.zoom = currentZoom + 0.05;
-            widthVar = prevWidth - el.children[0].offsetWidth;
-            heightVar = prevHeight - el.children[0].offsetHeight;
-            el.children[0].scrollLeft += (widthVar/2)
-            el.children[0].scrollTop += (heightVar/2)
-        } else if (currentZoom > .5) {
-            el.children[0].style.zoom = currentZoom - 0.05;
-            widthVar = el.children[0].offsetWidth - prevWidth;
-            heightVar = el.children[0].offsetHeight - prevHeight;
-            el.children[0].scrollLeft -= (widthVar/2);
-            el.children[0].scrollTop -= (heightVar/2);
-        }
-        e.preventDefault();
-    }
-
-    var findNode = function(options){
-        if(options) {
-            for(property in options){
-                var node = obj.options.data.find(node => node[property] === options[property]);
-                if(node){
-                    return Array.prototype.slice.call(document.querySelectorAll('.jorg-tf-nc'))
-                    .find(n => n.getAttribute('id') == node.id);
-                }else{
-                    continue ;
-                }
-            }
-        }
-        return 0;
-    }
-
-    obj.refresh = function() {
-        el.children[0].innerHTML = '';
-        render(0,el.children[0]);
-    }
-
-    obj.show = function(id) {
-        var node = findNode({ id: id });
-        setNodeVisibility(node);
-        return node;
-    }
-
-    /**
-     * Search for any item with the string and centralize it.
-     */
-    obj.search = function(str) {
-       var input = str.toLowerCase();
-       
-       if(options) {
-            var data = obj.options.data;
-            var searchedNode = data.find(node => node.name.toLowerCase() === input);
-            
-            if(searchedNode) {
-                var node = findNode({ id: searchedNode.id });
-                node.scrollIntoView({
-                    behavior: "smooth" || "auto",
-                    block: "center" || "start",
-                    inline: "center" || "start"
-                });
-            }
-        }
-    }
-
-    /**
-     * Change the organogram dimensions
-     */
-    obj.setDimensions = function(width, height) {
-        el.style.width = width + 'px';
-        el.style.height = height + 'px';
-    }
-
-    // Create zoom action
-    var zoomContainer = document.createElement('div');
-    zoomContainer.className = 'jorg-zoom-container';
-
-    var zoomIn = document.createElement('div');
-    zoomIn.className = 'jorg-zoom-in';
-
-    var zoomOut = document.createElement('div');
-    zoomOut.className = 'jorg-zoom-out';
-
-    zoomContainer.appendChild(zoomIn);
-    zoomContainer.appendChild(zoomOut);
-
-    zoomIn.addEventListener('click', zoom);
-    zoomOut.addEventListener('click', zoom);
-
-    // Create container
-    var ul = document.createElement('ul');
-
-    // Default zoom
-    if (! ul.style.zoom) {
-        ul.style.zoom = '1';
-    }
-
-    // Default classes
-    el.classList.add('jorg');
-    el.classList.add('jorg-tf-tree');
-    el.classList.add('jorg-unselectable');
-    ul.classList.add('jorg-disable-scrollbars');
-
-    // Append elements
-    el.appendChild(ul);
-    el.appendChild(zoomContainer);
-
-    // Set default dimensions
-    obj.setDimensions(obj.options.width, obj.options.height);
-
-    // Handle search
-    if (obj.options.search) {
-        var search = document.createElement('input');
-        search.type = 'text';
-        search.classList.add('jorg-search');
-        el.appendChild(search);
-
-        search.onkeyup = function(e) {
-            obj.search(e.target.value);
-        }
-    }
-
-    // Event handlers
-    ul.addEventListener('wheel', zoom);
-
-    ul.addEventListener('mousemove', function(e){
-        e = event || window.event;
-
-        var currentX = e.clientX || e.pageX;
-        var currentY = e.clientY || e.pageY;
-
-        if (e.which) {
-            var x = state.x - currentX;
-            var y = state.y - currentY;
-            ul.scrollLeft = state.scrollLeft + x;
-            ul.scrollTop = state.scrollTop + y;
-        }
-    });
-
-    ul.addEventListener('mousedown', function(e){
-        e = event || window.event;
-
-        state.x = e.clientX || e.pageX;
-        state.y = e.clientY || e.pageY;
-        state.scrollLeft = ul.scrollLeft;
-        state.scrollTop = ul.scrollTop;
-    });
-
-    render(0,ul);
-    
-    return el.organogram = obj;
-
 });
 
 

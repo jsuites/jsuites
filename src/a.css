@@ -43,8 +43,9 @@
     border: 1px dotted #eee;
     cursor: pointer;
     box-sizing: border-box;
-    width:100%;
-    min-height:180px;
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
 }
 
 .jremove {

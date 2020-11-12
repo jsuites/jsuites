@@ -322,7 +322,7 @@ jSuites.calendar = (function(el, options) {
 
                 if (typeof(update) == 'string') {
                     var value = update;
-                } else if (element && element.classList.contains('jcalendar-disabled')) {
+                } else if (! element || element.classList.contains('jcalendar-disabled')) {
                     var value = obj.options.value
                 } else {
                     var value = obj.getValue();
@@ -456,16 +456,21 @@ jSuites.calendar = (function(el, options) {
     /**
      *  Calendar
      */
-    obj.update = function(element) {
+    obj.update = function(element, v) {
         if (element.classList.contains('jcalendar-disabled')) {
             // Do nothing
         } else {
-            obj.date[2] = element.innerText;
             var elements = calendar.querySelector('.jcalendar-selected');
             if (elements) {
                 elements.classList.remove('jcalendar-selected');
             }
             element.classList.add('jcalendar-selected');
+
+            if (element.classList.contains('jcalendar-set-month')) {
+                obj.date[1] = v;
+            } else {
+                obj.date[2] = element.innerText;
+            }
 
             if (! obj.options.time) {
                 obj.close();
@@ -496,7 +501,6 @@ jSuites.calendar = (function(el, options) {
     /**
      * Get calendar days
      */
-
     obj.getDays = function() {
         // Mode
         obj.options.mode = 'days';
@@ -600,7 +604,7 @@ jSuites.calendar = (function(el, options) {
                         } else {
                             var test1 = false;
                         }
-                        
+
                         if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
                             var test2 = true;
                         } else {
@@ -645,52 +649,82 @@ jSuites.calendar = (function(el, options) {
         // Loading month labels
         var months = obj.options.months;
 
+        // Value
+        var value = obj.options.value; 
+
+        // Current date
+        var date = new Date();
+        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
+        var selectedMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
+
+        if (! value) {
+            value = parseInt(date.getFullYear()) + '-' + jSuites.two(parseInt(date.getMonth()) + 1);
+        }
+        value = value.substr(0, 10).split('-');
+
         // Update title
         calendarLabelYear.innerHTML = obj.date[0];
         calendarLabelMonth.innerHTML = '';
 
-        // Create months table
-        var html = '<td colspan="7"><table width="100%"><tr align="center">';
+        var currentYear = parseInt(date.getFullYear());
+        var currentMonth = parseInt(date.getMonth());
 
-        for (i = 0; i < 12; i++) {
-            if ((i > 0) && (!(i % 4))) {
-                html += '</tr><tr align="center">';
+        // Table
+        var table = document.createElement('table');
+
+        // Row
+        var row = null;
+
+        // Calendar table
+        for (var i = 0; i < 12; i++) {
+            if (! (i % 4)) {
+                // Reset cells container
+                var row = document.createElement('tr');
+                row.setAttribute('align', 'center');
+                table.appendChild(row);
             }
 
-            var month = parseInt(i) + 1;
-            var classes = "jcalendar-set-month";
-            var year = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
-            var todayYear = new Date().getFullYear();
-            var todayMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
-            var current = year + '-' + (month/10 < 1 ? '0' + month : month)
+            // Create cell
+            var cell = document.createElement('td');
+            cell.classList.add('jcalendar-set-month');
+            cell.setAttribute('data-value', i+1);
+            cell.innerText = months[i];
 
             if (obj.options.validRange) {
-                if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                var current = selectedYear + '-' + jSuites.two(i+1);
+                if (! obj.options.validRange[0] || current >= obj.options.validRange[0].substr(0,7)) {
                     var test1 = true;
                 } else {
                     var test1 = false;
                 }
-                
-                if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+
+                if (! obj.options.validRange[1] || current <= obj.options.validRange[1].substr(0,7)) {
                     var test2 = true;
                 } else {
                     var test2 = false;
                 }
 
                 if (! (test1 && test2)) {
-                    classes += " jcalendar-disabled";
+                    cell.classList.add('jcalendar-disabled');
                 }
             }
 
-            if(i + 1 == todayMonth && year == todayYear && !classes.includes('jcalendar-disabled')) {
-                classes += ' jcalendar-selected';
+            if (selectedYear == value[0] && i+1 == value[1]) {
+                cell.classList.add('jcalendar-selected');
             }
-            html += `<td class="${classes}" data-value="${month}">` + months[i] +'</td>';
+
+            if (currentYear == selectedYear && currentMonth == i) {
+                cell.style.fontWeight = 'bold';
+            }
+
+            row.appendChild(cell);
         }
 
-        html += '</tr></table></td>';
+        calendarBody.innerHTML = '<tr><td colspan="7"></td></tr>';
+        calendarBody.children[0].children[0].appendChild(table);
 
-        calendarBody.innerHTML = html;
+        // Update
+        updateActions();
     }
 
     obj.getYears = function() { 
@@ -716,6 +750,9 @@ jSuites.calendar = (function(el, options) {
         html += '</tr></table></td>';
 
         calendarBody.innerHTML = html;
+
+        // Update
+        updateActions();
     }
 
     obj.setLabel = function(value, mixed) {
@@ -728,6 +765,7 @@ jSuites.calendar = (function(el, options) {
 
     var mouseUpControls = function(e) {
         var action = e.target.className;
+
         // Object id
         if (action == 'jcalendar-prev') {
             obj.prev();
@@ -755,10 +793,8 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
             e.preventDefault();
         } else if (action == 'jcalendar-set-month') {
-            obj.date[1] = parseInt(e.target.getAttribute('data-value'));
-            console.log(e.target)
             if (obj.options.type == 'year-month-picker') {
-                obj.close();
+                obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
             } else {
                 obj.getDays();
             }

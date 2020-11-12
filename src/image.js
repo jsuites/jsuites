@@ -50,6 +50,10 @@ jSuites.image = (function(el, options) {
         img.className = 'jfile';
         img.style.width = '100%';
 
+        if (file.content) {
+            img.content = file.content;
+        }
+
         return img;
     }
 
@@ -91,12 +95,20 @@ jSuites.image = (function(el, options) {
                         size: file.size,
                         lastmodified: file.lastModified,
                     }
+
+                    // Content
+                    if (this.src.substr(0,5) == 'data:') {
+                        var content = this.src.split(',');
+                        data.content = content[1];
+                    }
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 };
 
@@ -139,15 +151,19 @@ jSuites.image = (function(el, options) {
                         file: window.URL.createObjectURL(blob),
                         extension: extension
                     }
+
+                    // Content to be uploaded
+                    data.content = canvas.toDataURL();
+                    data.content = data.content.split(',');
+                    data.content = data.content[1];
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
-                    // Keep base64 ready to go
-                    var content = canvas.toDataURL();
-
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 });
             };

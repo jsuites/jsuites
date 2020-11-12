@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.1)
+ * (c) jSuites Javascript Web Components (v3.8.2)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -655,7 +655,7 @@ jSuites.calendar = (function(el, options) {
 
                 if (typeof(update) == 'string') {
                     var value = update;
-                } else if (element && element.classList.contains('jcalendar-disabled')) {
+                } else if (! element || element.classList.contains('jcalendar-disabled')) {
                     var value = obj.options.value
                 } else {
                     var value = obj.getValue();
@@ -789,17 +789,21 @@ jSuites.calendar = (function(el, options) {
     /**
      *  Calendar
      */
-    obj.update = function(element) {
+    obj.update = function(element, v) {
         if (element.classList.contains('jcalendar-disabled')) {
             // Do nothing
         } else {
-            obj.date[2] = element.innerText;
-
             var elements = calendar.querySelector('.jcalendar-selected');
             if (elements) {
                 elements.classList.remove('jcalendar-selected');
             }
             element.classList.add('jcalendar-selected');
+
+            if (element.classList.contains('jcalendar-set-month')) {
+                obj.date[1] = v;
+            } else {
+                obj.date[2] = element.innerText;
+            }
 
             if (! obj.options.time) {
                 obj.close();
@@ -978,25 +982,82 @@ jSuites.calendar = (function(el, options) {
         // Loading month labels
         var months = obj.options.months;
 
+        // Value
+        var value = obj.options.value; 
+
+        // Current date
+        var date = new Date();
+        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
+        var selectedMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
+
+        if (! value) {
+            value = parseInt(date.getFullYear()) + '-' + jSuites.two(parseInt(date.getMonth()) + 1);
+        }
+        value = value.substr(0, 10).split('-');
+
         // Update title
         calendarLabelYear.innerHTML = obj.date[0];
         calendarLabelMonth.innerHTML = '';
 
-        // Create months table
-        var html = '<td colspan="7"><table width="100%"><tr align="center">';
+        var currentYear = parseInt(date.getFullYear());
+        var currentMonth = parseInt(date.getMonth());
 
-        for (i = 0; i < 12; i++) {
-            if ((i > 0) && (!(i % 4))) {
-                html += '</tr><tr align="center">';
+        // Table
+        var table = document.createElement('table');
+
+        // Row
+        var row = null;
+
+        // Calendar table
+        for (var i = 0; i < 12; i++) {
+            if (! (i % 4)) {
+                // Reset cells container
+                var row = document.createElement('tr');
+                row.setAttribute('align', 'center');
+                table.appendChild(row);
             }
 
-            var month = parseInt(i) + 1;
-            html += '<td class="jcalendar-set-month" data-value="' + month + '">' + months[i] +'</td>';
+            // Create cell
+            var cell = document.createElement('td');
+            cell.classList.add('jcalendar-set-month');
+            cell.setAttribute('data-value', i+1);
+            cell.innerText = months[i];
+
+            if (obj.options.validRange) {
+                var current = selectedYear + '-' + jSuites.two(i+1);
+                if (! obj.options.validRange[0] || current >= obj.options.validRange[0].substr(0,7)) {
+                    var test1 = true;
+                } else {
+                    var test1 = false;
+                }
+
+                if (! obj.options.validRange[1] || current <= obj.options.validRange[1].substr(0,7)) {
+                    var test2 = true;
+                } else {
+                    var test2 = false;
+                }
+
+                if (! (test1 && test2)) {
+                    cell.classList.add('jcalendar-disabled');
+                }
+            }
+
+            if (selectedYear == value[0] && i+1 == value[1]) {
+                cell.classList.add('jcalendar-selected');
+            }
+
+            if (currentYear == selectedYear && currentMonth == i) {
+                cell.style.fontWeight = 'bold';
+            }
+
+            row.appendChild(cell);
         }
 
-        html += '</tr></table></td>';
+        calendarBody.innerHTML = '<tr><td colspan="7"></td></tr>';
+        calendarBody.children[0].children[0].appendChild(table);
 
-        calendarBody.innerHTML = html;
+        // Update
+        updateActions();
     }
 
     obj.getYears = function() { 
@@ -1022,6 +1083,9 @@ jSuites.calendar = (function(el, options) {
         html += '</tr></table></td>';
 
         calendarBody.innerHTML = html;
+
+        // Update
+        updateActions();
     }
 
     obj.setLabel = function(value, mixed) {
@@ -1062,9 +1126,8 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
             e.preventDefault();
         } else if (action == 'jcalendar-set-month') {
-            obj.date[1] = parseInt(e.target.getAttribute('data-value'));
             if (obj.options.type == 'year-month-picker') {
-                obj.close();
+                obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
             } else {
                 obj.getDays();
             }
@@ -2011,6 +2074,9 @@ jSuites.contextmenu = (function(el, options) {
                 itemContainer.className = 'jcontextmenu-disabled';
             } else if (item.onclick) {
                 itemContainer.method = item.onclick;
+                itemContainer.addEventListener("mousedown", function(e) {
+                    e.preventDefault();
+                });
                 itemContainer.addEventListener("mouseup", function() {
                     // Execute method
                     this.method(this);
@@ -4867,6 +4933,10 @@ jSuites.image = (function(el, options) {
         img.className = 'jfile';
         img.style.width = '100%';
 
+        if (file.content) {
+            img.content = file.content;
+        }
+
         return img;
     }
 
@@ -4908,12 +4978,20 @@ jSuites.image = (function(el, options) {
                         size: file.size,
                         lastmodified: file.lastModified,
                     }
+
+                    // Content
+                    if (this.src.substr(0,5) == 'data:') {
+                        var content = this.src.split(',');
+                        data.content = content[1];
+                    }
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 };
 
@@ -4956,15 +5034,19 @@ jSuites.image = (function(el, options) {
                         file: window.URL.createObjectURL(blob),
                         extension: extension
                     }
+
+                    // Content to be uploaded
+                    data.content = canvas.toDataURL();
+                    data.content = data.content.split(',');
+                    data.content = data.content[1];
+
+                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
-                    // Keep base64 ready to go
-                    var content = canvas.toDataURL();
-
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage);
+                        obj.options.onchange(newImage, data);
                     }
                 });
             };
