@@ -49,8 +49,8 @@ Create a multiple and autocomplete responsive dropdown.
 
 ```html
 <html>
-<script src="https://bossanova.uk/jsuites/v2/jsuites.js"></script>
-<link rel="stylesheet" href="https://bossanova.uk/jsuites/v2/jsuites.css" type="text/css" />
+<script src="https://bossanova.uk/jsuites/v3/jsuites.js"></script>
+<link rel="stylesheet" href="https://bossanova.uk/jsuites/v3/jsuites.css" type="text/css" />
 
 <div id="dropdown1"></div>
 
@@ -117,16 +117,12 @@ Simple vanilla javascript image slider plugin
 - [jSuites Official](https://bossanova.uk/jsuites)
 
 ## Community
-- [GitHub](https://github.com/paulhodel/jsuites/issues)
+- [GitHub](https://github.com/jsuites/jsuites/issues)
 
 ## Copyright and license
-jSuites is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
+jSuites is released under the [MIT license].
 
-## Other resources
+## Contact
+contact@jsuites.net
 
-- [jExcel CE v3 Official](https://bossanova.uk/jexcel/v3)
-- [jExcel CE v4 Official](https://bossanova.uk/jexcel/v4)
-- [jExcel Pro v5 Official](https://jexcel.net/v5)
-- [jExcel Pro v7 Official](https://jexcel.net/v7)
 
-- [Banda Base](https://base.mus.br)
