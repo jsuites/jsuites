@@ -25,6 +25,15 @@ jSuites.toolbar = (function(el, options) {
         options.app.el.appendChild(el);
     }
 
+    // Arrow
+    var toolbarArrow = document.createElement('div');
+    toolbarArrow.classList.add('jtoolbar-item');
+    toolbarArrow.classList.add('jtoolbar-arrow');
+
+    var toolbarFloating = document.createElement('div');
+    toolbarFloating.classList.add('jtoolbar-floating');
+    toolbarArrow.appendChild(toolbarFloating);
+
     obj.selectItem = function(element) {
         var elements = toolbarContent.children;
         for (var i = 0; i < elements.length; i++) {
@@ -178,6 +187,12 @@ jSuites.toolbar = (function(el, options) {
         }
     }
 
+    obj.resize = function() {
+        el.style.width = el.parentNode.offsetWidth;
+
+        toolbarContent.appendChild(toolbarArrow);
+    }
+
     el.classList.add('jtoolbar');
 
     if (obj.options.container == true) {
@@ -190,6 +205,11 @@ jSuites.toolbar = (function(el, options) {
         if (element) {
             obj.selectItem(element);
         }
+
+        if (e.target.classList.contains('jtoolbar-arrow')) {
+            e.target.classList.add('jtoolbar-arrow-selected');
+            e.target.children[0].focus();
+        }
     }
 
     var toolbarContent = document.createElement('div');
@@ -197,6 +217,8 @@ jSuites.toolbar = (function(el, options) {
 
     if (obj.options.app) {
         el.classList.add('jtoolbar-mobile');
+    } else {
+        // Not a mobile version
     }
 
     obj.create(obj.options.items);

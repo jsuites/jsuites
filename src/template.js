@@ -20,6 +20,7 @@ jSuites.template = (function(el, options) {
         template: null,
         render: null,
         noRecordsFound: 'No records found',
+        containerClass: null,
         // Searchable
         search: null,
         searchInput: true,
@@ -32,6 +33,7 @@ jSuites.template = (function(el, options) {
         onload: null,
         onchange: null,
         onsearch: null,
+        onclick: null,
     }
 
     // Loop through our object
@@ -84,7 +86,10 @@ jSuites.template = (function(el, options) {
 
     // Content
     var container = document.createElement('div');
-    container.className = 'jtemplate-content options';
+    if (obj.options.containerClass) {
+        container.className = obj.options.containerClass;
+    }
+    container.classList.add ('jtemplate-content');
     el.appendChild(container);
 
     // Data container
@@ -295,6 +300,11 @@ jSuites.template = (function(el, options) {
         // Data container
         var data = searchResults ? searchResults : obj.options.data;
 
+        // Data filtering
+        if (typeof(obj.options.filter) == 'function') {
+            data = obj.options.filter(data);
+        }
+
         // Reset pagination
         obj.updatePagination();
 
@@ -437,13 +447,9 @@ jSuites.template = (function(el, options) {
                 return false;
             }
 
-            if (typeof(obj.options.filter) == 'function') {
-                searchResults = obj.options.filter(obj.options.data, query);
-            } else {
-                searchResults = obj.options.data.filter(function(item) {
-                    return test(item, query);
-                });
-            }
+            searchResults = obj.options.data.filter(function(item) {
+                return test(item, query);
+            });
         }
 
         obj.render();
@@ -472,6 +478,12 @@ jSuites.template = (function(el, options) {
                 obj.render(parseInt(index)-1);
             }
             e.preventDefault();
+        }
+    });
+
+    el.addEventListener('click', function(e) {
+        if (typeof(obj.options.onclick) == 'function') {
+            obj.options.onclick(el, obj, e);
         }
     });
 

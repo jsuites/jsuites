@@ -38,8 +38,11 @@ jSuites.editor = (function(el, options) {
         toolbar: null,
         // Website parser is to read websites and images from cross domain
         remoteParser: null,
+        // Placeholder
+        placeholder: null,
         // Parse URL
         parseURL: false,
+        filterPaste: true,
         // Accept drop files
         dropZone: false,
         dropAsAttachment: false,
@@ -91,6 +94,11 @@ jSuites.editor = (function(el, options) {
     // Padding
     if (obj.options.padding == true) {
         el.classList.add('jeditor-padding');
+    }
+
+    // Placeholder
+    if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
     }
 
     // Border
@@ -700,50 +708,55 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorPaste = function(e) {
-        if (e.clipboardData || e.originalEvent.clipboardData) {
-            var html = (e.originalEvent || e).clipboardData.getData('text/html');
-            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-            var file = (e.originalEvent || e).clipboardData.files
-        } else if (window.clipboardData) {
-            var html = window.clipboardData.getData('Html');
-            var text = window.clipboardData.getData('Text');
-            var file = window.clipboardData.files
-        }
+        if (obj.options.filterPaste == true) {
+            if (e.clipboardData || e.originalEvent.clipboardData) {
+                var html = (e.originalEvent || e).clipboardData.getData('text/html');
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                var file = (e.originalEvent || e).clipboardData.files
+            } else if (window.clipboardData) {
+                var html = window.clipboardData.getData('Html');
+                var text = window.clipboardData.getData('Text');
+                var file = window.clipboardData.files
+            }
 
-        if (file.length) {
-            // Paste a image from the clipboard
-            obj.addFile(file);
-        } else {
-            // Paste text
-            text = text.split('\r\n');
-            var str = '';
-            if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
-                for (var i = 0; i < text.length; i++) {
-                    var tmp = document.createElement('div');
-                    if (text[i]) {
-                        tmp.innerHTML = text[i];
-                    } else {
-                        tmp.innerHTML = '<br/>';
-                    }
-                    e.target.appendChild(tmp);
-                }
+            if (file.length) {
+                // Paste a image from the clipboard
+                obj.addFile(file);
             } else {
-                for (var i = 0; i < text.length; i++) {
-                    if (text[i]) {
-                        str += '<div>' + text[i] + "</div>\r\n";
+                // Paste text
+                text = text.split('\r\n');
+                var str = '';
+                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
+                    for (var i = 0; i < text.length; i++) {
+                        var tmp = document.createElement('div');
+                        if (text[i]) {
+                            tmp.innerText = text[i];
+                        } else {
+                            tmp.innerHTML = '<br/>';
+                        }
+                        e.target.appendChild(tmp);
                     }
+                } else {
+                    var content = document.createElement('div');
+                    for (var i = 0; i < text.length; i++) {
+                        if (text[i]) {
+                            var div = document.createElement('div');
+                            div.innerText = text[i];
+                            content.appendChild(div);
+                        }
+                    }
+                    // Insert text
+                    document.execCommand('insertHtml', false, content.innerHTML);
                 }
-                // Insert text
-                document.execCommand('insertHtml', false, str);
+
+                // Extra images from the paste
+                if (obj.options.acceptImages == true) {
+                    extractImageFromHtml(html);
+                }
             }
 
-            // Extra images from the paste
-            if (obj.options.acceptImages == true) {
-                extractImageFromHtml(html);
-            }
+            e.preventDefault();
         }
-
-        e.preventDefault();
     }
 
     var editorDragStart = function(e) {

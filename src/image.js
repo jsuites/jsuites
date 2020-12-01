@@ -36,25 +36,7 @@ jSuites.image = (function(el, options) {
 
     // Add image
     obj.addImage = function(file) {
-        if (! file.date) {
-            file.date = '';
-        }
-        var img = document.createElement('img');
-        img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
-        img.setAttribute('data-name', file.name);
-        img.setAttribute('data-size', file.size);
-        img.setAttribute('data-small', file.small ? file.small : '');
-        img.setAttribute('data-cover', file.cover ? 1 : 0);
-        img.setAttribute('data-extension', file.extension);
-        img.setAttribute('src', file.file);
-        img.className = 'jfile';
-        img.style.width = '100%';
-
-        if (file.content) {
-            img.content = file.content;
-        }
-
-        return img;
+        return jSuites.image.create(file);
     }
 
     // Add image
@@ -267,3 +249,25 @@ jSuites.image = (function(el, options) {
 
     return obj;
 });
+
+jSuites.image.create = function(file) {
+    if (! file.date) {
+        file.date = '';
+    }
+    var img = document.createElement('img');
+    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
+    img.setAttribute('data-name', file.name);
+    img.setAttribute('data-size', file.size);
+    img.setAttribute('data-small', file.small ? file.small : '');
+    img.setAttribute('data-cover', file.cover ? 1 : 0);
+    img.setAttribute('data-extension', file.extension);
+    img.setAttribute('src', file.file);
+    img.className = 'jfile';
+    img.style.width = '100%';
+
+    if (file.content) {
+        img.content = file.content;
+    }
+
+    return img;
+}

@@ -229,7 +229,7 @@ jSuites.tags = (function(el, options) {
         // Remove any error
         node.classList.remove('jtags_error');
         // Add new item
-        obj.add();
+        obj.add('', true);
     }
 
     /**
@@ -650,6 +650,7 @@ jSuites.tags = (function(el, options) {
     el.setAttribute('spellcheck', false);
 
     if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
         el.placeholder = obj.options.placeholder;
     }
 

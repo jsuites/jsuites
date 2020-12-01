@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.3)
+ * (c) jSuites Javascript Web Components (v3.8.4)
  *
  * Author: Paul Hodel <paul.hodel@gmail.com>
  * Website: https://bossanova.uk/jsuites/
@@ -1136,7 +1136,7 @@ jSuites.calendar = (function(el, options) {
             }
             e.stopPropagation();
             e.preventDefault();
-        } else if (action == 'jcalendar-set-month') {
+        } else if (e.target.classList.contains('jcalendar-set-month')) {
             if (obj.options.type == 'year-month-picker') {
                 obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
             } else {
@@ -4711,7 +4711,11 @@ jSuites.form = (function(el, options) {
         obj.options.validations = {};
     }
 
-    // submitButton
+    // Submit Button
+    if (! obj.options.submitButton) {
+        obj.options.submitButton = el.querySelector('input[type=submit]');
+    }
+
     if (obj.options.submitButton && obj.options.url) {
         obj.options.submitButton.onclick = function() {
             obj.save();
@@ -6292,6 +6296,9 @@ jSuites.modal = (function(el, options) {
     // Backdrop
     var backdrop = document.createElement('div');
     backdrop.className = 'jmodal_backdrop';
+    backdrop.onclick = function() {
+        obj.close();
+    }
     el.appendChild(backdrop);
 
     obj.open = function() {
@@ -7715,8 +7722,13 @@ jSuites.tabs = (function(el, options) {
         header.appendChild(controls);
 
         // Append DOM elements
-        el.appendChild(header);
-        el.appendChild(obj.content);
+        if (obj.options.position == 'bottom') {
+            el.appendChild(obj.content);
+            el.appendChild(header);
+        } else {
+            el.appendChild(header);
+            el.appendChild(obj.content);
+        }
 
         // New button
         if (obj.options.allowCreate == true) {
@@ -7744,10 +7756,37 @@ jSuites.tabs = (function(el, options) {
 
         // Data
         for (var i = 0; i < obj.options.data.length; i++) {
-            var headerItem = document.createElement('div');
-            var contentItem = document.createElement('div');
-            headerItem.innerText = obj.options.data[i].title;
-            contentItem.innerHTML = obj.options.data[i].content;
+            // Title
+            if (obj.options.data[i].titleElement) {
+                var headerItem = obj.options.data[i].titleElement;
+            } else {
+                var headerItem = document.createElement('div');
+            }
+            // Icon
+            if (obj.options.data[i].icon) {
+                var iconContainer = document.createElement('div');
+                var icon = document.createElement('i');
+                icon.classList.add('material-icons');
+                icon.innerHTML = obj.options.data[i].icon;
+                iconContainer.appendChild(icon);
+                headerItem.appendChild(iconContainer);
+            }
+            // Title
+            if (obj.options.data[i].title) {
+                var title = document.createTextNode(obj.options.data[i].title);
+                headerItem.appendChild(title);
+            }
+            // Width
+            if (obj.options.data[i].width) {
+                headerItem.style.width = obj.options.data[i].width;
+            }
+            // Content
+            if (obj.options.data[i].contentElement) {
+                var contentItem = obj.options.data[i].contentElement;
+            } else {
+                var contentItem = document.createElement('div');
+                contentItem.innerHTML = obj.options.data[i].content;
+            }
             obj.headers.appendChild(headerItem);
             obj.content.appendChild(contentItem);
         }
@@ -7763,7 +7802,17 @@ jSuites.tabs = (function(el, options) {
 
         // Events
         obj.headers.addEventListener("click", function(e) {
-            var index = obj.selectIndex(e.target);
+            if (e.target.parentNode.classList.contains('jtabs-headers')) {
+                var target = e.target;
+            } else {
+                if (e.target.tagName == 'I') {
+                    var target = e.target.parentNode.parentNode;
+                } else {
+                    var target = e.target.parentNode;
+                }
+            }
+
+            var index = obj.selectIndex(target);
 
             if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
@@ -7808,18 +7857,19 @@ jSuites.tabs = (function(el, options) {
     }
 
     // Loading existing nodes as the data
-    if (el.children[0] && el.children[1]) {
+    if (el.children[0] && el.children[0].children.length) {
         // Create from existing elements
         for (var i = 0; i < el.children[0].children.length; i++) {
-            if (el.children[1].children[i] && el.children[0].children[i].innerHTML) {
-                var title = el.children[0].children[i].innerText;
-                var content = el.children[1].children[i].innerHTML;
+            var item = obj.options.data && obj.options.data[i] ? obj.options.data[i] : {};
+
+            if (el.children[1] && el.children[1].children[i]) {
+                item.titleElement = el.children[0].children[i];
+                item.contentElement = el.children[1].children[i];
             } else {
-                var title = 'Tab ' + (i + 1);
-                var content = el.children[0].children[i].innerHTML;
+                item.contentElement = el.children[0].children[i];
             }
 
-            obj.options.data.push({ title: title, content: content });
+            obj.options.data[i] = item;
         }
     }
 
@@ -8090,7 +8140,7 @@ jSuites.tags = (function(el, options) {
         // Remove any error
         node.classList.remove('jtags_error');
         // Add new item
-        obj.add();
+        obj.add('', true);
     }
 
     /**
@@ -8511,6 +8561,7 @@ jSuites.tags = (function(el, options) {
     el.setAttribute('spellcheck', false);
 
     if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
         el.placeholder = obj.options.placeholder;
     }
 
@@ -8559,6 +8610,15 @@ jSuites.toolbar = (function(el, options) {
         el = document.createElement('div');
         options.app.el.appendChild(el);
     }
+
+    // Arrow
+    var toolbarArrow = document.createElement('div');
+    toolbarArrow.classList.add('jtoolbar-item');
+    toolbarArrow.classList.add('jtoolbar-arrow');
+
+    var toolbarFloating = document.createElement('div');
+    toolbarFloating.classList.add('jtoolbar-floating');
+    toolbarArrow.appendChild(toolbarFloating);
 
     obj.selectItem = function(element) {
         var elements = toolbarContent.children;
@@ -8713,6 +8773,12 @@ jSuites.toolbar = (function(el, options) {
         }
     }
 
+    obj.resize = function() {
+        el.style.width = el.parentNode.offsetWidth;
+
+        toolbarContent.appendChild(toolbarArrow);
+    }
+
     el.classList.add('jtoolbar');
 
     if (obj.options.container == true) {
@@ -8725,6 +8791,11 @@ jSuites.toolbar = (function(el, options) {
         if (element) {
             obj.selectItem(element);
         }
+
+        if (e.target.classList.contains('jtoolbar-arrow')) {
+            e.target.classList.add('jtoolbar-arrow-selected');
+            e.target.children[0].focus();
+        }
     }
 
     var toolbarContent = document.createElement('div');
@@ -8732,6 +8803,8 @@ jSuites.toolbar = (function(el, options) {
 
     if (obj.options.app) {
         el.classList.add('jtoolbar-mobile');
+    } else {
+        // Not a mobile version
     }
 
     obj.create(obj.options.items);

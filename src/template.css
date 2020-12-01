@@ -5,6 +5,11 @@
     margin-bottom:10px;
 }
 
+.jtemplate-pagination {
+    display: flex;
+    margin-bottom: 15px;
+}
+
 .jtemplate-pagination div {
     text-align:center;
     font-size:0.8em;

@@ -249,8 +249,13 @@ jSuites.tabs = (function(el, options) {
         header.appendChild(controls);
 
         // Append DOM elements
-        el.appendChild(header);
-        el.appendChild(obj.content);
+        if (obj.options.position == 'bottom') {
+            el.appendChild(obj.content);
+            el.appendChild(header);
+        } else {
+            el.appendChild(header);
+            el.appendChild(obj.content);
+        }
 
         // New button
         if (obj.options.allowCreate == true) {
@@ -278,10 +283,37 @@ jSuites.tabs = (function(el, options) {
 
         // Data
         for (var i = 0; i < obj.options.data.length; i++) {
-            var headerItem = document.createElement('div');
-            var contentItem = document.createElement('div');
-            headerItem.innerText = obj.options.data[i].title;
-            contentItem.innerHTML = obj.options.data[i].content;
+            // Title
+            if (obj.options.data[i].titleElement) {
+                var headerItem = obj.options.data[i].titleElement;
+            } else {
+                var headerItem = document.createElement('div');
+            }
+            // Icon
+            if (obj.options.data[i].icon) {
+                var iconContainer = document.createElement('div');
+                var icon = document.createElement('i');
+                icon.classList.add('material-icons');
+                icon.innerHTML = obj.options.data[i].icon;
+                iconContainer.appendChild(icon);
+                headerItem.appendChild(iconContainer);
+            }
+            // Title
+            if (obj.options.data[i].title) {
+                var title = document.createTextNode(obj.options.data[i].title);
+                headerItem.appendChild(title);
+            }
+            // Width
+            if (obj.options.data[i].width) {
+                headerItem.style.width = obj.options.data[i].width;
+            }
+            // Content
+            if (obj.options.data[i].contentElement) {
+                var contentItem = obj.options.data[i].contentElement;
+            } else {
+                var contentItem = document.createElement('div');
+                contentItem.innerHTML = obj.options.data[i].content;
+            }
             obj.headers.appendChild(headerItem);
             obj.content.appendChild(contentItem);
         }
@@ -297,7 +329,17 @@ jSuites.tabs = (function(el, options) {
 
         // Events
         obj.headers.addEventListener("click", function(e) {
-            var index = obj.selectIndex(e.target);
+            if (e.target.parentNode.classList.contains('jtabs-headers')) {
+                var target = e.target;
+            } else {
+                if (e.target.tagName == 'I') {
+                    var target = e.target.parentNode.parentNode;
+                } else {
+                    var target = e.target.parentNode;
+                }
+            }
+
+            var index = obj.selectIndex(target);
 
             if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
@@ -342,18 +384,19 @@ jSuites.tabs = (function(el, options) {
     }
 
     // Loading existing nodes as the data
-    if (el.children[0] && el.children[1]) {
+    if (el.children[0] && el.children[0].children.length) {
         // Create from existing elements
         for (var i = 0; i < el.children[0].children.length; i++) {
-            if (el.children[1].children[i] && el.children[0].children[i].innerHTML) {
-                var title = el.children[0].children[i].innerText;
-                var content = el.children[1].children[i].innerHTML;
+            var item = obj.options.data && obj.options.data[i] ? obj.options.data[i] : {};
+
+            if (el.children[1] && el.children[1].children[i]) {
+                item.titleElement = el.children[0].children[i];
+                item.contentElement = el.children[1].children[i];
             } else {
-                var title = 'Tab ' + (i + 1);
-                var content = el.children[0].children[i].innerHTML;
+                item.contentElement = el.children[0].children[i];
             }
 
-            obj.options.data.push({ title: title, content: content });
+            obj.options.data[i] = item;
         }
     }
 

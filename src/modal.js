@@ -74,6 +74,9 @@ jSuites.modal = (function(el, options) {
     // Backdrop
     var backdrop = document.createElement('div');
     backdrop.className = 'jmodal_backdrop';
+    backdrop.onclick = function() {
+        obj.close();
+    }
     el.appendChild(backdrop);
 
     obj.open = function() {

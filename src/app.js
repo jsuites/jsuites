@@ -7,9 +7,11 @@ jSuites.app = (function(el, options) {
         path: 'views',
         onbeforechangepage: null,
         onchangepage: null,
+        onbeforecreatepage: null,
         oncreatepage: null,
         onloadpage: null,
         toolbar: null,
+        detachHiddenPages: false
     }
 
     // Loop through our object
@@ -89,16 +91,32 @@ jSuites.app = (function(el, options) {
             // Container
             component.container[o.route] = page;
 
-            // Always hidden
-            page.style.display = 'none';
-
             // Keep options
             page.options = o ? o : {};
 
-            if (! component.current) {
-                pages.appendChild(page);
-            } else {
-                pages.insertBefore(page, component.current.nextSibling);
+            var updateDOM = function() {
+                // Remove to avoid id conflicts
+                if (component.current && obj.options.detachHiddenPages == true) {
+                    while (pages.children[0]) {
+                        pages.children[0].parentNode.removeChild(pages.children[0]);
+                    }
+                }
+
+                if (! component.current) {
+                    pages.appendChild(page);
+                } else {
+                    pages.insertBefore(page, component.current.nextSibling);
+                }
+            }
+
+            if (obj.options.detachHiddenPages == true)
+            // Create page overwrite
+            var ret = null;
+            if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                var ret = obj.options.onbeforecreatepage(obj, page);
+                if (ret === false) {
+                    return false;
+                }
             }
 
             jSuites.ajax({
@@ -106,6 +124,9 @@ jSuites.app = (function(el, options) {
                 method: 'GET',
                 dataType: 'html',
                 success: function(result) {
+                    // Update DOM
+                    updateDOM();
+
                     // Create page overwrite
                     var ret = null;
                     if (typeof(obj.options.oncreatepage) == 'function') {
@@ -122,7 +143,16 @@ jSuites.app = (function(el, options) {
                         // Open page
                         page.innerHTML = result;
                         // Get javascript
-                        parseScript(page);
+                        try {
+                            parseScript(page);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    }
+
+                    // Navbar
+                    if (page.querySelector('.navbar')) {
+                        page.classList.add('with-navbar');
                     }
 
                     // Global onload callback
@@ -134,6 +164,9 @@ jSuites.app = (function(el, options) {
                     if (typeof(o.onload) == 'function') {
                         o.onload(page);
                     }
+
+                    // Always hidden
+                    page.style.display = 'none';
 
                     // Show page
                     if (! page.options.closed) {
@@ -147,6 +180,16 @@ jSuites.app = (function(el, options) {
 
         component.show = function(page, o, callback) {
             var pageIsReady = function() {
+                if (component.current) {
+                    component.current.style.display = 'none';
+
+                    if (component.current && obj.options.detachHiddenPages == true) {
+                        if (component.current.parentNode) {
+                            component.current.parentNode.removeChild(component.current);
+                        }
+                    }
+                }
+
                 // New page
                 if (typeof(obj.options.onchangepage) == 'function') {
                     obj.options.onchangepage(obj, component.current, page, o);
@@ -166,11 +209,13 @@ jSuites.app = (function(el, options) {
                 component.current = page;
             }
 
+            // Append page in case was detached
+            if (! page.parentNode) {
+                pages.appendChild(page);
+            }
+
             if (component.current) {
                 if (component.current != page) {
-                    // Keep scroll in the top
-                    window.scrollTo({ top: 0 });
-
                     // Show page
                     page.style.display = '';
 
@@ -192,16 +237,16 @@ jSuites.app = (function(el, options) {
 
                     // Animation only on mobile
                     var rect = pages.getBoundingClientRect();
+
                     if (rect.width < 800) {
+                        window.scrollTo({ top: 0 });
                         jSuites.animation.slideLeft(pages, (a < b ? 0 : 1), function() {
                             if (component.current != page) {
-                                component.current.style.display = 'none';
                                 pageIsReady();
                             }
                         });
                     } else {
                         if (component.current != page) {
-                            component.current.style.display = 'none';
                             pageIsReady();
                         }
                     }
@@ -254,9 +299,42 @@ jSuites.app = (function(el, options) {
         if (! pages) {
             pages = document.createElement('div');
             pages.className = 'pages';
-            // Append page container to the application
-            el.appendChild(pages);
         }
+
+        // Prefetched content
+        if (el.innerHTML) {
+            // Create with the prefetched content
+            var page = document.createElement('div');
+            page.classList.add('page');
+            while (el.childNodes[0]) {
+                page.appendChild(el.childNodes[0]);
+            }
+            if (el.innerHTML) {
+                var div = document.createElement('div');
+                div.innerHTML = pages.innerHTML;
+                page.appendChild(div);
+            }
+            // Container
+            var route = window.location.pathname;
+            component.container[route] = page;
+
+            // Keep options
+            page.options = {};
+            page.options.route = route;
+
+            // Current page
+            component.current = page;
+
+            // Place the page to the right container
+            if (! component.current) {
+                pages.appendChild(page);
+            } else {
+                pages.insertBefore(page, component.current.nextSibling);
+            }
+        }
+
+        // Append page container to the application
+        el.appendChild(pages);
 
         return component;
     }();
@@ -372,8 +450,8 @@ jSuites.app = (function(el, options) {
         for (var i = 0; i < script.length; i++) {
             // Get type
             var type = script[i].getAttribute('type');
-            if (! type || type == 'text/javascript') {
-                eval(script[i].innerHTML);
+            if (! type || type == 'text/javascript' || type == 'text/loader') {
+                eval(script[i].text);
             }
         }
     }

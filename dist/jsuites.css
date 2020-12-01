@@ -130,45 +130,45 @@
 
 /** Keyframes Left to Right **/
 @keyframes slide-left-in {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0%); }
+    0% { left: -100%; }
+    100% { left: 0%; }
 }
 
 @-webkit-keyframes slide-left-in {
-    0% { transform: translateX(-100%); }
-    100% { -webkit-transform: translateX(0%); }
+    0% { left: -100%; }
+    100% { left: 0%; }
 }
     
 @keyframes slide-left-out {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-100%); }
+    0% { left: 0%; }
+    100% { left: -100%; }
 }
 
 @-webkit-keyframes slide-left-out {
-    0% { -webkit-transform: translateX(0%); }
-    100% { -webkit-transform: translateX(-100%); }
+    0% { left: 0%; }
+    100% { left: -100%; }
 }
 
 /** Keyframes Right to Left **/
 @keyframes slide-right-in {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(0%); }
+    0% { left: 100%; }
+    100% { left: 0%; }
 }
 
 @-webkit-keyframes slide-right-in
 {
-    0% { transform: translateX(100%); }
-    100% { -webkit-transform: translateX(0%); }
+    0% { left: 100%; }
+    100% { left: 0%; }
 }
     
 @keyframes slide-right-out {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(100%); }
+    0% { left: 0%; }
+    100% { left: 100%; }
 }
 
 @-webkit-keyframes slide-right-out {
-    0% { -webkit-transform: translateX(0%); }
-    100% { -webkit-transform: translateX(100%); }
+    0% { left: 0%; }
+    100% { left: 100%; }
 }
 
 /** Keyframes Top to Bottom **/
@@ -1212,15 +1212,7 @@
     margin-right: 6px;
 }
 
-/**
- * (c) jTools Text Editor
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline richtext editor
- */
-
- .jeditor-container {
+.jeditor-container {
     border:1px solid #ccc;
     box-sizing: border-box;
 }
@@ -1460,9 +1452,9 @@
     background-color:#fff;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
-    padding-top:50px;
+    padding-top:50px !important;
     z-index:9002;
-    border-radius:5px;
+    border-radius: 8px;
 }
 
 .jmodal:before {
@@ -1473,11 +1465,10 @@
     content:attr(title);
     padding:15px;
     box-sizing: border-box;
-    background: #e3e3e3;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#e3e3e3');
-    background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#e3e3e3));
-    background: -moz-linear-gradient(top,  #ededed,  #e3e3e3);
     font-size:1.2em;
+    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+    background-color: #fff;
+    border-radius: 8px 8px 0px 0px;
 }
 
 .jmodal_content {
@@ -1488,7 +1479,7 @@
     height: -webkit-fill-available;
 }
 .jmodal.no-title {
-    padding-top:0px;
+    padding-top: initial !important;
 }
 
 .jmodal.no-title:before {
@@ -1699,7 +1690,7 @@
     padding-right: 15px;
 }
 
-.jpicker-focus .jpicker-content {
+.jpicker-focus > .jpicker-content {
     display: block;
 }
 
@@ -1892,11 +1883,18 @@
     background-color: #f1f1f1;
     cursor: pointer;
     white-space: nowrap;
+    text-align: center;
 }
 
 .jtabs .jtabs-headers > div.jtabs-selected {
     background-color: #e8e8e8;
     color: #000;
+}
+
+.jtabs .jtabs-headers > div > div {
+    color: #555;
+    width: 100%;
+    overflow: hidden;
 }
 
 .jtabs .jtabs-content {
@@ -2215,5 +2213,31 @@
     line-height: 24px;
 }
 
+.jtoolbar .jtoolbar-arrow {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
+    width: 16px;
+    height: 24px;
+}
+
+.jtoolbar-floating {
+    position: absolute;
+    display: none;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 50;
+    text-align: left;
+}
+
+.jtoolbar-floating > div {
+    display: block;
+}
+
+.jtoolbar-arrow-selected .jtoolbar-floating {
+    display: block;
+}
 
 

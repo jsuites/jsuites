@@ -792,7 +792,7 @@ jSuites.calendar = (function(el, options) {
             }
             e.stopPropagation();
             e.preventDefault();
-        } else if (action == 'jcalendar-set-month') {
+        } else if (e.target.classList.contains('jcalendar-set-month')) {
             if (obj.options.type == 'year-month-picker') {
                 obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
             } else {

@@ -32,7 +32,11 @@ jSuites.form = (function(el, options) {
         obj.options.validations = {};
     }
 
-    // submitButton
+    // Submit Button
+    if (! obj.options.submitButton) {
+        obj.options.submitButton = el.querySelector('input[type=submit]');
+    }
+
     if (obj.options.submitButton && obj.options.url) {
         obj.options.submitButton.onclick = function() {
             obj.save();

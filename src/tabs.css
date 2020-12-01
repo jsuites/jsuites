@@ -25,11 +25,18 @@
     background-color: #f1f1f1;
     cursor: pointer;
     white-space: nowrap;
+    text-align: center;
 }
 
 .jtabs .jtabs-headers > div.jtabs-selected {
     background-color: #e8e8e8;
     color: #000;
+}
+
+.jtabs .jtabs-headers > div > div {
+    color: #555;
+    width: 100%;
+    overflow: hidden;
 }
 
 .jtabs .jtabs-content {

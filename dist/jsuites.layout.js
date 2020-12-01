@@ -605,6 +605,84 @@ jSuites.login = (function(el, options) {
 
 jSuites.login.sha512 = jSuites.sha512;
 
+jSuites.menu = (function(el, options) {
+    var obj = {};
+
+    obj.show = function() {
+        el.style.display = 'block';
+        jSuites.animation.slideLeft(el, 1);
+    }
+    
+    obj.hide = function() {
+        jSuites.animation.slideLeft(el, 0, function() {
+            el.style.display = '';
+        });
+    }
+
+    obj.load = function() {
+        if (localStorage) {
+            var menu = el.querySelectorAll('nav');
+            for (var i = 0; i < menu.length; i++) {
+                menu[i].classList.remove('selected');
+                if (menu[i].getAttribute('data-id')) {
+                    var state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
+                    if (state === null || state == 1) {
+                        menu[i].classList.add('selected');
+                    }
+                }
+            }
+            var href = localStorage.getItem('jmenu-href');
+            if (href) {
+                var menu = document.querySelector('.jmenu a[href="'+ href +'"]');
+                if (menu) {
+                    menu.classList.add('selected');
+                }
+            }
+        }
+    }
+
+    var actionDown = function(e) {
+        if (e.target.tagName == 'H2') {
+            if (e.target.parentNode.classList.contains('selected')) {
+                e.target.parentNode.classList.remove('selected');
+                localStorage.setItem('jmenu-' + e.target.parentNode.getAttribute('data-id'), 0);
+            } else {
+                e.target.parentNode.classList.add('selected');
+                localStorage.setItem('jmenu-' + e.target.parentNode.getAttribute('data-id'), 1);
+            }
+        } else if (e.target.tagName == 'A') {
+            localStorage.setItem('jmenu-href', e.target.getAttribute('href'));
+        }
+    }
+
+    if ('ontouchstart' in document.documentElement === true) {
+        el.addEventListener('touchstart', actionDown);
+    } else {
+        el.addEventListener('mousedown', actionDown);
+    }
+
+    // Add close action
+    var i = document.createElement('i');
+    i.className = 'material-icons small-screen-only close';
+    i.innerText = 'close';
+    i.onclick = function() {
+        obj.hide();
+    }
+    el.appendChild(i);
+
+    // Add menu class
+    el.classList.add('jmenu');
+
+    // Load state
+    obj.load();
+
+    // Keep reference
+    el.menu = obj;
+
+    return obj;
+});
+
+
 /**
  * (c) jSuites template renderer
  * https://github.com/paulhodel/jsuites
@@ -627,6 +705,7 @@ jSuites.template = (function(el, options) {
         template: null,
         render: null,
         noRecordsFound: 'No records found',
+        containerClass: null,
         // Searchable
         search: null,
         searchInput: true,
@@ -639,6 +718,7 @@ jSuites.template = (function(el, options) {
         onload: null,
         onchange: null,
         onsearch: null,
+        onclick: null,
     }
 
     // Loop through our object
@@ -691,7 +771,10 @@ jSuites.template = (function(el, options) {
 
     // Content
     var container = document.createElement('div');
-    container.className = 'jtemplate-content options';
+    if (obj.options.containerClass) {
+        container.className = obj.options.containerClass;
+    }
+    container.classList.add ('jtemplate-content');
     el.appendChild(container);
 
     // Data container
@@ -902,6 +985,11 @@ jSuites.template = (function(el, options) {
         // Data container
         var data = searchResults ? searchResults : obj.options.data;
 
+        // Data filtering
+        if (typeof(obj.options.filter) == 'function') {
+            data = obj.options.filter(data);
+        }
+
         // Reset pagination
         obj.updatePagination();
 
@@ -1044,13 +1132,9 @@ jSuites.template = (function(el, options) {
                 return false;
             }
 
-            if (typeof(obj.options.filter) == 'function') {
-                searchResults = obj.options.filter(obj.options.data, query);
-            } else {
-                searchResults = obj.options.data.filter(function(item) {
-                    return test(item, query);
-                });
-            }
+            searchResults = obj.options.data.filter(function(item) {
+                return test(item, query);
+            });
         }
 
         obj.render();
@@ -1079,6 +1163,12 @@ jSuites.template = (function(el, options) {
                 obj.render(parseInt(index)-1);
             }
             e.preventDefault();
+        }
+    });
+
+    el.addEventListener('click', function(e) {
+        if (typeof(obj.options.onclick) == 'function') {
+            obj.options.onclick(el, obj, e);
         }
     });
 

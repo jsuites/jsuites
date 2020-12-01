@@ -37,21 +37,6 @@
     cursor: pointer;
 }
 
-.japp button {
-    border-radius: 4px;
-    width: 100%;
-    border: 1px solid var(--active-color);
-    color: var(--active-color);
-    background-color: transparent;
-    padding: 4px;
-    outline: none;
-}
-
-.japp button:active {
-    border: 1px solid #000;
-    color: #000;
-}
-
 .japp.warning::before {
     content: 'No internet connection';
     background-color: red;
@@ -203,6 +188,7 @@ japp.jwarning .page {
 }
 
 .japp .pages {
+    position: relative;
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -211,7 +197,7 @@ japp.jwarning .page {
 }
 
 .japp .page {
-    padding-top: 45px;
+    padding-top: 0px;
     padding-bottom: 45px;
     min-height: 100%;
     min-width: 100%;
@@ -222,6 +208,10 @@ japp.jwarning .page {
     -webkit-transform: translateZ(0px);
     -webkit-transform: translate3d(0,0,0);
     -webkit-perspective: 1000;*/
+}
+
+.japp .page.with-navbar {
+    padding-top: 45px;
 }
 
 .japp .panel {
@@ -871,12 +861,12 @@ japp.jwarning .page {
 
 @media only screen and (max-device-width : 800px)
 {
-    .jsuites * {
+    .japp * {
         -webkit-tap-highlight-color: transparent;
         -webkit-touch-callout: none;
     }
 
-    body.jsuites {
+    body {
         margin: 0px;
         padding: 0px;
         width: 100%;
@@ -887,12 +877,27 @@ japp.jwarning .page {
         background-color: #fff;
     }
 
-    .jsuites input, .jsuites select, .jsuites textarea, .jsuites div {
+    .japp input, .japp select, .japp textarea, .japp div {
         font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    }
+
+    .japp button {
+        border-radius: 4px;
+        width: 100%;
+        border: 1px solid var(--active-color);
+        color: var(--active-color);
+        background-color: transparent;
+        padding: 4px;
+        outline: none;
+    }
+    
+    .japp button:active {
+        border: 1px solid #000;
+        color: #000;
     }
 }
 
-.app .jtemplate-empty {
+.japp .jtemplate-empty {
     text-align:center;
     padding-top:10px;
     padding-bottom:10px;

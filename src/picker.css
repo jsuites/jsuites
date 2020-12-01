@@ -48,7 +48,7 @@
     padding-right: 15px;
 }
 
-.jpicker-focus .jpicker-content {
+.jpicker-focus > .jpicker-content {
     display: block;
 }
 
