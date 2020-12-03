@@ -2,8 +2,7 @@
 /**
  * (c) jSuites Javascript Web Components
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License
@@ -231,12 +230,6 @@
     }
 }
 
-/**
- * Date & Datetime picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
- 
 .jcalendar {
     position:absolute;
     z-index:9000;
@@ -563,12 +556,6 @@
                                   supported by Chrome and Opera */
 }
 
-/**
- * Contextmenu v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jsuites
- */
- 
 .jcontextmenu {
     position:fixed;
     z-index:10000;
@@ -667,14 +654,6 @@
   transform: translate(0, 0) scale(1);
   pointer-events: auto;
 }
-
-/**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Custom dropdowns
- */
 
 .jdropdown {
     cursor:pointer;
@@ -1393,14 +1372,6 @@
 }
 
 
-/**
- * (c) jLoading
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Page loading spin
- */
-
 .jloading {
     position:fixed;
     z-index:10001;
@@ -1762,14 +1733,6 @@
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='red'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
 }
 
-
-/**
- * (c) Image slider
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Image Slider
- */
 
 .jslider {
     margin-top:10px;

@@ -2,8 +2,7 @@
 /**
  * (c) jSuites Javascript Web Components
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License
@@ -904,12 +903,6 @@ japp.jwarning .page {
     margin-right:10px;
 }
 
-/**
- * Dialog v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
- 
 .jdialog
 {
     position:fixed;

@@ -1,8 +1,7 @@
 /**
- * (c) jSuites Javascript Web Components (v3.8.4)
+ * (c) jSuites Javascript Web Components (v3.9.1)
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License
@@ -2062,6 +2061,10 @@ jSuites.contextmenu = (function(el, options) {
             var itemText = document.createElement('a');
             itemText.innerHTML = item.title;
 
+            if (item.tooltip) {
+                itemContainer.setAttribute('title', item.tooltip);
+            }
+
             if (item.icon) {
                 itemContainer.setAttribute('data-icon', item.icon);
             }
@@ -3404,14 +3407,6 @@ jSuites.dropdown.extractFromDom = function(el, options) {
 
     return { el:el, options:options };
 }
-
-/**
- * (c) HTML Editor
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline simple richtext editor
- */
 
 jSuites.editor = (function(el, options) {
     var obj = {};
@@ -4932,25 +4927,7 @@ jSuites.image = (function(el, options) {
 
     // Add image
     obj.addImage = function(file) {
-        if (! file.date) {
-            file.date = '';
-        }
-        var img = document.createElement('img');
-        img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
-        img.setAttribute('data-name', file.name);
-        img.setAttribute('data-size', file.size);
-        img.setAttribute('data-small', file.small ? file.small : '');
-        img.setAttribute('data-cover', file.cover ? 1 : 0);
-        img.setAttribute('data-extension', file.extension);
-        img.setAttribute('src', file.file);
-        img.className = 'jfile';
-        img.style.width = '100%';
-
-        if (file.content) {
-            img.content = file.content;
-        }
-
-        return img;
+        return jSuites.image.create(file);
     }
 
     // Add image
@@ -5162,6 +5139,27 @@ jSuites.image = (function(el, options) {
     return obj;
 });
 
+jSuites.image.create = function(file) {
+    if (! file.date) {
+        file.date = '';
+    }
+    var img = document.createElement('img');
+    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
+    img.setAttribute('data-name', file.name);
+    img.setAttribute('data-size', file.size);
+    img.setAttribute('data-small', file.small ? file.small : '');
+    img.setAttribute('data-cover', file.cover ? 1 : 0);
+    img.setAttribute('data-extension', file.extension);
+    img.setAttribute('src', file.file);
+    img.className = 'jfile';
+    img.style.width = '100%';
+
+    if (file.content) {
+        img.content = file.content;
+    }
+
+    return img;
+}
 
 jSuites.lazyLoading = (function(el, options) {
     var obj = {}

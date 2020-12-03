@@ -11,7 +11,7 @@ jSuites.app = (function(el, options) {
         oncreatepage: null,
         onloadpage: null,
         toolbar: null,
-        detachHiddenPages: true
+        detachHiddenPages: false
     }
 
     // Loop through our object
@@ -109,6 +109,10 @@ jSuites.app = (function(el, options) {
                 }
             }
 
+            if (obj.options.detachHiddenPages == false) {
+                updateDOM();
+            }
+
             // Create page overwrite
             var ret = null;
             if (typeof(obj.options.onbeforecreatepage) == 'function') {
@@ -123,8 +127,10 @@ jSuites.app = (function(el, options) {
                 method: 'GET',
                 dataType: 'html',
                 success: function(result) {
-                    // Update DOM
-                    updateDOM();
+                    if (! page.parentNode) {
+                        // Update DOM
+                        updateDOM();
+                    }
 
                     // Create page overwrite
                     var ret = null;
@@ -237,8 +243,11 @@ jSuites.app = (function(el, options) {
                     // Animation only on mobile
                     var rect = pages.getBoundingClientRect();
 
-                    if (rect.width < 800) {
-                        window.scrollTo({ top: 0 });
+                    // Move to the top
+                    window.scrollTo({ top: 0 });
+
+                    // Page is ready
+                    if (rect.width < 800 && obj.options.detachHiddenPages == false) {
                         jSuites.animation.slideLeft(pages, (a < b ? 0 : 1), function() {
                             if (component.current != page) {
                                 pageIsReady();

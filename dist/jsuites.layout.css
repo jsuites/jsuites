@@ -2,8 +2,7 @@
 /**
  * (c) jSuites Javascript Web Components
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License
@@ -74,6 +73,12 @@
 .jbutton[disabled] {
     opacity: 0.5;
     text-decoration: none;
+}
+
+@media only screen and (max-width : 800px) {
+    .jbutton {
+        margin: 2px;
+    }
 }
 
 .jbuttons-group {
@@ -225,6 +230,32 @@
 .jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
 
 .jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
+
+.jslider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    padding: 0px;
+}
+
+.jslider:hover {
+  opacity: 1;
+}
+
+.jslider::-webkit-slider-thumb {
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.jslider::-moz-range-thumb {
+  background: #4CAF50;
+  cursor: pointer;
+}
 
 @media (min-width: 576px)
 {
