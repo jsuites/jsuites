@@ -17,6 +17,12 @@
     color: #fff;
 }
 
+.jbutton.red {
+    background-color: #a23131;
+    border: 1px solid transparent;
+    color: #fff;
+}
+
 .jbutton.blue {
     border:1px solid transparent;
     color:#fff;
@@ -62,6 +68,12 @@
 .jbutton[disabled] {
     opacity: 0.5;
     text-decoration: none;
+}
+
+@media only screen and (max-width : 800px) {
+    .jbutton {
+        margin: 2px;
+    }
 }
 
 .jbuttons-group {

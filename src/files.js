@@ -60,6 +60,27 @@ jSuites.files = (function(element) {
     }
 
     /**
+     * Remove files
+     */
+    obj.remove = function() {
+        // Get attachments
+        var files = element.querySelectorAll('.jfile');
+
+        if (files.length > 0) {
+            // Read all files
+            for (var i = 0; i < files.length; i++) {
+                var file = {};
+
+                var src = files[i].getAttribute('src');
+
+                if (files[i].classList.contains('jremove')) {
+                    files[i].remove();
+                }
+            }
+        }
+    }
+
+    /**
      * Set list of files and properties for upload
      */
     obj.set = function() {

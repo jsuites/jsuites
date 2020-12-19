@@ -82,11 +82,11 @@ jSuites.tabs = (function(el, options) {
             if (obj.headers.children[i].classList.contains('jtabs-selected')) {
                 // Current one
                 previous = i;
-                // Remote selected
-                obj.headers.children[i].classList.remove('jtabs-selected');
-                if (obj.content.children[i]) {
-                    obj.content.children[i].classList.remove('jtabs-selected');
-                }
+            }
+            // Remote selected
+            obj.headers.children[i].classList.remove('jtabs-selected');
+            if (obj.content.children[i]) {
+                obj.content.children[i].classList.remove('jtabs-selected');
             }
         }
 
@@ -159,7 +159,7 @@ jSuites.tabs = (function(el, options) {
         return div;
     }
 
-    obj.remote = function(index) {
+    obj.remove = function(index) {
         return obj.deleteElement(index);
     }
 
@@ -221,6 +221,42 @@ jSuites.tabs = (function(el, options) {
             // Return element
             return div;
         }
+    }
+
+    obj.getActive = function() {
+        for (var i = 0; i < obj.headers.children.length; i++) {
+            if (obj.headers.children[i].classList.contains('jtabs-selected')) {
+                return i
+            }
+        }
+        return 0;
+    }
+
+    obj.updatePosition = function(f, t) {
+        // Ondrop update position of content
+        if (f > t) {
+            obj.content.insertBefore(obj.content.children[f], obj.content.children[t]);
+        } else {
+            obj.content.insertBefore(obj.content.children[f], obj.content.children[t].nextSibling);
+        }
+
+        // Open destination tab
+        obj.open(t);
+
+        // Call event
+        if (typeof(obj.options.onchangeposition) == 'function') {
+            obj.options.onchangeposition(obj.headers, f, t);
+        }
+    }
+
+    obj.move = function(f, t) {
+        if (f > t) {
+            obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t]);
+        } else {
+            obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t].nextSibling);
+        }
+
+        obj.updatePosition(f, t);
     }
 
     obj.init = function() {
@@ -361,19 +397,8 @@ jSuites.tabs = (function(el, options) {
         if (obj.options.allowChangePosition == true) {
             jSuites.sorting(obj.headers, {
                 direction: 1,
-                ondrop: function(a,b,c,d,e,f) {
-                    // Ondrop update position of content
-                    if (b > c) {
-                        obj.content.insertBefore(obj.content.children[b], obj.content.children[c]);
-                    } else {
-                        obj.content.insertBefore(obj.content.children[b], obj.content.children[c].nextSibling);
-                    }
-                    // Open destination tab
-                    obj.open(c);
-                    // Call event
-                    if (typeof(obj.options.onchangeposition) == 'function') {
-                        obj.options.onchangeposition(a,b,c,d,e,f);
-                    }
+                ondrop: function(a,b,c) {
+                    obj.updatePosition(b,c);
                 },
             });
         }

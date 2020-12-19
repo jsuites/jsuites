@@ -1,11 +1,3 @@
-/**
- * (c) Image slider
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Image Slider
- */
-
 jSuites.slider = (function(el, options) {
     var obj = {};
     obj.options = {};

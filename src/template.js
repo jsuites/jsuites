@@ -1,11 +1,3 @@
-/**
- * (c) jSuites template renderer
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Template renderer
- */
-
 jSuites.template = (function(el, options) {
     var obj = {};
     obj.options = {};

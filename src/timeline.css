@@ -53,6 +53,7 @@
 }
 
 .jtimeline-container {
+    position: relative;
     padding-top:110px;
     padding-bottom:30px;
 }

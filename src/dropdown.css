@@ -1,11 +1,3 @@
-/**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Custom dropdowns
- */
-
 .jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;
@@ -507,18 +499,20 @@
     background-position:top 50% right 10px;
 }
 
-@media only screen and (max-device-width : 800px)
+@media only screen and (max-width : 800px)
 {
-    .jdropdown-list
-    {
+    .jdropdown-list {
         width:100% !important;
         border:0px;
         padding:0px;
     }
 
-    .jdropdown-list .jdropdown-container
-    {
+    .jdropdown-list .jdropdown-container {
         min-width:100%;
+    }
+
+    .jdropdown-searchbar.jdropdown-focus .jdropdown-description {
+        text-transform: uppercase;
     }
 }
 

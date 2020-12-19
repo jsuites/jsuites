@@ -169,6 +169,7 @@ section.middle {
     -ms-flex-pack: justify;
     -webkit-justify-content: space-between;
     justify-content: space-between;
+    box-sizing: border-box;
 }
 
 .row.container {
@@ -182,6 +183,10 @@ section.middle {
     align-items: center;
 }
 
+.column {
+    box-sizing: border-box;
+}
+
 .column.top {
     -webkit-align-self: flex-start;
     -ms-flex-item-align: start;
@@ -192,6 +197,12 @@ section.middle {
     -webkit-align-self: flex-end;
     -ms-flex-item-align: end;
     align-self: flex-end;
+}
+
+@media only screen and (max-width : 320px) {
+    .column {
+        min-width: 100%;
+    }
 }
 
 .start {

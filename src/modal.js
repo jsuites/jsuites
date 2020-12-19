@@ -1,11 +1,3 @@
-/**
- * (c) jSuites modal
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Modal
- */
-
 jSuites.modal = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -142,6 +134,7 @@ jSuites.modal = (function(el, options) {
         jSuites.ajax({
             url: obj.options.url,
             method: 'GET',
+            dataType: 'text/html',
             success: function(data) {
                 obj.content.innerHTML = data;
 

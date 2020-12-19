@@ -107,6 +107,10 @@ jSuites.contextmenu = (function(el, options) {
             var itemText = document.createElement('a');
             itemText.innerHTML = item.title;
 
+            if (item.tooltip) {
+                itemContainer.setAttribute('title', item.tooltip);
+            }
+
             if (item.icon) {
                 itemContainer.setAttribute('data-icon', item.icon);
             }

@@ -5,7 +5,7 @@ jSuites.menu = (function(el, options) {
         el.style.display = 'block';
         jSuites.animation.slideLeft(el, 1);
     }
-    
+
     obj.hide = function() {
         jSuites.animation.slideLeft(el, 0, function() {
             el.style.display = '';
@@ -34,6 +34,14 @@ jSuites.menu = (function(el, options) {
         }
     }
 
+    obj.select = function(o) {
+        var menu = el.querySelectorAll('nav a');
+        for (var i = 0; i < menu.length; i++) {
+            menu[i].classList.remove('selected');
+        }
+        o.classList.add('selected');
+    }
+
     var actionDown = function(e) {
         if (e.target.tagName == 'H2') {
             if (e.target.parentNode.classList.contains('selected')) {
@@ -44,7 +52,12 @@ jSuites.menu = (function(el, options) {
                 localStorage.setItem('jmenu-' + e.target.parentNode.getAttribute('data-id'), 1);
             }
         } else if (e.target.tagName == 'A') {
+            // Mark link as selected
+            obj.select(e.target);
+            // Keep the refernce in case load the page again
             localStorage.setItem('jmenu-href', e.target.getAttribute('href'));
+            // Close menu if is oped
+            obj.hide();
         }
     }
 
@@ -65,6 +78,15 @@ jSuites.menu = (function(el, options) {
 
     // Add menu class
     el.classList.add('jmenu');
+
+    /*var h1 = window.innerHeight;
+    var h2 = el.offsetTop;
+
+    // Add the scroll
+    jSuites.scroll(el, {
+        //height: (h1 - h2) + 'px'
+        height: '1000px',
+    });*/
 
     // Load state
     obj.load();

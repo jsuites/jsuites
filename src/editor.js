@@ -1,11 +1,3 @@
-/**
- * (c) HTML Editor
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline simple richtext editor
- */
-
 jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};

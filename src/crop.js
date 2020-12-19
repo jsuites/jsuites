@@ -6,7 +6,7 @@ jSuites.crop = (function(el, options) {
     var defaults = {
         area: [ 800, 600 ],
         crop: [ 200, 150 ],
-        filters: null,
+        value: null,
         onload: null,
         onchange: null,
         remoteParser: null,
@@ -77,7 +77,7 @@ jSuites.crop = (function(el, options) {
 
     var image = new Image();
     image.onload = function onload() {
-        obj.reset();
+        obj.resetCanvas();
 
         var w = obj.options.area[0] / this.naturalWidth;
         var h = obj.options.area[1] / this.naturalHeight;
@@ -104,13 +104,18 @@ jSuites.crop = (function(el, options) {
         drawImage();
 
         // Edition model
-        el.classList.add('edition');
+        el.classList.add('jcrop_edition');
 
         // Reset selection on desktop only
         if (jSuites.getWindowWidth() > 800) {
             obj.resetCropSelection();
         } else {
             crop.classList.add('mobile');
+        }
+
+        // Onchange
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, image);
         }
     };
 
@@ -181,6 +186,7 @@ jSuites.crop = (function(el, options) {
     }
 
     obj.getCropSelection = function() {
+        obj.getSelectionCoordinates();
     }
 
     // Reset canvas
@@ -191,6 +197,9 @@ jSuites.crop = (function(el, options) {
 
     // Reset all the properties
     obj.reset = function() {
+        // Reset canvas
+        obj.resetCanvas();
+        // Reset state
         properties = {
             zoom: {
                 origin: { x: null, y: null },
@@ -201,7 +210,9 @@ jSuites.crop = (function(el, options) {
             rotate: 0,
             greyScale: 0,
             saturation: 0,
-        };
+        }
+        // Stop edition
+        el.classList.remove('jcrop_edition')
     }
 
     // Apply the contrast on the image data
@@ -384,7 +395,7 @@ jSuites.crop = (function(el, options) {
 
     // Runs image movements
     var runMove = function() {
-        context.translate(image.left,image.top);
+        context.translate(image.left, image.top);
     }
 
     // Reload resizers and filters
@@ -657,30 +668,32 @@ jSuites.crop = (function(el, options) {
     }
 
     var imageMoveListener = function(e) {
-        // Mark position
-        if (e.changedTouches && e.changedTouches[0]) {
-            var x = e.changedTouches[0].clientX;
-            var y = e.changedTouches[0].clientY;
-        } else {
-            var x = e.clientX;
-            var y = e.clientY;
+        if (el.classList.contains('jcrop_edition')) {
+            // Mark position
+            if (e.changedTouches && e.changedTouches[0]) {
+                var x = e.changedTouches[0].clientX;
+                var y = e.changedTouches[0].clientY;
+            } else {
+                var x = e.clientX;
+                var y = e.clientY;
+            }
+
+            var currentX = x;
+            var newX = currentX - imageState.mouseX;
+            imageState.mouseX = currentX;
+
+            var currentY = y;
+            var newY = currentY - imageState.mouseY;
+            imageState.mouseY = currentY;
+
+            if (imageState.mousedown) {
+                image.left += newX/properties.zoom.scale;
+                image.top += newY/properties.zoom.scale;
+                refreshResizers();
+            }
+
+            e.preventDefault();
         }
-
-        var currentX = x;
-        var newX = currentX - imageState.mouseX;
-        imageState.mouseX = currentX;
-
-        var currentY = y;
-        var newY = currentY - imageState.mouseY;
-        imageState.mouseY = currentY;
-
-        if (imageState.mousedown) {
-            image.left += newX/properties.zoom.scale;
-            image.top += newY/properties.zoom.scale;
-            refreshResizers();
-        }
-
-        e.preventDefault();
     }
 
     el.addEventListener('mouseup', editorMouseUp);
@@ -692,7 +705,7 @@ jSuites.crop = (function(el, options) {
     document.addEventListener('mouseup', function(e) {
         imageState.mousedown = false;
     });
-    el.addEventListener('mousemove',imageMoveListener);
+    el.addEventListener('mousemove', imageMoveListener);
 
     el.addEventListener("dblclick", function(e) {
         jSuites.click(attachmentInput);
@@ -745,44 +758,55 @@ jSuites.crop = (function(el, options) {
     });
 
     el.addEventListener("wheel", function(e) {
-        // Update scale
-
-        if (e.deltaY > 0) {
-            if (properties.zoom.scale > 0.1) {
-                properties.zoom.scale *= 0.9;
+        if (el.classList.contains('jcrop_edition')) {
+            // Update scale
+            if (e.deltaY > 0) {
+                if (properties.zoom.scale > 0.1) {
+                    properties.zoom.scale *= 0.9;
+                }
+            } else {
+                if (properties.zoom.scale < 5) {
+                    properties.zoom.scale *= 1.1;
+                }
             }
-        } else {
-            if (properties.zoom.scale < 5) {
-                properties.zoom.scale *= 1.1;
+            properties.zoom.scale = parseFloat(properties.zoom.scale.toFixed(2));
+
+            // Update coordinates
+            var rect = el.getBoundingClientRect();
+            var x = e.clientX - rect.left;
+            var y = e.clientY - rect.top;
+
+            // Zoom on the image
+            var c = context.getImageData(x, y, 1, 1).data;
+            if (c[3] != 0) {
+                properties.zoom.origin.x = x;
+                properties.zoom.origin.y = y;
+            } else {
             }
+
+            // Apply zoom
+            obj.zoom();
+
+            e.preventDefault();
         }
-        properties.zoom.scale = parseFloat(properties.zoom.scale.toFixed(2));
-
-        // Update coordinates
-        var rect = el.getBoundingClientRect();
-        var x = e.clientX - rect.left;
-        var y = e.clientY - rect.top;
-
-        // Zoom on the image
-        var c = context.getImageData(x, y, 1, 1).data;
-        if (c[3] != 0) {
-            properties.zoom.origin.x = x;
-            properties.zoom.origin.y = y;
-        } else {
-        }
-
-        // Apply zoom
-        obj.zoom();
-
-        e.preventDefault();
     });
 
     // mobile events
     el.addEventListener("click", function(e) {
-        if (! el.classList.contains('edition')) {
+        if (! el.classList.contains('jcrop_edition')) {
             jSuites.click(attachmentInput);
         }
     });
+
+    // Onchange
+    if (typeof(obj.options.onload) == 'function') {
+        obj.options.onload(el, obj);
+    }
+
+    // Initial image
+    if (obj.options.value) {
+        image.src = obj.options.value;
+    }
 
     el.crop = obj;
 
