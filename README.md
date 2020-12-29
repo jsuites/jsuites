@@ -76,6 +76,9 @@ The same code can render in different ways, by directive type: default, picker o
 Examples
 ---------
 
+* [JavaScript image cropper](https://jsuites.net/v3/image-cropper)\
+The jSuites.crop is a lightweight JavaScript plugin that allow users load, crop and apply filters to images.
+
 * [Dropdown and autocomplete component](https://jsuites.net/v3/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
@@ -97,16 +100,13 @@ Javascript color picker plugin
 * [Javascript contextmenu plugin](https://jsuites.net/v3/contextmenu)\
 Vanilla javascript contextmenu plugin
 
-* [Javascript image slider plugin](https://jsuites.net/v3/image-slider)\
-Simple vanilla javascript image slider plugin
-
-* [Tracking the form changes](https://jsuites.net/v3/tracking-for-form-changes)\
-Alert the user for unsaved changes in a form before leave any page plugin.
+* [Tracking the form changes](https://jsuites.net/v3/richform)\
+Track changes in a online form, apply validations and manage ajax requests.
 
 * [Javascript modal plugin](https://jsuites.net/v3/modal)\
 Simple vanilla javascript modal plugin
 
-* [JavaSript general toolbar](https://jsuites.net/v3/javascript-toolbar)\
+* [JavaSript general toolbar](https://jsuites.net/v3/toolbar)\
 Micro vanilla javascript toolbar plugin
 
 * [Javascript mini HTML editor plugin with filter](https://jsuites.net/v3/text-editor)\
