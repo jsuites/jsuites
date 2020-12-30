@@ -75,34 +75,42 @@
 }
 
 .slide-left-in {
+    position: relative;
     animation: slide-left-in 0.4s forwards;
 }
 
 .slide-left-out {
+    position: relative;
     animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in {
+    position: relative;
     animation: slide-right-in 0.4s forwards;
 }
 
 .slide-right-out {
+    position: relative;
     animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in {
+    position: relative;
     animation: slide-top-in 0.4s forwards;
 }
 
 .slide-top-out {
+    position: relative;
     animation: slide-top-out 0.2s forwards;
 }
 
 .slide-bottom-in {
+    position: relative;
     animation: slide-bottom-in 0.4s forwards;
 }
 
 .slide-bottom-out {
+    position: relative;
     animation: slide-bottom-out 0.1s forwards;
 }
 
@@ -866,20 +874,18 @@
     color:#fff;
 }
 
-.jdropdown-default .jdropdown-group
-{
+.jdropdown-default .jdropdown-group {
     margin-top:5px;
 }
 
-.jdropdown-default .jdropdown-group .jdropdown-item
-{
+.jdropdown-default .jdropdown-group .jdropdown-item {
     padding-left:16px;
 }
 
-.jdropdown-default .jdropdown-group-name
-{
-    padding-left:8px;
-    font-weight:bold;
+.jdropdown-default .jdropdown-group-name {
+    padding: 8px;
+    font-weight: bold;
+    text-align: left;
 }
 
 .jdropdown-default .jdropdown-reset_ {
@@ -1213,7 +1219,7 @@
 }
 
 .jeditor-container.jeditor-padding .jeditor {
-    min-height:160px;
+    min-height:100px;
     margin-bottom:10px;
     padding:10px;
 }
@@ -1925,6 +1931,21 @@
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z' fill='%23bbbbbb'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
 }
 
+/** Modern skin **/
+
+.jtabs.jtabs-modern .jtabs-headers > div:not(.jtabs-border) {
+    padding: 10px;
+    background-color: #fff;
+}
+
+.jtabs.jtabs-modern .jtabs-headers > .jtabs-selected  {
+    color: #000;
+}
+
+.jtabs.jtabs-modern .jtabs-headers > .jtabs-selected .material-icons {
+    color: #000;
+}
+
 .jtags {
     display: flex;
     flex-wrap: wrap;
@@ -1937,6 +1958,13 @@
     padding: 2px;
     border: 1px solid #ccc;
 } 
+
+.jtags.jtags-empty:not(.jtags-focus)::before {
+    position: absolute;
+    margin: 5px;
+    color: #ccc;
+    content:attr(data-placeholder);
+}
 
 .jtags > div {
     padding: 3px;

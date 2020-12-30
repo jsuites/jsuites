@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.2)
+ * (c) jSuites Javascript Web Components (v3.9.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -447,7 +447,7 @@ jSuites.calendar = (function(el, options) {
     // Main element
     if (el.tagName == 'DIV') {
         var calendar = el;
-        calendar.className = 'jcalendar-inline';
+        calendar.classList.add('jcalendar-inline');
     } else {
         // Add controls to the screen
         calendarContent.appendChild(calendarControls);
@@ -3458,6 +3458,7 @@ jSuites.editor = (function(el, options) {
         border: true,
         padding: true,
         maxHeight: null,
+        height: null,
         focus: false,
         // Events
         onclick: null,
@@ -3526,9 +3527,15 @@ jSuites.editor = (function(el, options) {
     editor.className = 'jeditor';
 
     // Max height
-    if (obj.options.maxHeight) {
+    if (obj.options.maxHeight || obj.options.height) {
         editor.style.overflowY = 'auto';
-        editor.style.maxHeight = obj.options.maxHeight;
+
+        if (obj.options.maxHeight) {
+            editor.style.maxHeight = obj.options.maxHeight;
+        }
+        if (obj.options.height) {
+            editor.style.height = obj.options.height;
+        }
     }
 
     // Set editor initial value
@@ -4531,6 +4538,19 @@ jSuites.editor.getDefaultToolbar = function() {
 }
 
 
+jSuites.focus = function(el) {
+    if (el.innerText.length) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        var node = el.childNodes[el.childNodes.length-1];
+        range.setStart(node, node.length)
+        range.collapse(true)
+        sel.removeAllRanges()
+        sel.addRange(range)
+        el.scrollLeft = el.scrollWidth;
+    }
+}
+
 jSuites.isNumeric = (function (num) {
     return !isNaN(num) && num != null && num != '';
 });
@@ -4540,6 +4560,48 @@ jSuites.guid = function() {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
+}
+
+/**
+ * Generate hash from a string
+ */
+jSuites.hash = function(str) {
+    var hash = 0, i, chr;
+
+    if (str.length === 0) {
+        return hash;
+    } else {
+        for (i = 0; i < str.length; i++) {
+          chr = str.charCodeAt(i);
+          hash = ((hash << 5) - hash) + chr;
+          hash |= 0;
+        }
+    }
+    return hash;
+}
+
+/**
+ * Generate a random color
+ */
+jSuites.randomColor = function(h) {
+    var lum = -0.25;
+    var hex = String('#' + Math.random().toString(16).slice(2, 8).toUpperCase()).replace(/[^0-9a-f]/gi, '');
+    if (hex.length < 6) {
+        hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
+    }
+    var rgb = [], c, i;
+    for (i = 0; i < 3; i++) {
+        c = parseInt(hex.substr(i * 2, 2), 16);
+        c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        rgb.push(("00" + c).substr(c.length));
+    }
+
+    // Return hex
+    if (h == true) {
+        return '#' + jSuites.two(color[0].toString(16)) + jSuites.two(color[1].toString(16)) + jSuites.two(color[2].toString(16));
+    }
+
+    return rgb;
 }
 
 jSuites.getWindowWidth = function() {
@@ -5304,17 +5366,32 @@ jSuites.mask = (function() {
     obj.apply = function(e) {
         if (e.target && ! e.target.getAttribute('readonly')) {
             var mask = e.target.getAttribute('data-mask');
-            if (mask) {
+            if (mask && e.key.length < 2) {
                 index = 0;
                 values = [];
                 // Create mask token
                 obj.prepare(mask);
                 // Current value
-                if (e.target.selectionStart < e.target.selectionEnd) {
-                    var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                var currentValue = '';
+                // Process selection
+                if (e.target.tagName == 'DIV') {
+                    if (e.target.innerText) {
+                        var s = window.getSelection();
+                        if (s && s.anchorOffset != s.focusOffset) {
+                            var offset = s.anchorOffset > s.focusOffset ? s.focusOffset : s.anchorOffset;
+                            var currentValue = e.target.innerText.substring(0, offset);
+                        } else {
+                            var currentValue = e.target.innerText;
+                        }
+                    }
                 } else {
-                    var currentValue = e.target.value;
+                    if (e.target.selectionStart < e.target.selectionEnd) {
+                        var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                    } else {
+                        var currentValue = e.target.value;
+                    }
                 }
+
                 if (currentValue) {
                     // Checking current value
                     for (var i = 0; i < currentValue.length; i++) {
@@ -5323,14 +5400,28 @@ jSuites.mask = (function() {
                         }
                     }
                 }
-                // New input
-                if (e.keyCode > 46) {
-                    obj.process(obj.fromKeyCode(e));
-                    // Prevent default
-                    e.preventDefault();
-                }
+
+                // Process input
+                var ret = obj.process(obj.fromKeyCode(e));
+
+                // Prevent default
+                e.preventDefault();
+
+                // New value 
+                var value = values.join('');
+
                 // Update value to the element
-                e.target.value = values.join('');
+                if (e.target.tagName == 'DIV') {
+                    if (value != e.target.innerText) {
+                        e.target.innerText = value;
+                        // Set focus
+                        jSuites.focus(e.target);
+                    }
+                } else {
+                    e.target.value = value;
+                }
+
+                // Completed attribute
                 if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
                     e.target.setAttribute('data-completed', 'true');
                 } else {
@@ -5481,7 +5572,7 @@ jSuites.mask = (function() {
                 } else {
                     return false;
                 }
-            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##') {
+            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##' || pieces[index] == "#'##") {
                 if (input.match(/[0-9]/g)) {
                     if (pieces[index] == '#.##') {
                         var separator = '.';
@@ -5489,6 +5580,8 @@ jSuites.mask = (function() {
                         var separator = ',';
                     } else if (pieces[index] == '# ##') {
                         var separator = ' ';
+                    } else if (pieces[index] == "#'##") {
+                        var separator = "'";
                     } else {
                         var separator = '';
                     }
@@ -5521,6 +5614,8 @@ jSuites.mask = (function() {
                     } else if (pieces[index] == '#,##' && input == ',') {
                         // Do nothing
                     } else if (pieces[index] == '# ##' && input == ' ') {
+                        // Do nothing
+                    } else if (pieces[index] == "#'##" && input == "'") {
                         // Do nothing
                     } else {
                         if (values[index]) {
@@ -5646,6 +5741,9 @@ jSuites.mask = (function() {
                     i += 3;
                 } else if (mask[i] == '#' && mask[i+1] == ' ' && mask[i+2] == '#' && mask[i+3] == '#') {
                     pieces.push('# ##');
+                    i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == "'" && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push("#'##");
                     i += 3;
                 } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
                     pieces.push('[-]');
