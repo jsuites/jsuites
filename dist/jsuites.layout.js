@@ -1,20 +1,3 @@
-/**
- * (c) jSuites Javascript Web Components (v3.9.3)
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- *
- * MIT License
- *
- */
-;(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    global.jSuites = factory();
-}(this, (function () {
-
-    'use strict';
-
 jSuites.crop = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -29,8 +12,8 @@ jSuites.crop = (function(el, options) {
         remoteParser: null,
         allowResize: true,
         text: {
-            extensionNotAllowed:'The extension is not allowed',
-            imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
+            extensionNotAllowed: 'The extension is not allowed',
+            imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
         }
     };
 
@@ -141,6 +124,7 @@ jSuites.crop = (function(el, options) {
         zoom: {
             origin: { x: null, y: null, },
             scale: 1,
+            fingerDistance: 0
         },
         contrast: 0,
         brightness: 0,
@@ -410,9 +394,50 @@ jSuites.crop = (function(el, options) {
         }
     }
 
+    // X-axis spacing of the zoom at the last scroll change
+    var zoomOffsetX;
+
+    // Y-axis spacing of the zoom at the last scroll change
+    var zoomOffsetY;
+
+    // Mouse position on the x-axis in the last use of the scroll
+    var lastX;
+
+    // Mouse position on the y-axis in the last use of the scroll
+    var lastY;
+
+    // Last zoom applied
+    var lastScale;
+
     // Runs image movements
     var runMove = function() {
-        context.translate(image.left, image.top);
+        // If the mouse was moved after the last scroll, it moves the image in relation to the x-axis
+        if (lastX && lastX !== properties.zoom.origin.x) {
+            var temp = Math.abs(properties.zoom.origin.x - zoomOffsetX - image.left);
+            temp /= lastScale;
+            temp -= properties.zoom.origin.x - image.left;
+
+            image.left -= temp;
+        }
+
+        // If the mouse was moved after the last scroll, it moves the image in relation to the y-axis
+        if (lastY && lastY !== properties.zoom.origin.y) {
+            var temp = Math.abs(properties.zoom.origin.y - zoomOffsetY - image.top);
+            temp /= lastScale;
+            temp -= properties.zoom.origin.y - image.top;
+
+            image.top -= temp;
+        }
+
+        // Update variables
+        zoomOffsetX = (properties.zoom.origin.x - image.left) - (properties.zoom.origin.x - image.left) * properties.zoom.scale;
+        zoomOffsetY = (properties.zoom.origin.y - image.top) - (properties.zoom.origin.y - image.top) * properties.zoom.scale;
+        lastX = properties.zoom.origin.x;
+        lastY = properties.zoom.origin.y;
+        lastScale = properties.zoom.scale;
+
+        // Move image
+        context.translate(image.left + zoomOffsetX, image.top + zoomOffsetY);
     }
 
     // Reload resizers and filters
@@ -443,9 +468,7 @@ jSuites.crop = (function(el, options) {
 
     // Apply the zoom on the image
     var runZoom = function() {
-        context.translate((properties.zoom.origin.x - image.left), (properties.zoom.origin.y - image.top));
         context.scale(properties.zoom.scale, properties.zoom.scale);
-        context.translate(-(properties.zoom.origin.x - image.left), -(properties.zoom.origin.y - image.top));
     }
 
     /**
@@ -490,6 +513,7 @@ jSuites.crop = (function(el, options) {
 
     /** Events start here **/
     var editorAction = null;
+    var scaling = null;
 
     var editorMouseUp = function(e) {
         editorAction = false;
@@ -682,10 +706,23 @@ jSuites.crop = (function(el, options) {
             imageState.mouseX = e.clientX;
             imageState.mouseY = e.clientY;
         }
+
+        if(e.touches) {
+            if(e.touches.length == 2) {
+                imageState.mousedown = false;
+                scaling = true;
+                pinchStart(e);
+            }
+        }
+    }
+    var touchEndListener = function(e) {
+        if(scaling) {
+            scaling = false;
+        }
     }
 
     var imageMoveListener = function(e) {
-        if (el.classList.contains('jcrop_edition')) {
+        if (el.classList.contains('jcrop_edition') && ! scaling) {
             // Mark position
             if (e.changedTouches && e.changedTouches[0]) {
                 var x = e.changedTouches[0].clientX;
@@ -711,12 +748,18 @@ jSuites.crop = (function(el, options) {
 
             e.preventDefault();
         }
+
+        if(scaling) {
+            pinchMove(e);
+        }
     }
 
     el.addEventListener('mouseup', editorMouseUp);
     el.addEventListener('mousedown', editorMouseDown);
     el.addEventListener('mousemove', editorMouseMove);
     el.addEventListener('touchstart',touchstartListener);
+  
+    el.addEventListener('touchend', touchEndListener);
     el.addEventListener('touchmove', imageMoveListener);
     el.addEventListener('mousedown',touchstartListener);
     document.addEventListener('mouseup', function(e) {
@@ -823,6 +866,41 @@ jSuites.crop = (function(el, options) {
     // Initial image
     if (obj.options.value) {
         image.src = obj.options.value;
+    }
+
+  // Mobile pinch zoom
+  
+    var pinchStart = function(e) {
+        var rect = el.getBoundingClientRect();
+        properties.zoom.fingerDistance = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY);
+
+        properties.zoom.origin.x = ((e.touches[0].pageX - rect.left) + (e.touches[1].pageX - rect.left))/2;
+        properties.zoom.origin.y = ((e.touches[0].pageY - rect.top) + (e.touches[1].pageY - rect.top))/2;
+    }
+
+    var pinchMove = function(e) {
+        e.preventDefault();
+
+        var dist2 = Math.hypot(e.touches[0].pageX - e.touches[1].pageX,e.touches[0].pageY - e.touches[1].pageY);
+
+        if (dist2 > properties.zoom.fingerDistance) {
+            var dif =  dist2 - properties.zoom.fingerDistance;
+            var newZoom = properties.zoom.scale + properties.zoom.scale * dif * 0.0025;
+            if (newZoom <= 5.09) {
+               obj.zoom(newZoom);
+            }
+        }
+
+        if (dist2 < properties.zoom.fingerDistance) {
+            var dif =  properties.zoom.fingerDistance - dist2;
+            var newZoom = properties.zoom.scale - properties.zoom.scale * dif * 0.0025;
+            if (newZoom >= 0.1) {
+               obj.zoom(newZoom);
+            }
+        }
+        properties.zoom.fingerDistance = dist2;
     }
 
     el.crop = obj;
@@ -1496,7 +1574,9 @@ jSuites.menu = (function(el, options) {
             // Keep the refernce in case load the page again
             localStorage.setItem('jmenu-href', e.target.getAttribute('href'));
             // Close menu if is oped
-            obj.hide();
+            if (jSuites.getWindowWidth() < 800) {
+                obj.hide();
+            }
         }
     }
 
@@ -2554,9 +2634,3 @@ jSuites.timeline = (function(el, options) {
 
     return obj;
 });
-
-
-
-    return jSuites;
-
-})));

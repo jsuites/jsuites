@@ -951,11 +951,26 @@ section.middle {
     margin-bottom:10px;
 }
 
-/* Admin */
+.breadcrumb {
+    display: inline-flex;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
 
-.breadcrumb a {
-    text-decoration:none;
-    color:#000;
+.breadcrumb > li:after {
+    content: '\00BB';
+    padding: 8px;
+    font-size: 1.2em;
+}
+
+.breadcrumb > li:last-child:after {
+    opacity: 0;
+}
+
+.breadcrumb a:hover {
+    color: #000;
+    text-decoration: underline;
 }
 
 .left {

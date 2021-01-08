@@ -1866,6 +1866,11 @@
     overflow: hidden;
 }
 
+.jtabs .jtabs-headers i {
+    display: block;
+    margin: auto;
+}
+
 .jtabs .jtabs-content {
     box-sizing: border-box;
 }

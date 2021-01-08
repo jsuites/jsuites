@@ -1,20 +1,3 @@
-/**
- * (c) jSuites Javascript Web Components (v3.9.3)
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- *
- * MIT License
- *
- */
-;(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    global.jSuites = factory();
-}(this, (function () {
-
-    'use strict';
-
 jSuites.app = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -127,8 +110,6 @@ jSuites.app = (function(el, options) {
             // Keep options
             page.options = o ? o : {};
 
-            // Always hidden when created
-            page.style.display = 'none';
 
             var updateDOM = function() {
                 // Remove to avoid id conflicts
@@ -146,6 +127,9 @@ jSuites.app = (function(el, options) {
             }
 
             if (obj.options.detachHiddenPages == false) {
+                // Always hidden when created
+                page.style.display = 'none';
+                // Update DOM
                 updateDOM();
             }
 
@@ -158,8 +142,14 @@ jSuites.app = (function(el, options) {
                 }
             }
 
+            // Url
+            var url = o.url;
+            if (url.indexOf('?') == '-1') {
+                url += '?ts=' + new Date().getTime();
+            }
+
             jSuites.ajax({
-                url: o.url,
+                url: url,
                 method: 'GET',
                 dataType: 'html',
                 queue: true,
@@ -569,7 +559,8 @@ jSuites.app = (function(el, options) {
             } else if (link == '#panel') {
                 obj.panel();
             } else {
-                if (actionElement.classList.contains('link')) {
+                var href = actionElement.href;
+                if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
                     actionElement = null;
                 } else {
                     obj.pages(link);
@@ -604,7 +595,11 @@ jSuites.app = (function(el, options) {
         if (e.state && e.state.route) {
             if (obj.pages.get(e.state.route)) {
                 obj.pages(e.state.route, { ignoreHistory: true });
+            } else {
+                window.location.href = e.state.route;
             }
+        } else {
+            window.location.reload();
         }
     }
 
@@ -941,9 +936,3 @@ jSuites.refresh = (function(el, options) {
 
     return obj;
 })();
-
-
-
-    return jSuites;
-
-})));
