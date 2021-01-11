@@ -1,0 +1,30 @@
+{
+    "name": "@jsuites/cropper-react",
+    "title": "React image cropper",
+    "description": "React image editor and cropper plugin, with crop, zoom, rotate, brightness, contract and methods to export the results.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "React plugins, javascript, image cropper, react image cropper, react image editor, rotate, zoom, crop, brightness, contract."
+    ],
+    "dependencies": {
+        "jsuites": "^3.9.3"
+    },
+    "main": "index.js",
+    "version": "1.1.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v3",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
