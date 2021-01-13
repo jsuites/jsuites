@@ -1,5 +1,5 @@
 {
-    "name": "@jsuites/cropper-react",
+    "name": "@jsuites/react-cropper",
     "title": "React image cropper",
     "description": "React image editor and cropper plugin, with crop, zoom, rotate, brightness, contract and methods to export the results.",
     "repository": {

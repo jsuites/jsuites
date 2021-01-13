@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import PropTypes from "prop-types";
 import jSuites from "jsuites";
 import cropper from "@jsuites/cropper";
 
@@ -7,7 +8,7 @@ import "../node_modules/jsuites/dist/jsuites.css";
 import "../node_modules/jsuites/dist/jsuites.layout.css";
 import "../node_modules/@jsuites/cropper/cropper.css";
 
-export default function App() {
+function Cropper({ imageUrl, setImage, onchange, ...options }) {
   const [controls, setControls] = useState(false);
 
   const [zoom, setZoom] = useState(1);
@@ -19,27 +20,31 @@ export default function App() {
   const modalRef = useRef(null);
   const previewRef = useRef(null);
   const cropperRef = useRef(null);
-  const tabs = useRef(null);
-  const crop = useRef(null);
-  const modal = useRef(null);
+
+  const jsuitesTabs = useRef(null);
+  const jsuitesCrop = useRef(null);
+  const jsuitesModal = useRef(null);
 
   useEffect(() => {
+    if (cropperRef.current.innerHTML) {
+      return;
+    }
     // Adjustment for the screen size
     const area = jSuites.getWindowWidth();
 
-    let a;
-    let c;
+    let cropperArea;
+    let cropArea;
 
     if (area < 800) {
-      a = [area, area * 0.66];
-      c = [area, 300];
+      cropperArea = [area, area * 0.66];
+      cropArea = [area, 300];
     } else {
-      a = [798, 300];
-      c = [300, 200];
+      cropperArea = [798, 300];
+      cropArea = [300, 200];
     }
 
     // Create tabs
-    tabs.current = jSuites.tabs(tabsRef.current, {
+    jsuitesTabs.current = jSuites.tabs(tabsRef.current, {
       data: [
         {
           title: "Crop",
@@ -56,51 +61,63 @@ export default function App() {
       animation: true,
       position: "bottom"
     });
-    tabs.current.content.style.backgroundColor = "#eee";
+    jsuitesTabs.current.content.style.backgroundColor = "#eee";
 
     // Create cropper
-    console.log(a, c);
-    crop.current = cropper(cropperRef.current, {
-      area: a,
-      crop: c,
-      allowResize: false,
-      onchange: function (el, image) {
+    const defaultOptions = {
+      area: cropperArea,
+      crop: cropArea,
+      allowResize: false
+    };
+
+    Object.assign(defaultOptions, options);
+
+    jsuitesCrop.current = cropper(cropperRef.current, {
+      ...defaultOptions,
+      value: imageUrl,
+      onchange: (el, image) => {
         if (image) {
           setControls(true);
+        }
+
+        if (onchange) {
+          onchange();
         }
       }
     });
 
+    jsuitesCrop.current.addFromUrl(imageUrl);
+
     // Create the modal
-    modal.current = jSuites.modal(modalRef.current, {
+    jsuitesModal.current = jSuites.modal(modalRef.current, {
       closed: true,
       width: "800px",
       height: "600px",
       title: "Photo Upload",
       padding: "0"
     });
-  }, []);
+  }, [imageUrl, onchange, options]);
 
   useEffect(() => {
-    crop.current.zoom(zoom);
+    jsuitesCrop.current.zoom(zoom);
   }, [zoom]);
 
   useEffect(() => {
-    crop.current.rotate(rotate);
+    jsuitesCrop.current.rotate(rotate);
   }, [rotate]);
 
   useEffect(() => {
-    crop.current.brightness(brightness);
+    jsuitesCrop.current.brightness(brightness);
   }, [brightness]);
 
   useEffect(() => {
-    crop.current.contrast(contrast);
+    jsuitesCrop.current.contrast(contrast);
   }, [contrast]);
 
   const openModal = () => {
-    if (!modal.current.isOpen()) {
+    if (!jsuitesModal.current.isOpen()) {
       // Open modale
-      modal.current.open();
+      jsuitesModal.current.open();
       // Create controls for the first time only
       if (!previewRef.current.classList.contains("controls")) {
         // Flag controls are ready
@@ -113,7 +130,7 @@ export default function App() {
     if (cropperRef.current.classList.contains("jcrop_edition")) {
       previewRef.current.innerHTML = "";
 
-      const newImage = crop.current.getCroppedImage();
+      const newImage = jsuitesCrop.current.getCroppedImage();
       newImage.style.width = "100%";
 
       var createImage = function (b) {
@@ -121,25 +138,31 @@ export default function App() {
 
         newImage.src = window.URL.createObjectURL(b);
 
+        setImage(newImage.src);
+
         previewRef.current.appendChild(newImage);
       };
 
-      crop.current.getCroppedAsBlob(createImage);
+      jsuitesCrop.current.getCroppedAsBlob(createImage);
 
-      modal.current.close();
+      jsuitesModal.current.close();
     }
   };
 
   const uploadPhoto = () => {
-    jSuites.click(crop.current.getFileInput());
+    jSuites.click(jsuitesCrop.current.getFileInput());
   };
 
   const deletePhoto = () => {
-    crop.current.reset();
+    jsuitesCrop.current.reset();
 
-    modal.current.close();
+    jsuitesModal.current.close();
 
     setControls(false);
+
+    previewRef.current.children[0].src = "";
+
+    setImage("");
   };
 
   return (
@@ -285,3 +308,17 @@ export default function App() {
     </div>
   );
 }
+
+Cropper.propTypes = {
+  onchange: PropTypes.func,
+  area: PropTypes.arrayOf(PropTypes.number),
+  crop: PropTypes.arrayOf(PropTypes.number),
+  remoteParser: PropTypes.string,
+  allowResize: PropTypes.bool,
+  text: PropTypes.object,
+  onload: PropTypes.func,
+  imageUrl: PropTypes.string,
+  setImage: PropTypes.func
+};
+
+export default Cropper;
