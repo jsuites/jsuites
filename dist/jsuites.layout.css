@@ -1190,19 +1190,19 @@ section.middle {
 }
 
 ::-webkit-input-placeholder {
-   color: #000000;
+   color: #ccc;
 }
 
 :-moz-placeholder {
-   color: #000000;  
+   color: #ccc;  
 }
 
 ::-moz-placeholder {
-   color: #000000;  
+   color: #ccc;  
 }
 
-:-ms-input-placeholder {  
-   color: #000000;  
+:-ms-input-placeholder {
+   color: #ccc;  
 }
 
 
@@ -1347,7 +1347,7 @@ section.middle {
 .jmenu .close {
     position: absolute;
     top: 20px;
-    left: 260px;
+    left: 240px;
 }
 
 .jmenu nav {
@@ -1461,12 +1461,88 @@ section.middle {
         z-index:9000;
         overflow: scroll;
         padding-left: 20px;
+        box-shadow: 1px 1px 0px 0.1px #ccc !important;
+        -webkit-box-shadow: 1px 0px 1px 0.1px #ccc !important;
+        -moz-box-shadow: 1px 1px 0px 0.1px #ccc !important;
     }
 
     .jmenu li {
         margin-bottom: 10px;
     }
 }
+
+
+.jscroll {
+    content: '';
+    position: absolute;
+    background-color: rgba(0,0,0,.4);
+}
+
+.jscroll-v{
+    top: 0;
+    right: 0;
+    width: 8px;
+}
+
+.jscroll-h {
+    bottom: 0;
+    left: 0;
+    height: 8px;
+}
+
+.jscroll-container {
+    position: absolute;
+    background:rgba(169, 167, 167, 0.85);
+}
+
+.jscroll-container.show {
+    animation: .3s forwards;
+    animation-name: show;   
+}
+
+.jscroll-container.hide {
+    animation: .3s forwards;
+    animation-name: hide;   
+}
+
+.jscroll-container.vertical {
+    width: 8px;
+    right: 0;
+    top: 0;
+}
+
+.jscroll-container.horizontal{
+    bottom: 0;
+    left: 0;
+    height: 8px;
+}
+
+*.jscroll-unselectable {
+    -moz-user-select: -moz-none;
+    -khtml-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+     user-select: none;
+ }
+
+ @keyframes show {
+     0% {
+         opacity: 0
+     }
+     100% {
+         opacity: 1
+     }
+ }
+
+ @keyframes hide {
+     0% {
+         opacity: 1
+     }
+     100% {
+         opacity: 0
+     }
+ }
+
 
 .jtemplate-pagination {
     display:flex;

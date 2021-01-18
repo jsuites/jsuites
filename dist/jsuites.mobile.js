@@ -559,7 +559,7 @@ jSuites.app = (function(el, options) {
             } else if (link == '#panel') {
                 obj.panel();
             } else {
-                var href = actionElement.href;
+                var href = actionElement.getAttribute('href');
                 if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
                     actionElement = null;
                 } else {

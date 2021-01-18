@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.3)
+ * (c) jSuites Javascript Web Components (v3.9.4)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -584,6 +584,11 @@ jSuites.calendar = (function(el, options) {
             calendarSelectHour.removeAttribute('disabled');
             calendarSelectMin.removeAttribute('disabled');
         }
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
     }
 
     /**
@@ -727,6 +732,18 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
+    /**
+     * Set today
+     */
+    obj.setToday = function() {
+        // Today
+        var value = new Date().toISOString().substr(0, 10);
+        // Change value
+        obj.setValue(value);
+        // Value
+        return value;
+    }
+
     obj.setValue = function(val) {
         if (! val) {
             val = '' + val;
@@ -811,11 +828,6 @@ jSuites.calendar = (function(el, options) {
             } else {
                 obj.date[3] = calendarSelectHour.value;
                 obj.date[4] = calendarSelectMin.value;
-            }
-
-            // Event
-            if (typeof(obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue());
             }
         }
 
@@ -1613,127 +1625,71 @@ jSuites.calendar.isOpen = function(e) {
 
 
 jSuites.color = (function(el, options) {
+    // Already created, update options
+    if (el.classList.contains('jcolor')) {
+        return el.color.setOptions(options);
+    }
+
+    // New instance
     var obj = {};
     obj.options = {};
-    obj.values = [];
 
-    // Global container
-    if (! jSuites.color.current) {
-        jSuites.color.current = null;
-    }
+    var container = null;
+    var backdrop = null;
+    var content = null;
 
     /**
-     * @typedef {Object} defaults
-     * @property {(string|Array)} value - Initial value of the compontent
-     * @property {string} placeholder - The default instruction text on the element
-     * @property {requestCallback} onchange - Method to be execute after any changes on the element
-     * @property {requestCallback} onclose - Method to be execute when the element is closed
-     * @property {string} doneLabel - Label for button done
-     * @property {string} resetLabel - Label for button reset
-     * @property {string} resetValue - Value for button reset
-     * @property {Bool} showResetButton - Active or note for button reset - default false
+     * Update options
      */
-    var defaults = {
-        placeholder: '',
-        value: null,
-        onopen: null,
-        onclose: null,
-        onchange: null,
-        closeOnChange: true,
-        palette: null,
-        position: null,
-        doneLabel: 'Done',
-        resetLabel: 'Reset',
-        fullscreen: false,
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
+    obj.setOptions = function(options) {
+        /**
+         * @typedef {Object} defaults
+         * @property {(string|Array)} value - Initial value of the compontent
+         * @property {string} placeholder - The default instruction text on the element
+         * @property {requestCallback} onchange - Method to be execute after any changes on the element
+         * @property {requestCallback} onclose - Method to be execute when the element is closed
+         * @property {string} doneLabel - Label for button done
+         * @property {string} resetLabel - Label for button reset
+         * @property {string} resetValue - Value for button reset
+         * @property {Bool} showResetButton - Active or note for button reset - default false
+         */
+        var defaults = {
+            placeholder: '',
+            value: null,
+            onopen: null,
+            onclose: null,
+            onchange: null,
+            closeOnChange: true,
+            palette: null,
+            position: null,
+            doneLabel: 'Done',
+            resetLabel: 'Reset',
+            fullscreen: false,
         }
-    }
 
-    if (! obj.options.palette) {
-        // Default pallete
-        obj.options.palette = jSuites.palette();
-    }
-
-    // Value
-    if (obj.options.value) {
-        el.value = obj.options.value;
-    }
-
-    if (el.tagName == 'INPUT') {
-        el.classList.add('jcolor-input');
-    }
-
-    // Table container
-    var container = document.createElement('div');
-    container.className = 'jcolor';
-
-    // Table container
-    var backdrop = document.createElement('div');
-    backdrop.className = 'jcolor-backdrop';
-    container.appendChild(backdrop);
-
-    // Content
-    var content = document.createElement('div');
-    content.className = 'jcolor-content';
-
-    // Controls
-    var controls = document.createElement('div');
-    controls.className = 'jcolor-controls';
-    content.appendChild(controls);
-
-    // Reset button
-    var resetButton  = document.createElement('div');
-    resetButton.className = 'jcolor-reset';
-    resetButton.innerHTML = obj.options.resetLabel;
-    resetButton.onclick = function() {
-        obj.setValue('');
-        obj.close();
-    }
-    controls.appendChild(resetButton);
-
-    // Close button
-    var closeButton  = document.createElement('div');
-    closeButton.className = 'jcolor-close';
-    closeButton.innerHTML = obj.options.doneLabel;
-    closeButton.onclick = function() {
-        obj.close();
-    }
-    controls.appendChild(closeButton);
-
-    // Table pallete
-    var table = document.createElement('table');
-    table.setAttribute('cellpadding', '7');
-    table.setAttribute('cellspacing', '0');
-
-    for (var j = 0; j < obj.options.palette.length; j++) {
-        var tr = document.createElement('tr');
-        for (var i = 0; i < obj.options.palette[j].length; i++) {
-            var td = document.createElement('td');
-            var color = obj.options.palette[j][i];
-            if (color.length < 7 && color.substr(0,1) !== '#') {
-                color = '#' + color;
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
             }
-            td.style.backgroundColor = color;
-            td.setAttribute('data-value', color);
-            td.innerHTML = '';
-            tr.appendChild(td);
-
-            // Selected color
-            if (obj.options.value == color) {
-                td.classList.add('jcolor-selected');
-            }
-
-            // Possible values
-            obj.values[color] = td;
         }
-        table.appendChild(tr);
+
+        if (! obj.options.palette) {
+            // Default pallete
+            obj.options.palette = jSuites.palette();
+        }
+
+        // Value
+        if (obj.options.value) {
+            el.value = obj.options.value;
+        }
+
+        // Placeholder
+        if (obj.options.placeholder) {
+            el.setAttribute('placeholder', obj.options.placeholder);
+        }
     }
 
     /**
@@ -1838,9 +1794,11 @@ jSuites.color = (function(el, options) {
                 obj.options.onchange(el, color);
             }
 
-            // Lemonade JS
+            // Changes
             if (el.value != obj.options.value) {
+                // Set input value
                 el.value = obj.options.value;
+                // Element onchange native
                 if (typeof(el.onchange) == 'function') {
                     el.onchange({
                         type: 'change',
@@ -1865,89 +1823,169 @@ jSuites.color = (function(el, options) {
 
     var backdropClickControl = false;
 
-    /**
-     * Focus
-     */
-    el.addEventListener("focus", function(e) {
-        if (! jSuites.color.current) {
-            obj.open();
+    var init = function() {
+        // Initial options
+        obj.setOptions(options);
+
+        // Add a proper input tag when the element is an input
+        if (el.tagName == 'INPUT') {
+            el.classList.add('jcolor-input');
         }
-    });
 
-    /**
-     * If element is focus open the picker
-     */
-    el.addEventListener("mouseup", function(e) {
-        if (! jSuites.color.current) {
-            obj.open();
-        }
-        e.preventDefault();
-        e.stopPropagation();
-    });
+        // Table container
+        container = document.createElement('div');
+        container.className = 'jcolor';
 
-    backdrop.addEventListener("mousedown", function(e) {
-        backdropClickControl = true;
-        e.preventDefault();
-        e.stopPropagation();
-    });
+        // Table container
+        backdrop = document.createElement('div');
+        backdrop.className = 'jcolor-backdrop';
+        container.appendChild(backdrop);
 
-    backdrop.addEventListener("mouseup", function(e) {
-        if (backdropClickControl && jSuites.color.current) {
+        // Content
+        content = document.createElement('div');
+        content.className = 'jcolor-content';
+
+        // Controls
+        var controls = document.createElement('div');
+        controls.className = 'jcolor-controls';
+        content.appendChild(controls);
+
+        // Reset button
+        var resetButton  = document.createElement('div');
+        resetButton.className = 'jcolor-reset';
+        resetButton.innerHTML = obj.options.resetLabel;
+        resetButton.onclick = function() {
+            obj.setValue('');
             obj.close();
-            backdropClickControl = false;
         }
-        e.preventDefault();
-        e.stopPropagation();
-    });
+        controls.appendChild(resetButton);
 
-    // Select color
-    container.addEventListener("mouseup", function(e) {
-        if (e.target.tagName == 'TD') {
-            jSuites.color.current.setValue(e.target.getAttribute('data-value'));
+        // Close button
+        var closeButton  = document.createElement('div');
+        closeButton.className = 'jcolor-close';
+        closeButton.innerHTML = obj.options.doneLabel;
+        closeButton.onclick = function() {
+            obj.close();
+        }
+        controls.appendChild(closeButton);
 
-            if (jSuites.color.current) {
-                jSuites.color.current.close();
+        // Cells
+        obj.values = [];
+
+        // Table pallete
+        var table = document.createElement('table');
+        table.setAttribute('cellpadding', '7');
+        table.setAttribute('cellspacing', '0');
+
+        for (var j = 0; j < obj.options.palette.length; j++) {
+            var tr = document.createElement('tr');
+            for (var i = 0; i < obj.options.palette[j].length; i++) {
+                var td = document.createElement('td');
+                var color = obj.options.palette[j][i];
+                if (color.length < 7 && color.substr(0,1) !== '#') {
+                    color = '#' + color;
+                }
+                td.style.backgroundColor = color;
+                td.setAttribute('data-value', color);
+                td.innerHTML = '';
+                tr.appendChild(td);
+
+                // Selected color
+                if (obj.options.value == color) {
+                    td.classList.add('jcolor-selected');
+                }
+
+                // Possible values
+                obj.values[color] = td;
             }
+            table.appendChild(tr);
+        }
 
+        // Possible to focus the container
+        container.setAttribute('tabindex', '900');
+
+        // Append to the table
+        content.appendChild(table);
+        container.appendChild(content);
+
+        // Insert picker after the element
+        if (el.tagName == 'INPUT') {
+            el.parentNode.insertBefore(container, el.nextSibling);
+        } else {
+            el.appendChild(container);
+        }
+
+        /**
+         * Focus
+         */
+        el.addEventListener("focus", function(e) {
+            if (! jSuites.color.current) {
+                obj.open();
+            }
+        });
+        
+        /**
+         * If element is focus open the picker
+         */
+        el.addEventListener("mouseup", function(e) {
+            if (! jSuites.color.current) {
+                obj.open();
+            }
             e.preventDefault();
             e.stopPropagation();
-        }
-    });
+        });
 
-    // Close controller
-    document.addEventListener("mousedown", function(e) {
-        if (jSuites.color.current) {
-            var element = jSuites.findElement(e.target, 'jcolor');
-            if (! element) {
-                jSuites.color.current.close();
+        backdrop.addEventListener("mousedown", function(e) {
+            backdropClickControl = true;
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        backdrop.addEventListener("mouseup", function(e) {
+            if (backdropClickControl && jSuites.color.current) {
+                obj.close();
+                backdropClickControl = false;
             }
+            e.preventDefault();
+            e.stopPropagation();
+        });
+
+        // Select color
+        container.addEventListener("mouseup", function(e) {
+            if (e.target.tagName == 'TD') {
+                jSuites.color.current.setValue(e.target.getAttribute('data-value'));
+
+                if (jSuites.color.current) {
+                    jSuites.color.current.close();
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+            }
+        });
+
+        // Close controller
+        if (! jSuites.color.hasEvents) {
+            document.addEventListener("mousedown", function(e) {
+                if (jSuites.color.current) {
+                    var element = jSuites.findElement(e.target, 'jcolor');
+                    if (! element) {
+                        jSuites.color.current.close();
+                    }
+                }
+            });
+
+            jSuites.color.hasEvents = true;
         }
-    });
 
-    // Possible to focus the container
-    container.setAttribute('tabindex', '900');
+        // Change
+        el.change = obj.setValue;
 
-    // Placeholder
-    if (obj.options.placeholder) {
-        el.setAttribute('placeholder', obj.options.placeholder);
+        // Keep object available from the node
+        el.color = obj;
     }
 
-    // Append to the table
-    content.appendChild(table);
-    container.appendChild(content);
-
-    // Insert picker after the element
-    if (el.tagName == 'INPUT') {
-        el.parentNode.insertBefore(container, el.nextSibling);
-    } else {
-        el.appendChild(container);
-    }
-
-    // Change
-    el.change = obj.setValue;
-
-    // Keep object available from the node
-    el.color = obj;
+    init();
 
     return obj;
 });
@@ -4572,9 +4610,11 @@ jSuites.hash = function(str) {
         return hash;
     } else {
         for (i = 0; i < str.length; i++) {
-          chr = str.charCodeAt(i);
-          hash = ((hash << 5) - hash) + chr;
-          hash |= 0;
+            chr = str.charCodeAt(i);
+            if (chr > 32) {
+                hash = ((hash << 5) - hash) + chr;
+                hash |= 0;
+            }
         }
     }
     return hash;
@@ -6145,35 +6185,52 @@ jSuites.picker = (function(el, options) {
 });
 
 jSuites.rating = (function(el, options) {
+    // Already created, update options
+    if (el.classList.contains('jrating')) {
+        return el.rating.setOptions(options);
+    }
+
+    // New instance
     var obj = {};
     obj.options = {};
 
-    // Default configuration
-    var defaults = {
-        number: 5,
-        value: 0,
-        tooltip: [ 'Very bad', 'Bad', 'Average', 'Good', 'Very good' ],
-        onchange: null,
-    };
+    obj.setOptions = function(options) {
+        // Default configuration
+        var defaults = {
+            number: 5,
+            value: 0,
+            tooltip: [ 'Very bad', 'Bad', 'Average', 'Good', 'Very good' ],
+            onchange: null,
+        };
 
-    // Loop through the initial configuration
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
+        // Loop through the initial configuration
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
         }
-    }
 
-    // Class
-    el.classList.add('jrating');
+        // Make sure the container is empty
+        el.innerHTML = '';
 
-    // Add elements
-    for (var i = 0; i < obj.options.number; i++) {
-        var div = document.createElement('div');
-        div.setAttribute('data-index', (i + 1))
-        div.setAttribute('title', obj.options.tooltip[i])
-        el.appendChild(div);
+        // Add elements
+        for (var i = 0; i < obj.options.number; i++) {
+            var div = document.createElement('div');
+            div.setAttribute('data-index', (i + 1))
+            div.setAttribute('title', obj.options.tooltip[i])
+            el.appendChild(div);
+        }
+
+        // Selected option
+        if (obj.options.value) {
+            for (var i = 0; i < obj.options.number; i++) {
+                if (i < obj.options.value) {
+                    el.children[i].classList.add('jrating-selected');
+                }
+            }
+        }
     }
 
     // Set value
@@ -6210,48 +6267,50 @@ jSuites.rating = (function(el, options) {
         return obj.options.value;
     }
 
-    if (obj.options.value) {
-        for (var i = 0; i < obj.options.number; i++) {
-            if (i < obj.options.value) {
-                el.children[i].classList.add('jrating-selected');
-            }
-        }
-    }
+    var init = function() {
+        // Start plugin
+        obj.setOptions(options);
 
-    // Events
-    el.addEventListener("click", function(e) {
-        var index = e.target.getAttribute('data-index');
-        if (index != undefined) {
-            if (index == obj.options.value) {
-                obj.setValue(0);
-            } else {
-                obj.setValue(index);
-            }
-        }
-    });
+        // Class
+        el.classList.add('jrating');
 
-    el.addEventListener("mouseover", function(e) {
-        var index = e.target.getAttribute('data-index');
-        for (var i = 0; i < obj.options.number; i++) {
-            if (i < index) {
-                el.children[i].classList.add('jrating-over');
-            } else {
+        // Events
+        el.addEventListener("click", function(e) {
+            var index = e.target.getAttribute('data-index');
+            if (index != undefined) {
+                if (index == obj.options.value) {
+                    obj.setValue(0);
+                } else {
+                    obj.setValue(index);
+                }
+            }
+        });
+
+        el.addEventListener("mouseover", function(e) {
+            var index = e.target.getAttribute('data-index');
+            for (var i = 0; i < obj.options.number; i++) {
+                if (i < index) {
+                    el.children[i].classList.add('jrating-over');
+                } else {
+                    el.children[i].classList.remove('jrating-over');
+                }
+            }
+        });
+
+        el.addEventListener("mouseout", function(e) {
+            for (var i = 0; i < obj.options.number; i++) {
                 el.children[i].classList.remove('jrating-over');
             }
-        }
-    });
+        });
 
-    el.addEventListener("mouseout", function(e) {
-        for (var i = 0; i < obj.options.number; i++) {
-            el.children[i].classList.remove('jrating-over');
-        }
-    });
+        // Change
+        el.change = obj.setValue;
 
-    // Change
-    el.change = obj.setValue;
+        // Reference
+        el.rating = obj;
+    }
 
-    // Reference
-    el.rating = obj;
+    init();
 
     return obj;
 });

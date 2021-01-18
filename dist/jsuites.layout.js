@@ -1,48 +1,16 @@
 jSuites.crop = (function(el, options) {
+    // Already created, update options
+    if (el.classList.contains('jcrop')) {
+        return el.crop.setOptions(options);
+    }
+
+    // New instance
     var obj = {};
     obj.options = {};
-
-    // Default configuration
-    var defaults = {
-        area: [ 800, 600 ],
-        crop: [ 200, 150 ],
-        value: null,
-        onload: null,
-        onchange: null,
-        remoteParser: null,
-        allowResize: true,
-        text: {
-            extensionNotAllowed: 'The extension is not allowed',
-            imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
-        }
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // Default for mobile
-    if (jSuites.getWindowWidth() < 800) {
-        if (! obj.options.area[0]) {
-            obj.options.area[0] = window.clientWidth * 2;
-        }
-        if (! obj.options.area[1]) {
-            obj.options.area[1] = window.clientHeight * 2;
-        }
-    }
 
     el.classList.add('jcrop');
     // Upload icon
     el.classList.add('jupload');
-
-    // Area
-    el.style.width = obj.options.area[0] + 'px';
-    el.style.height = obj.options.area[1] + 'px';
 
     // Area do crop
     var crop = document.createElement('div');
@@ -56,27 +24,27 @@ jSuites.crop = (function(el, options) {
 
     // Image
     var drawImage = function() {
-        if (el.clientHeight > image.height) {
-            var pointY = (el.clientHeight - image.height) / 2;
+        if (el.clientHeight > obj.image.height) {
+            var pointY = (el.clientHeight - obj.image.height) / 2;
         } else {
             var pointY = 0;
         }
 
-        if (el.clientWidth > image.width) {
-            var pointX = (el.clientWidth - image.width) / 2;
+        if (el.clientWidth > obj.image.width) {
+            var pointX = (el.clientWidth - obj.image.width) / 2;
         } else {
             var pointX = 0;
         }
 
-        image.left = pointX;
-        image.top = pointY;
+        obj.image.left = pointX;
+        obj.image.top = pointY;
 
         context.translate(pointX, pointY);
-        context.drawImage(image, 0, 0, image.width, image.height);
+        context.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
     }
 
-    var image = new Image();
-    image.onload = function onload() {
+    obj.image = new Image();
+    obj.image.onload = function onload() {
         obj.resetCanvas();
 
         var w = obj.options.area[0] / this.naturalWidth;
@@ -115,7 +83,7 @@ jSuites.crop = (function(el, options) {
 
         // Onchange
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, image);
+            obj.options.onchange(el, obj.image);
         }
     };
 
@@ -138,17 +106,17 @@ jSuites.crop = (function(el, options) {
 
     // Reload filters
     var refreshFilters = function() {
-        secondCanvas.width = image.width;
-        secondCanvas.height = image.height;
+        secondCanvas.width = obj.image.width;
+        secondCanvas.height = obj.image.height;
 
         secondContext.clearRect(0, 0, secondContext.width, secondContext.height);
 
         secondImage.width = secondCanvas.width;
         secondImage.height = secondCanvas.height;
 
-        if (image) {
+        if (obj.image) {
             //drawImage();
-            secondContext.drawImage(image, 0, 0, image.width, image.height);
+            secondContext.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
         }
 
         // Performs the contrast, if its value is different from the initial
@@ -176,6 +144,54 @@ jSuites.crop = (function(el, options) {
     }
 
     /**
+     * Set options
+     */
+    obj.setOptions = function() {
+        // Default configuration
+        var defaults = {
+            area: [ 800, 600 ],
+            crop: [ 200, 150 ],
+            value: null,
+            onload: null,
+            onchange: null,
+            remoteParser: null,
+            allowResize: true,
+            text: {
+                extensionNotAllowed: 'The extension is not allowed',
+                imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
+            }
+        };
+
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Default for mobile
+        if (jSuites.getWindowWidth() < 800) {
+            if (! obj.options.area[0]) {
+                obj.options.area[0] = window.clientWidth * 2;
+            }
+            if (! obj.options.area[1]) {
+                obj.options.area[1] = window.clientHeight * 2;
+            }
+        }
+
+        // Set options
+        el.style.width = obj.options.area[0] + 'px';
+        el.style.height = obj.options.area[1] + 'px';
+
+        // Initial image
+        if (obj.options.value) {
+            obj.image.src = obj.options.value;
+        }
+    }
+
+    /**
      * Reset crop to the initial conditions
      */
     obj.resetCropSelection = function() {
@@ -198,6 +214,8 @@ jSuites.crop = (function(el, options) {
 
     // Reset all the properties
     obj.reset = function() {
+        // Reset crop selection
+        obj.resetCropSelection()
         // Reset canvas
         obj.resetCanvas();
         // Reset state
@@ -276,7 +294,7 @@ jSuites.crop = (function(el, options) {
      * Returns the current image type
      */
     obj.getImageType = function() {
-        var dataType = image.src.substr(0,20);
+        var dataType = obj.image.src.substr(0,20);
         if(dataType.includes('data')){
             return dataType.split('/')[1].split(';')[0];
         }
@@ -349,7 +367,7 @@ jSuites.crop = (function(el, options) {
      * Returns the current image on canvas
      */
     obj.getImage = function() {
-        return image;
+        return obj.image;
     }
 
     /**
@@ -374,7 +392,7 @@ jSuites.crop = (function(el, options) {
         if (type[0] == 'image') {
             var imageFile = new FileReader();
             imageFile.addEventListener("load", function (v) {
-                image.src = v.srcElement.result;
+                obj.image.src = v.srcElement.result;
             });
             imageFile.readAsDataURL(file);
         } else {
@@ -390,7 +408,7 @@ jSuites.crop = (function(el, options) {
             console.error('remoteParser not defined in your initialization');
         } else {
             src = obj.options.remoteParser + src;
-            image.src = src;
+            obj.image.src = src;
         }
     }
 
@@ -413,31 +431,31 @@ jSuites.crop = (function(el, options) {
     var runMove = function() {
         // If the mouse was moved after the last scroll, it moves the image in relation to the x-axis
         if (lastX && lastX !== properties.zoom.origin.x) {
-            var temp = Math.abs(properties.zoom.origin.x - zoomOffsetX - image.left);
+            var temp = Math.abs(properties.zoom.origin.x - zoomOffsetX - obj.image.left);
             temp /= lastScale;
-            temp -= properties.zoom.origin.x - image.left;
+            temp -= properties.zoom.origin.x - obj.image.left;
 
-            image.left -= temp;
+            obj.image.left -= temp;
         }
 
         // If the mouse was moved after the last scroll, it moves the image in relation to the y-axis
         if (lastY && lastY !== properties.zoom.origin.y) {
-            var temp = Math.abs(properties.zoom.origin.y - zoomOffsetY - image.top);
+            var temp = Math.abs(properties.zoom.origin.y - zoomOffsetY - obj.image.top);
             temp /= lastScale;
-            temp -= properties.zoom.origin.y - image.top;
+            temp -= properties.zoom.origin.y - obj.image.top;
 
-            image.top -= temp;
+            obj.image.top -= temp;
         }
 
         // Update variables
-        zoomOffsetX = (properties.zoom.origin.x - image.left) - (properties.zoom.origin.x - image.left) * properties.zoom.scale;
-        zoomOffsetY = (properties.zoom.origin.y - image.top) - (properties.zoom.origin.y - image.top) * properties.zoom.scale;
+        zoomOffsetX = (properties.zoom.origin.x - obj.image.left) - (properties.zoom.origin.x - obj.image.left) * properties.zoom.scale;
+        zoomOffsetY = (properties.zoom.origin.y - obj.image.top) - (properties.zoom.origin.y - obj.image.top) * properties.zoom.scale;
         lastX = properties.zoom.origin.x;
         lastY = properties.zoom.origin.y;
         lastScale = properties.zoom.scale;
 
         // Move image
-        context.translate(image.left + zoomOffsetX, image.top + zoomOffsetY);
+        context.translate(obj.image.left + zoomOffsetX, obj.image.top + zoomOffsetY);
     }
 
     // Reload resizers and filters
@@ -462,7 +480,7 @@ jSuites.crop = (function(el, options) {
         if (properties.brightness || properties.contrast) {
             context.drawImage(secondImage, 0, 0, secondImage.width, secondImage.height);
         } else {
-            context.drawImage(image, 0, 0, image.width, image.height);
+            context.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
         }
     }
 
@@ -487,9 +505,9 @@ jSuites.crop = (function(el, options) {
         var value = properties.rotate;
         value *= 180;
 
-        context.translate(image.width / 2, image.height / 2);
+        context.translate(obj.image.width / 2, obj.image.height / 2);
         context.rotate(value * Math.PI / 180);
-        context.translate(- image.width / 2, - image.height / 2);
+        context.translate(- obj.image.width / 2, - obj.image.height / 2);
     }
 
     // Change the rotation and apply that to the image
@@ -707,7 +725,7 @@ jSuites.crop = (function(el, options) {
             imageState.mouseY = e.clientY;
         }
 
-        if(e.touches) {
+        if (e.touches) {
             if(e.touches.length == 2) {
                 imageState.mousedown = false;
                 scaling = true;
@@ -716,7 +734,7 @@ jSuites.crop = (function(el, options) {
         }
     }
     var touchEndListener = function(e) {
-        if(scaling) {
+        if (scaling) {
             scaling = false;
         }
     }
@@ -741,8 +759,8 @@ jSuites.crop = (function(el, options) {
             imageState.mouseY = currentY;
 
             if (imageState.mousedown) {
-                image.left += newX/properties.zoom.scale;
-                image.top += newY/properties.zoom.scale;
+                obj.image.left += newX/properties.zoom.scale;
+                obj.image.top += newY/properties.zoom.scale;
                 refreshResizers();
             }
 
@@ -754,17 +772,18 @@ jSuites.crop = (function(el, options) {
         }
     }
 
+    document.addEventListener('mouseup', function(e) {
+        imageState.mousedown = false;
+    });
+
     el.addEventListener('mouseup', editorMouseUp);
     el.addEventListener('mousedown', editorMouseDown);
     el.addEventListener('mousemove', editorMouseMove);
     el.addEventListener('touchstart',touchstartListener);
-  
+
     el.addEventListener('touchend', touchEndListener);
     el.addEventListener('touchmove', imageMoveListener);
     el.addEventListener('mousedown',touchstartListener);
-    document.addEventListener('mouseup', function(e) {
-        imageState.mousedown = false;
-    });
     el.addEventListener('mousemove', imageMoveListener);
 
     el.addEventListener("dblclick", function(e) {
@@ -863,13 +882,7 @@ jSuites.crop = (function(el, options) {
         obj.options.onload(el, obj);
     }
 
-    // Initial image
-    if (obj.options.value) {
-        image.src = obj.options.value;
-    }
-
-  // Mobile pinch zoom
-  
+    // Mobile pinch zoom
     var pinchStart = function(e) {
         var rect = el.getBoundingClientRect();
         properties.zoom.fingerDistance = Math.hypot(
@@ -902,6 +915,9 @@ jSuites.crop = (function(el, options) {
         }
         properties.zoom.fingerDistance = dist2;
     }
+
+    // Initial options
+    obj.setOptions(options);
 
     el.crop = obj;
 
@@ -1532,6 +1548,7 @@ jSuites.menu = (function(el, options) {
     obj.load = function() {
         if (localStorage) {
             var menu = el.querySelectorAll('nav');
+            var selected = null;
             for (var i = 0; i < menu.length; i++) {
                 menu[i].classList.remove('selected');
                 if (menu[i].getAttribute('data-id')) {
@@ -1541,7 +1558,7 @@ jSuites.menu = (function(el, options) {
                     }
                 }
             }
-            var href = localStorage.getItem('jmenu-href');
+            var href = window.location.pathname;
             if (href) {
                 var menu = document.querySelector('.jmenu a[href="'+ href +'"]');
                 if (menu) {
@@ -1571,8 +1588,6 @@ jSuites.menu = (function(el, options) {
         } else if (e.target.tagName == 'A') {
             // Mark link as selected
             obj.select(e.target);
-            // Keep the refernce in case load the page again
-            localStorage.setItem('jmenu-href', e.target.getAttribute('href'));
             // Close menu if is oped
             if (jSuites.getWindowWidth() < 800) {
                 obj.hide();
@@ -1598,17 +1613,12 @@ jSuites.menu = (function(el, options) {
     // Add menu class
     el.classList.add('jmenu');
 
-    /*var h1 = window.innerHeight;
-    var h2 = el.offsetTop;
-
-    // Add the scroll
-    jSuites.scroll(el, {
-        //height: (h1 - h2) + 'px'
-        height: '1000px',
-    });*/
-
     // Load state
     obj.load();
+
+    if (options && typeof(options.onload) == 'function') {
+        options.onload(el);
+    }
 
     // Keep reference
     el.menu = obj;
@@ -1616,6 +1626,261 @@ jSuites.menu = (function(el, options) {
     return obj;
 });
 
+
+jSuites.scroll = (function(el, options) {
+    var obj = {};
+    obj.options = {};
+
+    var defaults = {
+        width: null,
+        height: null,
+    }
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // sets container dimensions by defined options
+    if (obj.options.width) {
+        el.style.width = obj.options.width;
+    }
+
+    if (obj.options.height) {
+        el.style.height = obj.options.height;
+    }
+
+    // initializing scroll and scrollContainer components
+    var scrollY = null;
+    var scrollContainerY = null;
+
+    // Creates the dom elements of scroll and scroll container
+    scrollContainerY = document.createElement('div');
+    scrollY = document.createElement('div');
+    scrollContainerY.classList.add('jscroll-container', 'vertical');
+    scrollY.classList.add('jscroll', 'jscroll-v');
+    scrollContainerY.appendChild(scrollY);
+    scrollContainerY.style.height = el.scrollHeight + 'px';
+    scrollContainerY.style.display = 'none';
+    scrollY.style.height = Math.ceil((el.clientHeight / el.scrollHeight) * el.clientHeight) + 'px';
+
+    // Appends the scrollContainer into el container just if el is scrollable
+    if (el.scrollHeight > el.clientHeight) {
+        el.appendChild(scrollContainerY);
+    }
+
+    // hide any scroll in container
+    el.style.overflow = 'hidden';
+    el.style.position = 'relative';
+
+    // sets a rect of container to get its coordinates relative to the viewport
+    var elRect = el.getBoundingClientRect();
+
+    var stateY = {
+        mousedown: false,
+        offset: 0,
+        scrollAxis: 0,
+        scrollTop: 0,
+        initialScrollDimension: 8,
+        maxContainerScrollLength: el.scrollHeight
+    }
+
+    // re-calculate scrollbar position on the viewport and change its display
+    var updateScrollbar = function(direction) {
+
+        scrollContainerY.style.height = el.scrollHeight + 'px';
+
+        stateY.maxContainerScrollLength = el.scrollHeight;
+
+        var h = Math.ceil((el.clientHeight / el.scrollHeight) * el.clientHeight);
+        var t = (el.scrollTop / el.scrollHeight) * el.clientHeight + el.scrollTop;
+
+        if (parseInt(h) != parseInt(scrollY.style.height)) {
+            scrollY.style.height = h + 'px';
+            scrollY.style.top = t + 'px';
+        }
+
+        // Turn scrollbar container visible
+        if (scrollContainerY.style.display == 'none') {
+            scrollContainerY.style.display = 'block';
+        }
+
+        // re-calculate scrollY or scrollX propertie to be used on mouse wheel
+        stateY.scrollAxis = (el.clientHeight - scrollY.clientHeight) * el.scrollTop / (el.scrollHeight - el.clientHeight);
+
+    }
+
+    // Animates the scroll position and viewport position on wheel 
+    var runWheelAnimation = function(endPoint,deltaY) {
+        var wheelDelay = 50;
+        var d = deltaY > 0 ? 1 : -1;
+        var totalTime = 0;
+        var intervalDelay = 2.5;
+        var moveSpeed = Math.abs(el.scrollTop - endPoint)/(wheelDelay / intervalDelay);
+        var interval = setInterval(function() {
+            if(totalTime <= wheelDelay) {
+                if(deltaY > 0 && (el.scrollTop + moveSpeed * d) <= endPoint) {
+                    el.scrollTop += moveSpeed * d;
+                    scrollY.style.top = (((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight))) + `px`;
+                }else if(deltaY < 0 && (el.scrollTop + moveSpeed) >= endPoint) {
+                    el.scrollTop += moveSpeed * d;
+                    scrollY.style.top = (((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight))) + `px`;
+                }
+                totalTime += intervalDelay;
+            }
+            if(totalTime >= wheelDelay) {
+                clearInterval(interval);
+            }
+        },intervalDelay);
+    }
+
+    // calculate the new position of the container viewport and scrollbar
+    var scrollCalc = function(e, direction) {
+        var point;
+
+        if (e.type == 'wheel') {
+            if (e.deltaY > 0) {
+                var deltaSpeed = 150;
+            } else {
+                var deltaSpeed = -150;
+            }
+            stateY.scrollAxis += deltaSpeed / 100 * 15;
+
+            if (stateY.scrollAxis <= 0) {
+                stateY.scrollAxis = 0;
+            } else if (stateY.scrollAxis + scrollY.clientHeight >= el.clientHeight) {
+                stateY.scrollAxis = el.clientHeight - scrollY.clientHeight
+            } else {
+                e.preventDefault();
+            }
+
+            point = stateY.scrollAxis;
+        } else {
+            point = (e.clientY - elRect.top) - stateY.offset;
+            stateY.scrollAxis = point;
+        }
+
+        var viewPortVariation = point / el.clientHeight;
+        var newViewportPos = viewPortVariation * el.scrollHeight;
+
+        if (e.type == 'wheel') {
+            runWheelAnimation(newViewportPos, e.deltaY);
+            //el.scrollTop = newViewportPos
+        } else {
+            el.scrollTop = newViewportPos;
+        }
+
+        var destination = ((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight));
+
+        // limit scroll moving
+        if ((destination + scrollY.clientHeight) <= stateY.maxContainerScrollLength) {
+            if (e.type != 'wheel') {
+                scrollY.style.top = destination + 'px';
+            }
+            //scrollY.style.top = destination + 'px';
+        } else {
+            destination = stateY.maxContainerScrollLength - scrollY.clientHeight;
+            scrollY.style.top = destination + 'px';
+        }
+    }
+
+    // Global methods
+
+    /**
+     * refreshs scrollContainer dimensions based on its parent dimensions
+     *
+     */
+    obj.refresh = function() {
+        if (el.scrollHeight != el.clientHeight) {
+            updateScrollbar('top');
+        }
+    }
+
+    // Event listener to apply scroll position calculation on the scroll at the y-axis
+    var scrollCalcY = function(e) {
+        scrollCalc(e, 'top');
+    }
+
+    // Event listener to change the viewport of the container element on click
+    var scrollByClick = function(e) {
+        if (e.target.classList.contains('vertical')) {
+            scrollCalcY(e);
+        }
+    }
+
+    // Called on scroll move and sets the content of container to be unselectable
+    var setUnselectable = function() {
+        if (! el.classList.contains('jscroll-unselectable')) {
+            el.classList.add('jscroll-unselectable')
+        }
+    }
+
+    // Event listener to update the viewport of the container and scrollbar position
+    var updateY = function(e) {
+        if (stateY.mousedown || e.type == 'wheel') {
+            setUnselectable();
+            scrollCalcY(e);
+        }
+    }
+
+    // events 
+    el.onanimationend = function(e) {
+        if (e.animationName == 'hide') {
+            if (!stateY.mousedown) {
+                scrollContainerY.style.display = 'none';
+            }
+        }
+    }
+
+    el.addEventListener('mousemove', function(e) {
+        obj.refresh();
+    });
+
+    el.addEventListener('mouseenter', function(e) {
+        obj.refresh();
+
+        if (scrollContainerY.parentNode && !scrollContainerY.classList.contains('show')) {
+            scrollContainerY.classList.remove('hide');
+            scrollContainerY.classList.add('show');
+        }
+    });
+
+    el.addEventListener('mouseleave', function(e) {
+        if (scrollContainerY.parentNode && scrollContainerY.classList.contains('show') && !stateY.mousedown) {
+            scrollContainerY.classList.remove('show');
+            scrollContainerY.classList.add('hide');
+        }
+    });
+
+    el.addEventListener('click', function(e) {
+        obj.refresh();
+    });
+
+    scrollY.addEventListener('mousedown', function(e) {
+        if (e.target.classList.contains('jscroll-v')) {
+            document.onmousemove = updateY;
+            stateY.mousedown = true;
+            stateY.offset = (e.clientY - elRect.top) - (scrollY.offsetTop - el.scrollTop);
+        }
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (stateY.mousedown) {
+            stateY.mousedown = false;
+            // removes the unselectable class from el if it exists
+            if (el.classList.contains('jscroll-unselectable')) {
+                el.classList.remove('jscroll-unselectable');
+            }
+        }
+    });
+
+    scrollContainerY.addEventListener('click', scrollByClick);
+    el.addEventListener('wheel', updateY);
+});
 
 jSuites.signature = (function(el, options) {
     var obj = {};
@@ -1779,6 +2044,7 @@ jSuites.template = (function(el, options) {
         // Pagination page number of items
         pagination: null,
         onload: null,
+        onupdate: null,
         onchange: null,
         onsearch: null,
         onclick: null,
@@ -1904,7 +2170,7 @@ jSuites.template = (function(el, options) {
      * @param contentDOMContainer
      */
     obj.setContent = function(a, b) {
-        var c = obj.options.template[Object.keys(obj.options.template)[0]](a);
+        var c = obj.options.template[Object.keys(obj.options.template)[0]](a, obj);
         if ((c instanceof Element || c instanceof HTMLDocument)) {
             b.appendChild(c);
         } else {
@@ -2109,9 +2375,16 @@ jSuites.template = (function(el, options) {
             // Load data
             obj.renderTemplate();
 
-            // Onload
-            if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj);
+            // On Update
+            if (typeof(obj.options.onupdate) == 'function') {
+                obj.options.onupdate(el, obj, pageNumber);
+            }
+
+            if (forceLoad) {
+                // Onload
+                if (typeof(obj.options.onload) == 'function') {
+                    obj.options.onload(el, obj, pageNumber);
+                }
             }
         }
 
