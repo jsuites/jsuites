@@ -3,10 +3,9 @@ import PropTypes from "prop-types";
 import jSuites from "jsuites";
 import cropper from "@jsuites/cropper";
 
-import "./styles.css";
-import "../node_modules/jsuites/dist/jsuites.css";
-import "../node_modules/jsuites/dist/jsuites.layout.css";
-import "../node_modules/@jsuites/cropper/cropper.css";
+import "jsuites/dist/jsuites.css";
+import "jsuites/dist/jsuites.layout.css";
+import "@jsuites/cropper/cropper.css";
 
 function Cropper({ imageUrl, setImage, onchange, ...options }) {
   const [controls, setControls] = useState(false);
