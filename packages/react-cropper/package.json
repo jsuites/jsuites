@@ -24,7 +24,7 @@
         "prop-types": "^15.7.2"
     },
     "main": "index.js",
-    "version": "1.2.0",
+    "version": "1.2.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v3",

@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.4)
+ * (c) jSuites Javascript Web Components (v3.9.5)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -1017,6 +1017,7 @@ jSuites.calendar = (function(el, options) {
 
         // Table
         var table = document.createElement('table');
+        table.setAttribute('width', '100%');
 
         // Row
         var row = null;
@@ -1676,6 +1677,12 @@ jSuites.color = (function(el, options) {
             }
         }
 
+        // Update the text of the controls, if they have already been created
+        if (el.nextElementSibling.children[1]) {
+            el.nextElementSibling.children[1].children[0].children[0].innerHTML = obj.options.resetLabel;
+            el.nextElementSibling.children[1].children[0].children[1].innerHTML = obj.options.doneLabel;
+        }
+
         if (! obj.options.palette) {
             // Default pallete
             obj.options.palette = jSuites.palette();
@@ -1689,6 +1696,10 @@ jSuites.color = (function(el, options) {
         // Placeholder
         if (obj.options.placeholder) {
             el.setAttribute('placeholder', obj.options.placeholder);
+        } else {
+            if (el.getAttribute('placeholder')) {
+                el.removeAttribute('placeholder');
+            }
         }
     }
 

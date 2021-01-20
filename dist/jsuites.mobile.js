@@ -540,7 +540,7 @@ jSuites.app = (function(el, options) {
         }
 
         // Grouped buttons
-        if (e.target.parentNode.classList.contains('jbuttons-group')) {
+        if (e.target.parentNode && e.target.parentNode.classList.contains('jbuttons-group')) {
             for (var j = 0; j < e.target.parentNode.children.length; j++) {
                 e.target.parentNode.children[j].classList.remove('selected');
             }

@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.4)
+ * (c) jSuites Javascript Web Components (v3.9.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -1028,6 +1028,7 @@ jSuites.calendar = (function(el, options) {
 
         // Table
         var table = document.createElement('table');
+        table.setAttribute('width', '100%');
 
         // Row
         var row = null;
@@ -1648,6 +1649,8 @@ jSuites.color = (function(el, options) {
     var container = null;
     var backdrop = null;
     var content = null;
+    var resetButton = null;
+    var closeButton = null;
 
     /**
      * Update options
@@ -1687,6 +1690,14 @@ jSuites.color = (function(el, options) {
             }
         }
 
+        // Update the text of the controls, if they have already been created
+        if (resetButton) {
+            resetButton.innerHTML = obj.options.resetLabel;
+        }
+        if (closeButton) {
+            closeButton.innerHTML = obj.options.doneLabel;
+        }
+
         if (! obj.options.palette) {
             // Default pallete
             obj.options.palette = jSuites.palette();
@@ -1700,6 +1711,10 @@ jSuites.color = (function(el, options) {
         // Placeholder
         if (obj.options.placeholder) {
             el.setAttribute('placeholder', obj.options.placeholder);
+        } else {
+            if (el.getAttribute('placeholder')) {
+                el.removeAttribute('placeholder');
+            }
         }
     }
 
@@ -1862,7 +1877,7 @@ jSuites.color = (function(el, options) {
         content.appendChild(controls);
 
         // Reset button
-        var resetButton  = document.createElement('div');
+        resetButton  = document.createElement('div');
         resetButton.className = 'jcolor-reset';
         resetButton.innerHTML = obj.options.resetLabel;
         resetButton.onclick = function() {
@@ -1872,7 +1887,7 @@ jSuites.color = (function(el, options) {
         controls.appendChild(resetButton);
 
         // Close button
-        var closeButton  = document.createElement('div');
+        closeButton  = document.createElement('div');
         closeButton.className = 'jcolor-close';
         closeButton.innerHTML = obj.options.doneLabel;
         closeButton.onclick = function() {
@@ -6956,7 +6971,6 @@ jSuites.picker = (function(el, options) {
     return obj;
 });
 
-
 jSuites.progressbar = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -8088,51 +8102,69 @@ jSuites.tabs = (function(el, options) {
 });
 
 jSuites.tags = (function(el, options) {
+    // Redefine configuration
+    if (el.classList.contains('jtags')) {
+        return el.tags.setOptions(options);
+    }
+
     var obj = {};
     obj.options = {};
-
-    /**
-     * @typedef {Object} defaults
-     * @property {(string|Array)} value - Initial value of the compontent
-     * @property {number} limit - Max number of tags inside the element
-     * @property {string} search - The URL for suggestions
-     * @property {string} placeholder - The default instruction text on the element
-     * @property {validation} validation - Method to validate the tags
-     * @property {requestCallback} onbeforechange - Method to be execute before any changes on the element
-     * @property {requestCallback} onchange - Method to be execute after any changes on the element
-     * @property {requestCallback} onfocus - Method to be execute when on focus
-     * @property {requestCallback} onblur - Method to be execute when on blur
-     * @property {requestCallback} onload - Method to be execute when the element is loaded
-     */
-    var defaults = {
-        value: null,
-        limit: null,
-        limitMessage: 'The limit of entries is: ',
-        search: null,
-        placeholder: null,
-        validation: null,
-        onbeforechange: null,
-        onchange: null,
-        onfocus: null,
-        onblur: null,
-        onload: null,
-        colors: null,
-    };
-
-    // Loop through though the default configuration
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
 
     // Search helpers
     var searchContainer = null;
     var searchTerms = null;
     var searchIndex = 0;
     var searchTimer = 0;
+
+    obj.setOptions = function(options) {
+        /**
+         * @typedef {Object} defaults
+         * @property {(string|Array)} value - Initial value of the compontent
+         * @property {number} limit - Max number of tags inside the element
+         * @property {string} search - The URL for suggestions
+         * @property {string} placeholder - The default instruction text on the element
+         * @property {validation} validation - Method to validate the tags
+         * @property {requestCallback} onbeforechange - Method to be execute before any changes on the element
+         * @property {requestCallback} onchange - Method to be execute after any changes on the element
+         * @property {requestCallback} onfocus - Method to be execute when on focus
+         * @property {requestCallback} onblur - Method to be execute when on blur
+         * @property {requestCallback} onload - Method to be execute when the element is loaded
+         */
+        var defaults = {
+            value: null,
+            limit: null,
+            limitMessage: 'The limit of entries is: ',
+            search: null,
+            placeholder: null,
+            validation: null,
+            onbeforechange: null,
+            onchange: null,
+            onfocus: null,
+            onblur: null,
+            onload: null,
+            colors: null,
+        }
+
+        // Loop through though the default configuration
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Placeholder
+        if (obj.options.placeholder) {
+            el.setAttribute('data-placeholder', obj.options.placeholder);
+        } else {
+            el.removeAttribute('data-placeholder');
+        }
+        el.placeholder = obj.options.placeholder;
+
+        // Make sure element is empty
+        obj.setValue(obj.options.value);
+    }
 
     /**
      * Add a new tag to the element
@@ -8161,6 +8193,7 @@ jSuites.tags = (function(el, options) {
             if (! value || typeof(value) == 'string') {
                 var div = document.createElement('div');
                 div.innerHTML = value ? value : '<br>';
+                div.setAttribute('data-value', value);
                 if (node && node.parentNode.classList.contains('jtags')) {
                     el.insertBefore(div, node.nextSibling);
                 } else {
@@ -8172,11 +8205,21 @@ jSuites.tags = (function(el, options) {
                         el.removeChild(node);
                     }
                 }
-
                 for (var i = 0; i <= value.length; i++) {
                     if (! obj.options.limit || el.children.length < obj.options.limit) {
                         var div = document.createElement('div');
-                        div.innerHTML = value[i] ? value[i] : '<br>';
+                        if (! value[i] || typeof(value[i]) == 'string') {
+                            var t = value[i] || '';
+                            var v = t;
+                            if (! t) {
+                                t = '<br>';
+                            }
+                        } else {
+                            var t = value[i].text;
+                            var v = value[i].value;
+                        }
+                        div.innerHTML = t;
+                        div.setAttribute('data-value', v);
                         el.appendChild(div);
                     }
                 }
@@ -8197,6 +8240,7 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    // Remove a item node
     obj.remove = function(node) {
         // Remove node
         node.parentNode.removeChild(node);
@@ -8258,27 +8302,36 @@ jSuites.tags = (function(el, options) {
 
     /**
      * Set the value of the element based on a string separeted by (,|;|\r\n)
-     * @param {string} value - A string with the tags
+     * @param {mixed} value - A string or array object with values
      */
-    obj.setValue = function(text) {
-        // Remove whitespaces
-        text = (''+text).trim();
-
-        if (text) {
-            // Tags
-            var data = extractTags(text);
-            // Reset
-            el.innerHTML = '';
-            // Add tags to the element
-            obj.add(data);
-        } else {
+    obj.setValue = function(mixed) {
+        if (! mixed) {
             obj.reset();
+        } else {
+            if (Array.isArray(mixed)) {
+                obj.add(mixed);
+            } else {
+                // Remove whitespaces
+                var text = (''+mixed).trim();
+                // Tags
+                var data = extractTags(text);
+                // Reset
+                el.innerHTML = '';
+                // Add tags to the element
+                obj.add(data);
+            }
         }
     }
 
+    /**
+     * Reset the data from the element
+     */
     obj.reset = function() {
+        // Empty class
+        el.classList.add('jtags-empty');
+        // Empty element
         el.innerHTML = '<div><br></div>';
-
+        // Execute changes
         change();
     }
 
@@ -8305,10 +8358,10 @@ jSuites.tags = (function(el, options) {
         searchTerms = '';
         var node = getSelectionStart();
         // Append text to the caret
-        node.innerText = item.children[1].innerText;
+        node.innerText = item.getAttribute('data-text');
         // Set node id
-        if (item.children[1].getAttribute('data-value')) {
-            node.setAttribute('data-value', item.children[1].getAttribute('data-value'));
+        if (item.getAttribute('data-value')) {
+            node.setAttribute('data-value', item.getAttribute('data-value'));
         }
         // Close container
         if (searchContainer) {
@@ -8336,6 +8389,23 @@ jSuites.tags = (function(el, options) {
             searchContainer = document.createElement('div');
             searchContainer.classList.add('jtags_search');
             div.appendChild(searchContainer);
+
+            var click = function(e) {
+                if (e.target.classList.contains('jtags_search_item')) {
+                    var element = e.target;
+                } else {
+                    var element = e.target.parentNode;
+                }
+
+                obj.selectIndex(element);
+            }
+
+            // Bind events
+            if ('touchstart' in document.documentElement === true) {
+                searchContainer.addEventListener('touchstart', click);
+            } else {
+                searchContainer.addEventListener('mousedown', click);
+            }
         }
 
         // Search for
@@ -8378,6 +8448,10 @@ jSuites.tags = (function(el, options) {
                             }
 
                             var div = document.createElement('div');
+                            div.setAttribute('data-value', value);
+                            div.setAttribute('data-text', text);
+                            div.className = 'jtags_search_item';
+
                             if (i == 0) {
                                 div.classList.add('selected');
                             }
@@ -8390,12 +8464,7 @@ jSuites.tags = (function(el, options) {
                             div.appendChild(img);
 
                             var item = document.createElement('div');
-                            item.setAttribute('data-value', value);
                             item.innerHTML = text;
-                            div.onclick = function() {
-                                // Add item
-                                obj.selectIndex(this);
-                            }
                             div.appendChild(item);
                             // Append item to the container
                             searchContainer.appendChild(div);
@@ -8438,13 +8507,6 @@ jSuites.tags = (function(el, options) {
                 });
             }
         }
-    }
-
-    var getRandomColor = function(index) {
-        var rand = function(min, max) {
-            return min + Math.random() * (max - min);
-        }
-        return 'hsl(' + rand(1, 360) + ',' + rand(40, 70) + '%,' + rand(65, 72) + '%)';
     }
 
     /**
@@ -8737,41 +8799,38 @@ jSuites.tags = (function(el, options) {
         }
     }
 
-    // Bind events
-    el.addEventListener('mouseup', tagsMouseUp);
-    el.addEventListener('keydown', tagsKeyDown);
-    el.addEventListener('keyup', tagsKeyUp);
-    el.addEventListener('paste', tagsPaste);
-    el.addEventListener('focus', tagsFocus);
-    el.addEventListener('blur', tagsBlur);
+    var init = function() {
+        obj.setOptions(options);
 
-    // Prepare container
-    el.classList.add('jtags');
-    el.setAttribute('contenteditable', true);
-    el.setAttribute('spellcheck', false);
+        // Bind events
+        if ('touchend' in document.documentElement === true) {
+            el.addEventListener('touchend', tagsMouseUp);
+        } else {
+            el.addEventListener('mouseup', tagsMouseUp);
+        }
 
-    if (obj.options.placeholder) {
-        el.setAttribute('data-placeholder', obj.options.placeholder);
-        el.placeholder = obj.options.placeholder;
+        el.addEventListener('keydown', tagsKeyDown);
+        el.addEventListener('keyup', tagsKeyUp);
+        el.addEventListener('paste', tagsPaste);
+        el.addEventListener('focus', tagsFocus);
+        el.addEventListener('blur', tagsBlur);
+
+        // Prepare container
+        el.classList.add('jtags');
+        el.setAttribute('contenteditable', true);
+        el.setAttribute('spellcheck', false);
+
+        if (typeof(obj.options.onload) == 'function') {
+            obj.options.onload(el, obj);
+        }
+
+        // Change methods
+        el.change = obj.setValue;
+
+        el.tags = obj;
     }
 
-    // Make sure element is empty
-    if (obj.options.value) {
-        obj.setValue(obj.options.value);
-    } else {
-        el.innerHTML = '<div><br></div>';
-        // Empty
-        el.classList.add('jtags-empty');
-    }
-
-    if (typeof(obj.options.onload) == 'function') {
-        obj.options.onload(el, obj);
-    }
-
-    // Change methods
-    el.change = obj.setValue;
-
-    el.tags = obj;
+    init();
 
     return obj;
 });

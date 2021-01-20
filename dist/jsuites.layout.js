@@ -1574,6 +1574,37 @@ jSuites.menu = (function(el, options) {
             menu[i].classList.remove('selected');
         }
         o.classList.add('selected');
+
+        // Better navigation
+        if (options && options.collapse == true) {
+            if (o.classList.contains('show')) {
+                menu = el.querySelectorAll('nav');
+                for (var i = 0; i < menu.length; i++) {
+                    menu[i].style.display = '';
+                }
+                o.style.display = 'none';
+            } else {
+                menu = el.querySelectorAll('nav');
+                for (var i = 0; i < menu.length; i++) {
+                    menu[i].style.display = 'none';
+                }
+
+                menu = el.querySelector('.show');
+                if (menu) {
+                    menu.style.display = 'block';
+                }
+
+                menu = jSuites.findElement(o.parentNode, 'selected');
+                if (menu) {
+                    menu.style.display = '';
+                }
+            }
+        }
+
+        // Close menu if is oped
+        if (jSuites.getWindowWidth() < 800) {
+            obj.hide();
+        }
     }
 
     var actionDown = function(e) {
@@ -1588,10 +1619,6 @@ jSuites.menu = (function(el, options) {
         } else if (e.target.tagName == 'A') {
             // Mark link as selected
             obj.select(e.target);
-            // Close menu if is oped
-            if (jSuites.getWindowWidth() < 800) {
-                obj.hide();
-            }
         }
     }
 
@@ -2164,18 +2191,66 @@ jSuites.template = (function(el, options) {
         }
     }
 
+    var parse = function(element) {
+        // Attributes
+        var attr = {};
+
+        if (element.attributes && element.attributes.length) {
+            for (var i = 0; i < element.attributes.length; i++) {
+                attr[element.attributes[i].name] = element.attributes[i].value;
+            }
+        }
+
+        // Keys
+        var k = Object.keys(attr);
+
+        if (k.length) {
+            for (var i = 0; i < k.length; i++) {
+                // Parse events
+                if (k[i].substring(0,2) == 'on') {
+                    // Get event
+                    var event = k[i].toLowerCase();
+                    var value = attr[k[i]];
+
+                    // Get action
+                    element.removeAttribute(event);
+                    if (! element.events) {
+                        element.events = []
+                    }
+
+                    // Keep method to the event
+                    element[k[i].substring(2)] = value;
+                    element[event] = function(e) {
+                        Function('e', element[e.type]).call(obj.options.template, e);
+                    }
+                }
+            }
+        }
+
+        // Check the children
+        if (element.children.length) {
+            for (var i = 0; i < element.children.length; i++) {
+                parse(element.children[i]);
+            }
+        }
+    }
+
     /**
      * Append data to the template and add to the DOMContainer
      * @param data
      * @param contentDOMContainer
      */
     obj.setContent = function(a, b) {
+        // Get template
         var c = obj.options.template[Object.keys(obj.options.template)[0]](a, obj);
+        // Process events
         if ((c instanceof Element || c instanceof HTMLDocument)) {
             b.appendChild(c);
         } else {
             b.innerHTML = c;
         }
+
+        parse(b);
     }
 
     obj.addItem = function(data, beginOfDataSet) {
