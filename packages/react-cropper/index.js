@@ -165,7 +165,7 @@ function Cropper({ imageUrl, setImage, onchange, ...options }) {
   };
 
   return (
-    <div className="App" style={{ height: "100px", width: "300px" }}>
+    <div style={{ height: "100px", width: "300px", fontFamily: "sans-serif", textAlign: "center" }}>
       <div ref={previewRef} onMouseUp={openModal} className="jupload" />
       <div ref={modalRef}>
         <div ref={cropperRef}></div>
