@@ -1,2 +1,6 @@
 .project
 .settings
+
+packages/react-cropper/node_modules/
+packages/react-cropper/dist/
+packages/react-cropper/yarn.lock
