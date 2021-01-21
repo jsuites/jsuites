@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.5)
+ * (c) jSuites Javascript Web Components (v3.9.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -1638,6 +1638,8 @@ jSuites.color = (function(el, options) {
     var container = null;
     var backdrop = null;
     var content = null;
+    var resetButton = null;
+    var closeButton = null;
 
     /**
      * Update options
@@ -1678,9 +1680,11 @@ jSuites.color = (function(el, options) {
         }
 
         // Update the text of the controls, if they have already been created
-        if (el.nextElementSibling.children[1]) {
-            el.nextElementSibling.children[1].children[0].children[0].innerHTML = obj.options.resetLabel;
-            el.nextElementSibling.children[1].children[0].children[1].innerHTML = obj.options.doneLabel;
+        if (resetButton) {
+            resetButton.innerHTML = obj.options.resetLabel;
+        }
+        if (closeButton) {
+            closeButton.innerHTML = obj.options.doneLabel;
         }
 
         if (! obj.options.palette) {
@@ -1862,7 +1866,7 @@ jSuites.color = (function(el, options) {
         content.appendChild(controls);
 
         // Reset button
-        var resetButton  = document.createElement('div');
+        resetButton  = document.createElement('div');
         resetButton.className = 'jcolor-reset';
         resetButton.innerHTML = obj.options.resetLabel;
         resetButton.onclick = function() {
@@ -1872,7 +1876,7 @@ jSuites.color = (function(el, options) {
         controls.appendChild(resetButton);
 
         // Close button
-        var closeButton  = document.createElement('div');
+        closeButton  = document.createElement('div');
         closeButton.className = 'jcolor-close';
         closeButton.innerHTML = obj.options.doneLabel;
         closeButton.onclick = function() {
@@ -1965,11 +1969,6 @@ jSuites.color = (function(el, options) {
         container.addEventListener("mouseup", function(e) {
             if (e.target.tagName == 'TD') {
                 jSuites.color.current.setValue(e.target.getAttribute('data-value'));
-
-                if (jSuites.color.current) {
-                    jSuites.color.current.close();
-                }
-
                 e.preventDefault();
                 e.stopPropagation();
             }

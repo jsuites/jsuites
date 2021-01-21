@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.5)
+ * (c) jSuites Javascript Web Components (v3.9.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -1980,11 +1980,6 @@ jSuites.color = (function(el, options) {
         container.addEventListener("mouseup", function(e) {
             if (e.target.tagName == 'TD') {
                 jSuites.color.current.setValue(e.target.getAttribute('data-value'));
-
-                if (jSuites.color.current) {
-                    jSuites.color.current.close();
-                }
-
                 e.preventDefault();
                 e.stopPropagation();
             }
@@ -8205,6 +8200,7 @@ jSuites.tags = (function(el, options) {
                         el.removeChild(node);
                     }
                 }
+
                 for (var i = 0; i <= value.length; i++) {
                     if (! obj.options.limit || el.children.length < obj.options.limit) {
                         var div = document.createElement('div');
@@ -8417,61 +8413,120 @@ jSuites.tags = (function(el, options) {
             searchTerms = node.anchorNode.nodeValue;
             // Reset index
             searchIndex = 0;
-            // Get remove results
-            jSuites.ajax({
-                url: obj.options.search + searchTerms,
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    // Reset container
-                    searchContainer.innerHTML = '';
 
-                    // Print results
-                    if (! data.length) {
-                        // Show container
-                        searchContainer.style.display = '';
-                    } else {
-                        // Show container
-                        searchContainer.style.display = 'block';
+            // If the search option is an array, perform a search on that array
+            if (Array.isArray(obj.options.search)) {
+                var data = [];
 
-                        // Show items
-                        var len = data.length < 11 ? data.length : 10;
-                        for (var i = 0; i < len; i++) {
-                            // Legacy
-                            var text = data[i].text;
-                            if (! text && data[i].name) {
-                                text = data[i].name;
-                            }
-                            var value = data[i].value;
-                            if (! value && data[i].id) {
-                                value = data[i].id;
-                            }
+                var i = 0;
+                while (i < obj.options.search.length && data.length <= 10) {
+                    if (obj.options.search[i].includes(searchTerms)) {
+                        data.push(obj.options.search[i]);
+                    }
 
-                            var div = document.createElement('div');
-                            div.setAttribute('data-value', value);
-                            div.setAttribute('data-text', text);
-                            div.className = 'jtags_search_item';
+                    i++;
+                }
 
-                            if (i == 0) {
-                                div.classList.add('selected');
-                            }
-                            var img = document.createElement('img');
-                            if (data[i].image) {
-                                img.src = data[i].image;
-                            } else {
-                                img.style.display = 'none';
-                            }
-                            div.appendChild(img);
+                // Reset container
+                searchContainer.innerHTML = '';
 
-                            var item = document.createElement('div');
-                            item.innerHTML = text;
-                            div.appendChild(item);
-                            // Append item to the container
-                            searchContainer.appendChild(div);
+                // Print results
+                if (! data.length) {
+                    // Hide container
+                    searchContainer.style.display = '';
+                } else {
+                    // Show container
+                    searchContainer.style.display = 'block';
+
+                    // Show items
+                    var len = data.length < 11 ? data.length : 10;
+                    for (var i = 0; i < len; i++) {
+                        var text;
+                        var value
+
+                        if (typeof data[i] === "string") {
+                            text = data[i];
+                            value = data[i];
+                        } else {
+                            text = data[1].text;
+                            value = data[1].value;
                         }
+
+                        var div = document.createElement('div');
+                        div.setAttribute('data-value', value);
+                        div.setAttribute('data-text', text);
+                        div.className = 'jtags_search_item';
+
+                        if (i == 0) {
+                            div.classList.add('selected');
+                        }
+
+                        var item = document.createElement('div');
+                        item.innerHTML = text;
+                        div.appendChild(item);
+                        // Append item to the container
+                        searchContainer.appendChild(div);
                     }
                 }
-            });
+
+            // If the search option is a string, make a request using that string as a url
+            } else {
+                // Get remove results
+                jSuites.ajax({
+                    url: obj.options.search + searchTerms,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Reset container
+                        searchContainer.innerHTML = '';
+
+                        // Print results
+                        if (! data.length) {
+                            // Show container
+                            searchContainer.style.display = '';
+                        } else {
+                            // Show container
+                            searchContainer.style.display = 'block';
+
+                            // Show items
+                            var len = data.length < 11 ? data.length : 10;
+                            for (var i = 0; i < len; i++) {
+                                // Legacy
+                                var text = data[i].text;
+                                if (! text && data[i].name) {
+                                    text = data[i].name;
+                                }
+                                var value = data[i].value;
+                                if (! value && data[i].id) {
+                                    value = data[i].id;
+                                }
+
+                                var div = document.createElement('div');
+                                div.setAttribute('data-value', value);
+                                div.setAttribute('data-text', text);
+                                div.className = 'jtags_search_item';
+
+                                if (i == 0) {
+                                    div.classList.add('selected');
+                                }
+                                var img = document.createElement('img');
+                                if (data[i].image) {
+                                    img.src = data[i].image;
+                                } else {
+                                    img.style.display = 'none';
+                                }
+                                div.appendChild(img);
+
+                                var item = document.createElement('div');
+                                item.innerHTML = text;
+                                div.appendChild(item);
+                                // Append item to the container
+                                searchContainer.appendChild(div);
+                            }
+                        }
+                    }
+                });
+            }
         }
     }
 
@@ -8613,7 +8668,7 @@ jSuites.tags = (function(el, options) {
             el.appendChild(div);
         }
         // Comma
-        if (e.which == 9 || e.which == 186 || e.which == 188) {
+        if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
                 if (! obj.options.limit || el.children.length < obj.options.limit) {
@@ -8621,7 +8676,7 @@ jSuites.tags = (function(el, options) {
                 }
             }
             e.preventDefault();
-        } else if (e.which == 13) {
+        } else if (e.key == 'Enter') {
             // Enter
             if (searchContainer && searchContainer.style.display != '') {
                 obj.selectIndex(searchContainer.children[searchIndex]);
@@ -8634,7 +8689,7 @@ jSuites.tags = (function(el, options) {
                 }
             }
             e.preventDefault();
-        } else if (e.which == 38) {
+        } else if (e.key === 'ArrowUp') {
             // Up
             if (searchContainer && searchContainer.style.display != '') {
                 searchContainer.children[searchIndex].classList.remove('selected');
@@ -8644,7 +8699,7 @@ jSuites.tags = (function(el, options) {
                 searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
-        } else if (e.which == 40) {
+        } else if (e.key === 'ArrowDown') {
             // Down
             if (searchContainer && searchContainer.style.display != '') {
                 searchContainer.children[searchIndex].classList.remove('selected');
@@ -8654,7 +8709,7 @@ jSuites.tags = (function(el, options) {
                 searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
-        } else if (e.which == 8) {
+        } else if (e.key == 'Backspace') {
             // Back space - do not let last item to be removed
             if (el.children.length == 1 && window.getSelection().anchorOffset < 1) {
                 e.preventDefault();

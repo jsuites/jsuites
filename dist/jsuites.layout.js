@@ -295,7 +295,7 @@ jSuites.crop = (function(el, options) {
      */
     obj.getImageType = function() {
         var dataType = obj.image.src.substr(0,20);
-        if(dataType.includes('data')){
+        if (dataType.includes('data')){
             return dataType.split('/')[1].split(';')[0];
         }
         return null;
