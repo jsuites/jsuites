@@ -8224,7 +8224,7 @@ jSuites.tags = (function(el, options) {
             // Place caret
             if (focus) {
                 setTimeout(function() {
-                    caret(div);
+                    jSuites.focus(div);
                 }, 0);
             }
 
@@ -8405,12 +8405,12 @@ jSuites.tags = (function(el, options) {
         }
 
         // Search for
-        var terms = node.anchorNode.nodeValue;
+        var terms = node.innerText;
 
         // Search
-        if (node.anchorNode.nodeValue && terms != searchTerms) {
+        if (terms != searchTerms) {
             // Terms
-            searchTerms = node.anchorNode.nodeValue;
+            searchTerms = terms;
             // Reset index
             searchIndex = 0;
 
@@ -8592,18 +8592,6 @@ jSuites.tags = (function(el, options) {
     }
 
     /**
-     * Place caret in the element node
-     */
-    var caret = function(e) {
-        var range = document.createRange();
-        var sel = window.getSelection();
-        range.setStart(e, e.innerText.length);
-        range.collapse(true);
-        sel.removeAllRanges();
-        sel.addRange(range);
-    }
-
-    /**
      * Selection
      */
     var getSelectionStart = function() {
@@ -8717,6 +8705,11 @@ jSuites.tags = (function(el, options) {
         }
     }
 
+    var getFocusedNode = function () {
+        var node = document.getSelection().anchorNode;
+        return (node.nodeType == 3 ? node.parentNode : node);
+     }
+
     /**
      * Processing event keyup on the element
      * @param e {object}
@@ -8751,10 +8744,12 @@ jSuites.tags = (function(el, options) {
 
             searchTimer = setTimeout(function() {
                 // Current node
-                var node = window.getSelection();
-                // Search
-                if (obj.options.search) {
-                    obj.search(node);
+                var node = getFocusedNode();
+                if (node) {
+                    // Search
+                    if (obj.options.search) {
+                        obj.search(node);
+                    }
                 }
                 searchTimer = null;
             }, 300);

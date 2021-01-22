@@ -146,7 +146,7 @@ jSuites.crop = (function(el, options) {
     /**
      * Set options
      */
-    obj.setOptions = function() {
+    obj.setOptions = function(options) {
         // Default configuration
         var defaults = {
             area: [ 800, 600 ],
@@ -184,6 +184,9 @@ jSuites.crop = (function(el, options) {
         // Set options
         el.style.width = obj.options.area[0] + 'px';
         el.style.height = obj.options.area[1] + 'px';
+
+        // Reset all
+        obj.reset();
 
         // Initial image
         if (obj.options.value) {
@@ -392,7 +395,7 @@ jSuites.crop = (function(el, options) {
         if (type[0] == 'image') {
             var imageFile = new FileReader();
             imageFile.addEventListener("load", function (v) {
-                obj.image.src = v.srcElement.result;
+                obj.image.src = v.target.result;
             });
             imageFile.readAsDataURL(file);
         } else {
@@ -570,20 +573,6 @@ jSuites.crop = (function(el, options) {
                         s.removeRange(s.getRangeAt(i));
                     }
                 }
-            } else {
-                e.target.style.cursor = 'move';
-
-                // Tracking for moving
-                editorAction = {
-                    e: e.target,
-                    x: e.clientX,
-                    y: e.clientY,
-                    w: rect.width,
-                    h: rect.height,
-                    d: e.target.style.cursor,
-                    xOffset: e.clientX - parseInt(offsetX.slice(0, offsetX.length - 2)),
-                    yOffset: e.clientY - parseInt(offsetY.slice(0, offsetY.length - 2)),
-                }
             }
         } else { 
             editorAction = true;
@@ -591,37 +580,50 @@ jSuites.crop = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.classList.contains('jcrop-area') && obj.options.allowResize == true) {
-            var rect = e.target.getBoundingClientRect();
-            if (e.clientY - rect.top < 5) {
-                if (rect.width - (e.clientX - rect.left) < 5) {
-                    e.target.style.cursor = 'ne-resize';
-                } else if (e.clientX - rect.left < 5) {
-                    e.target.style.cursor = 'nw-resize';
+        e = e || window.event;
+        if (typeof(e.buttons) !== undefined) {
+            var mouseButton = e.buttons;
+        } else if (typeof(e.button) !== undefined) {
+            var mouseButton = e.button;
+        } else {
+            var mouseButton = e.which;
+        }
+
+        if (! e.buttons) {
+            if (e.target.classList.contains('jcrop-area')) {
+                var rect = e.target.getBoundingClientRect();
+                if (obj.options.allowResize == true) {
+                    if (e.clientY - rect.top < 5) {
+                        if (rect.width - (e.clientX - rect.left) < 5) {
+                            e.target.style.cursor = 'ne-resize';
+                        } else if (e.clientX - rect.left < 5) {
+                            e.target.style.cursor = 'nw-resize';
+                        } else {
+                            e.target.style.cursor = 'n-resize';
+                        }
+                    } else if (rect.height - (e.clientY - rect.top) < 5) {
+                        if (rect.width - (e.clientX - rect.left) < 5) {
+                            e.target.style.cursor = 'se-resize';
+                        } else if (e.clientX - rect.left < 5) {
+                            e.target.style.cursor = 'sw-resize';
+                        } else {
+                            e.target.style.cursor = 's-resize';
+                        }
+                    } else if (rect.width - (e.clientX - rect.left) < 5) {
+                        e.target.style.cursor = 'e-resize';
+                    } else if (e.clientX - rect.left < 5) {
+                        e.target.style.cursor = 'w-resize';
+                    } else {
+                        e.target.style.cursor = 'move';
+                    }
                 } else {
-                    e.target.style.cursor = 'n-resize';
-                }
-            } else if (rect.height - (e.clientY - rect.top) < 5) {
-                if (rect.width - (e.clientX - rect.left) < 5) {
-                    e.target.style.cursor = 'se-resize';
-                } else if (e.clientX - rect.left < 5) {
-                    e.target.style.cursor = 'sw-resize';
-                } else {
-                    e.target.style.cursor = 's-resize';
-                }
-            } else if (rect.width - (e.clientX - rect.left) < 5) {
-                e.target.style.cursor = 'e-resize';
-            } else if (e.clientX - rect.left < 5) {
-                e.target.style.cursor = 'w-resize';
-            } else {
-                if (! e.which) {
-                    e.target.style.cursor = '';
+                    e.target.style.cursor = 'move';
                 }
             }
         }
 
-        // Change position or size
-        if (e.which == 1 && editorAction && editorAction.d) {
+        if (mouseButton == 1 && editorAction && editorAction.d) {
+            // Change position or size
             if (editorAction.d == 'move') {
                 // Change the position of the cropper
                 var cropOffsetX = e.clientX - editorAction.xOffset;
@@ -1653,261 +1655,6 @@ jSuites.menu = (function(el, options) {
     return obj;
 });
 
-
-jSuites.scroll = (function(el, options) {
-    var obj = {};
-    obj.options = {};
-
-    var defaults = {
-        width: null,
-        height: null,
-    }
-
-    // Loop through the initial configuration
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // sets container dimensions by defined options
-    if (obj.options.width) {
-        el.style.width = obj.options.width;
-    }
-
-    if (obj.options.height) {
-        el.style.height = obj.options.height;
-    }
-
-    // initializing scroll and scrollContainer components
-    var scrollY = null;
-    var scrollContainerY = null;
-
-    // Creates the dom elements of scroll and scroll container
-    scrollContainerY = document.createElement('div');
-    scrollY = document.createElement('div');
-    scrollContainerY.classList.add('jscroll-container', 'vertical');
-    scrollY.classList.add('jscroll', 'jscroll-v');
-    scrollContainerY.appendChild(scrollY);
-    scrollContainerY.style.height = el.scrollHeight + 'px';
-    scrollContainerY.style.display = 'none';
-    scrollY.style.height = Math.ceil((el.clientHeight / el.scrollHeight) * el.clientHeight) + 'px';
-
-    // Appends the scrollContainer into el container just if el is scrollable
-    if (el.scrollHeight > el.clientHeight) {
-        el.appendChild(scrollContainerY);
-    }
-
-    // hide any scroll in container
-    el.style.overflow = 'hidden';
-    el.style.position = 'relative';
-
-    // sets a rect of container to get its coordinates relative to the viewport
-    var elRect = el.getBoundingClientRect();
-
-    var stateY = {
-        mousedown: false,
-        offset: 0,
-        scrollAxis: 0,
-        scrollTop: 0,
-        initialScrollDimension: 8,
-        maxContainerScrollLength: el.scrollHeight
-    }
-
-    // re-calculate scrollbar position on the viewport and change its display
-    var updateScrollbar = function(direction) {
-
-        scrollContainerY.style.height = el.scrollHeight + 'px';
-
-        stateY.maxContainerScrollLength = el.scrollHeight;
-
-        var h = Math.ceil((el.clientHeight / el.scrollHeight) * el.clientHeight);
-        var t = (el.scrollTop / el.scrollHeight) * el.clientHeight + el.scrollTop;
-
-        if (parseInt(h) != parseInt(scrollY.style.height)) {
-            scrollY.style.height = h + 'px';
-            scrollY.style.top = t + 'px';
-        }
-
-        // Turn scrollbar container visible
-        if (scrollContainerY.style.display == 'none') {
-            scrollContainerY.style.display = 'block';
-        }
-
-        // re-calculate scrollY or scrollX propertie to be used on mouse wheel
-        stateY.scrollAxis = (el.clientHeight - scrollY.clientHeight) * el.scrollTop / (el.scrollHeight - el.clientHeight);
-
-    }
-
-    // Animates the scroll position and viewport position on wheel 
-    var runWheelAnimation = function(endPoint,deltaY) {
-        var wheelDelay = 50;
-        var d = deltaY > 0 ? 1 : -1;
-        var totalTime = 0;
-        var intervalDelay = 2.5;
-        var moveSpeed = Math.abs(el.scrollTop - endPoint)/(wheelDelay / intervalDelay);
-        var interval = setInterval(function() {
-            if(totalTime <= wheelDelay) {
-                if(deltaY > 0 && (el.scrollTop + moveSpeed * d) <= endPoint) {
-                    el.scrollTop += moveSpeed * d;
-                    scrollY.style.top = (((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight))) + `px`;
-                }else if(deltaY < 0 && (el.scrollTop + moveSpeed) >= endPoint) {
-                    el.scrollTop += moveSpeed * d;
-                    scrollY.style.top = (((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight))) + `px`;
-                }
-                totalTime += intervalDelay;
-            }
-            if(totalTime >= wheelDelay) {
-                clearInterval(interval);
-            }
-        },intervalDelay);
-    }
-
-    // calculate the new position of the container viewport and scrollbar
-    var scrollCalc = function(e, direction) {
-        var point;
-
-        if (e.type == 'wheel') {
-            if (e.deltaY > 0) {
-                var deltaSpeed = 150;
-            } else {
-                var deltaSpeed = -150;
-            }
-            stateY.scrollAxis += deltaSpeed / 100 * 15;
-
-            if (stateY.scrollAxis <= 0) {
-                stateY.scrollAxis = 0;
-            } else if (stateY.scrollAxis + scrollY.clientHeight >= el.clientHeight) {
-                stateY.scrollAxis = el.clientHeight - scrollY.clientHeight
-            } else {
-                e.preventDefault();
-            }
-
-            point = stateY.scrollAxis;
-        } else {
-            point = (e.clientY - elRect.top) - stateY.offset;
-            stateY.scrollAxis = point;
-        }
-
-        var viewPortVariation = point / el.clientHeight;
-        var newViewportPos = viewPortVariation * el.scrollHeight;
-
-        if (e.type == 'wheel') {
-            runWheelAnimation(newViewportPos, e.deltaY);
-            //el.scrollTop = newViewportPos
-        } else {
-            el.scrollTop = newViewportPos;
-        }
-
-        var destination = ((el.scrollTop + (el.scrollTop / el.clientHeight) * scrollY.clientHeight));
-
-        // limit scroll moving
-        if ((destination + scrollY.clientHeight) <= stateY.maxContainerScrollLength) {
-            if (e.type != 'wheel') {
-                scrollY.style.top = destination + 'px';
-            }
-            //scrollY.style.top = destination + 'px';
-        } else {
-            destination = stateY.maxContainerScrollLength - scrollY.clientHeight;
-            scrollY.style.top = destination + 'px';
-        }
-    }
-
-    // Global methods
-
-    /**
-     * refreshs scrollContainer dimensions based on its parent dimensions
-     *
-     */
-    obj.refresh = function() {
-        if (el.scrollHeight != el.clientHeight) {
-            updateScrollbar('top');
-        }
-    }
-
-    // Event listener to apply scroll position calculation on the scroll at the y-axis
-    var scrollCalcY = function(e) {
-        scrollCalc(e, 'top');
-    }
-
-    // Event listener to change the viewport of the container element on click
-    var scrollByClick = function(e) {
-        if (e.target.classList.contains('vertical')) {
-            scrollCalcY(e);
-        }
-    }
-
-    // Called on scroll move and sets the content of container to be unselectable
-    var setUnselectable = function() {
-        if (! el.classList.contains('jscroll-unselectable')) {
-            el.classList.add('jscroll-unselectable')
-        }
-    }
-
-    // Event listener to update the viewport of the container and scrollbar position
-    var updateY = function(e) {
-        if (stateY.mousedown || e.type == 'wheel') {
-            setUnselectable();
-            scrollCalcY(e);
-        }
-    }
-
-    // events 
-    el.onanimationend = function(e) {
-        if (e.animationName == 'hide') {
-            if (!stateY.mousedown) {
-                scrollContainerY.style.display = 'none';
-            }
-        }
-    }
-
-    el.addEventListener('mousemove', function(e) {
-        obj.refresh();
-    });
-
-    el.addEventListener('mouseenter', function(e) {
-        obj.refresh();
-
-        if (scrollContainerY.parentNode && !scrollContainerY.classList.contains('show')) {
-            scrollContainerY.classList.remove('hide');
-            scrollContainerY.classList.add('show');
-        }
-    });
-
-    el.addEventListener('mouseleave', function(e) {
-        if (scrollContainerY.parentNode && scrollContainerY.classList.contains('show') && !stateY.mousedown) {
-            scrollContainerY.classList.remove('show');
-            scrollContainerY.classList.add('hide');
-        }
-    });
-
-    el.addEventListener('click', function(e) {
-        obj.refresh();
-    });
-
-    scrollY.addEventListener('mousedown', function(e) {
-        if (e.target.classList.contains('jscroll-v')) {
-            document.onmousemove = updateY;
-            stateY.mousedown = true;
-            stateY.offset = (e.clientY - elRect.top) - (scrollY.offsetTop - el.scrollTop);
-        }
-    });
-
-    document.addEventListener('mouseup', function(e) {
-        if (stateY.mousedown) {
-            stateY.mousedown = false;
-            // removes the unselectable class from el if it exists
-            if (el.classList.contains('jscroll-unselectable')) {
-                el.classList.remove('jscroll-unselectable');
-            }
-        }
-    });
-
-    scrollContainerY.addEventListener('click', scrollByClick);
-    el.addEventListener('wheel', updateY);
-});
 
 jSuites.signature = (function(el, options) {
     var obj = {};
