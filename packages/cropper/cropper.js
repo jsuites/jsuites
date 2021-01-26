@@ -169,7 +169,7 @@
         /**
          * Set options
          */
-        obj.setOptions = function() {
+        obj.setOptions = function(options) {
             // Default configuration
             var defaults = {
                 area: [ 800, 600 ],
@@ -207,6 +207,9 @@
             // Set options
             el.style.width = obj.options.area[0] + 'px';
             el.style.height = obj.options.area[1] + 'px';
+
+            // Reset all
+            obj.reset();
 
             // Initial image
             if (obj.options.value) {
@@ -318,7 +321,7 @@
          */
         obj.getImageType = function() {
             var dataType = obj.image.src.substr(0,20);
-            if(dataType.includes('data')){
+            if (dataType.includes('data')){
                 return dataType.split('/')[1].split(';')[0];
             }
             return null;
@@ -415,11 +418,11 @@
             if (type[0] == 'image') {
                 var imageFile = new FileReader();
                 imageFile.addEventListener("load", function (v) {
-                    obj.image.src = v.srcElement.result;
+                    obj.image.src = v.target.result;
                 });
                 imageFile.readAsDataURL(file);
             } else {
-                alert(text.extentionNotAllowed);
+                alert(obj.options.text.extensionNotAllowed);
             }
         }
 
@@ -593,20 +596,6 @@
                             s.removeRange(s.getRangeAt(i));
                         }
                     }
-                } else {
-                    e.target.style.cursor = 'move';
-
-                    // Tracking for moving
-                    editorAction = {
-                        e: e.target,
-                        x: e.clientX,
-                        y: e.clientY,
-                        w: rect.width,
-                        h: rect.height,
-                        d: e.target.style.cursor,
-                        xOffset: e.clientX - parseInt(offsetX.slice(0, offsetX.length - 2)),
-                        yOffset: e.clientY - parseInt(offsetY.slice(0, offsetY.length - 2)),
-                    }
                 }
             } else { 
                 editorAction = true;
@@ -614,37 +603,50 @@
         }
 
         var editorMouseMove = function(e) {
-            if (e.target.classList.contains('jcrop-area') && obj.options.allowResize == true) {
-                var rect = e.target.getBoundingClientRect();
-                if (e.clientY - rect.top < 5) {
-                    if (rect.width - (e.clientX - rect.left) < 5) {
-                        e.target.style.cursor = 'ne-resize';
-                    } else if (e.clientX - rect.left < 5) {
-                        e.target.style.cursor = 'nw-resize';
+            e = e || window.event;
+            if (typeof(e.buttons) !== undefined) {
+                var mouseButton = e.buttons;
+            } else if (typeof(e.button) !== undefined) {
+                var mouseButton = e.button;
+            } else {
+                var mouseButton = e.which;
+            }
+
+            if (! e.buttons) {
+                if (e.target.classList.contains('jcrop-area')) {
+                    var rect = e.target.getBoundingClientRect();
+                    if (obj.options.allowResize == true) {
+                        if (e.clientY - rect.top < 5) {
+                            if (rect.width - (e.clientX - rect.left) < 5) {
+                                e.target.style.cursor = 'ne-resize';
+                            } else if (e.clientX - rect.left < 5) {
+                                e.target.style.cursor = 'nw-resize';
+                            } else {
+                                e.target.style.cursor = 'n-resize';
+                            }
+                        } else if (rect.height - (e.clientY - rect.top) < 5) {
+                            if (rect.width - (e.clientX - rect.left) < 5) {
+                                e.target.style.cursor = 'se-resize';
+                            } else if (e.clientX - rect.left < 5) {
+                                e.target.style.cursor = 'sw-resize';
+                            } else {
+                                e.target.style.cursor = 's-resize';
+                            }
+                        } else if (rect.width - (e.clientX - rect.left) < 5) {
+                            e.target.style.cursor = 'e-resize';
+                        } else if (e.clientX - rect.left < 5) {
+                            e.target.style.cursor = 'w-resize';
+                        } else {
+                            e.target.style.cursor = 'move';
+                        }
                     } else {
-                        e.target.style.cursor = 'n-resize';
-                    }
-                } else if (rect.height - (e.clientY - rect.top) < 5) {
-                    if (rect.width - (e.clientX - rect.left) < 5) {
-                        e.target.style.cursor = 'se-resize';
-                    } else if (e.clientX - rect.left < 5) {
-                        e.target.style.cursor = 'sw-resize';
-                    } else {
-                        e.target.style.cursor = 's-resize';
-                    }
-                } else if (rect.width - (e.clientX - rect.left) < 5) {
-                    e.target.style.cursor = 'e-resize';
-                } else if (e.clientX - rect.left < 5) {
-                    e.target.style.cursor = 'w-resize';
-                } else {
-                    if (! e.which) {
-                        e.target.style.cursor = '';
+                        e.target.style.cursor = 'move';
                     }
                 }
             }
 
-            // Change position or size
-            if (e.which == 1 && editorAction && editorAction.d) {
+            if (mouseButton == 1 && editorAction && editorAction.d) {
+                // Change position or size
                 if (editorAction.d == 'move') {
                     // Change the position of the cropper
                     var cropOffsetX = e.clientX - editorAction.xOffset;

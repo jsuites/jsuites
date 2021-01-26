@@ -172,8 +172,14 @@ jSuites.ajax = (function(options, complete) {
             jSuites.ajax.requests.splice(index, 1);
             // Last one?
             if (! jSuites.ajax.requests.length) {
+                // Object event
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
+                }
+                // Global event
+                if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
+                    jSuites.ajax.oncomplete[options.group]();
+                    jSuites.ajax.oncomplete[options.group] = null;
                 }
             }
             // Controllers
@@ -224,8 +230,8 @@ jSuites.ajax.exists = function(url, __callback) {
     }
 }
 
+jSuites.ajax.oncomplete = {};
 jSuites.ajax.requests = [];
-
 jSuites.ajax.queue = [];
 
 jSuites.animation = {};

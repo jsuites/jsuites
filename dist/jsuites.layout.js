@@ -399,7 +399,7 @@ jSuites.crop = (function(el, options) {
             });
             imageFile.readAsDataURL(file);
         } else {
-            alert(text.extentionNotAllowed);
+            alert(obj.options.text.extensionNotAllowed);
         }
     }
 
