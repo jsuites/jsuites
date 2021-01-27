@@ -173,9 +173,7 @@ jSuites.contextmenu = (function(el, options) {
     }
 
     el.addEventListener('blur', function(e) {
-        setTimeout(function() {
-            obj.close();
-        }, 120);
+        obj.close();
     });
 
     if (! jSuites.contextmenu.hasEvents) {
