@@ -1583,7 +1583,9 @@
     background-color:#efefef;
 }
 
-
+.jpicker-header > i, .jpicker-header > div {
+    display: block;
+}
 
 .jrating {
     display:flex;
