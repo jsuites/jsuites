@@ -926,6 +926,273 @@ jSuites.crop = (function(el, options) {
     return obj;
 });
 
+jSuites.heatmap = (function(el, options) {
+    // New instance
+    var obj = {};
+    obj.options = {};
+
+    // Create and apply the plugin body
+    var createBody = function() {
+        // Highest value in the data list
+        var maxValue = obj.options.data.reduce(function(max, current) {
+            return max > current.value ? max : current.value;
+        }, 0);
+
+        // Represents the date currently being used
+        var date = new Date(obj.options.date);
+        date.setDate(date.getDate() + 1);
+
+        // Variable that stores the month currently being used
+        var month = date.getMonth();
+
+        // Array that stores the tds that correspond to the days until these tds are added to their respective table
+        var setOfDays = [
+            [],
+            [],
+            [],
+            [],
+            [],
+            [],
+            []
+        ];
+
+        // Month name abbreviations
+        var monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+        // Variable that stores the html that will later be inserted in the body of the plugin
+        var pluginBody = `
+          <table>
+            <tbody>
+              <tr>
+                <td rowspan="2">Sun</td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td></td>
+              </tr>
+              <tr>
+                <td>Sat</td>
+              </tr>
+            </tbody>
+          </table>
+        `;
+
+        pluginBody += `
+          <table>
+            <thead>
+              <tr>
+                <td colspan="6">${monthNames[date.getMonth()]}</td>
+              </tr>
+            </thead>
+            <tbody>
+        `;
+
+        // Add empty tds to create an offset if the month doesn't start on Sunday
+        var aux = 0;
+        for (var aux = 0; aux < date.getDay(); aux++) {
+            setOfDays[aux].push('<td class="blank-day"></td>');
+        }
+
+        // Last date that the plugin should show
+        var finalDate = new Date(obj.options.date);
+        finalDate.setFullYear(finalDate.getFullYear() + 1);
+
+        var timeFinalDate = finalDate.getTime();
+
+        // Function that checks the condition of the cycle
+        var isValidDate = function() {
+            return date.getTime() <= timeFinalDate;
+        }
+
+        // Cycle that spans one year from the date entered in the date parameter
+        while (isValidDate()) {
+            // Adaptation due to the difference of one day when creating a date object with a string
+            var adaptedDate = new Date(date.getTime());
+            adaptedDate.setDate(adaptedDate.getDate() - 1);
+
+            var textAdaptedDate = adaptedDate.toISOString().slice(0, 10);
+
+            // Object in the data array that corresponds to the date currently being treated
+            var currentDay = obj.options.data.find(function(day) {
+                return day.date === textAdaptedDate;
+            });
+
+            // If currentDay exists, a TD referring to it is added with a color resulting from its value
+            if (currentDay) {
+                var percentage = Math.trunc((currentDay.value * 100) / maxValue);
+
+                var colorPosition = Math.trunc((percentage / 10) / 2);
+                if (colorPosition > 4) {
+                    colorPosition = 4;
+                }
+
+                setOfDays[date.getDay()].push(`<td style="background-color: ${obj.options.colors[colorPosition]}"></td>`);
+
+                // If currentDay does not exist, a date with the day-not-informed class is added
+            } else {
+                setOfDays[date.getDay()].push(`<td class="day-not-informed"></td>`);
+            }
+
+            // Increment the date being treated by one day
+            date.setDate(date.getDate() + 1);
+
+            // If the date used in the next cycle is a different month from the treaty until then, fill in and close the month table
+            if (date.getMonth() !== month) {
+                setOfDays.forEach(function(days) {
+                    pluginBody += '<tr>';
+
+                    days.forEach(function(day) {
+                        pluginBody += day;
+                    })
+
+                    pluginBody += '</tr>';
+                });
+
+                // Reset variable setOfDays
+                setOfDays = [
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    [],
+                    []
+                ];
+
+                pluginBody += '</tbody></table>';
+
+                // If the new date value is valid for entering the cycle again, a new table starts
+                if (isValidDate()) {
+                    pluginBody += `
+                        <table>
+                          <thead>
+                            <tr>
+                              <td colspan="6">${monthNames[date.getMonth()]}</td>
+                            </tr>
+                          </thead>
+                          <tbody>
+                      `;
+
+                    // Add empty tds to create an offset if the month doesn't start on Sunday
+                    var aux = 0;
+                    for (var aux = 0; aux < date.getDay(); aux++) {
+                        setOfDays[aux].push('<td class="blank-day"></td>');
+                    }
+
+                    // Update the variable that stores the current month
+                    month = date.getMonth();
+                }
+            }
+        }
+
+        // Fill in and close the last month table
+        setOfDays.forEach(function(days) {
+            pluginBody += '<tr>';
+
+            days.forEach(function(day) {
+                pluginBody += day;
+            });
+
+            pluginBody += '</tr>';
+        });
+
+        pluginBody += '</tbody></table>';
+
+        // Apply the plugin body to the tag passed as an argument
+        el.getElementsByClassName('jheatmap-body')[0].innerHTML = pluginBody;
+    }
+
+    obj.setData = function(data) {
+        obj.options.data = data;
+
+        createBody();
+    }
+
+    obj.getData = function() {
+        return obj.options.data.map(function(element) {
+            return element;
+        });
+    }
+
+    // Initializes the plugin
+    var init = (function() {
+        var defaults = {
+            title: '',
+            tooltip: false,
+            colors: ['#FFECB3', '#FFD54F', '#FFC107', '#FFA000', '#FF6F00'],
+            data: [],
+            date: new Date().toISOString().slice(0, 10),
+            onload: null,
+        }
+
+        // Fill the obj.options object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Add the plugin class to the tag that will receive it
+        el.classList.add('jheatmap');
+
+        // Apply the plugin header if it was passed as an argument
+        if (obj.options.title !== '') {
+            var pluginHeader = `
+                <div class="jheatmap-header">${obj.options.title}</div>
+              `;
+
+            el.innerHTML = pluginHeader;
+        }
+
+        // Apply the plugin body if it was passed as an argument
+        if (obj.options.data) {
+            el.innerHTML += '<div class="jheatmap-body"></div>';
+            createBody();
+        }
+
+        // Apply the plugin tooltip if it was passed as an argument
+        if (obj.options.tooltip) {
+            var pluginFooter = `
+                <div class="jheatmap-footer">
+                  <div>Less</div>
+                  <table>
+                    <tr>
+                      <td style="background-color: ${obj.options.colors[0]}"></td>
+                      <td style="background-color: ${obj.options.colors[1]}"></td>
+                      <td style="background-color: ${obj.options.colors[2]}"></td>
+                      <td style="background-color: ${obj.options.colors[3]}"></td>
+                      <td style="background-color: ${obj.options.colors[4]}"></td>
+                    </tr>
+                  </table>
+                  <div>More</div>
+                </div>
+              `;
+
+            el.innerHTML += pluginFooter;
+        }
+
+        // Call the onload function, if it was passed as an argument
+        if (obj.options.onload) {
+            obj.options.onload(el, obj);
+        }
+    })();
+
+    return obj;
+});
+
 jSuites.login = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -1656,6 +1923,387 @@ jSuites.menu = (function(el, options) {
 });
 
 
+jSuites.organogram = (function(el, options) {
+    if (el.organogram) {
+        return obj.setOptions(options);
+    }
+
+    var obj = {};
+    obj.options = {};
+
+    // Defines the state to deal with mouse events 
+    var state = {
+        x: 0,
+        y: 0
+    }
+
+    // Creates the shape of a node to be added to the organogram chart tree
+    var mountNodes = function(node, container) {
+        var li = document.createElement('li');
+        var span = document.createElement('span');
+        span.className = 'jorg-tf-nc';
+        span.innerHTML = `<div class="jorg-user-status" style="background:${node.status}"></div><div class="jorg-user-info"><div class='jorg-user-img'><img src="${node.img}"/></div><div class='jorg-user-content'><span>${node.name}</span><span>${node.role}</span></div>`;
+        span.setAttribute('id',node.id);
+        var ul = document.createElement('ul');
+        li.appendChild(span);
+        li.appendChild(ul);
+        container.appendChild(li);
+        return ul;
+    }
+
+    // Node visibility feature
+    var setNodeVisibility = function(node) {
+        var className = "jorg-node-icon";
+        var icon = document.createElement('div');
+        var ulNode = node.nextElementSibling;
+        node.appendChild(icon);
+
+        if (ulNode) {
+            icon.className = className + ' remove';
+        } else {
+            icon.className = className + ' plus'
+            return ;
+        }
+
+        icon.addEventListener('click', function(e) {
+            if (node.nextElementSibling.style.display == 'none') {
+                node.nextElementSibling.style.display = 'inline-flex';
+                node.removeAttribute('visibility');
+                e.target.className = className + ' remove';
+            } else {
+                node.nextElementSibling.style.display = 'none';
+                node.setAttribute('visibility','hidden');
+                e.target.className = className + ' plus';
+            }
+        });
+    }
+
+    // Updates tree container dimensions to allow smooth scrolling
+    var updateTreeContainerDimensions = function() {
+        if (obj.options.data.length) {
+            var treeContainer = ul.children[0];
+            treeContainer.style.width = treeContainer.children[1].offsetWidth * 4 + 'px';
+            treeContainer.style.height = treeContainer.children[1].offsetHeight * 4 + 'px'
+        }
+    }
+
+    // Renders the organogram
+    var render = function (parent, container) {
+        for (var i = 0; i < obj.options.data.length; i ++) {
+            if (obj.options.data[i].parent === parent) {
+                var ul = mountNodes(obj.options.data[i],container);
+                render(obj.options.data[i].id, ul);
+            }
+        }
+
+        if (! container.childNodes.length) {
+           // container.remove();
+        } else if (container.previousElementSibling) {
+            setNodeVisibility(container.previousElementSibling);
+        }
+
+        // Check if all nodes is rendered then updates the tree container dimensions to allow smooth scrolling
+        if (document.querySelectorAll('.jorg-tf-nc').length == obj.options.data.length) {
+            updateTreeContainerDimensions();
+
+            var topLevelNode = findNode({ parent: 0 });
+            topLevelNode.scrollIntoView({
+                behavior: "auto",
+                block: "center" || "start",
+                inline: "center" || "start"
+            });
+
+            return 0;
+        }
+    }
+
+    // Deals with zoom in and zoom out in the organogram
+    var zoom = function(e) {
+        e = event || window.event;
+        // Current zoom
+        var currentZoom = el.children[0].style.zoom * 1;
+        var prevWidth = el.children[0].offsetWidth;
+        var prevHeight = el.children[0].offsetHeight;
+        var widthVar, heightVar;
+        // Action
+        if (e.target.classList.contains('jorg-zoom-in') || e.deltaY < 0) {
+            el.children[0].style.zoom = currentZoom + obj.options.zoom;
+            widthVar = prevWidth - el.children[0].offsetWidth;
+            heightVar = prevHeight - el.children[0].offsetHeight;
+            el.children[0].scrollLeft += (widthVar/2)
+            el.children[0].scrollTop += (heightVar/2)
+        } else if (currentZoom > .5) {
+            el.children[0].style.zoom = currentZoom - obj.options.zoom;
+            widthVar = el.children[0].offsetWidth - prevWidth;
+            heightVar = el.children[0].offsetHeight - prevHeight;
+            el.children[0].scrollLeft -= (widthVar/2);
+            el.children[0].scrollTop -= (heightVar/2);
+        }
+        e.preventDefault();
+    }
+
+    // Finds a node in the organogram chart by a node propertie
+    var findNode = function(o) {
+        if (o) {
+            for (property in o) {
+                var node = obj.options.data.find(node => node[property] == o[property]);
+                if (node) {
+                    return Array.prototype.slice.call(document.querySelectorAll('.jorg-tf-nc')).find(n => n.getAttribute('id') == node.id);
+                } else {
+                    continue;
+                }
+            }
+        }
+        return 0;
+    }
+
+    obj.setOptions = function(options) {
+        // Default configuration
+        var defaults = {
+            data: null,
+            url: null,
+            zoom: 0.1,
+            width: 800,
+            height: 600,
+            search: true,
+            searchPlaceholder: 'Search',
+            // Events
+            onload: null,
+            onchange: null,
+            onclick: null
+        };
+
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Show search box
+        if (obj.options.search) {
+            el.appendChild(search);
+        } else {
+            el.removeChild(search);
+        }
+
+        // Make sure correct format
+        obj.options.width = parseInt(obj.options.width);
+        obj.options.height = parseInt(obj.options.height);
+
+        // Update placeholder
+        search.placeholder = obj.options.searchPlaceholder;
+
+        // Set default dimensions
+        obj.setDimensions(obj.options.width, obj.options.height);
+
+        // Loading data
+        if (obj.options.url) {
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    obj.options.data = result;
+                    if (typeof obj.options.onload == 'function') {
+                        obj.options.onload(el, obj);
+                    }
+                    render(0, ul);
+                }
+            });
+        } else if (obj.options.data && obj.options.data.length) {
+            render(0, ul);
+        }
+    }
+
+    /**
+     * Reset the organogram chart tree
+     */
+    obj.refresh = function() {
+        el.children[0].innerHTML = '';
+        render(0,el.children[0]);
+    }
+
+    /**
+     * Show or hide childrens of a node
+     */
+    obj.show = function(id) {
+        var node = findNode({ id: id });
+        // Check if the node exists and if it has an icon
+        if (node && node.lastChild) {
+            // Click on the icon
+            node.lastChild.click();
+        }
+    }
+
+    /**
+     * Appends a new element in the organogram chart
+     */
+    obj.addItem = function(item) {
+        if (typeof item == 'object' && item.hasOwnProperty('id') && item.hasOwnProperty('parent') && ! isNaN(item.parent) && ! isNaN(item.id)) {
+            var findedParent = obj.options.data.find(function(node) {
+                if (node.id == item.parent) {
+                    return true;
+                }
+                return false;
+            });
+
+            if (findedParent) {
+                obj.options.data.push(item);
+                ul.innerHTML = '';
+                render(0, ul);
+                if (typeof obj.options.onchange == 'function') {
+                    obj.options.onchange(el, obj);
+                }
+            }
+            else {
+                console.log('cannot add this item');
+            }
+        }
+    }
+
+    /**
+     * Removes a item from the organogram chart
+     */
+    obj.removeItem = function(item) {
+        if (obj.options.data.length && obj.options.data.find(function(node) {
+            return node.id == item.id;
+        })) {
+            var itemChildrenList = obj.options.data.filter(function(node) {
+                if (node.parent == item.id) {
+                    return true;
+                }
+                return false;
+            });
+
+            if (itemChildrenList.length) {
+                for (var i = 0; i < itemChildrenList.length; i ++) {
+                    obj.options.data.splice(obj.options.data.indexOf(itemChildrenList[i], 1));
+                }
+            }
+            obj.options.data.splice(obj.options.data.indexOf(item), 1);
+            obj.refresh();
+        }
+    }
+
+    /**
+     * Sets a new value for the data array and re-render the organogram.
+     */
+    obj.setData = function(data) {
+        if (typeof(data) == 'object') {
+            obj.options.data = data;
+            obj.refresh();
+        }
+    }
+
+    /**
+     * Search for any item with the string and centralize it.
+     */
+    obj.search = function(str) {
+       var input = str.toLowerCase();
+       if (options) {
+            var data = obj.options.data;
+            var searchedNode = data.find(node => node.name.toLowerCase() == input);
+            if (searchedNode) {
+                var node = findNode({ id: searchedNode.id });
+                // Got to the node position
+                if (node) {
+                    node.scrollIntoView({
+                        behavior: "smooth" || "auto",
+                        block: "center" || "start",
+                        inline: "center" || "start"
+                    });
+                }
+            }
+        }
+    }
+
+    /**
+     * Change the organogram dimensions
+     */
+    obj.setDimensions = function(width, height) {
+        el.style.width = width + 'px';
+        el.style.height = height + 'px';
+    }
+
+    // Create zoom action
+    var zoomContainer = document.createElement('div');
+    zoomContainer.className = 'jorg-zoom-container';
+
+    var zoomIn = document.createElement('div');
+    zoomIn.className = 'jorg-zoom-in';
+
+    var zoomOut = document.createElement('div');
+    zoomOut.className = 'jorg-zoom-out';
+
+    zoomContainer.appendChild(zoomIn);
+    zoomContainer.appendChild(zoomOut);
+
+    zoomIn.addEventListener('click', zoom);
+    zoomOut.addEventListener('click', zoom);
+
+    // Create container
+    var ul = document.createElement('ul');
+
+    // Default zoom
+    if (! ul.style.zoom) {
+        ul.style.zoom = '1';
+    }
+
+    // Default classes
+    el.classList.add('jorg');
+    el.classList.add('jorg-tf-tree');
+    el.classList.add('jorg-unselectable');
+    ul.classList.add('jorg-disable-scrollbars');
+
+    // Append elements
+    el.appendChild(ul);
+    el.appendChild(zoomContainer);
+
+    var search = document.createElement('input');
+    search.type = 'text';
+    search.classList.add('jorg-search');
+    search.onkeyup = function(e) {
+        obj.search(e.target.value);
+    }
+
+    // Event handlers
+    ul.addEventListener('wheel', zoom);
+    ul.addEventListener('mousemove', function(e){
+        e = event || window.event;
+        var currentX = e.clientX || e.pageX;
+        var currentY = e.clientY || e.pageY;
+        if (e.which) {
+            var x = state.x - currentX;
+            var y = state.y - currentY;
+            ul.scrollLeft = state.scrollLeft + x;
+            ul.scrollTop = state.scrollTop + y;
+        }
+    });
+
+    ul.addEventListener('mousedown', function(e){
+        e = event || window.event;
+        state.x = e.clientX || e.pageX;
+        state.y = e.clientY || e.pageY;
+        state.scrollLeft = ul.scrollLeft;
+        state.scrollTop = ul.scrollTop;
+    });
+
+    el.addEventListener('click', function(e) {
+        if (typeof(obj.options.onclick) == 'function') {
+            obj.options.onclick(el, obj, e);
+        }
+    });
+
+    el.organogram = obj;
+
+    obj.setOptions(options);
+
+    return obj;
+});
+
 jSuites.signature = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -1889,11 +2537,17 @@ jSuites.template = (function(el, options) {
             pagination.innerHTML = '';
         }
 
-        // Create pagination
-        if (obj.options.pagination > 0 && obj.options.numberOfPages > 1) {
-            // Number of pages
-            var numberOfPages = obj.options.numberOfPages;
+        // Number of pages
+        var numberOfPages = obj.options.numberOfPages;
 
+        // Data filtering
+        if (typeof(obj.options.filter) == 'function') {
+            var data = obj.options.filter(obj.options.data);
+            numberOfPages = parseInt(data.length / obj.options.pagination) + 1;
+        }
+
+        // Create pagination
+        if (obj.options.pagination > 0 && numberOfPages > 1) {
             // Controllers
             if (obj.options.pageNumber < 6) {
                 var startNumber = 1;

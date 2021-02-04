@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v3.9.3)
+ * (c) jSuites Javascript Web Components (v4.0.1)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -472,6 +472,7 @@ jSuites.calendar = (function(el, options) {
         var calendar = document.createElement('div');
         calendar.className = 'jcalendar';
     }
+    calendar.classList.add('jcalendar-container');
     calendar.appendChild(calendarContainer);
 
     // Table container
@@ -1128,63 +1129,47 @@ jSuites.calendar = (function(el, options) {
     }
 
     var mouseUpControls = function(e) {
-        var action = e.target.className;
+        var element = jSuites.findElement(e.target, 'jcalendar-container');
+        if (element) {
+            var action = e.target.className;
 
-        // Object id
-        if (action == 'jcalendar-prev') {
-            obj.prev();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-next') {
-            obj.next();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-month') {
-            obj.getMonths();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-year') {
-            obj.getYears();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-set-year') {
-            obj.date[0] = e.target.innerText;
-            if (obj.options.type == 'year-month-picker') {
+            // Object id
+            if (action == 'jcalendar-prev') {
+                obj.prev();
+            } else if (action == 'jcalendar-next') {
+                obj.next();
+            } else if (action == 'jcalendar-month') {
                 obj.getMonths();
-            } else {
-                obj.getDays();
-            }
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (e.target.classList.contains('jcalendar-set-month')) {
-            if (obj.options.type == 'year-month-picker') {
-                obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
-            } else {
-                obj.getDays();
-            }
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
-            obj.close();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-close') {
-            obj.close();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-backdrop') {
-            obj.close(false, false);
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (action == 'jcalendar-reset') {
-            obj.reset();
-            e.stopPropagation();
-            e.preventDefault();
-        } else if (e.target.classList.contains('jcalendar-set-day')) {
-            if (e.target.innerText) {
+            } else if (action == 'jcalendar-year') {
+                obj.getYears();
+            } else if (action == 'jcalendar-set-year') {
+                obj.date[0] = e.target.innerText;
+                if (obj.options.type == 'year-month-picker') {
+                    obj.getMonths();
+                } else {
+                    obj.getDays();
+                }
+            } else if (e.target.classList.contains('jcalendar-set-month')) {
+                var month = parseInt(e.target.getAttribute('data-value'));
+                if (obj.options.type == 'year-month-picker') {
+                    obj.update(e.target, month);
+                } else {
+                    obj.date[1] = month;
+                    obj.getDays();
+                }
+            } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update' || action == 'jcalendar-close') {
+                obj.close();
+            } else if (action == 'jcalendar-backdrop') {
+                obj.close(false, false);
+            } else if (action == 'jcalendar-reset') {
+                obj.reset();
+            } else if (e.target.classList.contains('jcalendar-set-day') && e.target.innerText) {
                 obj.update(e.target);
-                e.stopPropagation();
-                e.preventDefault();
+            }
+            e.stopPropagation();
+        } else {
+            if (jSuites.calendar.current) {
+                jSuites.calendar.current.close(false, false);
             }
         }
     }
@@ -1227,20 +1212,28 @@ jSuites.calendar = (function(el, options) {
 
         el.addEventListener("touchend", function(e) {
             obj.open();
+            e.stopPropagation();
         });
     } else {
         calendar.addEventListener("mouseup", mouseUpControls);
 
         el.addEventListener("mouseup", function(e) {
             obj.open();
+            e.stopPropagation();
         });
     }
 
     if (! jSuites.calendar.hasEvents) {
-        if ('ontouchstart' in document.documentElement === true) {
-            document.addEventListener("touchstart", jSuites.calendar.isOpen);
+        var isOpened = function() {
+            if (jSuites.calendar.current) {
+                jSuites.calendar.current.close(false, false);
+            }
+        }
+
+        if ('touchend' in document.documentElement === true) {
+            document.addEventListener("touchend", isOpened);
         } else {
-            document.addEventListener("mousedown", jSuites.calendar.isOpen);
+            document.addEventListener("mouseup", isOpened);
         }
 
         document.addEventListener("keydown", function(e) {
@@ -1633,13 +1626,6 @@ jSuites.calendar.getDateString = function(value, options) {
     return value;
 }
 
-jSuites.calendar.isOpen = function(e) {
-    if (jSuites.calendar.current) {
-        if (e.target.className && e.target.className.indexOf('jcalendar') == -1) {
-            jSuites.calendar.current.close(false, false);
-        }
-    }
-}
 
 
 jSuites.color = (function(el, options) {
@@ -1993,12 +1979,9 @@ jSuites.color = (function(el, options) {
 
         // Close controller
         if (! jSuites.color.hasEvents) {
-            document.addEventListener("mousedown", function(e) {
+            document.addEventListener("mouseup", function(e) {
                 if (jSuites.color.current) {
-                    var element = jSuites.findElement(e.target, 'jcolor');
-                    if (! element) {
-                        jSuites.color.current.close();
-                    }
+                    jSuites.color.current.close();
                 }
             });
 
@@ -2308,7 +2291,7 @@ jSuites.dropdown = (function(el, options) {
 
     // Create dropdown
     el.classList.add('jdropdown');
- 
+
     if (obj.options.type == 'searchbar') {
         el.classList.add('jdropdown-searchbar');
     } else if (obj.options.type == 'list') {
@@ -3267,13 +3250,26 @@ jSuites.dropdown = (function(el, options) {
         return test;
     }
 
+    if ('ontouchsend' in document.documentElement === true) {
+        el.addEventListener('touchsend', jSuites.dropdown.mouseup);
+    } else {
+        el.addEventListener('mouseup', jSuites.dropdown.mouseup);
+    }
+
     if (! jSuites.dropdown.hasEvents) {
-        if ('ontouchsend' in document.documentElement === true) {
-            document.addEventListener('touchsend', jSuites.dropdown.mouseup);
-        } else {
-            document.addEventListener('mouseup', jSuites.dropdown.mouseup);
-        }
         document.addEventListener('keydown', jSuites.dropdown.onkeydown);
+
+        var isOpened = function() {
+            if (jSuites.dropdown.current) {
+                jSuites.dropdown.current.dropdown.close();
+            }
+        }
+
+        if ('ontouchsend' in document.documentElement === true) {
+            document.addEventListener('touchsend', isOpened);
+        } else {
+            document.addEventListener('mouseup', isOpened);
+        }
 
         jSuites.dropdown.hasEvents = true;
     }
@@ -3362,7 +3358,6 @@ jSuites.dropdown.mouseup = function(e) {
         }
 
         e.stopPropagation();
-        e.preventDefault();
     } else {
         if (jSuites.dropdown.current) {
             jSuites.dropdown.current.dropdown.close();
@@ -5103,7 +5098,7 @@ jSuites.focus = function(el) {
 }
 
 jSuites.isNumeric = (function (num) {
-    return !isNaN(num) && num != null && num != '';
+    return !isNaN(num) && num !== null && num !== '';
 });
 
 jSuites.guid = function() {
