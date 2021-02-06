@@ -5870,7 +5870,11 @@ jSuites.mask = (function() {
             }
 
             if (jSuites.isNumeric(value)) {
-                var number = (''+value).split(decimal);
+                if (typeof(value) == 'number') {
+                    var number = (''+value).split('.');
+                } else {
+                    var number = (''+value).split(decimal);
+                }
                 var value = number[0];
                 var valueDecimal = number[1];
             } else {
@@ -5914,7 +5918,7 @@ jSuites.mask = (function() {
     obj.apply = function(e) {
         if (e.target && ! e.target.getAttribute('readonly')) {
             var mask = e.target.getAttribute('data-mask');
-            if (mask && e.key.length < 2) {
+            if (mask && e.key && e.key.length < 2) {
                 index = 0;
                 values = [];
                 // Create mask token

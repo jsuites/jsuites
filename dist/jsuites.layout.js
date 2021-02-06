@@ -1934,7 +1934,9 @@ jSuites.organogram = (function(el, options) {
     // Defines the state to deal with mouse events 
     var state = {
         x: 0,
-        y: 0
+        y: 0,
+        initialWidth: 0,
+        initialTop: 100,
     }
 
     // Creates the shape of a node to be added to the organogram chart tree
@@ -1942,12 +1944,13 @@ jSuites.organogram = (function(el, options) {
         var li = document.createElement('li');
         var span = document.createElement('span');
         span.className = 'jorg-tf-nc';
-        span.innerHTML = `<div class="jorg-user-status" style="background:${node.status}"></div><div class="jorg-user-info"><div class='jorg-user-img'><img src="${node.img}"/></div><div class='jorg-user-content'><span>${node.name}</span><span>${node.role}</span></div>`;
-        span.setAttribute('id',node.id);
+        span.innerHTML = `<div class="jorg-user-status" style="background:${node.status}"></div><div class="jorg-user-info"><div class='jorg-user-img'><img src="${node.img}" ondragstart="return false" /></div><div class='jorg-user-content'><span>${node.name}</span><span>${node.role}</span></div>`;
+        span.setAttribute('id', node.id);
         var ul = document.createElement('ul');
         li.appendChild(span);
         li.appendChild(ul);
         container.appendChild(li);
+
         return ul;
     }
 
@@ -1975,6 +1978,7 @@ jSuites.organogram = (function(el, options) {
                 node.setAttribute('visibility','hidden');
                 e.target.className = className + ' plus';
             }
+            ul.children[0].style.width = state.initialWidth + 'px';
         });
     }
 
@@ -1997,23 +2001,9 @@ jSuites.organogram = (function(el, options) {
         }
 
         if (! container.childNodes.length) {
-           // container.remove();
-        } else if (container.previousElementSibling) {
+            container.remove();
+        }else if (container.previousElementSibling) {
             setNodeVisibility(container.previousElementSibling);
-        }
-
-        // Check if all nodes is rendered then updates the tree container dimensions to allow smooth scrolling
-        if (document.querySelectorAll('.jorg-tf-nc').length == obj.options.data.length) {
-            updateTreeContainerDimensions();
-
-            var topLevelNode = findNode({ parent: 0 });
-            topLevelNode.scrollIntoView({
-                behavior: "auto",
-                block: "center" || "start",
-                inline: "center" || "start"
-            });
-
-            return 0;
         }
     }
 
@@ -2044,8 +2034,10 @@ jSuites.organogram = (function(el, options) {
 
     // Finds a node in the organogram chart by a node propertie
     var findNode = function(o) {
-        if (o) {
-            for (property in o) {
+        if (o && typeof o == 'object') {
+            var keys = Object.keys(o);
+            for (var i = 0; i < keys.length; i ++) {
+                var property = keys[i];
                 var node = obj.options.data.find(node => node[property] == o[property]);
                 if (node) {
                     return Array.prototype.slice.call(document.querySelectorAll('.jorg-tf-nc')).find(n => n.getAttribute('id') == node.id);
@@ -2055,6 +2047,32 @@ jSuites.organogram = (function(el, options) {
             }
         }
         return 0;
+    }
+
+    //
+    var setInitialPosition = function() {
+        ul.children[0].style.left = (ul.clientWidth / 2  - ul.children[0].clientWidth / 2) + 'px';
+        ul.children[0].style.top = '100px';
+    }
+
+    //
+    var setInitialWidth = function() {
+        state.initialWidth = ul.children[0].clientWidth;
+    }
+
+    //
+    var animateOnSearch = function(newLeft, newTop) {
+        ul.classList.add('jorg-search-animation');
+        ul.onanimationend = function(e) {
+            if (e.animationName == 'jorg-searching-hide') {
+                ul.children[0].style.left = newLeft + 'px';
+                ul.children[0].style.top = newTop + 'px';
+                ul.classList.remove('jorg-search-animation');
+                ul.classList.add('jorg-searching-visible');
+            }else if(e.animationName == 'jorg-searching-visible') {
+                ul.classList.remove('jorg-searching-visible');
+            }
+        }
     }
 
     obj.setOptions = function(options) {
@@ -2111,10 +2129,18 @@ jSuites.organogram = (function(el, options) {
                         obj.options.onload(el, obj);
                     }
                     render(0, ul);
+                    setInitialPosition();
+                    setInitialWidth();
                 }
             });
         } else if (obj.options.data && obj.options.data.length) {
             render(0, ul);
+            setInitialPosition();
+            setInitialWidth();
+
+            if (typeof obj.options.onload == 'function') {
+                obj.options.onload(el, obj);
+            }
         }
     }
 
@@ -2124,6 +2150,8 @@ jSuites.organogram = (function(el, options) {
     obj.refresh = function() {
         el.children[0].innerHTML = '';
         render(0,el.children[0]);
+        setInitialPosition();
+        setInitialWidth();
     }
 
     /**
@@ -2152,8 +2180,9 @@ jSuites.organogram = (function(el, options) {
 
             if (findedParent) {
                 obj.options.data.push(item);
-                ul.innerHTML = '';
-                render(0, ul);
+                
+                obj.refresh();
+
                 if (typeof obj.options.onchange == 'function') {
                     obj.options.onchange(el, obj);
                 }
@@ -2203,6 +2232,7 @@ jSuites.organogram = (function(el, options) {
      */
     obj.search = function(str) {
        var input = str.toLowerCase();
+
        if (options) {
             var data = obj.options.data;
             var searchedNode = data.find(node => node.name.toLowerCase() == input);
@@ -2210,11 +2240,13 @@ jSuites.organogram = (function(el, options) {
                 var node = findNode({ id: searchedNode.id });
                 // Got to the node position
                 if (node) {
-                    node.scrollIntoView({
-                        behavior: "smooth" || "auto",
-                        block: "center" || "start",
-                        inline: "center" || "start"
-                    });
+                    var nodeRect = node.getBoundingClientRect();
+                    var ulRect = ul.getBoundingClientRect();
+                    var tm = (nodeRect.top - ulRect.top) - (ul.clientHeight / 2) + (node.clientHeight / 2)
+                    var lm = (nodeRect.left - ulRect.left) - (ul.clientWidth / 2) + (node.clientWidth / 2);
+                    var newTop = (parseFloat(ul.children[0].style.top) - tm);
+                    var newLeft = (parseFloat(ul.children[0].style.left) - lm);
+                    animateOnSearch(newLeft, newTop);
                 }
             }
         }
@@ -2268,6 +2300,9 @@ jSuites.organogram = (function(el, options) {
     search.onkeyup = function(e) {
         obj.search(e.target.value);
     }
+    search.onblur = function(e) {
+        e.target.value = '';
+    }
 
     // Event handlers
     ul.addEventListener('wheel', zoom);
@@ -2277,18 +2312,19 @@ jSuites.organogram = (function(el, options) {
         var currentY = e.clientY || e.pageY;
         if (e.which) {
             var x = state.x - currentX;
-            var y = state.y - currentY;
-            ul.scrollLeft = state.scrollLeft + x;
-            ul.scrollTop = state.scrollTop + y;
+            var y = (state.y - currentY);
+            var zoomFactor = ul.style.zoom <= 1 ? 1 + (1 - ul.style.zoom) : 1 - (ul.style.zoom - 1) < .5 ? .5 : 1 - (ul.style.zoom - 1);
+            ul.children[0].style.left = -(state.scrollLeft + x * zoomFactor)   + 'px';
+            ul.children[0].style.top = (state.scrollTop + y * zoomFactor * -1)   + 'px';
         }
     });
 
-    ul.addEventListener('mousedown', function(e){
+    ul.addEventListener('mousedown', function(e) {
         e = event || window.event;
         state.x = e.clientX || e.pageX;
         state.y = e.clientY || e.pageY;
-        state.scrollLeft = ul.scrollLeft;
-        state.scrollTop = ul.scrollTop;
+        state.scrollLeft = - 1 * parseFloat(ul.children[0].style.left) || 0;
+        state.scrollTop = parseFloat(ul.children[0].style.top);
     });
 
     el.addEventListener('click', function(e) {
@@ -2442,156 +2478,20 @@ jSuites.signature = (function(el, options) {
 });
 
 jSuites.template = (function(el, options) {
+    // Update configuration
+    if (el.classList.contains('jtemplate')) {
+        return el.template.setOptions(options);
+    }
+
     var obj = {};
     obj.options = {};
 
-    // Default configuration
-    var defaults = {
-        url: null,
-        data: null,
-        filter: null,
-        pageNumber: 0,
-        numberOfPages: 0,
-        template: null,
-        render: null,
-        noRecordsFound: 'No records found',
-        containerClass: null,
-        // Searchable
-        search: null,
-        searchInput: true,
-        searchPlaceHolder: '',
-        searchValue: '',
-        // Remote search
-        remoteData: null,
-        // Pagination page number of items
-        pagination: null,
-        onload: null,
-        onupdate: null,
-        onchange: null,
-        onsearch: null,
-        onclick: null,
-    }
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // Reset content
-    el.innerHTML = '';
-
-    // Input search
-    if (obj.options.search && obj.options.searchInput == true) {
-        // Timer
-        var searchTimer = null;
-
-        // Search container
-        var searchContainer = document.createElement('div');
-        searchContainer.className = 'jtemplate-results';
-        obj.searchInput = document.createElement('input');
-        obj.searchInput.value = obj.options.searchValue;
-        obj.searchInput.onkeyup = function(e) {
-            // Clear current trigger
-            if (searchTimer) {
-                clearTimeout(searchTimer);
-            }
-            // Prepare search
-            searchTimer = setTimeout(function() {
-                obj.search(obj.searchInput.value.toLowerCase());
-                searchTimer = null;
-            }, 300)
-        }
-        searchContainer.appendChild(obj.searchInput);
-        el.appendChild(searchContainer);
-
-        if (obj.options.searchPlaceHolder) {
-            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
-        }
-    }
-
-    // Pagination container
-    if (obj.options.pagination) {
-        var pagination = document.createElement('div');
-        pagination.className = 'jtemplate-pagination';
-        el.appendChild(pagination);
-    }
-
-    // Content
-    var container = document.createElement('div');
-    if (obj.options.containerClass) {
-        container.className = obj.options.containerClass;
-    }
-    container.classList.add ('jtemplate-content');
-    el.appendChild(container);
-
-    // Data container
+    // Search controls
+    var pageNumber = 0;
+    var searchTimer = null;
     var searchResults = null;
 
-    obj.updatePagination = function() {
-        // Reset pagination container
-        if (pagination) {
-            pagination.innerHTML = '';
-        }
-
-        // Number of pages
-        var numberOfPages = obj.options.numberOfPages;
-
-        // Data filtering
-        if (typeof(obj.options.filter) == 'function') {
-            var data = obj.options.filter(obj.options.data);
-            numberOfPages = parseInt(data.length / obj.options.pagination) + 1;
-        }
-
-        // Create pagination
-        if (obj.options.pagination > 0 && numberOfPages > 1) {
-            // Controllers
-            if (obj.options.pageNumber < 6) {
-                var startNumber = 1;
-                var finalNumber = numberOfPages < 10 ? numberOfPages : 10;
-            } else if (numberOfPages - obj.options.pageNumber < 5) {
-                var startNumber = numberOfPages - 9;
-                var finalNumber = numberOfPages;
-                if (startNumber < 1) {
-                    startNumber = 1;
-                }
-            } else {
-                var startNumber = obj.options.pageNumber - 4;
-                var finalNumber = obj.options.pageNumber + 5;
-            }
-
-            // First
-            if (startNumber > 1) {
-                var paginationItem = document.createElement('div');
-                paginationItem.innerHTML = '<';
-                paginationItem.title = 1;
-                pagination.appendChild(paginationItem);
-            }
-
-            // Get page links
-            for (var i = startNumber; i <= finalNumber; i++) {
-                var paginationItem = document.createElement('div');
-                paginationItem.innerHTML = i;
-                pagination.appendChild(paginationItem);
-
-                if (obj.options.pageNumber == i - 1) {
-                    paginationItem.style.fontWeight = 'bold';
-                }
-            }
-
-            // Last
-            if (finalNumber < numberOfPages) {
-                var paginationItem = document.createElement('div');
-                paginationItem.innerHTML = '>';
-                paginationItem.title = numberOfPages - 1;
-                pagination.appendChild(paginationItem);
-            }
-        }
-    }
-
+    // Parse events inside the template
     var parse = function(element) {
         // Attributes
         var attr = {};
@@ -2637,6 +2537,80 @@ jSuites.template = (function(el, options) {
     }
 
     /**
+     * Set the options
+     */
+    obj.setOptions = function() {
+        // Default configuration
+        var defaults = {
+            url: null,
+            data: null,
+            total: null,
+            filter: null,
+            template: null,
+            render: null,
+            noRecordsFound: 'No records found',
+            containerClass: null,
+            // Searchable
+            search: null,
+            searchInput: true,
+            searchPlaceHolder: '',
+            searchValue: '',
+            // Remote search
+            remoteData: false,
+            // Pagination page number of items
+            pagination: null,
+            // Events
+            onload: null,
+            onupdate: null,
+            onchange: null,
+            onsearch: null,
+            onclick: null,
+        }
+
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else if (typeof(obj.options[property]) === 'undefined') {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Pagination container
+        if (obj.options.pagination) {
+            el.insertBefore(pagination, el.firstChild);
+        } else {
+            if (pagination && pagination.parentNode) {
+                el.removeChild(pagination);
+            }
+        }
+
+
+        // Input search
+        if (obj.options.search && obj.options.searchInput == true) {
+            el.insertBefore(searchContainer, el.firstChild);
+            // Input value
+            obj.searchInput.value = obj.options.searchValue;
+        } else {
+            if (searchContainer && searchContainer.parentNode) {
+                el.removeChild(searchContainer);
+            }
+        }
+
+        // Search placeholder
+        if (obj.options.searchPlaceHolder) {
+            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
+        } else {
+            obj.searchInput.removeAttribute('placeholder');
+        }
+
+        // Class for the container
+        if (obj.options.containerClass) {
+            container.classList.add(obj.options.containerClass);
+        }
+    }
+
+    /**
      * Append data to the template and add to the DOMContainer
      * @param data
      * @param contentDOMContainer
@@ -2654,6 +2628,9 @@ jSuites.template = (function(el, options) {
         parse(b);
     }
 
+    /**
+     * Add a new option in the data
+     */
     obj.addItem = function(data, beginOfDataSet) {
         // Append itens
         var content = document.createElement('div');
@@ -2684,6 +2661,9 @@ jSuites.template = (function(el, options) {
         }
     }
 
+    /**
+     * Remove the item from the data
+     */
     obj.removeItem = function(element) {
         if (Array.prototype.indexOf.call(container.children, element) > -1) {
             // Remove data from array
@@ -2705,9 +2685,14 @@ jSuites.template = (function(el, options) {
         }
     }
 
+    /**
+     * Reset the data of the element
+     */
     obj.setData = function(data) {
         if (data) {
-            obj.options.pageNumber = 1;
+            // Current page number
+            pageNumber = 0;
+            // Reset search
             obj.options.searchValue = '';
             // Set data
             obj.options.data = data;
@@ -2724,25 +2709,25 @@ jSuites.template = (function(el, options) {
         }
     }
 
-    obj.appendData = function(data, pageNumber) {
-        if (pageNumber) {
-            obj.options.pageNumber = pageNumber;
+    /**
+     * Append data to the component 
+     */
+    obj.appendData = function(data, p) {
+        if (p) {
+            pageNumber = p;
         }
 
         var execute = function(data) {
             // Concat data
             obj.options.data.concat(data);
-            // Number of pages
-            if (obj.options.pagination > 0) {
-                obj.options.numberOfPages = Math.ceil(obj.options.data.length / obj.options.pagination);
-            }
+
             var startNumber = 0;
             var finalNumber = data.length;
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
                 obj.setContent(data[i], content)
-                content.children[0].dataReference = data[i]; // TODO: data[i] or i?
+                content.children[0].dataReference = data[i];
                 container.appendChild(content.children[0]);
             }
         }
@@ -2759,8 +2744,8 @@ jSuites.template = (function(el, options) {
                     ajaxData.q = obj.options.searchValue;
                 }
                 // Page number
-                if (obj.options.pageNumber) {
-                    ajaxData.p = obj.options.pageNumber;
+                if (pageNumber) {
+                    ajaxData.p = pageNumber;
                 }
                 // Number items per page
                 if (obj.options.pagination) {
@@ -2795,8 +2780,8 @@ jSuites.template = (function(el, options) {
             data = obj.options.filter(data);
         }
 
-        // Reset pagination
-        obj.updatePagination();
+        // Reset pagination container
+        pagination.innerHTML = '';
 
         if (! data.length) {
             container.innerHTML = obj.options.noRecordsFound;
@@ -2807,8 +2792,8 @@ jSuites.template = (function(el, options) {
 
             // Create pagination
             if (obj.options.pagination && data.length > obj.options.pagination) {
-                var startNumber = (obj.options.pagination * obj.options.pageNumber);
-                var finalNumber = (obj.options.pagination * obj.options.pageNumber) + obj.options.pagination;
+                var startNumber = (obj.options.pagination * pageNumber);
+                var finalNumber = (obj.options.pagination * pageNumber) + obj.options.pagination;
 
                 if (data.length < finalNumber) {
                     var finalNumber = data.length;
@@ -2826,17 +2811,64 @@ jSuites.template = (function(el, options) {
                 content.children[0].dataReference = data[i]; 
                 container.appendChild(content.children[0]);
             }
+
+            if (obj.options.total) {
+                var numberOfPages = Math.ceil(obj.options.total / obj.options.pagination);
+            } else {
+                var numberOfPages = Math.ceil(data.length / obj.options.pagination);
+            }
+
+            // Update pagination
+            if (obj.options.pagination > 0 && numberOfPages > 1) {
+                // Controllers
+                if (pageNumber < 6) {
+                    var startNumber = 0;
+                    var finalNumber = numberOfPages < 10 ? numberOfPages : 10;
+                } else if (numberOfPages - pageNumber < 5) {
+                    var startNumber = numberOfPages - 9;
+                    var finalNumber = numberOfPages;
+                    if (startNumber < 0) {
+                        startNumber = 0;
+                    }
+                } else {
+                    var startNumber = pageNumber - 4;
+                    var finalNumber = pageNumber + 5;
+                }
+
+                // First
+                if (startNumber > 0) {
+                    var paginationItem = document.createElement('div');
+                    paginationItem.innerHTML = '<';
+                    paginationItem.title = 0;
+                    pagination.appendChild(paginationItem);
+                }
+
+                // Get page links
+                for (var i = startNumber; i < finalNumber; i++) {
+                    var paginationItem = document.createElement('div');
+                    paginationItem.innerHTML = (i + 1);
+                    pagination.appendChild(paginationItem);
+
+                    if (pageNumber == i) {
+                        paginationItem.style.fontWeight = 'bold';
+                    }
+                }
+
+                // Last
+                if (finalNumber < numberOfPages) {
+                    var paginationItem = document.createElement('div');
+                    paginationItem.innerHTML = '>';
+                    paginationItem.title = numberOfPages - 1;
+                    pagination.appendChild(paginationItem);
+                }
+            }
         }
     }
 
-    obj.render = function(pageNumber, forceLoad) {
+    obj.render = function(p, forceLoad) {
         // Update page number
-        if (pageNumber != undefined) {
-            obj.options.pageNumber = pageNumber;
-        } else {
-            if (! obj.options.pageNumber && obj.options.pagination > 0) {
-                obj.options.pageNumber = 0;
-            }
+        if (p !== undefined) {
+            pageNumber = p;
         }
 
         // Render data into template
@@ -2876,8 +2908,8 @@ jSuites.template = (function(el, options) {
                     ajaxData.q = obj.options.searchValue;
                 }
                 // Page number
-                if (obj.options.pageNumber) {
-                    ajaxData.p = obj.options.pageNumber;
+                if (pageNumber) {
+                    ajaxData.p = pageNumber;
                 }
                 // Number items per page
                 if (obj.options.pagination) {
@@ -2893,13 +2925,10 @@ jSuites.template = (function(el, options) {
                 success: function(data) {
                     // Search and keep data in the client side
                     if (data.hasOwnProperty("total")) {
-                        obj.options.numberOfPages = Math.ceil(data.total / obj.options.pagination);
+                        obj.options.total = data.total;
                         obj.options.data = data.data;
                     } else {
-                        // Number of pages
-                        if (obj.options.pagination > 0) {
-                            obj.options.numberOfPages = Math.ceil(data.length / obj.options.pagination);
-                        }
+                        obj.options.total = null;
                         obj.options.data = data;
                     }
 
@@ -2911,14 +2940,6 @@ jSuites.template = (function(el, options) {
             if (! obj.options.data) {
                 console.log('TEMPLATE: no data or external url defined');
             } else {
-                // Number of pages
-                if (obj.options.pagination > 0) {
-                    if (searchResults) {
-                        obj.options.numberOfPages = Math.ceil(searchResults.length / obj.options.pagination);
-                    } else {
-                        obj.options.numberOfPages = Math.ceil(obj.options.data.length / obj.options.pagination);
-                    }
-                }
                 // Load data for the user
                 execute();
             }
@@ -2926,7 +2947,9 @@ jSuites.template = (function(el, options) {
     }
 
     obj.search = function(query) {
-        obj.options.pageNumber = 0;
+        // Page number
+        pageNumber = 0;
+        // Search query
         obj.options.searchValue = query ? query : '';
 
         // Filter data
@@ -2949,7 +2972,7 @@ jSuites.template = (function(el, options) {
             });
         }
 
-        obj.render();
+        obj.render(0);
 
         if (typeof(obj.options.onsearch) == 'function') {
             obj.options.onsearch(el, obj, query);
@@ -2964,6 +2987,9 @@ jSuites.template = (function(el, options) {
         obj.render(0, true);
     }
 
+    /**
+     * Events
+     */
     el.addEventListener('mousedown', function(e) {
         if (e.target.parentNode.classList.contains('jtemplate-pagination')) {
             var index = e.target.innerText;
@@ -2978,12 +3004,45 @@ jSuites.template = (function(el, options) {
         }
     });
 
-    el.addEventListener('click', function(e) {
+    el.addEventListener('mouseup', function(e) {
         if (typeof(obj.options.onclick) == 'function') {
             obj.options.onclick(el, obj, e);
         }
     });
 
+    // Reset content
+    el.innerHTML = '';
+
+    // Container
+    var container = document.createElement('div');
+    container.classList.add ('jtemplate-content');
+    el.appendChild(container);
+
+    // Pagination container
+    var pagination = document.createElement('div');
+    pagination.className = 'jtemplate-pagination';
+
+    // Search DOM elements
+    var searchContainer = document.createElement('div');
+    searchContainer.className = 'jtemplate-results';
+    obj.searchInput = document.createElement('input');
+    obj.searchInput.onkeyup = function(e) {
+        // Clear current trigger
+        if (searchTimer) {
+            clearTimeout(searchTimer);
+        }
+        // Prepare search
+        searchTimer = setTimeout(function() {
+            obj.search(obj.searchInput.value.toLowerCase());
+            searchTimer = null;
+        }, 300)
+    }
+    searchContainer.appendChild(obj.searchInput);
+
+    // Set the options
+    obj.setOptions(options);
+
+    // Keep the reference in the DOM container
     el.template = obj;
 
     // Render data
