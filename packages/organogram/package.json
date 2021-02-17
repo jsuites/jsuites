@@ -1,0 +1,30 @@
+{
+    "name": "@jsuites/organogram",
+    "title": "JavaScript organogram",
+    "description": "JavaScript organogram plugin. Build quick and responsive organograms based on a json description.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript plugins, organogram, javascript organogram plugin"
+    ],
+    "dependencies": {
+        "jsuites": "^4.0.0"
+    },
+    "main": "organogram.js",
+    "version": "1.1.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v4",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
