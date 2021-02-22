@@ -19,10 +19,10 @@
         "javascript plugins, image cropper, javascript image cropper, javascript image editor, rotate, zoom, crop, brightness, contract."
     ],
     "dependencies": {
-        "jsuites": "^3.9.9"
+        "jsuites": "^4.0.2"
     },
     "main": "cropper.js",
-    "version": "1.4.0",
+    "version": "1.4.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v3",
