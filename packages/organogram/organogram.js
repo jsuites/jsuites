@@ -138,17 +138,17 @@
 
             // Check render mode / vertical / horizontal
             var mode = getRenderMode(container);
-            
+
             if (mode == 'vertical' && obj.options.vertical) {
                 container.previousElementSibling.classList.add('jorg-after-none');
                 container.classList.add('jorg-vertical');
-            }else {
+            } else {
                 container.classList.add('jorg-horizontal');
             }
 
             if (! container.childNodes.length) {
                 container.remove();
-            }else if (container.previousElementSibling) {
+            } else if (container.previousElementSibling) {
                 setNodeVisibility(container.previousElementSibling);
             }
         }
@@ -166,7 +166,7 @@
                 el.classList.add('fullscreen-mode');
                 document.body.classList.add('jorg-hide-scrollbars');
                 el.style.top = windowScrollTop + 'px';
-                e.target.innerText ='check_box_outline_blank';
+                e.target.innerText ='close_fullscreen';
             }
         }
 
@@ -238,6 +238,10 @@
             }
         }
 
+        /**
+         * Set the options
+         * @param {object} options
+         */
         obj.setOptions = function(options) {
             // Default configuration
             var defaults = {
@@ -261,7 +265,9 @@
                 if (options && options.hasOwnProperty(property)) {
                     obj.options[property] = options[property];
                 } else {
-                    obj.options[property] = defaults[property];
+                    if (typeof(obj.options[property]) == 'undefined') {
+                        obj.options[property] = defaults[property];
+                    }
                 }
             }
 
@@ -280,31 +286,14 @@
             search.placeholder = obj.options.searchPlaceholder;
 
             // Set default dimensions
-            obj.setDimensions(obj.options.width, obj.options.height);
+            if (options.width || options.height) {
+                obj.setDimensions(obj.options.width, obj.options.height);
+            }
 
-            // Loading data
-            if (obj.options.url) {
-                jSuites.ajax({
-                    url: obj.options.url,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(result) {
-                        obj.options.data = result;
-                        if (typeof obj.options.onload == 'function') {
-                            obj.options.onload(el, obj);
-                        }
-                        render(0, ul);
-                        setInitialPosition();
-                        setInitialWidth();
-                    }
-                });
-            } else if (obj.options.data && obj.options.data.length) {
-                render(0, ul);
-                setInitialPosition();
-                setInitialWidth();
-
-                if (typeof obj.options.onload == 'function') {
-                    obj.options.onload(el, obj);
+            // Only execute when is not the first time
+            if (el.organogram) {
+                if (options.vertical === true || options.vertical === false || options.roles) {
+                    obj.refresh();
                 }
             }
         }
@@ -453,72 +442,15 @@
             el.style.height = height + 'px';
         }
 
-        // Create zoom action
-        var zoomContainer = document.createElement('div');
-        zoomContainer.className = 'jorg-zoom-container';
-
-        obj.zoomContainer = zoomContainer;
-
-        var zoomIn = document.createElement('i');
-        zoomIn.className = 'jorg-zoom-in material-icons jorg-action';
-        zoomIn.innerHTML = "add_box";
-
-        var zoomOut = document.createElement('i');
-        zoomOut.className = 'jorg-zoom-out material-icons jorg-action';
-        zoomOut.innerHTML = "indeterminate_check_box";
-
-        var fullscreen = document.createElement('i');
-        fullscreen.className = 'jorg-fullscreen material-icons jorg-action';
-        fullscreen.title = 'Fullscreen';
-        fullscreen.innerHTML = "slideshow";
-
-        zoomContainer.appendChild(fullscreen);
-        zoomContainer.appendChild(zoomIn);
-        zoomContainer.appendChild(zoomOut);
-
-        zoomIn.addEventListener('click', zoom);
-        zoomOut.addEventListener('click', zoom);
-        fullscreen.addEventListener('click', setFullScreenMode);
-
-        // Create container
-        var ul = document.createElement('ul');
-
-        // Default zoom
-        if (! ul.style.zoom) {
-            ul.style.zoom = '1';
-        }
-
-        // Default classes
-        el.classList.add('jorg');
-        el.classList.add('jorg-tf-tree');
-        el.classList.add('jorg-unselectable');
-        ul.classList.add('jorg-disable-scrollbars');
-
-        // Append elements
-        el.appendChild(ul);
-        el.appendChild(zoomContainer);
-
-        var search = document.createElement('input');
-        search.type = 'text';
-        search.classList.add('jorg-search');
-        search.onkeyup = function(e) {
-            obj.search(e.target.value);
-        }
-        search.onblur = function(e) {
-            e.target.value = '';
-        }
-
         var pinchStart = function(e) {
-            state.fingerDistance = Math.hypot(
-                    e.touches[0].pageX - e.touches[1].pageX,
-                    e.touches[0].pageY - e.touches[1].pageY);
+            state.fingerDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
         }
 
         var pinchMove = function(e) {
             e.preventDefault();
 
             var dist2 = Math.hypot(e.touches[0].pageX - e.touches[1].pageX,e.touches[0].pageY - e.touches[1].pageY);
-        
+
             if (dist2 > state.fingerDistance) {
                 var dif =  dist2 - state.fingerDistance;
                 var newZoom = state.scale + state.scale * dif * 0.0025;
@@ -582,29 +514,122 @@
 
         var touchEnd = function(e) {
             state.mobileDown = false;
-
             if (state.scaling) {
                 state.scaling = false;
             }
         }
 
-        // Event handlers
-        ul.addEventListener('wheel', zoom);
-        ul.addEventListener('mousemove', moveListener);
-        ul.addEventListener('touchmove', moveListener);
-        ul.addEventListener('touchstart', touchListener);
-        ul.addEventListener('touchend', touchEnd);
-        ul.addEventListener('mousedown', touchListener);
+        var ul = null;
+        var search = null;
+        var zoomContainer = null;
+        var zoomIn = null;
+        var zoomOut = null;
+        var fullscreen = null;
 
-        el.addEventListener('click', function(e) {
-            if (typeof(obj.options.onclick) == 'function') {
-                obj.options.onclick(el, obj, e);
+        var init = function() {
+            // Create zoom action
+            zoomContainer = document.createElement('div');
+            zoomContainer.className = 'jorg-zoom-container';
+            obj.zoomContainer = zoomContainer;
+
+            zoomIn = document.createElement('i');
+            zoomIn.className = 'jorg-zoom-in material-icons jorg-action';
+            zoomIn.innerHTML = "add_box";
+
+            zoomOut = document.createElement('i');
+            zoomOut.className = 'jorg-zoom-out material-icons jorg-action';
+            zoomOut.innerHTML = "indeterminate_check_box";
+
+            fullscreen = document.createElement('i');
+            fullscreen.className = 'jorg-fullscreen material-icons jorg-action';
+            fullscreen.title = 'Fullscreen';
+            fullscreen.innerHTML = "slideshow";
+
+            zoomContainer.appendChild(fullscreen);
+            zoomContainer.appendChild(zoomIn);
+            zoomContainer.appendChild(zoomOut);
+
+            zoomIn.addEventListener('click', zoom);
+            zoomOut.addEventListener('click', zoom);
+            fullscreen.addEventListener('click', setFullScreenMode);
+
+            // Create container
+            ul = document.createElement('ul');
+
+            // Default zoom
+            if (! ul.style.zoom) {
+                ul.style.zoom = '1';
             }
-        });
 
-        el.organogram = obj;
+            // Default classes
+            el.classList.add('jorg');
+            el.classList.add('jorg-tf-tree');
+            el.classList.add('jorg-unselectable');
+            ul.classList.add('jorg-disable-scrollbars');
 
-        obj.setOptions(options);
+            // Append elements
+            el.appendChild(ul);
+            el.appendChild(zoomContainer);
+
+            search = document.createElement('input');
+            search.type = 'text';
+            search.classList.add('jorg-search');
+            search.onkeyup = function(e) {
+                obj.search(e.target.value);
+            }
+            search.onblur = function(e) {
+                e.target.value = '';
+            }
+
+            // Event handlers
+            ul.addEventListener('wheel', zoom);
+            ul.addEventListener('mousemove', moveListener);
+            ul.addEventListener('touchmove', moveListener);
+            ul.addEventListener('touchstart', touchListener);
+            ul.addEventListener('touchend', touchEnd);
+            ul.addEventListener('mousedown', touchListener);
+
+            el.addEventListener('click', function(e) {
+                if (typeof(obj.options.onclick) == 'function') {
+                    obj.options.onclick(el, obj, e);
+                }
+            });
+
+            obj.setOptions(options);
+
+            // Create
+            var create = function() {
+                render(0, ul);
+                setInitialPosition();
+                setInitialWidth();
+                // Set default dimensions
+                obj.setDimensions(obj.options.width, obj.options.height);
+
+                if (typeof obj.options.onload == 'function') {
+                    obj.options.onload(el, obj);
+                }
+            }
+
+            // Loading data
+            if (obj.options.url) {
+                jSuites.ajax({
+                    url: obj.options.url,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(result) {
+                        obj.options.data = result;
+
+                        create();
+                    }
+                });
+            } else if (obj.options.data && obj.options.data.length) {
+                create();
+            }
+
+            el.organogram = obj;
+        }
+
+        init();
 
         return obj;
     });

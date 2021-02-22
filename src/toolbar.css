@@ -58,7 +58,7 @@
 
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
-    height: 24px;
+    height: 18px;
     padding: 0px;
     margin-left: 4px;
     margin-right: 4px;
@@ -111,8 +111,8 @@
 }
 
 .jtoolbar .jpicker-header {
-    height: 24px;
-    line-height: 24px;
+    height: 18px;
+    line-height: 18px;
     padding: 0px;
     padding-right: 20px;
     padding-left: 4px;
@@ -128,10 +128,18 @@
 }
 
 .jtoolbar .fa {
-    width: 24px;
-    height: 24px;
+    width: 18px;
+    height: 18px;
     display: block;
-    line-height: 24px;
+    line-height: 18px;
+}
+
+.jtoolbar .material-icons {
+    width: 18px;
+    height: 18px;
+    display: block;
+    line-height: 18px;
+    transform: rotate(0.01deg);
 }
 
 .jtoolbar .jtoolbar-arrow {
@@ -139,7 +147,7 @@
     background-position: center;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
     width: 16px;
-    height: 24px;
+    height: 18px;
 }
 
 .jtoolbar-floating {
