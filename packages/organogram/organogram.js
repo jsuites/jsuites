@@ -23,7 +23,7 @@
 
     return (function(el, options) {
         if (el.organogram) {
-            return obj.setOptions(options);
+            return el.organogram.setOptions(options, reset);
         }
 
         var obj = {};
@@ -242,7 +242,7 @@
          * Set the options
          * @param {object} options
          */
-        obj.setOptions = function(options) {
+        obj.setOptions = function(options, reset) {
             // Default configuration
             var defaults = {
                 data: null,
@@ -265,7 +265,7 @@
                 if (options && options.hasOwnProperty(property)) {
                     obj.options[property] = options[property];
                 } else {
-                    if (typeof(obj.options[property]) == 'undefined') {
+                    if (typeof(obj.options[property]) == 'undefined' || reset === true) {
                         obj.options[property] = defaults[property];
                     }
                 }

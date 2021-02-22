@@ -23,8 +23,8 @@
 
     return (function(el, options) {
         // Already created, update options
-        if (el.classList.contains('jcrop')) {
-            return el.crop.setOptions(options);
+        if (el.crop) {
+            return el.crop.setOptions(options, true);
         }
 
         // New instance
@@ -169,7 +169,7 @@
         /**
          * Set options
          */
-        obj.setOptions = function(options) {
+        obj.setOptions = function(options, reset) {
             // Default configuration
             var defaults = {
                 area: [ 800, 600 ],
@@ -190,7 +190,9 @@
                 if (options && options.hasOwnProperty(property)) {
                     obj.options[property] = options[property];
                 } else {
-                    obj.options[property] = defaults[property];
+                    if (typeof(obj.options[property]) == 'undefined' || reset === true) {
+                        obj.options[property] = defaults[property];
+                    }
                 }
             }
 
