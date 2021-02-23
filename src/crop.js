@@ -1,48 +1,16 @@
 jSuites.crop = (function(el, options) {
+    // Already created, update options
+    if (el.crop) {
+        return el.crop.setOptions(options, true);
+    }
+
+    // New instance
     var obj = {};
     obj.options = {};
-
-    // Default configuration
-    var defaults = {
-        area: [ 800, 600 ],
-        crop: [ 200, 150 ],
-        value: null,
-        onload: null,
-        onchange: null,
-        remoteParser: null,
-        allowResize: true,
-        text: {
-            extensionNotAllowed:'The extension is not allowed',
-            imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
-        }
-    };
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // Default for mobile
-    if (jSuites.getWindowWidth() < 800) {
-        if (! obj.options.area[0]) {
-            obj.options.area[0] = window.clientWidth * 2;
-        }
-        if (! obj.options.area[1]) {
-            obj.options.area[1] = window.clientHeight * 2;
-        }
-    }
 
     el.classList.add('jcrop');
     // Upload icon
     el.classList.add('jupload');
-
-    // Area
-    el.style.width = obj.options.area[0] + 'px';
-    el.style.height = obj.options.area[1] + 'px';
 
     // Area do crop
     var crop = document.createElement('div');
@@ -56,27 +24,27 @@ jSuites.crop = (function(el, options) {
 
     // Image
     var drawImage = function() {
-        if (el.clientHeight > image.height) {
-            var pointY = (el.clientHeight - image.height) / 2;
+        if (el.clientHeight > obj.image.height) {
+            var pointY = (el.clientHeight - obj.image.height) / 2;
         } else {
             var pointY = 0;
         }
 
-        if (el.clientWidth > image.width) {
-            var pointX = (el.clientWidth - image.width) / 2;
+        if (el.clientWidth > obj.image.width) {
+            var pointX = (el.clientWidth - obj.image.width) / 2;
         } else {
             var pointX = 0;
         }
 
-        image.left = pointX;
-        image.top = pointY;
+        obj.image.left = pointX;
+        obj.image.top = pointY;
 
         context.translate(pointX, pointY);
-        context.drawImage(image, 0, 0, image.width, image.height);
+        context.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
     }
 
-    var image = new Image();
-    image.onload = function onload() {
+    obj.image = new Image();
+    obj.image.onload = function onload() {
         obj.resetCanvas();
 
         var w = obj.options.area[0] / this.naturalWidth;
@@ -115,7 +83,7 @@ jSuites.crop = (function(el, options) {
 
         // Onchange
         if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, image);
+            obj.options.onchange(el, obj.image);
         }
     };
 
@@ -124,6 +92,7 @@ jSuites.crop = (function(el, options) {
         zoom: {
             origin: { x: null, y: null, },
             scale: 1,
+            fingerDistance: 0
         },
         contrast: 0,
         brightness: 0,
@@ -137,17 +106,17 @@ jSuites.crop = (function(el, options) {
 
     // Reload filters
     var refreshFilters = function() {
-        secondCanvas.width = image.width;
-        secondCanvas.height = image.height;
+        secondCanvas.width = obj.image.width;
+        secondCanvas.height = obj.image.height;
 
         secondContext.clearRect(0, 0, secondContext.width, secondContext.height);
 
         secondImage.width = secondCanvas.width;
         secondImage.height = secondCanvas.height;
 
-        if (image) {
+        if (obj.image) {
             //drawImage();
-            secondContext.drawImage(image, 0, 0, image.width, image.height);
+            secondContext.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
         }
 
         // Performs the contrast, if its value is different from the initial
@@ -175,6 +144,59 @@ jSuites.crop = (function(el, options) {
     }
 
     /**
+     * Set options
+     */
+    obj.setOptions = function(options, reset) {
+        // Default configuration
+        var defaults = {
+            area: [ 800, 600 ],
+            crop: [ 200, 150 ],
+            value: null,
+            onload: null,
+            onchange: null,
+            remoteParser: null,
+            allowResize: true,
+            text: {
+                extensionNotAllowed: 'The extension is not allowed',
+                imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
+            }
+        };
+
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
+                    obj.options[property] = defaults[property];
+                }
+            }
+        }
+
+        // Default for mobile
+        if (jSuites.getWindowWidth() < 800) {
+            if (! obj.options.area[0]) {
+                obj.options.area[0] = window.clientWidth * 2;
+            }
+            if (! obj.options.area[1]) {
+                obj.options.area[1] = window.clientHeight * 2;
+            }
+        }
+
+        // Set options
+        el.style.width = obj.options.area[0] + 'px';
+        el.style.height = obj.options.area[1] + 'px';
+
+        // Reset all
+        obj.reset();
+
+        // Initial image
+        if (obj.options.value) {
+            obj.image.src = obj.options.value;
+        }
+    }
+
+    /**
      * Reset crop to the initial conditions
      */
     obj.resetCropSelection = function() {
@@ -197,6 +219,8 @@ jSuites.crop = (function(el, options) {
 
     // Reset all the properties
     obj.reset = function() {
+        // Reset crop selection
+        obj.resetCropSelection()
         // Reset canvas
         obj.resetCanvas();
         // Reset state
@@ -275,8 +299,8 @@ jSuites.crop = (function(el, options) {
      * Returns the current image type
      */
     obj.getImageType = function() {
-        var dataType = image.src.substr(0,20);
-        if(dataType.includes('data')){
+        var dataType = obj.image.src.substr(0,20);
+        if (dataType.includes('data')){
             return dataType.split('/')[1].split(';')[0];
         }
         return null;
@@ -348,7 +372,7 @@ jSuites.crop = (function(el, options) {
      * Returns the current image on canvas
      */
     obj.getImage = function() {
-        return image;
+        return obj.image;
     }
 
     /**
@@ -373,11 +397,11 @@ jSuites.crop = (function(el, options) {
         if (type[0] == 'image') {
             var imageFile = new FileReader();
             imageFile.addEventListener("load", function (v) {
-                image.src = v.srcElement.result;
+                obj.image.src = v.target.result;
             });
             imageFile.readAsDataURL(file);
         } else {
-            alert(text.extentionNotAllowed);
+            alert(obj.options.text.extensionNotAllowed);
         }
     }
 
@@ -389,13 +413,54 @@ jSuites.crop = (function(el, options) {
             console.error('remoteParser not defined in your initialization');
         } else {
             src = obj.options.remoteParser + src;
-            image.src = src;
+            obj.image.src = src;
         }
     }
 
+    // X-axis spacing of the zoom at the last scroll change
+    var zoomOffsetX;
+
+    // Y-axis spacing of the zoom at the last scroll change
+    var zoomOffsetY;
+
+    // Mouse position on the x-axis in the last use of the scroll
+    var lastX;
+
+    // Mouse position on the y-axis in the last use of the scroll
+    var lastY;
+
+    // Last zoom applied
+    var lastScale;
+
     // Runs image movements
     var runMove = function() {
-        context.translate(image.left, image.top);
+        // If the mouse was moved after the last scroll, it moves the image in relation to the x-axis
+        if (lastX && lastX !== properties.zoom.origin.x) {
+            var temp = Math.abs(properties.zoom.origin.x - zoomOffsetX - obj.image.left);
+            temp /= lastScale;
+            temp -= properties.zoom.origin.x - obj.image.left;
+
+            obj.image.left -= temp;
+        }
+
+        // If the mouse was moved after the last scroll, it moves the image in relation to the y-axis
+        if (lastY && lastY !== properties.zoom.origin.y) {
+            var temp = Math.abs(properties.zoom.origin.y - zoomOffsetY - obj.image.top);
+            temp /= lastScale;
+            temp -= properties.zoom.origin.y - obj.image.top;
+
+            obj.image.top -= temp;
+        }
+
+        // Update variables
+        zoomOffsetX = (properties.zoom.origin.x - obj.image.left) - (properties.zoom.origin.x - obj.image.left) * properties.zoom.scale;
+        zoomOffsetY = (properties.zoom.origin.y - obj.image.top) - (properties.zoom.origin.y - obj.image.top) * properties.zoom.scale;
+        lastX = properties.zoom.origin.x;
+        lastY = properties.zoom.origin.y;
+        lastScale = properties.zoom.scale;
+
+        // Move image
+        context.translate(obj.image.left + zoomOffsetX, obj.image.top + zoomOffsetY);
     }
 
     // Reload resizers and filters
@@ -420,15 +485,13 @@ jSuites.crop = (function(el, options) {
         if (properties.brightness || properties.contrast) {
             context.drawImage(secondImage, 0, 0, secondImage.width, secondImage.height);
         } else {
-            context.drawImage(image, 0, 0, image.width, image.height);
+            context.drawImage(obj.image, 0, 0, obj.image.width, obj.image.height);
         }
     }
 
     // Apply the zoom on the image
     var runZoom = function() {
-        context.translate((properties.zoom.origin.x - image.left), (properties.zoom.origin.y - image.top));
         context.scale(properties.zoom.scale, properties.zoom.scale);
-        context.translate(-(properties.zoom.origin.x - image.left), -(properties.zoom.origin.y - image.top));
     }
 
     /**
@@ -447,9 +510,9 @@ jSuites.crop = (function(el, options) {
         var value = properties.rotate;
         value *= 180;
 
-        context.translate(image.width / 2, image.height / 2);
+        context.translate(obj.image.width / 2, obj.image.height / 2);
         context.rotate(value * Math.PI / 180);
-        context.translate(- image.width / 2, - image.height / 2);
+        context.translate(- obj.image.width / 2, - obj.image.height / 2);
     }
 
     // Change the rotation and apply that to the image
@@ -473,6 +536,7 @@ jSuites.crop = (function(el, options) {
 
     /** Events start here **/
     var editorAction = null;
+    var scaling = null;
 
     var editorMouseUp = function(e) {
         editorAction = false;
@@ -511,20 +575,6 @@ jSuites.crop = (function(el, options) {
                         s.removeRange(s.getRangeAt(i));
                     }
                 }
-            } else {
-                e.target.style.cursor = 'move';
-
-                // Tracking for moving
-                editorAction = {
-                    e: e.target,
-                    x: e.clientX,
-                    y: e.clientY,
-                    w: rect.width,
-                    h: rect.height,
-                    d: e.target.style.cursor,
-                    xOffset: e.clientX - parseInt(offsetX.slice(0, offsetX.length - 2)),
-                    yOffset: e.clientY - parseInt(offsetY.slice(0, offsetY.length - 2)),
-                }
             }
         } else { 
             editorAction = true;
@@ -532,37 +582,50 @@ jSuites.crop = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.classList.contains('jcrop-area') && obj.options.allowResize == true) {
-            var rect = e.target.getBoundingClientRect();
-            if (e.clientY - rect.top < 5) {
-                if (rect.width - (e.clientX - rect.left) < 5) {
-                    e.target.style.cursor = 'ne-resize';
-                } else if (e.clientX - rect.left < 5) {
-                    e.target.style.cursor = 'nw-resize';
+        e = e || window.event;
+        if (typeof(e.buttons) !== undefined) {
+            var mouseButton = e.buttons;
+        } else if (typeof(e.button) !== undefined) {
+            var mouseButton = e.button;
+        } else {
+            var mouseButton = e.which;
+        }
+
+        if (! e.buttons) {
+            if (e.target.classList.contains('jcrop-area')) {
+                var rect = e.target.getBoundingClientRect();
+                if (obj.options.allowResize == true) {
+                    if (e.clientY - rect.top < 5) {
+                        if (rect.width - (e.clientX - rect.left) < 5) {
+                            e.target.style.cursor = 'ne-resize';
+                        } else if (e.clientX - rect.left < 5) {
+                            e.target.style.cursor = 'nw-resize';
+                        } else {
+                            e.target.style.cursor = 'n-resize';
+                        }
+                    } else if (rect.height - (e.clientY - rect.top) < 5) {
+                        if (rect.width - (e.clientX - rect.left) < 5) {
+                            e.target.style.cursor = 'se-resize';
+                        } else if (e.clientX - rect.left < 5) {
+                            e.target.style.cursor = 'sw-resize';
+                        } else {
+                            e.target.style.cursor = 's-resize';
+                        }
+                    } else if (rect.width - (e.clientX - rect.left) < 5) {
+                        e.target.style.cursor = 'e-resize';
+                    } else if (e.clientX - rect.left < 5) {
+                        e.target.style.cursor = 'w-resize';
+                    } else {
+                        e.target.style.cursor = 'move';
+                    }
                 } else {
-                    e.target.style.cursor = 'n-resize';
-                }
-            } else if (rect.height - (e.clientY - rect.top) < 5) {
-                if (rect.width - (e.clientX - rect.left) < 5) {
-                    e.target.style.cursor = 'se-resize';
-                } else if (e.clientX - rect.left < 5) {
-                    e.target.style.cursor = 'sw-resize';
-                } else {
-                    e.target.style.cursor = 's-resize';
-                }
-            } else if (rect.width - (e.clientX - rect.left) < 5) {
-                e.target.style.cursor = 'e-resize';
-            } else if (e.clientX - rect.left < 5) {
-                e.target.style.cursor = 'w-resize';
-            } else {
-                if (! e.which) {
-                    e.target.style.cursor = '';
+                    e.target.style.cursor = 'move';
                 }
             }
         }
 
-        // Change position or size
-        if (e.which == 1 && editorAction && editorAction.d) {
+        if (mouseButton == 1 && editorAction && editorAction.d) {
+            // Change position or size
             if (editorAction.d == 'move') {
                 // Change the position of the cropper
                 var cropOffsetX = e.clientX - editorAction.xOffset;
@@ -665,10 +728,23 @@ jSuites.crop = (function(el, options) {
             imageState.mouseX = e.clientX;
             imageState.mouseY = e.clientY;
         }
+
+        if (e.touches) {
+            if(e.touches.length == 2) {
+                imageState.mousedown = false;
+                scaling = true;
+                pinchStart(e);
+            }
+        }
+    }
+    var touchEndListener = function(e) {
+        if (scaling) {
+            scaling = false;
+        }
     }
 
     var imageMoveListener = function(e) {
-        if (el.classList.contains('jcrop_edition')) {
+        if (el.classList.contains('jcrop_edition') && ! scaling) {
             // Mark position
             if (e.changedTouches && e.changedTouches[0]) {
                 var x = e.changedTouches[0].clientX;
@@ -687,24 +763,31 @@ jSuites.crop = (function(el, options) {
             imageState.mouseY = currentY;
 
             if (imageState.mousedown) {
-                image.left += newX/properties.zoom.scale;
-                image.top += newY/properties.zoom.scale;
+                obj.image.left += newX/properties.zoom.scale;
+                obj.image.top += newY/properties.zoom.scale;
                 refreshResizers();
             }
 
             e.preventDefault();
         }
+
+        if(scaling) {
+            pinchMove(e);
+        }
     }
+
+    document.addEventListener('mouseup', function(e) {
+        imageState.mousedown = false;
+    });
 
     el.addEventListener('mouseup', editorMouseUp);
     el.addEventListener('mousedown', editorMouseDown);
     el.addEventListener('mousemove', editorMouseMove);
     el.addEventListener('touchstart',touchstartListener);
+
+    el.addEventListener('touchend', touchEndListener);
     el.addEventListener('touchmove', imageMoveListener);
     el.addEventListener('mousedown',touchstartListener);
-    document.addEventListener('mouseup', function(e) {
-        imageState.mousedown = false;
-    });
     el.addEventListener('mousemove', imageMoveListener);
 
     el.addEventListener("dblclick", function(e) {
@@ -803,10 +886,42 @@ jSuites.crop = (function(el, options) {
         obj.options.onload(el, obj);
     }
 
-    // Initial image
-    if (obj.options.value) {
-        image.src = obj.options.value;
+    // Mobile pinch zoom
+    var pinchStart = function(e) {
+        var rect = el.getBoundingClientRect();
+        properties.zoom.fingerDistance = Math.hypot(
+                e.touches[0].pageX - e.touches[1].pageX,
+                e.touches[0].pageY - e.touches[1].pageY);
+
+        properties.zoom.origin.x = ((e.touches[0].pageX - rect.left) + (e.touches[1].pageX - rect.left))/2;
+        properties.zoom.origin.y = ((e.touches[0].pageY - rect.top) + (e.touches[1].pageY - rect.top))/2;
     }
+
+    var pinchMove = function(e) {
+        e.preventDefault();
+
+        var dist2 = Math.hypot(e.touches[0].pageX - e.touches[1].pageX,e.touches[0].pageY - e.touches[1].pageY);
+
+        if (dist2 > properties.zoom.fingerDistance) {
+            var dif =  dist2 - properties.zoom.fingerDistance;
+            var newZoom = properties.zoom.scale + properties.zoom.scale * dif * 0.0025;
+            if (newZoom <= 5.09) {
+               obj.zoom(newZoom);
+            }
+        }
+
+        if (dist2 < properties.zoom.fingerDistance) {
+            var dif =  properties.zoom.fingerDistance - dist2;
+            var newZoom = properties.zoom.scale - properties.zoom.scale * dif * 0.0025;
+            if (newZoom >= 0.1) {
+               obj.zoom(newZoom);
+            }
+        }
+        properties.zoom.fingerDistance = dist2;
+    }
+
+    // Initial options
+    obj.setOptions(options);
 
     el.crop = obj;
 

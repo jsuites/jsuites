@@ -111,15 +111,17 @@
 }
 
 .jtoolbar .jpicker-header {
-    height: 18px;
-    line-height: 18px;
+    height: 24px;
+    line-height: 24px;
     padding: 0px;
     padding-right: 20px;
     padding-left: 4px;
     background-position: top 50% right 0px;
+    display: flex;
+    align-items: center;
 }
 
-.jtoolbar .jpicker-content div {
+.jtoolbar .jpicker-content > div {
     padding: 6px;
 }
 
@@ -132,14 +134,17 @@
     height: 18px;
     display: block;
     line-height: 18px;
+    font-size: 14px;
 }
 
 .jtoolbar .material-icons {
-    width: 18px;
-    height: 18px;
+    font-size: 18px;
+    width: 24px;
+    height: 24px;
     display: block;
-    line-height: 18px;
-    transform: rotate(0.01deg);
+    line-height: 24px;
+    transform: rotate(0.03deg);
+    text-align: center;
 }
 
 .jtoolbar .jtoolbar-arrow {

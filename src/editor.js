@@ -46,6 +46,7 @@ jSuites.editor = (function(el, options) {
         border: true,
         padding: true,
         maxHeight: null,
+        height: null,
         focus: false,
         // Events
         onclick: null,
@@ -114,9 +115,15 @@ jSuites.editor = (function(el, options) {
     editor.className = 'jeditor';
 
     // Max height
-    if (obj.options.maxHeight) {
+    if (obj.options.maxHeight || obj.options.height) {
         editor.style.overflowY = 'auto';
-        editor.style.maxHeight = obj.options.maxHeight;
+
+        if (obj.options.maxHeight) {
+            editor.style.maxHeight = obj.options.maxHeight;
+        }
+        if (obj.options.height) {
+            editor.style.height = obj.options.height;
+        }
     }
 
     // Set editor initial value

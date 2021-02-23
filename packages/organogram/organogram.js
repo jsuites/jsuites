@@ -23,7 +23,7 @@
 
     return (function(el, options) {
         if (el.organogram) {
-            return el.organogram.setOptions(options, reset);
+            return el.organogram.setOptions(options, true);
         }
 
         var obj = {};
@@ -63,7 +63,7 @@
 
             return `<div class="jorg-user-status" style="background:${color}"></div>
                 <div class="jorg-user-info">
-                    <div class='jorg-user-img'><img src="${node.img}" ondragstart="return false" /></div>
+                    <div class='jorg-user-img'><img src="${node.img ? node.img : '#'}" ondragstart="return false" /></div>
                     <div class='jorg-user-content'><span>${node.name}</span><span>${role}</span></div>
                 </div>`;
         }
@@ -251,7 +251,7 @@
                 width: 800,
                 height: 600,
                 search: true,
-                searchPlaceholder: 'Search',
+                searchPlaceHolder: 'Search',
                 vertical: false,
                 roles: null,
                 // Events
@@ -275,7 +275,9 @@
             if (obj.options.search) {
                 el.appendChild(search);
             } else {
-                el.removeChild(search);
+                if (search.parent) {
+                    el.removeChild(search);
+                }
             }
 
             // Make sure correct format
@@ -283,7 +285,7 @@
             obj.options.height = parseInt(obj.options.height);
 
             // Update placeholder
-            search.placeholder = obj.options.searchPlaceholder;
+            search.placeholder = obj.options.searchPlaceHolder;
 
             // Set default dimensions
             if (options.width || options.height) {
@@ -292,9 +294,7 @@
 
             // Only execute when is not the first time
             if (el.organogram) {
-                if (options.vertical === true || options.vertical === false || options.roles) {
-                    obj.refresh();
-                }
+                obj.refresh();
             }
         }
 
@@ -375,28 +375,31 @@
             }
         }
 
+        var removeItemRecursively = function(id) {
+            var itemIndex = obj.options.data.findIndex(function(node) {
+                return node.id == id;
+            });
+
+            if (itemIndex > 0) {
+                obj.options.data.splice(itemIndex, 1);
+
+                var itemChildrenList = obj.options.data.filter(function(node) {
+                    return node.parent === id;
+                });
+
+                itemChildrenList.forEach(function(childItem) {
+                    removeItemRecursively(childItem.id);
+                });
+            }
+        }
+
         /**
          * Removes a item from the organogram chart
          */
-        obj.removeItem = function(item) {
-            if (obj.options.data.length && obj.options.data.find(function(node) {
-                return node.id == item.id;
-            })) {
-                var itemChildrenList = obj.options.data.filter(function(node) {
-                    if (node.parent == item.id) {
-                        return true;
-                    }
-                    return false;
-                });
+        obj.removeItem = function(id) {
+            removeItemRecursively(id);
 
-                if (itemChildrenList.length) {
-                    for (var i = 0; i < itemChildrenList.length; i ++) {
-                        obj.options.data.splice(obj.options.data.indexOf(itemChildrenList[i], 1));
-                    }
-                }
-                obj.options.data.splice(obj.options.data.indexOf(item), 1);
-                obj.refresh();
-            }
+            obj.refresh();
         }
 
         /**
@@ -471,14 +474,19 @@
             state.fingerDistance = dist2;
         }
 
+        var moving = false;
+
         var moveListener = function(e){
             e = e || window.event;
             e.preventDefault();
 
             if (! state.scaling) {
-                var currentX = e.clientX || e.pageX || e.changedTouches[0].pageX || e.changedTouches[0].clientX;
-                var currentY = e.clientY || e.pageY || e.changedTouches[0].pageY || e.changedTouches[0].clientY;
                 if (e.which || state.mobileDown) {
+                    moving = true;
+
+                    var currentX = e.clientX || e.pageX || (e.changedTouches && (e.changedTouches[0].pageX || e.changedTouches[0].clientX));
+                    var currentY = e.clientY || e.pageY || (e.changedTouches && (e.changedTouches[0].pageY || e.changedTouches[0].clientY));
+
                     var x = state.x - currentX;
                     var y = (state.y - currentY);
                     var zoomFactor = ul.style.zoom <= 1 ? 1 + (1 - ul.style.zoom) : 1 - (ul.style.zoom - 1) < .5 ? .5 : 1 - (ul.style.zoom - 1);
@@ -517,6 +525,8 @@
             if (state.scaling) {
                 state.scaling = false;
             }
+
+            moving = false;
         }
 
         var ul = null;
@@ -590,8 +600,12 @@
             ul.addEventListener('mousedown', touchListener);
 
             el.addEventListener('click', function(e) {
-                if (typeof(obj.options.onclick) == 'function') {
-                    obj.options.onclick(el, obj, e);
+                if (!moving) {
+                    if (typeof(obj.options.onclick) == 'function') {
+                        obj.options.onclick(el, obj, e);
+                    }
+                } else {
+                    moving = false;
                 }
             });
 

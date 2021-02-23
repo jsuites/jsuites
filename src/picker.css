@@ -7,6 +7,7 @@
     -ms-user-select: none;
     user-select: none;
     outline: none;
+    position: relative;
 }
 
 .jpicker-header {
@@ -42,7 +43,7 @@
     text-align: left;
 }
 
-.jpicker-content div {
+.jpicker-content > div {
     padding: 6px;
     padding-left: 15px;
     padding-right: 15px;
@@ -52,7 +53,20 @@
     display: block;
 }
 
-.jpicker-content div:hover {
+.jpicker-content > div:hover {
     background-color:#efefef;
 }
 
+.jpicker-content > div:empty {
+    opacity: 0;
+}
+
+.jpicker-header > i, .jpicker-header > div {
+    display: block;
+}
+
+.jpicker-focus > .jpicker-content.jpicker-columns {
+    display: flex !important ;
+    justify-content: center;
+    flex-wrap: wrap;
+}

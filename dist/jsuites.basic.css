@@ -474,12 +474,14 @@
     box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
     background-color:#fff;
     box-sizing: border-box;
+    min-width: 260px;
 }
 
 .jcolor-controls {
     display: flex;
     padding: 10px;
-    padding-bottom: 0px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
 }
 
 .jcolor-controls div {
@@ -492,8 +494,7 @@
 }
 
 .jcolor-content table {
-    border-collapse: initial;
-    padding: 7px !important;
+    border-collapse: collapse;
     box-sizing: border-box;
 }
 
@@ -504,15 +505,14 @@
 .jcolor table {
     width:100%;
     height:100%;
+    min-height: 160px;
 }
 
 .jcolor td {
     padding: 7px;
-    border:2px solid #fff;
 }
 
 .jcolor-selected {
-    border:2px solid #000 !important;
     background-repeat:no-repeat;
     background-size: 16px;
     background-position: center;
@@ -523,7 +523,7 @@
     position: fixed;
     bottom: 0px;
     width:100%;
-    max-height:250px;
+    max-height: 290px;
     border-radius: 0px;
     box-sizing: border-box;
 }
@@ -562,6 +562,138 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+.jcolor-content .jtabs-content {
+    padding: 7px;
+}
+
+.jcolor-grid tr:first-child > td:first-child {
+    border-top-left-radius: 3px;
+}
+
+.jcolor-grid tr:first-child > td:last-child {
+    border-top-right-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:first-child {
+    border-bottom-left-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:last-child {
+    border-bottom-right-radius: 3px;
+}
+
+.jcolor-spectrum {
+    height: 194px;
+    box-sizing: border-box;
+}
+
+.jcolor-spectrum > div {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.jcolor-spectrum canvas {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    -webkit-user-drag: none;
+}
+
+.jcolor-moving-point {
+    height: 5px;
+    width: 5px;
+    background-color: #000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.jcolor-sliders {
+    padding: 10px 20px 10px 10px;
+}
+
+.jcolor-sliders .jrange {
+    height: 14px;
+    width: 80%;
+    opacity: 1;
+    border-radius: 30px;
+}
+
+.jcolor-sliders-input-subcontainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.jcolor-sliders-input-container {
+    margin-top: 4px;
+    line-height: 0.8em;
+    text-align: left;
+}
+
+.jcolor-sliders-input-container > label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #bbbbbd;
+}
+
+.jcolor-sliders-input-subcontainer > input {
+    border: 0px;
+    padding: 1px;
+}
+
+.jcolor-sliders-input-container .jrange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-input-container .jrange::-moz-range-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-final-color {
+    padding: 6px;
+    user-select: all;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.jcolor-sliders-final-color > div:nth-child(2) {
+    width: 71px;
+    text-transform: uppercase;
+}
+
+.jcolor .jtabs .jtabs-headers-container .jtabs-controls {
+    display: none !important;
+}
+
+.jcolor .jtabs .jtabs-headers-container {
+    display: flex !important;
+    justify-content: center;
+    padding: 4px;
+}
+
+.jcolor .jtabs-headers > div:not(.jtabs-border) {
+    padding: 2px !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    font-size: 0.8em;
 }
 
 .jcontextmenu {
@@ -883,7 +1015,7 @@
 }
 
 .jdropdown-default .jdropdown-group-name {
-    padding: 8px;
+    padding-left: 8px;
     font-weight: bold;
     text-align: left;
 }
@@ -1534,6 +1666,7 @@
     -ms-user-select: none;
     user-select: none;
     outline: none;
+    position: relative;
 }
 
 .jpicker-header {
@@ -1569,7 +1702,7 @@
     text-align: left;
 }
 
-.jpicker-content div {
+.jpicker-content > div {
     padding: 6px;
     padding-left: 15px;
     padding-right: 15px;
@@ -1579,12 +1712,22 @@
     display: block;
 }
 
-.jpicker-content div:hover {
+.jpicker-content > div:hover {
     background-color:#efefef;
+}
+
+.jpicker-content > div:empty {
+    opacity: 0;
 }
 
 .jpicker-header > i, .jpicker-header > div {
     display: block;
+}
+
+.jpicker-focus > .jpicker-content.jpicker-columns {
+    display: flex !important ;
+    justify-content: center;
+    flex-wrap: wrap;
 }
 
 .jrating {
@@ -1721,7 +1864,9 @@
 /** Modern skin **/
 
 .jtabs.jtabs-modern .jtabs-headers > div:not(.jtabs-border) {
-    padding: 10px;
+    padding: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
     background-color: #fff;
 }
 
@@ -1731,6 +1876,24 @@
 
 .jtabs.jtabs-modern .jtabs-headers > .jtabs-selected .material-icons {
     color: #000;
+}
+
+.jtabs .jtabs-headers {
+    font-size: .9rem;
+}
+
+.jtabs.jtabs-modern .jtabs-headers {
+    background: #EEEEEF !important;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.jtabs.jtabs-modern .jtabs-headers .jtabs-border {
+    border-color: #EEEEEF !important;
+}
+
+.jtabs.jtabs-modern .jtabs-border {
+    background-color: rgba(194, 197, 188, 0.884);
 }
 
 .jtoolbar-container {
@@ -1793,7 +1956,7 @@
 
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
-    height: 24px;
+    height: 18px;
     padding: 0px;
     margin-left: 4px;
     margin-right: 4px;
@@ -1852,9 +2015,11 @@
     padding-right: 20px;
     padding-left: 4px;
     background-position: top 50% right 0px;
+    display: flex;
+    align-items: center;
 }
 
-.jtoolbar .jpicker-content div {
+.jtoolbar .jpicker-content > div {
     padding: 6px;
 }
 
@@ -1863,10 +2028,21 @@
 }
 
 .jtoolbar .fa {
+    width: 18px;
+    height: 18px;
+    display: block;
+    line-height: 18px;
+    font-size: 14px;
+}
+
+.jtoolbar .material-icons {
+    font-size: 18px;
     width: 24px;
     height: 24px;
     display: block;
     line-height: 24px;
+    transform: rotate(0.03deg);
+    text-align: center;
 }
 
 .jtoolbar .jtoolbar-arrow {
@@ -1874,7 +2050,7 @@
     background-position: center;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
     width: 16px;
-    height: 24px;
+    height: 18px;
 }
 
 .jtoolbar-floating {

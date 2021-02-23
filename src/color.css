@@ -26,12 +26,14 @@
     box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
     background-color:#fff;
     box-sizing: border-box;
+    min-width: 260px;
 }
 
 .jcolor-controls {
     display: flex;
     padding: 10px;
-    padding-bottom: 0px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
 }
 
 .jcolor-controls div {
@@ -44,8 +46,7 @@
 }
 
 .jcolor-content table {
-    border-collapse: initial;
-    padding: 7px !important;
+    border-collapse: collapse;
     box-sizing: border-box;
 }
 
@@ -56,15 +57,14 @@
 .jcolor table {
     width:100%;
     height:100%;
+    min-height: 160px;
 }
 
 .jcolor td {
     padding: 7px;
-    border:2px solid #fff;
 }
 
 .jcolor-selected {
-    border:2px solid #000 !important;
     background-repeat:no-repeat;
     background-size: 16px;
     background-position: center;
@@ -75,7 +75,7 @@
     position: fixed;
     bottom: 0px;
     width:100%;
-    max-height:250px;
+    max-height: 290px;
     border-radius: 0px;
     box-sizing: border-box;
 }
@@ -114,4 +114,136 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+.jcolor-content .jtabs-content {
+    padding: 7px;
+}
+
+.jcolor-grid tr:first-child > td:first-child {
+    border-top-left-radius: 3px;
+}
+
+.jcolor-grid tr:first-child > td:last-child {
+    border-top-right-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:first-child {
+    border-bottom-left-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:last-child {
+    border-bottom-right-radius: 3px;
+}
+
+.jcolor-spectrum {
+    height: 194px;
+    box-sizing: border-box;
+}
+
+.jcolor-spectrum > div {
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.jcolor-spectrum canvas {
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    -webkit-user-drag: none;
+}
+
+.jcolor-moving-point {
+    height: 5px;
+    width: 5px;
+    background-color: #000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.jcolor-sliders {
+    padding: 10px 20px 10px 10px;
+}
+
+.jcolor-sliders .jrange {
+    height: 14px;
+    width: 80%;
+    opacity: 1;
+    border-radius: 30px;
+}
+
+.jcolor-sliders-input-subcontainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.jcolor-sliders-input-container {
+    margin-top: 4px;
+    line-height: 0.8em;
+    text-align: left;
+}
+
+.jcolor-sliders-input-container > label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #bbbbbd;
+}
+
+.jcolor-sliders-input-subcontainer > input {
+    border: 0px;
+    padding: 1px;
+}
+
+.jcolor-sliders-input-container .jrange::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-input-container .jrange::-moz-range-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-final-color {
+    padding: 6px;
+    user-select: all;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.jcolor-sliders-final-color > div:nth-child(2) {
+    width: 71px;
+    text-transform: uppercase;
+}
+
+.jcolor .jtabs .jtabs-headers-container .jtabs-controls {
+    display: none !important;
+}
+
+.jcolor .jtabs .jtabs-headers-container {
+    display: flex !important;
+    justify-content: center;
+    padding: 4px;
+}
+
+.jcolor .jtabs-headers > div:not(.jtabs-border) {
+    padding: 2px !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    font-size: 0.8em;
 }

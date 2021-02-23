@@ -226,7 +226,7 @@
 
 .jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
 
-.jslider {
+.jrange {
     -webkit-appearance: none;
     width: 100%;
     height: 4px;
@@ -238,16 +238,16 @@
     padding: 0px;
 }
 
-.jslider:hover {
+.jrange:hover {
   opacity: 1;
 }
 
-.jslider::-webkit-slider-thumb {
+.jrange::-webkit-slider-thumb {
   background: #4CAF50;
   cursor: pointer;
 }
 
-.jslider::-moz-range-thumb {
+.jrange::-moz-range-thumb {
   background: #4CAF50;
   cursor: pointer;
 }

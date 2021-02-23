@@ -15,6 +15,7 @@ jSuites.menu = (function(el, options) {
     obj.load = function() {
         if (localStorage) {
             var menu = el.querySelectorAll('nav');
+            var selected = null;
             for (var i = 0; i < menu.length; i++) {
                 menu[i].classList.remove('selected');
                 if (menu[i].getAttribute('data-id')) {
@@ -24,7 +25,7 @@ jSuites.menu = (function(el, options) {
                     }
                 }
             }
-            var href = localStorage.getItem('jmenu-href');
+            var href = window.location.pathname;
             if (href) {
                 var menu = document.querySelector('.jmenu a[href="'+ href +'"]');
                 if (menu) {
@@ -40,6 +41,37 @@ jSuites.menu = (function(el, options) {
             menu[i].classList.remove('selected');
         }
         o.classList.add('selected');
+
+        // Better navigation
+        if (options && options.collapse == true) {
+            if (o.classList.contains('show')) {
+                menu = el.querySelectorAll('nav');
+                for (var i = 0; i < menu.length; i++) {
+                    menu[i].style.display = '';
+                }
+                o.style.display = 'none';
+            } else {
+                menu = el.querySelectorAll('nav');
+                for (var i = 0; i < menu.length; i++) {
+                    menu[i].style.display = 'none';
+                }
+
+                menu = el.querySelector('.show');
+                if (menu) {
+                    menu.style.display = 'block';
+                }
+
+                menu = jSuites.findElement(o.parentNode, 'selected');
+                if (menu) {
+                    menu.style.display = '';
+                }
+            }
+        }
+
+        // Close menu if is oped
+        if (jSuites.getWindowWidth() < 800) {
+            obj.hide();
+        }
     }
 
     var actionDown = function(e) {
@@ -54,10 +86,6 @@ jSuites.menu = (function(el, options) {
         } else if (e.target.tagName == 'A') {
             // Mark link as selected
             obj.select(e.target);
-            // Keep the refernce in case load the page again
-            localStorage.setItem('jmenu-href', e.target.getAttribute('href'));
-            // Close menu if is oped
-            obj.hide();
         }
     }
 
@@ -79,17 +107,12 @@ jSuites.menu = (function(el, options) {
     // Add menu class
     el.classList.add('jmenu');
 
-    /*var h1 = window.innerHeight;
-    var h2 = el.offsetTop;
-
-    // Add the scroll
-    jSuites.scroll(el, {
-        //height: (h1 - h2) + 'px'
-        height: '1000px',
-    });*/
-
     // Load state
     obj.load();
+
+    if (options && typeof(options.onload) == 'function') {
+        options.onload(el);
+    }
 
     // Keep reference
     el.menu = obj;

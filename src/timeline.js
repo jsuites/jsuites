@@ -44,6 +44,8 @@ jSuites.timeline = (function(el, options) {
     // Add class
     el.classList.add('jtimeline');
 
+    obj.options.container = el;
+
     // Header
     var timelineHeader = document.createElement('div');
     timelineHeader.className = 'jtimeline-header';
@@ -101,39 +103,29 @@ jSuites.timeline = (function(el, options) {
 
     }
 
+    // Get item by date 
+    var getEventByDate = function(date) {
+        return obj.options.data.filter(function(evt) {
+            return (evt.date.length > 7 ? evt.date.substr(0,7) : evt.date) == date;
+        });
+    }
+
     obj.setData = function(rows) {
-        var data = [];
-        for (var i = 0; i < rows.length; i++) {
-            var d = rows[i].date.substr(0,7);
-
-            // Create the object if not exists
-            if (! data[d]) {
-                data[d] = [];
-            }
-
-            // Create array
-            data[d].push(rows[i]);
-        };
-        obj.options.data = data;
+        obj.options.data = rows;
         obj.render(obj.options.date);
     }
 
     obj.add = function(data) {
         var date = data.date.substr(0,7);
 
-        // Create the object if not exists
-        if (! obj.options.data[date]) {
-            obj.options.data[date] = [];
-        }
-
         // Format date
         data.date = data.date.substr(0,10);
 
         // Append data
-        obj.options.data[date].push(data);
+        obj.options.data.push(data);
 
         // Reorder
-        obj.options.data[date] = obj.options.data[date].order();
+        obj.options.data[obj.options.data.indexOf(data)] = data.order();
 
         // Render
         obj.render(date);
@@ -147,7 +139,8 @@ jSuites.timeline = (function(el, options) {
             item.remove();
         });
 
-        obj.options.data[date].splice(index, 1);
+        var data = getEventByDate(date)[0];
+        data.splice(index, 1);
     }
 
     obj.reload = function() {
@@ -169,14 +162,16 @@ jSuites.timeline = (function(el, options) {
 
         // Days
         var timelineDays = [];
+        var events = getEventByDate(date);
+        console.log(events);
 
         // Itens
-        if (! obj.options.data[date]) {
+        if (! events.length) {
             timelineContainer.innerHTML = obj.options.text.noInformation;
         } else {
-            for (var i = 0; i < obj.options.data[date].length; i++) {
-                var v = obj.options.data[date][i];
-                var d = v.date.split('-');
+            for (var i = 0; i < events.length; i++) {
+                var v = events[i];
+                var d = v.date.length > 10 ? v.date.substr(0,10).split('-') : v.date.split('-');
 
                 // Item container
                 var timelineItem = document.createElement('div');

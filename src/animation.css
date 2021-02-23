@@ -8,34 +8,42 @@
 }
 
 .slide-left-in {
+    position: relative;
     animation: slide-left-in 0.4s forwards;
 }
 
 .slide-left-out {
+    position: relative;
     animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in {
+    position: relative;
     animation: slide-right-in 0.4s forwards;
 }
 
 .slide-right-out {
+    position: relative;
     animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in {
+    position: relative;
     animation: slide-top-in 0.4s forwards;
 }
 
 .slide-top-out {
+    position: relative;
     animation: slide-top-out 0.2s forwards;
 }
 
 .slide-bottom-in {
+    position: relative;
     animation: slide-bottom-in 0.4s forwards;
 }
 
 .slide-bottom-out {
+    position: relative;
     animation: slide-bottom-out 0.1s forwards;
 }
 

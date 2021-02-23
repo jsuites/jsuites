@@ -119,6 +119,7 @@ jSuites.toolbar = (function(el, options) {
                         }
                     })(items[i].onchange);
                 }
+
                 jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');

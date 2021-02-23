@@ -1,7 +1,7 @@
 jSuites.crop = (function(el, options) {
     // Already created, update options
-    if (el.classList.contains('jcrop')) {
-        return el.crop.setOptions(options);
+    if (el.crop) {
+        return el.crop.setOptions(options, true);
     }
 
     // New instance
@@ -146,7 +146,7 @@ jSuites.crop = (function(el, options) {
     /**
      * Set options
      */
-    obj.setOptions = function(options) {
+    obj.setOptions = function(options, reset) {
         // Default configuration
         var defaults = {
             area: [ 800, 600 ],
@@ -167,7 +167,9 @@ jSuites.crop = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                obj.options[property] = defaults[property];
+                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
+                    obj.options[property] = defaults[property];
+                }
             }
         }
 
@@ -1925,7 +1927,7 @@ jSuites.menu = (function(el, options) {
 
 jSuites.organogram = (function(el, options) {
     if (el.organogram) {
-        return obj.setOptions(options);
+        return el.organogram.setOptions(options, true);
     }
 
     var obj = {};
@@ -1937,6 +1939,37 @@ jSuites.organogram = (function(el, options) {
         y: 0,
         initialWidth: 0,
         initialTop: 100,
+        fingerDistance: 0,
+        mobileDown: false,
+        scaling: false,
+        scale: 1,
+    }
+
+    var getRoleById = function(id) {
+       for (var i = 0; i < obj.options.roles.length; i++) {
+           if (id == obj.options.roles[i].id) {
+               return obj.options.roles[i];
+           }
+       }
+       return false;
+    }
+
+    var getContent = function(node) {
+        var role = node.role;
+        var color = node.color || 'lightgreen';
+        if (obj.options.roles && node.role >= 0) {
+            var o = getRoleById(node.role);
+            if (o) {
+                role = o.name;
+                var color = o.color;
+            }
+        }
+
+        return `<div class="jorg-user-status" style="background:${color}"></div>
+            <div class="jorg-user-info">
+                <div class='jorg-user-img'><img src="${node.img ? node.img : '#'}" ondragstart="return false" /></div>
+                <div class='jorg-user-content'><span>${node.name}</span><span>${role}</span></div>
+            </div>`;
     }
 
     // Creates the shape of a node to be added to the organogram chart tree
@@ -1944,7 +1977,7 @@ jSuites.organogram = (function(el, options) {
         var li = document.createElement('li');
         var span = document.createElement('span');
         span.className = 'jorg-tf-nc';
-        span.innerHTML = `<div class="jorg-user-status" style="background:${node.status}"></div><div class="jorg-user-info"><div class='jorg-user-img'><img src="${node.img}" ondragstart="return false" /></div><div class='jorg-user-content'><span>${node.name}</span><span>${node.role}</span></div>`;
+        span.innerHTML = getContent(node);
         span.setAttribute('id', node.id);
         var ul = document.createElement('ul');
         li.appendChild(span);
@@ -1952,6 +1985,22 @@ jSuites.organogram = (function(el, options) {
         container.appendChild(li);
 
         return ul;
+    }
+
+    // Return the render mode ( vertical or horizontal )
+    var getRenderMode = function(container) {
+        if (container.parentNode == el) {
+            return 'horizontal';
+        }
+        if (container.children.length > 1) {
+            for (var i = 0; i < container.children.length; i ++) {
+                if (Array.from(container.children[i].children).find(element => element.tagName == 'UL')) {
+                    return 'horizontal';
+                }
+            }
+            return 'vertical';
+        }
+        return 'vertical';
     }
 
     // Node visibility feature
@@ -1982,28 +2031,46 @@ jSuites.organogram = (function(el, options) {
         });
     }
 
-    // Updates tree container dimensions to allow smooth scrolling
-    var updateTreeContainerDimensions = function() {
-        if (obj.options.data.length) {
-            var treeContainer = ul.children[0];
-            treeContainer.style.width = treeContainer.children[1].offsetWidth * 4 + 'px';
-            treeContainer.style.height = treeContainer.children[1].offsetHeight * 4 + 'px'
-        }
-    }
-
     // Renders the organogram
     var render = function (parent, container) {
         for (var i = 0; i < obj.options.data.length; i ++) {
             if (obj.options.data[i].parent === parent) {
-                var ul = mountNodes(obj.options.data[i],container);
+                var ul = mountNodes(obj.options.data[i], container);
                 render(obj.options.data[i].id, ul);
             }
         }
 
+        // Check render mode / vertical / horizontal
+        var mode = getRenderMode(container);
+
+        if (mode == 'vertical' && obj.options.vertical) {
+            container.previousElementSibling.classList.add('jorg-after-none');
+            container.classList.add('jorg-vertical');
+        } else {
+            container.classList.add('jorg-horizontal');
+        }
+
         if (! container.childNodes.length) {
             container.remove();
-        }else if (container.previousElementSibling) {
+        } else if (container.previousElementSibling) {
             setNodeVisibility(container.previousElementSibling);
+        }
+    }
+
+    // Sets the full screen mode
+    var setFullScreenMode = function(e) {
+        var windowScrollTop = document.body.scrollTop || document.documentElement.scrollTop;
+
+        if (el.classList.contains('fullscreen-mode')) {
+            el.classList.remove('fullscreen-mode');
+            document.body.classList.remove('jorg-hide-scrollbars');
+            el.style.top = '0px';
+            e.target.innerText ='slideshow';
+        } else {
+            el.classList.add('fullscreen-mode');
+            document.body.classList.add('jorg-hide-scrollbars');
+            el.style.top = windowScrollTop + 'px';
+            e.target.innerText ='close_fullscreen';
         }
     }
 
@@ -2011,7 +2078,7 @@ jSuites.organogram = (function(el, options) {
     var zoom = function(e) {
         e = event || window.event;
         // Current zoom
-        var currentZoom = el.children[0].style.zoom * 1;
+        var currentZoom = state.scale = el.children[0].style.zoom * 1;
         var prevWidth = el.children[0].offsetWidth;
         var prevHeight = el.children[0].offsetHeight;
         var widthVar, heightVar;
@@ -2023,7 +2090,7 @@ jSuites.organogram = (function(el, options) {
             el.children[0].scrollLeft += (widthVar/2)
             el.children[0].scrollTop += (heightVar/2)
         } else if (currentZoom > .5) {
-            el.children[0].style.zoom = currentZoom - obj.options.zoom;
+            el.children[0].style.zoom = state.scale = currentZoom - obj.options.zoom;
             widthVar = el.children[0].offsetWidth - prevWidth;
             heightVar = el.children[0].offsetHeight - prevHeight;
             el.children[0].scrollLeft -= (widthVar/2);
@@ -2075,7 +2142,11 @@ jSuites.organogram = (function(el, options) {
         }
     }
 
-    obj.setOptions = function(options) {
+    /**
+     * Set the options
+     * @param {object} options
+     */
+    obj.setOptions = function(options, reset) {
         // Default configuration
         var defaults = {
             data: null,
@@ -2084,7 +2155,9 @@ jSuites.organogram = (function(el, options) {
             width: 800,
             height: 600,
             search: true,
-            searchPlaceholder: 'Search',
+            searchPlaceHolder: 'Search',
+            vertical: false,
+            roles: null,
             // Events
             onload: null,
             onchange: null,
@@ -2096,7 +2169,9 @@ jSuites.organogram = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                obj.options[property] = defaults[property];
+                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
+                    obj.options[property] = defaults[property];
+                }
             }
         }
 
@@ -2104,7 +2179,9 @@ jSuites.organogram = (function(el, options) {
         if (obj.options.search) {
             el.appendChild(search);
         } else {
-            el.removeChild(search);
+            if (search.parent) {
+                el.removeChild(search);
+            }
         }
 
         // Make sure correct format
@@ -2112,36 +2189,45 @@ jSuites.organogram = (function(el, options) {
         obj.options.height = parseInt(obj.options.height);
 
         // Update placeholder
-        search.placeholder = obj.options.searchPlaceholder;
+        search.placeholder = obj.options.searchPlaceHolder;
 
         // Set default dimensions
-        obj.setDimensions(obj.options.width, obj.options.height);
-
-        // Loading data
-        if (obj.options.url) {
-            jSuites.ajax({
-                url: obj.options.url,
-                method: 'GET',
-                dataType: 'json',
-                success: function(result) {
-                    obj.options.data = result;
-                    if (typeof obj.options.onload == 'function') {
-                        obj.options.onload(el, obj);
-                    }
-                    render(0, ul);
-                    setInitialPosition();
-                    setInitialWidth();
-                }
-            });
-        } else if (obj.options.data && obj.options.data.length) {
-            render(0, ul);
-            setInitialPosition();
-            setInitialWidth();
-
-            if (typeof obj.options.onload == 'function') {
-                obj.options.onload(el, obj);
-            }
+        if (options.width || options.height) {
+            obj.setDimensions(obj.options.width, obj.options.height);
         }
+
+        // Only execute when is not the first time
+        if (el.organogram) {
+            obj.refresh();
+        }
+    }
+
+    /**
+     * Reset roles
+     */
+    obj.setRoles = function(roles) {
+        if (roles) {
+            obj.options.roles = roles;
+            obj.refresh();
+        }
+    }
+
+    /**
+     * Refreshes the organozation chart
+     */
+    obj.update = function() {
+        el.children[0].innerHTML = '';
+        render(0,el.children[0]);
+    }
+
+    /**
+     * applies a zoom in the organization chart
+     */
+    obj.zoom = function(scale) {
+        if (scale < .5 ) {
+            scale = .5;
+        }
+        ul.style.zoom = state.scale = scale;
     }
 
     /**
@@ -2193,28 +2279,31 @@ jSuites.organogram = (function(el, options) {
         }
     }
 
+    var removeItemRecursively = function(id) {
+        var itemIndex = obj.options.data.findIndex(function(node) {
+            return node.id == id;
+        });
+
+        if (itemIndex > 0) {
+            obj.options.data.splice(itemIndex, 1);
+
+            var itemChildrenList = obj.options.data.filter(function(node) {
+                return node.parent === id;
+            });
+
+            itemChildrenList.forEach(function(childItem) {
+                removeItemRecursively(childItem.id);
+            });
+        }
+    }
+
     /**
      * Removes a item from the organogram chart
      */
-    obj.removeItem = function(item) {
-        if (obj.options.data.length && obj.options.data.find(function(node) {
-            return node.id == item.id;
-        })) {
-            var itemChildrenList = obj.options.data.filter(function(node) {
-                if (node.parent == item.id) {
-                    return true;
-                }
-                return false;
-            });
+    obj.removeItem = function(id) {
+        removeItemRecursively(id);
 
-            if (itemChildrenList.length) {
-                for (var i = 0; i < itemChildrenList.length; i ++) {
-                    obj.options.data.splice(obj.options.data.indexOf(itemChildrenList[i], 1));
-                }
-            }
-            obj.options.data.splice(obj.options.data.indexOf(item), 1);
-            obj.refresh();
-        }
+        obj.refresh();
     }
 
     /**
@@ -2260,82 +2349,205 @@ jSuites.organogram = (function(el, options) {
         el.style.height = height + 'px';
     }
 
-    // Create zoom action
-    var zoomContainer = document.createElement('div');
-    zoomContainer.className = 'jorg-zoom-container';
-
-    var zoomIn = document.createElement('div');
-    zoomIn.className = 'jorg-zoom-in';
-
-    var zoomOut = document.createElement('div');
-    zoomOut.className = 'jorg-zoom-out';
-
-    zoomContainer.appendChild(zoomIn);
-    zoomContainer.appendChild(zoomOut);
-
-    zoomIn.addEventListener('click', zoom);
-    zoomOut.addEventListener('click', zoom);
-
-    // Create container
-    var ul = document.createElement('ul');
-
-    // Default zoom
-    if (! ul.style.zoom) {
-        ul.style.zoom = '1';
+    var pinchStart = function(e) {
+        state.fingerDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
     }
 
-    // Default classes
-    el.classList.add('jorg');
-    el.classList.add('jorg-tf-tree');
-    el.classList.add('jorg-unselectable');
-    ul.classList.add('jorg-disable-scrollbars');
+    var pinchMove = function(e) {
+        e.preventDefault();
 
-    // Append elements
-    el.appendChild(ul);
-    el.appendChild(zoomContainer);
+        var dist2 = Math.hypot(e.touches[0].pageX - e.touches[1].pageX,e.touches[0].pageY - e.touches[1].pageY);
 
-    var search = document.createElement('input');
-    search.type = 'text';
-    search.classList.add('jorg-search');
-    search.onkeyup = function(e) {
-        obj.search(e.target.value);
-    }
-    search.onblur = function(e) {
-        e.target.value = '';
-    }
-
-    // Event handlers
-    ul.addEventListener('wheel', zoom);
-    ul.addEventListener('mousemove', function(e){
-        e = event || window.event;
-        var currentX = e.clientX || e.pageX;
-        var currentY = e.clientY || e.pageY;
-        if (e.which) {
-            var x = state.x - currentX;
-            var y = (state.y - currentY);
-            var zoomFactor = ul.style.zoom <= 1 ? 1 + (1 - ul.style.zoom) : 1 - (ul.style.zoom - 1) < .5 ? .5 : 1 - (ul.style.zoom - 1);
-            ul.children[0].style.left = -(state.scrollLeft + x * zoomFactor)   + 'px';
-            ul.children[0].style.top = (state.scrollTop + y * zoomFactor * -1)   + 'px';
+        if (dist2 > state.fingerDistance) {
+            var dif =  dist2 - state.fingerDistance;
+            var newZoom = state.scale + state.scale * dif * 0.0025;
+            if (newZoom <= 5.09) {
+               obj.zoom(newZoom);
+               document.getElementById('info').textContent = newZoom;
+            }
         }
-    });
 
-    ul.addEventListener('mousedown', function(e) {
-        e = event || window.event;
-        state.x = e.clientX || e.pageX;
-        state.y = e.clientY || e.pageY;
+        if (dist2 < state.fingerDistance) {
+            var dif =  state.fingerDistance - dist2;
+            var newZoom = state.scale - state.scale * dif * 0.0025;
+            if (newZoom >= 0.1) {
+               obj.zoom(newZoom);
+               document.getElementById('info').textContent = newZoom;
+            }
+        }
+        state.fingerDistance = dist2;
+    }
+
+    var moving = false;
+
+    var moveListener = function(e){
+        e = e || window.event;
+        e.preventDefault();
+
+        if (! state.scaling) {
+            if (e.which || state.mobileDown) {
+                moving = true;
+
+                var currentX = e.clientX || e.pageX || (e.changedTouches && (e.changedTouches[0].pageX || e.changedTouches[0].clientX));
+                var currentY = e.clientY || e.pageY || (e.changedTouches && (e.changedTouches[0].pageY || e.changedTouches[0].clientY));
+
+                var x = state.x - currentX;
+                var y = (state.y - currentY);
+                var zoomFactor = ul.style.zoom <= 1 ? 1 + (1 - ul.style.zoom) : 1 - (ul.style.zoom - 1) < .5 ? .5 : 1 - (ul.style.zoom - 1);
+                ul.children[0].style.left = -(state.scrollLeft + x * zoomFactor)   + 'px';
+                ul.children[0].style.top = (state.scrollTop + y * zoomFactor * -1)   + 'px';
+            }
+        }
+        
+        if (state.scaling) {
+            pinchMove(e);
+        }
+    }
+
+    var touchListener = function(e) {
+        e = e || window.event;
+
+        if (e.changedTouches) {
+            state.mobileDown = true;
+        }
+
+        state.x = e.clientX || e.pageX || e.changedTouches[0].pageX || e.changedTouches[0].clientX;
+        state.y = e.clientY || e.pageY || e.changedTouches[0].pageY || e.changedTouches[0].clientY;
         state.scrollLeft = - 1 * parseFloat(ul.children[0].style.left) || 0;
         state.scrollTop = parseFloat(ul.children[0].style.top);
-    });
 
-    el.addEventListener('click', function(e) {
-        if (typeof(obj.options.onclick) == 'function') {
-            obj.options.onclick(el, obj, e);
+        if (e.touches) {
+            if(e.touches.length == 2) {
+                state.scaling = true;
+                pinchStart(e);
+            }
         }
-    });
+    }
 
-    el.organogram = obj;
+    var touchEnd = function(e) {
+        state.mobileDown = false;
+        if (state.scaling) {
+            state.scaling = false;
+        }
 
-    obj.setOptions(options);
+        moving = false;
+    }
+
+    var ul = null;
+    var search = null;
+    var zoomContainer = null;
+    var zoomIn = null;
+    var zoomOut = null;
+    var fullscreen = null;
+
+    var init = function() {
+        // Create zoom action
+        zoomContainer = document.createElement('div');
+        zoomContainer.className = 'jorg-zoom-container';
+        obj.zoomContainer = zoomContainer;
+
+        zoomIn = document.createElement('i');
+        zoomIn.className = 'jorg-zoom-in material-icons jorg-action';
+        zoomIn.innerHTML = "add_box";
+
+        zoomOut = document.createElement('i');
+        zoomOut.className = 'jorg-zoom-out material-icons jorg-action';
+        zoomOut.innerHTML = "indeterminate_check_box";
+
+        fullscreen = document.createElement('i');
+        fullscreen.className = 'jorg-fullscreen material-icons jorg-action';
+        fullscreen.title = 'Fullscreen';
+        fullscreen.innerHTML = "slideshow";
+
+        zoomContainer.appendChild(fullscreen);
+        zoomContainer.appendChild(zoomIn);
+        zoomContainer.appendChild(zoomOut);
+
+        zoomIn.addEventListener('click', zoom);
+        zoomOut.addEventListener('click', zoom);
+        fullscreen.addEventListener('click', setFullScreenMode);
+
+        // Create container
+        ul = document.createElement('ul');
+
+        // Default zoom
+        if (! ul.style.zoom) {
+            ul.style.zoom = '1';
+        }
+
+        // Default classes
+        el.classList.add('jorg');
+        el.classList.add('jorg-tf-tree');
+        el.classList.add('jorg-unselectable');
+        ul.classList.add('jorg-disable-scrollbars');
+
+        // Append elements
+        el.appendChild(ul);
+        el.appendChild(zoomContainer);
+
+        search = document.createElement('input');
+        search.type = 'text';
+        search.classList.add('jorg-search');
+        search.onkeyup = function(e) {
+            obj.search(e.target.value);
+        }
+        search.onblur = function(e) {
+            e.target.value = '';
+        }
+
+        // Event handlers
+        ul.addEventListener('wheel', zoom);
+        ul.addEventListener('mousemove', moveListener);
+        ul.addEventListener('touchmove', moveListener);
+        ul.addEventListener('touchstart', touchListener);
+        ul.addEventListener('touchend', touchEnd);
+        ul.addEventListener('mousedown', touchListener);
+
+        el.addEventListener('click', function(e) {
+            if (!moving) {
+                if (typeof(obj.options.onclick) == 'function') {
+                    obj.options.onclick(el, obj, e);
+                }
+            } else {
+                moving = false;
+            }
+        });
+
+        obj.setOptions(options);
+
+        // Create
+        var create = function() {
+            render(0, ul);
+            setInitialPosition();
+            setInitialWidth();
+            // Set default dimensions
+            obj.setDimensions(obj.options.width, obj.options.height);
+
+            if (typeof obj.options.onload == 'function') {
+                obj.options.onload(el, obj);
+            }
+        }
+
+        // Loading data
+        if (obj.options.url) {
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    obj.options.data = result;
+
+                    create();
+                }
+            });
+        } else if (obj.options.data && obj.options.data.length) {
+            create();
+        }
+
+        el.organogram = obj;
+    }
+
+    init();
 
     return obj;
 });
@@ -3097,6 +3309,8 @@ jSuites.timeline = (function(el, options) {
     // Add class
     el.classList.add('jtimeline');
 
+    obj.options.container = el;
+
     // Header
     var timelineHeader = document.createElement('div');
     timelineHeader.className = 'jtimeline-header';
@@ -3154,39 +3368,29 @@ jSuites.timeline = (function(el, options) {
 
     }
 
+    // Get item by date 
+    var getEventByDate = function(date) {
+        return obj.options.data.filter(function(evt) {
+            return (evt.date.length > 7 ? evt.date.substr(0,7) : evt.date) == date;
+        });
+    }
+
     obj.setData = function(rows) {
-        var data = [];
-        for (var i = 0; i < rows.length; i++) {
-            var d = rows[i].date.substr(0,7);
-
-            // Create the object if not exists
-            if (! data[d]) {
-                data[d] = [];
-            }
-
-            // Create array
-            data[d].push(rows[i]);
-        };
-        obj.options.data = data;
+        obj.options.data = rows;
         obj.render(obj.options.date);
     }
 
     obj.add = function(data) {
         var date = data.date.substr(0,7);
 
-        // Create the object if not exists
-        if (! obj.options.data[date]) {
-            obj.options.data[date] = [];
-        }
-
         // Format date
         data.date = data.date.substr(0,10);
 
         // Append data
-        obj.options.data[date].push(data);
+        obj.options.data.push(data);
 
         // Reorder
-        obj.options.data[date] = obj.options.data[date].order();
+        obj.options.data[obj.options.data.indexOf(data)] = data.order();
 
         // Render
         obj.render(date);
@@ -3200,7 +3404,8 @@ jSuites.timeline = (function(el, options) {
             item.remove();
         });
 
-        obj.options.data[date].splice(index, 1);
+        var data = getEventByDate(date)[0];
+        data.splice(index, 1);
     }
 
     obj.reload = function() {
@@ -3222,14 +3427,16 @@ jSuites.timeline = (function(el, options) {
 
         // Days
         var timelineDays = [];
+        var events = getEventByDate(date);
+        console.log(events);
 
         // Itens
-        if (! obj.options.data[date]) {
+        if (! events.length) {
             timelineContainer.innerHTML = obj.options.text.noInformation;
         } else {
-            for (var i = 0; i < obj.options.data[date].length; i++) {
-                var v = obj.options.data[date][i];
-                var d = v.date.split('-');
+            for (var i = 0; i < events.length; i++) {
+                var v = events[i];
+                var d = v.date.length > 10 ? v.date.substr(0,10).split('-') : v.date.split('-');
 
                 // Item container
                 var timelineItem = document.createElement('div');

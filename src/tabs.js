@@ -18,6 +18,7 @@ jSuites.tabs = (function(el, options) {
         animation: false,
         hideHeaders: false,
         padding: null,
+        palette: null,
     }
 
     // Loop through the initial configuration
@@ -39,8 +40,15 @@ jSuites.tabs = (function(el, options) {
     // Helpers
     var setBorder = function(index) {
         var rect = obj.headers.children[index].getBoundingClientRect();
-        border.style.width = rect.width + 'px';
-        border.style.left = (obj.headers.children[index].offsetLeft) + 'px';
+
+        if (obj.options.palette == 'modern') {
+            border.style.width = rect.width - 4 + 'px';
+            border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+        } else {
+            border.style.width = rect.width + 'px';
+            border.style.left = obj.headers.children[index].offsetLeft + 'px';
+        }
+
         border.style.bottom = '0px';
     }
 
@@ -105,11 +113,12 @@ jSuites.tabs = (function(el, options) {
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 3 && obj.options.allowCreate == false)) {
             obj.headers.parentNode.style.display = 'none';
         } else {
-            obj.headers.parentNode.style.display = '';
             // Set border
             if (obj.options.animation == true) {
                 setBorder(index);
             }
+
+            obj.headers.parentNode.style.display = '';
 
             var x1 = obj.headers.children[index].offsetLeft;
             var x2 = x1 + obj.headers.children[index].offsetWidth;
@@ -259,6 +268,8 @@ jSuites.tabs = (function(el, options) {
         obj.updatePosition(f, t);
     }
 
+    obj.setBorder = setBorder;
+
     obj.init = function() {
         el.innerHTML = '';
 
@@ -267,6 +278,12 @@ jSuites.tabs = (function(el, options) {
         obj.content = document.createElement('div');
         obj.headers.classList.add('jtabs-headers');
         obj.content.classList.add('jtabs-content');
+
+        if (obj.options.palette) {
+            el.classList.add('jtabs-modern');
+        } else {
+            el.classList.remove('jtabs-modern');
+        }
 
         // Padding
         if (obj.options.padding) {

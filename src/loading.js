@@ -12,7 +12,7 @@ jSuites.loading = (function() {
     }
 
     obj.hide = function() {
-        if (loading) {
+        if (loading && loading.parentNode) {
             document.body.removeChild(loading);
         }
     }

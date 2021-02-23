@@ -91,6 +91,21 @@ input, select, textarea, button, .input {
     -moz-box-sizing: border-box;
     background-color:#fff;
     font-size:1em;
+    line-height: initial;
+}
+
+.jdropdown .jdropdown-header {
+    padding-top: 8px !important;
+    padding-bottom: 8px !important;
+}
+    
+.input[data-mask] {
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+.input[data-mask] * {
+    display: none;
 }
 
 select {
@@ -621,11 +636,26 @@ section.middle {
     margin-bottom:10px;
 }
 
-/* Admin */
+.breadcrumb {
+    display: inline-flex;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
 
-.breadcrumb a {
-    text-decoration:none;
-    color:#000;
+.breadcrumb > li:after {
+    content: '\00BB';
+    padding: 8px;
+    font-size: 1.2em;
+}
+
+.breadcrumb > li:last-child:after {
+    opacity: 0;
+}
+
+.breadcrumb a:hover {
+    color: #000;
+    text-decoration: underline;
 }
 
 .left {
@@ -845,17 +875,17 @@ section.middle {
 }
 
 ::-webkit-input-placeholder {
-   color: #000000;
+   color: #ccc;
 }
 
 :-moz-placeholder {
-   color: #000000;  
+   color: #ccc;  
 }
 
 ::-moz-placeholder {
-   color: #000000;  
+   color: #ccc;  
 }
 
-:-ms-input-placeholder {  
-   color: #000000;  
+:-ms-input-placeholder {
+   color: #ccc;  
 }

@@ -1,4 +1,3 @@
-
 jSuites.progressbar = (function(el, options) {
     var obj = {};
     obj.options = {};

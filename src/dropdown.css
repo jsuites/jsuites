@@ -209,20 +209,18 @@
     color:#fff;
 }
 
-.jdropdown-default .jdropdown-group
-{
+.jdropdown-default .jdropdown-group {
     margin-top:5px;
 }
 
-.jdropdown-default .jdropdown-group .jdropdown-item
-{
+.jdropdown-default .jdropdown-group .jdropdown-item {
     padding-left:16px;
 }
 
-.jdropdown-default .jdropdown-group-name
-{
-    padding-left:8px;
-    font-weight:bold;
+.jdropdown-default .jdropdown-group-name {
+    padding-left: 8px;
+    font-weight: bold;
+    text-align: left;
 }
 
 .jdropdown-default .jdropdown-reset_ {

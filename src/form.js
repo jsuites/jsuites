@@ -44,23 +44,15 @@ jSuites.form = (function(el, options) {
     }
 
     if (! obj.options.validations.email) {
-        obj.options.validations.email = function(data) {
-            var reg = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-            return data && reg.test(data) ? true : false; 
-        }
+        obj.options.validations.email = jSuites.validations.email;
     }
 
     if (! obj.options.validations.length) {
-        obj.options.validations.length = function(data, element) {
-            var len = element.getAttribute('data-length') || 5;
-            return (data.length >= len) ? true : false;
-        }
+        obj.options.validations.length = jSuites.validations.length;
     }
 
     if (! obj.options.validations.required) {
-        obj.options.validations.required = function(data) {
-            return data.trim() ? true : false;
-        }
+        obj.options.validations.required = jSuites.validations.required;
     }
 
     obj.setUrl = function(url) {

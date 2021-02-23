@@ -1,7 +1,7 @@
 .jmenu .close {
     position: absolute;
     top: 20px;
-    left: 260px;
+    right: 20px;
 }
 
 .jmenu nav {
@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     font-weight: bold;
-    font-size: 1em;
+    font-size: 0.9em;
 }
 
 .jmenu nav h2::before {
@@ -105,6 +105,12 @@
     text-decoration: underline;
 }
 
+.jmenu .title {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+}
+
 @media only screen and (max-device-width : 800px) {
     .jmenu {
         height:100vh;
@@ -115,6 +121,9 @@
         z-index:9000;
         overflow: scroll;
         padding-left: 20px;
+        box-shadow: 1px 1px 0px 0.1px #ccc !important;
+        -webkit-box-shadow: 1px 0px 1px 0.1px #ccc !important;
+        -moz-box-shadow: 1px 1px 0px 0.1px #ccc !important;
     }
 
     .jmenu li {
