@@ -531,6 +531,8 @@ jSuites.calendar = (function(el, options) {
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
             if (! calendar.classList.contains('jcalendar-inline')) {
+                // Current
+                jSuites.calendar.current = obj;
                 // Start tracking
                 jSuites.tracking(obj, true);
                 // Create the days
@@ -608,7 +610,8 @@ jSuites.calendar = (function(el, options) {
             calendar.classList.remove('jcalendar-focus');
             // Stop tracking
             jSuites.tracking(obj, false);
-
+            // Current
+            jSuites.calendar.current = null;
         }
 
         return obj.options.value;
@@ -1107,16 +1110,6 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
-    var keyDownControls = function(e) {
-        if (e.which == 13) {
-            // ENTER
-            obj.close(false, true);
-        } else if (e.which == 27) {
-            // ESC
-            obj.close(false, false);
-        }
-    }
-
     var keyUpControls = function(e) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
@@ -1344,8 +1337,13 @@ jSuites.calendar = (function(el, options) {
             calendar.addEventListener("mouseup", mouseUpControls);
         }
 
-        // Keydown options
-        document.addEventListener("keydown", keyDownControls);
+        // Global controls
+        if (! jSuites.calendar.hasEvents) {
+            // Execute only one time
+            jSuites.calendar.hasEvents = true;
+            // Enter and Esc
+            document.addEventListener("keydown", jSuites.calendar.keydown);
+        }
 
         // Set configuration
         obj.setOptions(options);
@@ -1385,6 +1383,19 @@ jSuites.calendar = (function(el, options) {
 
     return obj;
 });
+
+jSuites.calendar.keydown = function(e) {
+    var calendar = null;
+    if (calendar = jSuites.calendar.current) { 
+        if (e.which == 13) {
+            // ENTER
+            calendar.close(false, true);
+        } else if (e.which == 27) {
+            // ESC
+            calendar.close(false, false);
+        }
+    }
+}
 
 jSuites.calendar.prettify = function(d, texts) {
     if (! texts) {
@@ -2720,40 +2731,26 @@ jSuites.dropdown = (function(el, options) {
         }
 
         obj.header.onkeyup = function(e) {
-            if (e.which == 13) {
-                obj.selectIndex(obj.currentIndex);
-            } else if (e.which == 38) {
-                if (obj.currentIndex == null) {
-                    obj.firstVisible();
-                } else if (obj.currentIndex > 0) {
-                    obj.prev();
+            if (obj.options.autocomplete == true && ! keyTimer) {
+                if (obj.search != obj.header.value.trim()) {
+                    keyTimer = setTimeout(function() {
+                        obj.find(obj.header.value.trim());
+                        keyTimer = null;
+                    }, 400);
                 }
-            } else if (e.which == 40) {
-                if (obj.currentIndex == null) {
-                    obj.firstVisible();
-                } else if (obj.currentIndex + 1 < obj.items.length) {
-                    obj.next();
-                }
-            } else if (e.which == 36) {
-                obj.first();
-            } else if (e.which == 35) {
-                obj.last();
-            } else if (e.which == 27) {
-                obj.close();
-            } else {
-                if (obj.options.autocomplete == true && ! keyTimer) {
-                    if (obj.search != obj.header.value.trim()) {
-                        keyTimer = setTimeout(function() {
-                            obj.find(obj.header.value.trim());
-                            keyTimer = null;
-                        }, 400);
-                    }
 
-                    if (! el.classList.contains('jdropdown-focus')) {
-                        obj.open();
-                    }
+                if (! el.classList.contains('jdropdown-focus')) {
+                    obj.open();
                 }
             }
+        }
+
+        // Global controls
+        if (! jSuites.dropdown.hasEvents) {
+            // Execute only one time
+            jSuites.dropdown.hasEvents = true;
+            // Enter and Esc
+            document.addEventListener("keydown", jSuites.dropdown.keydown);
         }
 
         // Container
@@ -3372,6 +3369,9 @@ jSuites.dropdown = (function(el, options) {
     obj.open = function() {
         // Focus
         if (! el.classList.contains('jdropdown-focus')) {
+            // Current dropdown
+            jSuites.dropdown.current = obj;
+
             // Start tracking
             jSuites.tracking(obj, true);
 
@@ -3463,6 +3463,8 @@ jSuites.dropdown = (function(el, options) {
             el.classList.remove('jdropdown-focus');
             // Start tracking
             jSuites.tracking(obj, false);
+            // Current dropdown
+            jSuites.dropdown.current = null;
         }
 
         return obj.getValue();
@@ -3642,7 +3644,32 @@ jSuites.dropdown = (function(el, options) {
     return obj;
 });
 
-jSuites.dropdown.hasEvents = false;
+jSuites.dropdown.keydown = function(e) {
+    var dropdown = null;
+    if (dropdown = jSuites.dropdown.current) {
+        if (e.which == 13) {
+            dropdown.selectIndex(dropdown.currentIndex);
+        } else if (e.which == 38) {
+            if (dropdown.currentIndex == null) {
+                dropdown.firstVisible();
+            } else if (dropdown.currentIndex > 0) {
+                dropdown.prev();
+            }
+        } else if (e.which == 40) {
+            if (dropdown.currentIndex == null) {
+                dropdown.firstVisible();
+            } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
+                dropdown.next();
+            }
+        } else if (e.which == 36) {
+            dropdown.first();
+        } else if (e.which == 35) {
+            dropdown.last();
+        } else if (e.which == 27) {
+            dropdown.close();
+        }
+    }
+}
 
 jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.findElement(e.target, 'jdropdown');
