@@ -480,11 +480,6 @@ jSuites.calendar = (function(el, options) {
             }
         }
 
-        // Value
-        if (! obj.options.value && obj.options.today) {
-            obj.options.value = jSuites.calendar.now();
-        }
-
         // Reset button
         if (obj.options.resetButton == false) {
             calendarReset.style.display = 'none';
@@ -514,16 +509,19 @@ jSuites.calendar = (function(el, options) {
         // Define mask
         el.setAttribute('data-mask', obj.options.format.toLowerCase());
 
-        // Update current internal date controllers
-        if (obj.options.value) {
-            var value = obj.options.value;
-        } else {
+        // Value
+        if (! obj.options.value && obj.options.today) {
             var value = jSuites.calendar.now();
+        } else {
+            var value = obj.options.value;
         }
 
         // Set internal date
-        if (obj.options.value) {
-            obj.date = jSuites.calendar.toArray(obj.options.value);
+        if (value) {
+            // Force the update
+            obj.options.value = null;
+            // New value
+            obj.setValue(value);
         }
     }
 
@@ -552,11 +550,12 @@ jSuites.calendar = (function(el, options) {
 
                 // Get the position of the corner helper
                 if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen) {
-                    // Full
                     calendar.classList.add('jcalendar-fullsize');
                     // Animation
                     jSuites.animation.slideBottom(calendarContent, 1);
                 } else {
+                    calendar.classList.remove('jcalendar-fullsize');
+
                     var rect = el.getBoundingClientRect();
                     var rectContent = calendarContent.getBoundingClientRect();
 
@@ -687,20 +686,25 @@ jSuites.calendar = (function(el, options) {
 
         if (oldValue != newValue) {
             // Set label
-            var value = obj.setLabel(newValue, obj.options);
-            var date = newValue.split(' ');
-            if (! date[1]) {
-                date[1] = '00:00:00';
+            if (! newValue) {
+                obj.date = null;
+                var val = '';
+            } else {
+                var value = obj.setLabel(newValue, obj.options);
+                var date = newValue.split(' ');
+                if (! date[1]) {
+                    date[1] = '00:00:00';
+                }
+                var time = date[1].split(':')
+                var date = date[0].split('-');
+                var y = parseInt(date[0]);
+                var m = parseInt(date[1]);
+                var d = parseInt(date[2]);
+                var h = parseInt(time[0]);
+                var i = parseInt(time[1]);
+                obj.date = [ y, m, d, h, i, 0 ];
+                var val = obj.setLabel(newValue, obj.options);
             }
-            var time = date[1].split(':')
-            var date = date[0].split('-');
-            var y = parseInt(date[0]);
-            var m = parseInt(date[1]);
-            var d = parseInt(date[2]);
-            var h = parseInt(time[0]);
-            var i = parseInt(time[1]);
-            obj.date = [ y, m, d, h, i, 0 ];
-            var val = obj.setLabel(newValue, obj.options);
 
             // New value
             obj.options.value = newValue;
@@ -774,6 +778,7 @@ jSuites.calendar = (function(el, options) {
     obj.reset = function() {
         // Close calendar
         obj.setValue('');
+        obj.date = null;
         obj.close(false, false);
     }
 
@@ -1329,7 +1334,7 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
         });
 
-        el.onclick = function() {
+        el.onmouseup = function() {
             obj.open();
         }
 
@@ -2290,16 +2295,9 @@ jSuites.color = (function(el, options) {
         }
 
         /**
-         * Focus
-         */
-        el.addEventListener("focus", function(e) {
-            obj.open();
-        });
-
-        /**
          * If element is focus open the picker
          */
-        el.addEventListener("click", function(e) {
+        el.addEventListener("mouseup", function(e) {
             obj.open();
         });
 
