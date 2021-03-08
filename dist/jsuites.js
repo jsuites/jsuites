@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.2.0)
+ * (c) jSuites Javascript Web Components (v4.2.1)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.0.2';
+    var version = '4.2.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -1779,6 +1779,7 @@ jSuites.color = (function(el, options) {
             doneLabel: 'Done',
             resetLabel: 'Reset',
             fullscreen: false,
+            opened: false,
         }
 
         if (! options) {
@@ -2359,6 +2360,11 @@ jSuites.color = (function(el, options) {
             }
         });
 
+        // Default opened
+        if (obj.options.opened == true) {
+            obj.open();
+        }
+
         // Change
         el.change = obj.setValue;
 
@@ -2613,11 +2619,13 @@ jSuites.dropdown = (function(el, options) {
         // Set data
         if (data) {
             obj.setData(data);
+
             // Onload method
             if (typeof(obj.options.onload) == 'function') {
                 obj.options.onload(el, obj, data, value);
             }
         }
+
         // Set value
         if (value = extractValue(value)) {
             applyValue(value);
@@ -2665,7 +2673,11 @@ jSuites.dropdown = (function(el, options) {
                 }
                 obj.items[i].selected = null;
             }
-        } 
+        }
+        // Reset container
+        obj.value = [];
+        // Reset options
+        obj.options.value = '';
     }
 
     /**
@@ -2674,8 +2686,6 @@ jSuites.dropdown = (function(el, options) {
     var applyValue = function(values) {
         // Reset the current values
         resetValue();
-        // Reset container
-        obj.value = [];
         // Read values
         if (values) {
             var k = Object.keys(values);
@@ -2692,8 +2702,6 @@ jSuites.dropdown = (function(el, options) {
             }
             // Value
             obj.options.value = Object.keys(obj.value).join(';');
-        } else {
-            obj.options.value = '';
         }
 
         // Update labels
@@ -3234,18 +3242,21 @@ jSuites.dropdown = (function(el, options) {
             // Make sure the content container is blank
             content.innerHTML = '';
 
+            // Reset current value
+            resetValue();
+
             // Reset
-            obj.reset();
+            obj.header.value = '';
 
             // Reset items
             obj.items = [];
 
             // Append data
             obj.appendData(data);
-        }
 
-        // Update data
-        obj.options.data = data;
+            // Update data
+            obj.options.data = data;
+        }
     }
 
     obj.getData = function() {
