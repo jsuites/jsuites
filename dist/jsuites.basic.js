@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.2.1)
+ * (c) jSuites Javascript Web Components (v4.2.2)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.2.1';
+    var version = '4.2.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -2159,7 +2159,6 @@ jSuites.color = (function(el, options) {
             subContainer.className = 'jcolor-sliders-input-subcontainer';
 
             var input = document.createElement('input');
-            input.className = 'jrange';
             input.type = 'range';
             input.min = 0;
             input.max = 255;

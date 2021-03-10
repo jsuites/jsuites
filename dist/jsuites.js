@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.2.1)
+ * (c) jSuites Javascript Web Components (v4.2.2)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.2.1';
+    var version = '4.2.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -2170,7 +2170,6 @@ jSuites.color = (function(el, options) {
             subContainer.className = 'jcolor-sliders-input-subcontainer';
 
             var input = document.createElement('input');
-            input.className = 'jrange';
             input.type = 'range';
             input.min = 0;
             input.max = 255;
@@ -8712,7 +8711,7 @@ jSuites.tags = (function(el, options) {
          * @property {requestCallback} onload - Method to be execute when the element is loaded
          */
         var defaults = {
-            value: null,
+            value: '',
             limit: null,
             limitMessage: 'The limit of entries is: ',
             search: null,
@@ -8746,9 +8745,9 @@ jSuites.tags = (function(el, options) {
         el.placeholder = obj.options.placeholder;
 
         // Update value
-        var temp = obj.options.value;
-        obj.options.value = null;
-        obj.setValue(temp);
+        obj.setValue(obj.options.value);
+
+        filter();
 
         return obj;
     }
@@ -8896,20 +8895,22 @@ jSuites.tags = (function(el, options) {
      * @param {mixed} value - A string or array object with values
      */
     obj.setValue = function(mixed) {
-        if (! mixed) {
-            obj.reset();
-        } else {
-            if (Array.isArray(mixed)) {
-                obj.add(mixed);
+        if (el.value != obj.options.value) {
+            if (! mixed) {
+                obj.reset();
             } else {
-                // Remove whitespaces
-                var text = (''+mixed).trim();
-                // Tags
-                var data = extractTags(text);
-                // Reset
-                el.innerHTML = '';
-                // Add tags to the element
-                obj.add(data);
+                if (Array.isArray(mixed)) {
+                    obj.add(mixed);
+                } else {
+                    // Remove whitespaces
+                    var text = (''+mixed).trim();
+                    // Tags
+                    var data = extractTags(text);
+                    // Reset
+                    el.innerHTML = '';
+                    // Add tags to the element
+                    obj.add(data);
+                }
             }
         }
     }
@@ -8924,8 +8925,6 @@ jSuites.tags = (function(el, options) {
         el.innerHTML = '';
         // Add a new blank tag
         obj.add('');
-        // Execute changes
-        change();
     }
 
     /**
@@ -9169,13 +9168,6 @@ jSuites.tags = (function(el, options) {
 
             change();
 
-            // Empty CSS
-            if (el.children[0].innerText.trim()) {
-                el.classList.remove('jtags-empty');
-            } else {
-                el.classList.add('jtags-empty');
-            }
-
             if (searchContainer) {
                 setTimeout(function() {
                     searchContainer.style.display = '';
@@ -9235,6 +9227,13 @@ jSuites.tags = (function(el, options) {
                 });
             }
         }
+
+        // Empty CSS
+        if (el.children[0].innerText.trim()) {
+            el.classList.remove('jtags-empty');
+        } else {
+            el.classList.add('jtags-empty');
+        }
     }
 
     /**
@@ -9259,6 +9258,8 @@ jSuites.tags = (function(el, options) {
                     } else {
                         el.children[i].classList.remove('jtags_error');
                     }
+                } else {
+                    el.children[i].classList.remove('jtags_error');
                 }
             }
         }
@@ -9496,11 +9497,6 @@ jSuites.tags = (function(el, options) {
     }
 
     var init = function() {
-        // Initial options
-        obj.setOptions(options);
-        // Force initial value
-        obj.setValue(obj.options.value);
-
         // Bind events
         if ('touchend' in document.documentElement === true) {
             el.addEventListener('touchend', tagsMouseUp);
@@ -9516,6 +9512,9 @@ jSuites.tags = (function(el, options) {
         el.classList.add('jtags');
         el.setAttribute('spellcheck', false);
         el.setAttribute('tabindex', -1);
+
+        // Initial options
+        obj.setOptions(options);
 
         if (typeof(obj.options.onload) == 'function') {
             obj.options.onload(el, obj);
