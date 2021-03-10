@@ -74,23 +74,11 @@
             var h = obj.options.area[1] / this.naturalHeight;
 
             // Proportion
-            var p = this.naturalHeight > this.naturalWidth ? h : w;
+            var p = Math.min(h, w);
 
             // Image size
             this.width = this.naturalWidth * p;
             this.height = this.naturalHeight * p;
-
-            // Do adjustment
-            canvas.width = obj.options.area[0];
-            canvas.height = obj.options.area[1];
-
-            if (this.width > canvas.width) {
-                canvas.width = this.width;
-            }
-
-            if (this.height > canvas.height) {
-                canvas.height = this.height;
-            }
 
             drawImage();
 
@@ -100,8 +88,6 @@
             // Reset selection on desktop only
             if (jSuites.getWindowWidth() > 800) {
                 obj.resetCropSelection();
-            } else {
-                crop.classList.add('mobile');
             }
 
             // Onchange
@@ -181,8 +167,8 @@
                 allowResize: true,
                 text: {
                     extensionNotAllowed: 'The extension is not allowed',
-                    imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
-                }
+                },
+                eventListeners: {}
             };
 
             // Loop through our object
@@ -210,13 +196,18 @@
             el.style.width = obj.options.area[0] + 'px';
             el.style.height = obj.options.area[1] + 'px';
 
+            canvas.width = obj.options.area[0];
+            canvas.height = obj.options.area[1];
+
             // Reset all
             obj.reset();
 
             // Initial image
-            if (obj.options.value) {
+            if (typeof obj.options.value === 'string') {
                 obj.image.src = obj.options.value;
             }
+
+            return obj;
         }
 
         /**
@@ -258,8 +249,23 @@
                 greyScale: 0,
                 saturation: 0,
             }
+            // Reset file input
+            attachmentInput.value = '';
             // Stop edition
             el.classList.remove('jcrop_edition')
+        }
+
+        var callListeningFunction = function(type) {
+            if (typeof obj.options.eventListeners[type] === 'function') {
+                var types = {
+                    zoom: properties.zoom.scale,
+                    rotate: properties.rotate,
+                    brightness: properties.brightness,
+                    contrast: properties.contrast,
+                };
+
+                obj.options.eventListeners[type](types[type]);
+            }
         }
 
         // Apply the contrast on the image data
@@ -286,6 +292,8 @@
             if (! Number.isNaN(parseFloat(val))) {
                 properties.contrast = val;
             }
+
+            callListeningFunction('contrast');
 
             refreshFilters();
         }
@@ -314,6 +322,8 @@
             if (! Number.isNaN(parseFloat(val))) {
                 properties.brightness = val;
             }
+
+            callListeningFunction('brightness');
 
             refreshFilters();
         }
@@ -525,6 +535,9 @@
             if (value) {
                 properties.zoom.scale = value;
             }
+
+            callListeningFunction('zoom');
+
             refreshResizers();
         }
 
@@ -543,6 +556,8 @@
             if (! Number.isNaN(parseFloat(val))) {
                 properties.rotate = val;
             }
+
+            callListeningFunction('rotate');
 
             refreshResizers();
         }
@@ -904,6 +919,9 @@
             }
         });
 
+        // Initial options
+        obj.setOptions(options);
+
         // Onchange
         if (typeof(obj.options.onload) == 'function') {
             obj.options.onload(el, obj);
@@ -942,9 +960,6 @@
             }
             properties.zoom.fingerDistance = dist2;
         }
-
-        // Initial options
-        obj.setOptions(options);
 
         el.crop = obj;
 
