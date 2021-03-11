@@ -7,7 +7,7 @@ import "jsuites/dist/jsuites.css";
 import "jsuites/dist/jsuites.layout.css";
 import "@jsuites/cropper/cropper.css";
 
-function Cropper({ imageUrl, setImage, options }) {
+function Cropper({ imageUrl, setImage, options, style }) {
   const [controls, setControls] = useState(false);
 
   const [zoom, setZoom] = useState(1);
@@ -29,7 +29,7 @@ function Cropper({ imageUrl, setImage, options }) {
     setRotate(0);
     setBrightness(0);
     setContrast(0);
-  }
+  };
 
   // Create tabs and modal
   useEffect(() => {
@@ -40,17 +40,17 @@ function Cropper({ imageUrl, setImage, options }) {
           {
             title: "Crop",
             icon: "crop",
-            width: "100px"
+            width: "100px",
           },
           {
             title: "Adjusts",
             icon: "image",
-            width: "100px"
-          }
+            width: "100px",
+          },
         ],
         padding: "20px",
         animation: true,
-        position: "bottom"
+        position: "bottom",
       });
       jsuitesTabs.current.content.style.backgroundColor = "#eee";
 
@@ -84,7 +84,7 @@ function Cropper({ imageUrl, setImage, options }) {
     const defaultOptions = {
       area: cropperArea,
       crop: cropArea,
-      allowResize: false
+      allowResize: false,
     };
 
     Object.assign(defaultOptions, options);
@@ -98,8 +98,8 @@ function Cropper({ imageUrl, setImage, options }) {
       eventListeners: {
         zoom: (value) => {
           setZoom(value);
-        }
-      }
+        },
+      },
     });
 
     jsuitesModal.current.close();
@@ -111,12 +111,16 @@ function Cropper({ imageUrl, setImage, options }) {
 
     previewRef.current.innerHTML = "";
 
-    const image = document.createElement('img');
-    image.style.maxWidth = '100%';
-    image.style.maxHeight = '100%';
-    image.src = imageUrl;
+    if (imageUrl !== "") {
+      const image = document.createElement("img");
+      image.style.width = "100%";
+      image.style.height = "100%";
+      image.style.objectFit = "contain";
 
-    previewRef.current.appendChild(image);
+      image.src = imageUrl;
+
+      previewRef.current.appendChild(image);
+    }
   }, [imageUrl]);
 
   useEffect(() => {
@@ -143,19 +147,19 @@ function Cropper({ imageUrl, setImage, options }) {
       jsuitesModal.current.open();
 
       jsuitesCrop.current.setOptions({
-        value: imageUrl
+        value: imageUrl,
       });
     }
   };
 
   const updatePhoto = () => {
-      jsuitesCrop.current.getCroppedAsBlob((blob) => {
-        setImage(window.URL.createObjectURL(blob));
-      });
+    jsuitesCrop.current.getCroppedAsBlob((blob) => {
+      setImage(window.URL.createObjectURL(blob));
+    });
 
-      jsuitesModal.current.close();
+    jsuitesModal.current.close();
 
-      jsuitesCrop.current.reset();
+    jsuitesCrop.current.reset();
   };
 
   const uploadPhoto = () => {
@@ -173,15 +177,21 @@ function Cropper({ imageUrl, setImage, options }) {
   };
 
   return (
-    <div style={{ height: "100px", width: "300px", fontFamily: "sans-serif", textAlign: "center" }}>
+    <div
+      style={{
+        fontFamily: "sans-serif",
+        textAlign: "center",
+        ...style,
+      }}
+    >
       <div ref={previewRef} onMouseUp={openModal} className="jupload" />
       <div ref={modalRef}>
         <div ref={cropperRef} />
         <div>
           <div ref={tabsRef}>
             <div>
-              <div className="p10" style={{ backgroundColor: "white" }}></div>
-              <div className="p10" style={{ backgroundColor: "white" }}></div>
+              <div className="p10" style={{ backgroundColor: "white" }} />
+              <div className="p10" style={{ backgroundColor: "white" }} />
             </div>
             <div style={{ backgroundColor: "#ccc" }}>
               <div>
@@ -196,7 +206,7 @@ function Cropper({ imageUrl, setImage, options }) {
                     value={zoom}
                     onChange={(e) => setZoom(parseFloat(e.target.value))}
                     style={{
-                      display: "block"
+                      display: "block",
                     }}
                     className="jrange"
                     disabled={!controls}
@@ -206,7 +216,7 @@ function Cropper({ imageUrl, setImage, options }) {
                   style={{
                     textAlign: "center",
                     display: "inline-block",
-                    marginLeft: "20px"
+                    marginLeft: "20px",
                   }}
                 >
                   {" "}
@@ -219,7 +229,7 @@ function Cropper({ imageUrl, setImage, options }) {
                     value={rotate}
                     onChange={(e) => setRotate(parseFloat(e.target.value))}
                     style={{
-                      display: "block"
+                      display: "block",
                     }}
                     className="jrange"
                     disabled={!controls}
@@ -238,7 +248,7 @@ function Cropper({ imageUrl, setImage, options }) {
                     value={brightness}
                     onChange={(e) => setBrightness(parseFloat(e.target.value))}
                     style={{
-                      display: "block"
+                      display: "block",
                     }}
                     className="jrange"
                     disabled={!controls}
@@ -248,7 +258,7 @@ function Cropper({ imageUrl, setImage, options }) {
                   style={{
                     textAlign: "center",
                     display: "inline-block",
-                    marginLeft: "20px"
+                    marginLeft: "20px",
                   }}
                 >
                   {" "}
@@ -261,7 +271,7 @@ function Cropper({ imageUrl, setImage, options }) {
                     value={contrast}
                     onChange={(e) => setContrast(parseFloat(e.target.value))}
                     style={{
-                      display: "block"
+                      display: "block",
                     }}
                     className="jrange"
                     disabled={!controls}
@@ -280,7 +290,7 @@ function Cropper({ imageUrl, setImage, options }) {
                 value="Save Photo"
                 className="jbutton dark w100"
                 style={{
-                  minWidth: "140px"
+                  minWidth: "140px",
                 }}
                 onClick={updatePhoto}
                 disabled={!controls}
@@ -292,7 +302,7 @@ function Cropper({ imageUrl, setImage, options }) {
                 value="Upload Photo"
                 className="jbutton dark w100"
                 style={{
-                  minWidth: "140px"
+                  minWidth: "140px",
                 }}
                 onClick={uploadPhoto}
               />
@@ -303,7 +313,7 @@ function Cropper({ imageUrl, setImage, options }) {
                 value="Delete Photo"
                 className="jbutton dark w100"
                 style={{
-                  minWidth: "140px"
+                  minWidth: "140px",
                 }}
                 onClick={deletePhoto}
                 disabled={!controls}
@@ -324,7 +334,16 @@ Cropper.propTypes = {
     remoteParser: PropTypes.string,
     allowResize: PropTypes.bool,
     text: PropTypes.object,
-  })
+  }),
+  style: PropTypes.object,
+};
+
+Cropper.defaultProps = {
+  style: {
+    height: "100%",
+    width: "100%",
+  },
+  options: {},
 };
 
 export default Cropper;
