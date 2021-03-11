@@ -275,7 +275,7 @@
             if (obj.options.search) {
                 el.appendChild(search);
             } else {
-                if (search.parent) {
+                if (search.parentElement) {
                     el.removeChild(search);
                 }
             }
@@ -296,6 +296,8 @@
             if (el.organogram) {
                 obj.refresh();
             }
+
+            return obj;
         }
 
         /**

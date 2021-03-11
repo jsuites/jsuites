@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.2.2)
+ * (c) jSuites Javascript Web Components (v4.2.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.2.2';
+    var version = '4.2.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8793,13 +8793,9 @@ jSuites.tags = (function(el, options) {
 
                 for (var i = 0; i <= value.length; i++) {
                     if (! obj.options.limit || el.children.length < obj.options.limit) {
-                        var div = document.createElement('div');
                         if (! value[i] || typeof(value[i]) == 'string') {
                             var t = value[i] || '';
-                            var v = t;
-                            if (! t) {
-                                t = '';
-                            }
+                            var v = null;
                         } else {
                             var t = value[i].text;
                             var v = value[i].value;

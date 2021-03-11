@@ -180,7 +180,7 @@ jSuites.crop = (function(el, options) {
         obj.reset();
 
         // Initial image
-        if (obj.options.value) {
+        if (typeof obj.options.value === 'string') {
             obj.image.src = obj.options.value;
         }
 
