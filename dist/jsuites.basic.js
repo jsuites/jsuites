@@ -1364,7 +1364,7 @@ jSuites.calendar = (function(el, options) {
         }
 
         // Change method
-        calendar.change = obj.setValue;
+        el.change = obj.setValue;
 
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;

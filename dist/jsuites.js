@@ -1375,7 +1375,7 @@ jSuites.calendar = (function(el, options) {
         }
 
         // Change method
-        calendar.change = obj.setValue;
+        el.change = obj.setValue;
 
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;
@@ -5233,6 +5233,7 @@ jSuites.form = (function(el, options) {
         currentHash: null,
         submitButton:null,
         validations: null,
+        onbeforeload: null,
         onload: null,
         onbeforesave: null,
         onsave: null,
@@ -5288,8 +5289,16 @@ jSuites.form = (function(el, options) {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
+                // Overwrite values from the backend
+                if (typeof(obj.options.onbeforeload) == 'function') {
+                    var ret = obj.options.onbeforeload(el, data);
+                    if (ret) {
+                        data = ret;
+                    }
+                }
+                // Apply values to the form
                 jSuites.form.setElements(el, data);
-
+                // Onload methods
                 if (typeof(obj.options.onload) == 'function') {
                     obj.options.onload(el, data);
                 }

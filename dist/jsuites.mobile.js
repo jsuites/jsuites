@@ -377,6 +377,11 @@ jSuites.app = (function(el, options) {
             } else {
                 component.element.insertBefore(page, component.current.nextSibling);
             }
+
+            // Create page overwrite
+            if (typeof(obj.options.oncreatepage) == 'function') {
+                obj.options.oncreatepage(obj, page, page.innerHTML);
+            }
         }
 
         // Append page container to the application
