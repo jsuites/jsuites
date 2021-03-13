@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.2.4)
+ * (c) jSuites Javascript Web Components (v4.2.5)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.2.4';
+    var version = '4.2.5';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -6435,7 +6435,7 @@ jSuites.mask = (function() {
                 }
 
                 // Process input
-                var ret = obj.process(obj.fromKeyCode(e));
+                var ret = obj.process(e.key);
 
                 // Prevent default
                 e.preventDefault();
@@ -6786,69 +6786,6 @@ jSuites.mask = (function() {
                 }
             }
         }
-    }
-
-    /** 
-     * Thanks for the collaboration
-     */
-    obj.fromKeyCode = function(e) {
-        var _to_ascii = {
-            '188': '44',
-            '109': '45',
-            '190': '46',
-            '191': '47',
-            '192': '96',
-            '220': '92',
-            '222': '39',
-            '221': '93',
-            '219': '91',
-            '173': '45',
-            '187': '61', //IE Key codes
-            '186': '59', //IE Key codes
-            '189': '45'  //IE Key codes
-        }
-
-        var shiftUps = {
-            "96": "~",
-            "49": "!",
-            "50": "@",
-            "51": "#",
-            "52": "$",
-            "53": "%",
-            "54": "^",
-            "55": "&",
-            "56": "*",
-            "57": "(",
-            "48": ")",
-            "45": "_",
-            "61": "+",
-            "91": "{",
-            "93": "}",
-            "92": "|",
-            "59": ":",
-            "39": "\"",
-            "44": "<",
-            "46": ">",
-            "47": "?"
-        };
-
-        var c = e.which;
-
-        if (_to_ascii.hasOwnProperty(c)) {
-            c = _to_ascii[c];
-        }
-
-        if (!e.shiftKey && (c >= 65 && c <= 90)) {
-            c = String.fromCharCode(c + 32);
-        } else if (e.shiftKey && shiftUps.hasOwnProperty(c)) {
-            c = shiftUps[c];
-        } else if (96 <= c && c <= 105) {
-            c = String.fromCharCode(c - 48);
-        } else {
-            c = String.fromCharCode(c);
-        }
-
-        return c;
     }
 
     if (typeof document !== 'undefined') {
@@ -8768,8 +8705,12 @@ jSuites.tags = (function(el, options) {
     obj.add = function(value, focus) {
         if (typeof(obj.options.onbeforechange) == 'function') {
             var v = obj.options.onbeforechange(el, obj, value);
-            if (v != null) {
-                value = v;
+            if (v === false) {
+                return false;
+            } else { 
+                if (v != null) {
+                    value = v;
+                }
             }
         }
 
@@ -9203,6 +9144,7 @@ jSuites.tags = (function(el, options) {
             div.setAttribute('data-value', value);
         }
         div.setAttribute('contenteditable', true);
+        div.onblur = change;
 
         if (node && node.parentNode.classList.contains('jtags')) {
             el.insertBefore(div, node.nextSibling);
@@ -9215,29 +9157,32 @@ jSuites.tags = (function(el, options) {
 
     var change = function() {
         // Value
-        obj.options.value = obj.getValue();
+        var value = obj.getValue();
 
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, obj.options.value);
-        }
-
-        // Lemonade JS
-        if (el.value != obj.options.value) {
-            el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
-                    target: el,
-                    value: el.value
-                });
+        if (value != obj.options.value) {
+            obj.options.value = value;
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, obj, obj.options.value);
             }
-        }
 
-        // Empty CSS
-        if (el.children[0].innerText.trim()) {
-            el.classList.remove('jtags-empty');
-        } else {
-            el.classList.add('jtags-empty');
+            // Lemonade JS
+            if (el.value != obj.options.value) {
+                el.value = obj.options.value;
+                if (typeof(el.onchange) == 'function') {
+                    el.onchange({
+                        type: 'change',
+                        target: el,
+                        value: el.value
+                    });
+                }
+            }
+
+            // Empty CSS
+            if (el.children[0].innerText.trim()) {
+                el.classList.remove('jtags-empty');
+            } else {
+                el.classList.add('jtags-empty');
+            }
         }
     }
 
