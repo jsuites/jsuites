@@ -1,6 +1,6 @@
 ![The javascript web components](https://jsuites.net/templates/v4/img/icon.svg)
 
-## jSuites v4 - Webcomponents and JavaScript plugins.
+## jSuites v4 - Webcomponents and JavaScript plugins. 
 
 About
 ---------
