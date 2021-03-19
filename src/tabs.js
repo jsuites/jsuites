@@ -241,6 +241,21 @@ jSuites.tabs = (function(el, options) {
         return 0;
     }
 
+    obj.updateContent = function(position, newContent) {
+        if (typeof newContent !== 'string') {
+            var contentItem = newContent;
+        } else {
+            var contentItem = document.createElement('div');
+            contentItem.innerHTML = newContent;
+        }
+
+        if (obj.content.children[position].classList.contains('jtabs-selected')) {
+            newContent.classList.add('jtabs-selected');
+        }
+
+        obj.content.replaceChild(newContent, obj.content.children[position]);
+    }
+
     obj.updatePosition = function(f, t) {
         // Ondrop update position of content
         if (f > t) {

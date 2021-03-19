@@ -47,6 +47,8 @@ jSuites.rating = (function(el, options) {
                 }
             }
         }
+
+        return obj;
     }
 
     // Set value

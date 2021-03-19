@@ -10,9 +10,12 @@ jSuites.form = (function(el, options) {
         currentHash: null,
         submitButton:null,
         validations: null,
+        onbeforeload: null,
         onload: null,
         onbeforesave: null,
         onsave: null,
+        onbeforeremove: null,
+        onremove: null,
         onerror: function(el, message) {
             jSuites.alert(message);
         }
@@ -57,6 +60,8 @@ jSuites.form = (function(el, options) {
 
     obj.setUrl = function(url) {
         obj.options.url = url;
+
+        window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
     }
 
     obj.load = function() {
@@ -65,8 +70,16 @@ jSuites.form = (function(el, options) {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
+                // Overwrite values from the backend
+                if (typeof(obj.options.onbeforeload) == 'function') {
+                    var ret = obj.options.onbeforeload(el, data);
+                    if (ret) {
+                        data = ret;
+                    }
+                }
+                // Apply values to the form
                 jSuites.form.setElements(el, data);
-
+                // Onload methods
                 if (typeof(obj.options.onload) == 'function') {
                     obj.options.onload(el, data);
                 }
@@ -105,6 +118,28 @@ jSuites.form = (function(el, options) {
                 }
             });
         }
+    }
+
+    obj.remove = function() {
+        if (typeof(obj.options.onbeforeremove) == 'function') {
+            var ret = obj.options.onbeforeremove(el, obj);
+            if (ret === false) {
+                return false;
+            }
+        }
+
+        jSuites.ajax({
+            url: obj.options.url,
+            method: 'DELETE',
+            dataType: 'json',
+            success: function(result) {
+                if (typeof(obj.options.onremove) == 'function') {
+                    obj.options.onremove(el, obj, result);
+                }
+
+                obj.reset();
+            }
+        });
     }
 
     var addError = function(element) {
@@ -324,7 +359,11 @@ jSuites.form.setElements = function(el, data) {
             }
         } else {
             if (data[name]) {
-                elements[i].value = data[name];
+                if (typeof(elements[i].change) == 'function') {
+                    elements[i].change(data[name]);
+                } else {
+                    elements[i].value = data[name];
+                }
             }
         }
     }

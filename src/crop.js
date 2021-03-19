@@ -51,23 +51,11 @@ jSuites.crop = (function(el, options) {
         var h = obj.options.area[1] / this.naturalHeight;
 
         // Proportion
-        var p = this.naturalHeight > this.naturalWidth ? h : w;
+        var p = Math.min(h, w);
 
         // Image size
         this.width = this.naturalWidth * p;
         this.height = this.naturalHeight * p;
-
-        // Do adjustment
-        canvas.width = obj.options.area[0];
-        canvas.height = obj.options.area[1];
-
-        if (this.width > canvas.width) {
-            canvas.width = this.width;
-        }
-
-        if (this.height > canvas.height) {
-            canvas.height = this.height;
-        }
 
         drawImage();
 
@@ -77,8 +65,6 @@ jSuites.crop = (function(el, options) {
         // Reset selection on desktop only
         if (jSuites.getWindowWidth() > 800) {
             obj.resetCropSelection();
-        } else {
-            crop.classList.add('mobile');
         }
 
         // Onchange
@@ -158,8 +144,8 @@ jSuites.crop = (function(el, options) {
             allowResize: true,
             text: {
                 extensionNotAllowed: 'The extension is not allowed',
-                imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
-            }
+            },
+            eventListeners: {}
         };
 
         // Loop through our object
@@ -187,13 +173,18 @@ jSuites.crop = (function(el, options) {
         el.style.width = obj.options.area[0] + 'px';
         el.style.height = obj.options.area[1] + 'px';
 
+        canvas.width = obj.options.area[0];
+        canvas.height = obj.options.area[1];
+
         // Reset all
         obj.reset();
 
         // Initial image
-        if (obj.options.value) {
+        if (typeof obj.options.value === 'string') {
             obj.image.src = obj.options.value;
         }
+
+        return obj;
     }
 
     /**
@@ -235,8 +226,23 @@ jSuites.crop = (function(el, options) {
             greyScale: 0,
             saturation: 0,
         }
+        // Reset file input
+        attachmentInput.value = '';
         // Stop edition
         el.classList.remove('jcrop_edition')
+    }
+
+    var callListeningFunction = function(type) {
+        if (typeof obj.options.eventListeners[type] === 'function') {
+            var types = {
+                zoom: properties.zoom.scale,
+                rotate: properties.rotate,
+                brightness: properties.brightness,
+                contrast: properties.contrast,
+            };
+
+            obj.options.eventListeners[type](types[type]);
+        }
     }
 
     // Apply the contrast on the image data
@@ -263,6 +269,8 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.contrast = val;
         }
+
+        callListeningFunction('contrast');
 
         refreshFilters();
     }
@@ -291,6 +299,8 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.brightness = val;
         }
+
+        callListeningFunction('brightness');
 
         refreshFilters();
     }
@@ -502,6 +512,9 @@ jSuites.crop = (function(el, options) {
         if (value) {
             properties.zoom.scale = value;
         }
+
+        callListeningFunction('zoom');
+
         refreshResizers();
     }
 
@@ -520,6 +533,8 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.rotate = val;
         }
+
+        callListeningFunction('rotate');
 
         refreshResizers();
     }
@@ -881,6 +896,9 @@ jSuites.crop = (function(el, options) {
         }
     });
 
+    // Initial options
+    obj.setOptions(options);
+
     // Onchange
     if (typeof(obj.options.onload) == 'function') {
         obj.options.onload(el, obj);
@@ -919,9 +937,6 @@ jSuites.crop = (function(el, options) {
         }
         properties.zoom.fingerDistance = dist2;
     }
-
-    // Initial options
-    obj.setOptions(options);
 
     el.crop = obj;
 

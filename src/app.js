@@ -159,27 +159,24 @@ jSuites.app = (function(el, options) {
                         updateDOM();
                     }
 
+                    // Open page
+                    page.innerHTML = result;
+
+                    // Get javascript
+                    try {
+                        parseScript(page);
+                    } catch (e) {
+                        console.log(e);
+                    }
+
                     // Create page overwrite
-                    var ret = null;
                     if (typeof(obj.options.oncreatepage) == 'function') {
-                        ret = obj.options.oncreatepage(obj, page, result);
+                        obj.options.oncreatepage(obj, page, result);
                     }
 
                     // Push to refresh controls
                     if (typeof(page.options.onpush) == 'function') {
                         jSuites.refresh(page, page.options.onpush);
-                    }
-
-                    // Ignore create page actions 
-                    if (ret !== false) {
-                        // Open page
-                        page.innerHTML = result;
-                        // Get javascript
-                        try {
-                            parseScript(page);
-                        } catch (e) {
-                            console.log(e);
-                        }
                     }
 
                     // Navbar
@@ -221,7 +218,7 @@ jSuites.app = (function(el, options) {
 
                 // New page
                 if (typeof(obj.options.onchangepage) == 'function') {
-                    obj.options.onchangepage(obj, component.current, page, o);
+                    obj.options.onchangepage(obj, page, component.current, o);
                 }
 
                 // Enter event
@@ -376,6 +373,11 @@ jSuites.app = (function(el, options) {
                 component.element.appendChild(page);
             } else {
                 component.element.insertBefore(page, component.current.nextSibling);
+            }
+
+            // Create page overwrite
+            if (typeof(obj.options.oncreatepage) == 'function') {
+                obj.options.oncreatepage(obj, page, null);
             }
         }
 

@@ -8,11 +8,148 @@ jSuites.dropdown = (function(el, options) {
     var obj = { type: 'dropdown' };
     obj.options = {};
 
+    // Success
+    var success = function(data, val) {
+        // Set data
+        if (data) {
+            obj.setData(data);
+
+            // Onload method
+            if (typeof(obj.options.onload) == 'function') {
+                obj.options.onload(el, obj, data, value);
+            }
+        }
+
+        // Set value
+        applyValue(val);
+
+        // Component value
+        el.value = obj.options.value;
+
+        // Open dropdown
+        if (obj.options.opened == true) {
+            obj.open();
+        }
+    }
+
+    /**
+     * Reset the options for the dropdown
+     */
+    var resetValue = function() {
+        // Reset value container
+        obj.value = {};
+        // Remove selected
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items[i].selected == true) {
+                if (obj.items[i].element) {
+                    obj.items[i].element.classList.remove('jdropdown-selected')
+                }
+                obj.items[i].selected = null;
+            }
+        }
+        // Reset options
+        obj.options.value = '';
+    }
+
+    /**
+     * Apply values to the dropdown
+     */
+    var applyValue = function(values) {
+        // Reset the current values
+        resetValue();
+
+        // Read values
+        if (values) {
+            if (! Array.isArray(values)) {
+                values = (''+values).split(';');
+            }
+            for (var i = 0; i < values.length; i++) {
+                obj.value[values[i]] = '';
+            }
+            // Update the DOM
+            for (var i = 0; i < obj.items.length; i++) {
+                if (typeof(obj.value[Value(i)]) !== 'undefined') {
+                    if (obj.items[i].element) {
+                        obj.items[i].element.classList.add('jdropdown-selected')
+                    }
+                    obj.items[i].selected = true;
+
+                    // Keep label
+                    obj.value[Value(i)] = Text(i);
+                }
+            }
+
+            // Global value
+            obj.options.value = Object.keys(obj.value).join(';');
+        }
+
+        // Update labels
+        obj.header.value = obj.getText();
+    }
+
+    // Get the value of one item
+    var Value = function(k, v) {
+        // Legacy purposes
+        if (! obj.options.format) {
+            var property = 'value';
+        } else {
+            var property = 'id';
+        }
+
+        if (obj.items[k]) {
+            if (v !== undefined) {
+                return obj.items[k].data[property] = v;
+            } else {
+                return obj.items[k].data[property];
+            }
+        }
+
+        return '';
+    }
+
+    // Get the label of one item
+    var Text = function(k, v) {
+        // Legacy purposes
+        if (! obj.options.format) {
+            var property = 'text';
+        } else {
+            var property = 'name';
+        }
+
+        if (obj.items[k]) {
+            if (v !== undefined) {
+                return obj.items[k].data[property] = v;
+            } else {
+                return obj.items[k].data[property];
+            }
+        }
+
+        return '';
+    }
+
+    var getValue = function() {
+        return Object.keys(obj.value);
+    }
+
+    var getText = function() {
+        var data = [];
+        var k = Object.keys(obj.value);
+        for (var i = 0; i < k.length; i++) {
+            data.push(obj.value[k[i]]);
+        }
+        return data;
+    }
+
     obj.setOptions = function(options, reset) {
+        if (! options) {
+            options = {};
+        }
+
         // Default configuration
         var defaults = {
             url: null,
             data: [],
+            format: 0,
             multiple: false,
             autocomplete: false,
             remoteSearch: false,
@@ -46,7 +183,7 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Force autocomplete search
-        if (obj.options.remoteSearch == true) {
+        if (obj.options.remoteSearch == true || obj.options.type === 'searchbar') {
             obj.options.autocomplete = true;
         }
 
@@ -95,7 +232,11 @@ jSuites.dropdown = (function(el, options) {
                 if (obj.options.width) {
                     el.style.width = obj.options.width;
                     el.style.minWidth = obj.options.width;
+                } else {
+                    el.style.removeProperty('width');
+                    el.style.removeProperty('min-width');
                 }
+
                 el.classList.add('jdropdown-default');
                 obj.options.type = 'default';
             }
@@ -107,6 +248,25 @@ jSuites.dropdown = (function(el, options) {
         } else {
             container.insertBefore(closeButton, container.firstChild);
         }
+
+        // Load the content
+        if (options.url && ! options.data) {
+            jSuites.ajax({
+                url: options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data) {
+                        success(data, options.value);
+                    }
+                }
+            });
+        } else {
+            success(options.data, options.value);
+        }
+
+        // Return the instance
+        return obj;
     }
 
     // Helpers
@@ -123,6 +283,11 @@ jSuites.dropdown = (function(el, options) {
      * Init dropdown
      */
     var init = function() {
+        // Do not accept null
+        if (! options) {
+            options = {};
+        }
+
         // If the element is a SELECT tag, create a configuration object
         if (el.tagName == 'SELECT') {
             var ret = jSuites.dropdown.extractFromDom(el, options);
@@ -131,13 +296,15 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Place holder
-        options.placeholder = el.getAttribute('placeholder');
+        if (! options.placeholder && el.getAttribute('placeholder')) {
+            options.placeholder = el.getAttribute('placeholder');
+        }
 
+        // Value container
+        obj.value = {};
         // Containers
         obj.items = [];
         obj.groups = [];
-        obj.value = [];
-
         // Search options
         obj.search = '';
         obj.results = null;
@@ -167,40 +334,30 @@ jSuites.dropdown = (function(el, options) {
         }
 
         obj.header.onkeyup = function(e) {
-            if (e.which == 13) {
-                obj.selectIndex(obj.currentIndex);
-            } else if (e.which == 38) {
-                if (obj.currentIndex == null) {
-                    obj.firstVisible();
-                } else if (obj.currentIndex > 0) {
-                    obj.prev();
+            if (obj.options.autocomplete == true && ! keyTimer) {
+                if (obj.search != obj.header.value.trim()) {
+                    keyTimer = setTimeout(function() {
+                        obj.find(obj.header.value.trim());
+                        keyTimer = null;
+                    }, 400);
                 }
-            } else if (e.which == 40) {
-                if (obj.currentIndex == null) {
-                    obj.firstVisible();
-                } else if (obj.currentIndex + 1 < obj.items.length) {
-                    obj.next();
-                }
-            } else if (e.which == 36) {
-                obj.first();
-            } else if (e.which == 35) {
-                obj.last();
-            } else if (e.which == 27) {
-                obj.close();
-            } else {
-                if (obj.options.autocomplete == true && ! keyTimer) {
-                    if (obj.search != obj.header.value.trim()) {
-                        keyTimer = setTimeout(function() {
-                            obj.find(obj.header.value.trim());
-                            keyTimer = null;
-                        }, 400);
-                    }
 
-                    if (! el.classList.contains('jdropdown-focus')) {
-                        obj.open();
-                    }
+                if (! el.classList.contains('jdropdown-focus')) {
+                    obj.open();
+                }
+            } else {
+                if (! obj.options.autocomplete) {
+                    obj.next(e.key);
                 }
             }
+        }
+
+        // Global controls
+        if (! jSuites.dropdown.hasEvents) {
+            // Execute only one time
+            jSuites.dropdown.hasEvents = true;
+            // Enter and Esc
+            document.addEventListener("keydown", jSuites.dropdown.keydown);
         }
 
         // Container
@@ -239,46 +396,6 @@ jSuites.dropdown = (function(el, options) {
 
         // Set the otiptions
         obj.setOptions(options);
-
-        // Success
-        var success = function(data) {
-            // Set data
-            obj.setData(data);
-            // Set value
-            if (obj.options.value != null) {
-                obj.setValue(obj.options.value, true);
-            }
-            // Onload method
-            if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data);
-            }
-            // Open dropdown
-            if (obj.options.opened == true) {
-                obj.open();
-            }
-        }
-
-        // Load the content
-        if (obj.options.url && ! obj.options.data.length) {
-            jSuites.ajax({
-                url: obj.options.url,
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data) {
-                        success(data);
-                    }
-                }
-            });
-        } else {
-            var data = [];
-            if (obj.options.data.length) {
-                for (var j = 0; j < obj.options.data.length; j++) {
-                    data.push(obj.options.data[j]); 
-                }
-            }
-            success(data);
-        }
 
         if ('ontouchsend' in document.documentElement === true) {
             el.addEventListener('touchsend', jSuites.dropdown.mouseup);
@@ -326,6 +443,24 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
+     * Set ID for one item
+     */
+    obj.setId = function(item, v) {
+        // Legacy purposes
+        if (! obj.options.format) {
+            var property = 'value';
+        } else {
+            var property = 'id';
+        }
+
+        if (typeof(item) == 'object') {
+            item[property] = v;
+        } else {
+            obj.items[item].data[property] = v;
+        }
+    }
+
+    /**
      * Add a new item
      * @param {string} title - title of the new item
      */
@@ -338,15 +473,26 @@ jSuites.dropdown = (function(el, options) {
             }
         }
 
+        // Id
+        var id = jSuites.guid()
+
         // Create new item
-        var item = {
-            value: jSuites.guid(),
-            text: title,
-        };
+        if (! obj.options.format) {
+            var item = {
+                value: id,
+                text: title,
+            }
+        } else {
+            var item = {
+                id: id,
+                name: title,
+            };
+        }
 
         // Add item to the main list
         obj.options.data.push(item);
 
+        // Create DOM
         var newItem = obj.createItem(item);
 
         // Append DOM to the list
@@ -354,7 +500,7 @@ jSuites.dropdown = (function(el, options) {
 
         // Callback
         if (typeof(obj.options.oninsert) == 'function') {
-            obj.options.oninsert(obj, newItem, item)
+            obj.options.oninsert(obj, item, item)
         }
 
         // Show content
@@ -369,29 +515,42 @@ jSuites.dropdown = (function(el, options) {
      * Create a new item
      */
     obj.createItem = function(data, group, groupName) {
-        if (typeof(data.text) == 'undefined' && data.name) {
-            data.text = data.name;
+        // Keep the correct source of data
+        if (! obj.options.format) {
+            if (! data.value && data.id !== undefined) {
+                data.value = data.id;
+                //delete data.id;
+            }
+            if (! data.text && data.name !== undefined) {
+                data.text = data.name;
+                //delete data.name;
+            }
+        } else {
+            if (! data.id && data.value !== undefined) {
+                data.id = data.value;
+                //delete data.value;
+            }
+            if (! data.name && data.text !== undefined) {
+                data.name = data.text
+                //delete data.text;
+            }
         }
-        if (typeof(data.value) == 'undefined' && data.id) {
-            data.value = data.id;
-        }
+
         // Create item
         var item = {};
         item.element = document.createElement('div');
         item.element.className = 'jdropdown-item';
         item.element.indexValue = obj.items.length;
-        item.value = data.value;
-        item.text = data.text;
+        item.data = data;
+
+        // Groupd DOM
+        if (group) {
+            item.group = group; 
+        }
 
         // Id
         if (data.id) {
             item.element.setAttribute('id', data.id);
-        }
-
-        // Group reference
-        if (group) {
-            item.group = group;
-            item.groupName = groupName;
         }
 
         // Image
@@ -411,13 +570,15 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Set content
+        if (! obj.options.format) {
+            var text = data.text;
+        } else {
+            var text = data.name;
+        }
+
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        if (data.text) {
-            node.innerText = data.text;
-        } else {
-            node.innerHTML = '&nbsp;'; 
-        }
+        node.innerHTML = text || '&nbsp;'; 
 
         // Title
         if (data.title) {
@@ -425,13 +586,17 @@ jSuites.dropdown = (function(el, options) {
             title.className = 'jdropdown-title';
             title.innerText = data.title;
             node.appendChild(title);
+        }
 
-            // Keep text reference
-            item.title = data.title;
+        // Set content
+        if (! obj.options.format) {
+            var val = data.value;
+        } else {
+            var val = data.id;
         }
 
         // Value
-        if (obj.value && obj.value[data.value]) {
+        if (obj.value[val]) {
             item.element.classList.add('jdropdown-selected');
             item.selected = true;
         }
@@ -528,40 +693,53 @@ jSuites.dropdown = (function(el, options) {
                 // Compatibility
                 if (typeof(data[i]) != 'object') {
                     // Correct format
-                    data[i] = {
-                        value: data[i],
-                        text: data[i]
+                    if (! obj.options.format) {
+                        data[i] = {
+                            value: data[i],
+                            text: data[i]
+                        }
+                    } else {
+                        data[i] = {
+                            id: data[i],
+                            name: data[i]
+                        }
                     }
                 }
             }
+
+            // Reset current value
+            resetValue();
 
             // Make sure the content container is blank
             content.innerHTML = '';
 
             // Reset
-            obj.reset();
+            obj.header.value = '';
 
-            // Reset items
+            // Reset items and values
             obj.items = [];
 
             // Append data
             obj.appendData(data);
-        }
 
-        // Update data
-        obj.options.data = data;
+            // Update data
+            obj.options.data = data;
+        }
+    }
+
+    obj.getData = function() {
+        return obj.options.data;
     }
 
     /**
      * Get position of the item
      */
-    obj.getPosition = function(value) {
+    obj.getPosition = function(val) {
         for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items[i].value == value) {
+            if (Value(i) == val) {
                 return i;
             }
         }
-
         return 0;
     }
 
@@ -569,11 +747,9 @@ jSuites.dropdown = (function(el, options) {
      * Get dropdown current text
      */
     obj.getText = function(asArray) {
-        var v = [];
-        var k = Object.keys(obj.value);
-        for (var i = 0; i < k.length; i++) {
-            v.push(obj.value[k[i]]);
-        }
+        // Get value
+        var v = getText();
+        // Return value
         if (asArray) {
             return v;
         } else {
@@ -585,87 +761,55 @@ jSuites.dropdown = (function(el, options) {
      * Get dropdown current value
      */
     obj.getValue = function(asArray) {
+        // Get value
+        var v = getValue();
+        // Return value
         if (asArray) {
-            return Object.keys(obj.value);
+            return v;
         } else {
-            return Object.keys(obj.value).join(';');
+            return v.join(';');
         }
     }
 
-    obj.setValue = function(value, ignoreEvents) {
-        var setValue = function(item, value) {
-            if (obj.items[item].value == value) {
-                if (obj.items[item].element) {
-                    obj.items[item].element.classList.add('jdropdown-selected');
-                }
-                obj.items[item].selected = true;
-
-                // Push to the values container
-                obj.value[value] = obj.items[item].text;
-            }
+    /**
+     * Change event
+     */
+    var change = function(oldValue) {
+        // Events
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, oldValue, obj.options.value);
         }
 
-        // Old value
-        var oldValue = obj.getValue();
-
-        // Remove selected
-        for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items[i].selected == true) {
-                if (obj.items[i].element) {
-                    obj.items[i].element.classList.remove('jdropdown-selected')
-                }
-                obj.items[i].selected = null;
-            }
-        } 
-
-        // Reset
-        obj.value = [];
-
-        // Set values
-        if (value !== null) {
-            if (! Array.isArray(value)) {
-                for (var i = 0; i < obj.items.length; i++) {
-                    setValue(i, value);
-                }
-            } else {
-                for (var i = 0; i < obj.items.length; i++) {
-                    for (var j = 0; j < value.length; j++) {
-                        setValue(i, value[j]);
-                    }
-                }
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
             }
         }
+    }
 
+    /**
+     * Set value
+     */
+    obj.setValue = function(newValue) {
+        // Current value
+        var oldValue = getValue();
         // New value
-        var newValue = obj.getValue();
+        if (Array.isArray(newValue)) {
+            newValue = newValue.join(';')
+        }
 
         if (oldValue != newValue) {
-            if (! el.classList.contains('jdropdown-focus')) {
-                // Label
-                obj.header.value = obj.getText();
-            }
+            // Set value
+            applyValue(newValue);
 
-            // Value
-            obj.options.value = obj.getValue();
-
-            // Events
-            if (ignoreEvents !== true) {
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange(el, null, oldValue, obj.options.value);
-                }
-            }
-
-            // Lemonade JS
-            if (el.value != obj.options.value) {
-                el.value = obj.options.value;
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
-                        target: el,
-                        value: el.value
-                    });
-                }
-            }
+            // Change
+            change(oldValue);
         }
     }
 
@@ -679,42 +823,49 @@ jSuites.dropdown = (function(el, options) {
 
         // Only select those existing elements
         if (obj.items && obj.items[index]) {
-            // Current selection
-            var oldValue = obj.getValue();
-
             // Reset cursor to a new position
             obj.setCursor(index, false);
 
             // Behaviour
             if (! obj.options.multiple) {
                 // Update value
-                if (! obj.value[obj.items[index].value]) {
-                    obj.setValue(obj.items[index].value);
-                } else {
+                if (obj.items[index].selected) {
                     obj.setValue(null);
+                } else {
+                    obj.setValue(Value(index));
                 }
+
+                // Close component
                 obj.close();
             } else {
-                var value = Object.keys(obj.value);
+                // Old value
+                var oldValue = obj.options.value;
+
                 // Toggle option
                 if (obj.items[index].selected) {
                     obj.items[index].element.classList.remove('jdropdown-selected');
                     obj.items[index].selected = false;
-                    // Remove from selected list
-                    var i = value.indexOf(''+obj.items[index].value);
-                    if (i != -1) {
-                        value.splice(i, 1);
-                    }
+
+                    delete obj.value[Value(index)];
                 } else {
                     // Select element
                     obj.items[index].element.classList.add('jdropdown-selected');
                     obj.items[index].selected = true;
-                    // Add to the selected list
-                    value.push(obj.items[index].value);
+
+                    // Set value
+                    obj.value[Value(index)] = Text(index);
                 }
 
+                // Global value
+                obj.options.value = Object.keys(obj.value).join(';');
+
                 // Update labels for multiple dropdown
-                obj.setValue(value);
+                if (obj.options.autocomplete == false) {
+                    obj.header.value = getText().join('; ');
+                }
+
+                // Events
+                change(oldValue);
             }
         }
     }
@@ -765,13 +916,13 @@ jSuites.dropdown = (function(el, options) {
             // Append options
             for (var i = 0; i < obj.items.length; i++) {
                 // Item label
-                var label = obj.items[i].text;
+                var label = Text(i);
                 // Item title
-                var title = obj.items[i].title || '';
+                var title = obj.items[i].data.title || '';
                 // Group name
-                var groupName = obj.items[i].groupName || '';
+                var groupName = obj.items[i].data.group || '';
 
-                if (str == null || obj.value[obj.items[i].value] != undefined || label.match(str) || title.match(str) || groupName.match(str)) {
+                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str)) {
                     obj.results.push(obj.items[i]);
 
                     if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {
@@ -819,6 +970,9 @@ jSuites.dropdown = (function(el, options) {
     obj.open = function() {
         // Focus
         if (! el.classList.contains('jdropdown-focus')) {
+            // Current dropdown
+            jSuites.dropdown.current = obj;
+
             // Start tracking
             jSuites.tracking(obj, true);
 
@@ -839,7 +993,7 @@ jSuites.dropdown = (function(el, options) {
             }
 
             // Set cursor for the first or first selected element
-            var k = Object.keys(obj.value);
+            var k = Object.keys(getValue());
             if (k[0]) {
                 var cursor = obj.getPosition(k[0]);
                 if (cursor) {
@@ -894,10 +1048,10 @@ jSuites.dropdown = (function(el, options) {
 
     obj.close = function(ignoreEvents) {
         if (el.classList.contains('jdropdown-focus')) {
-            // Remove cursor
-            obj.setCursor();
             // Update labels
             obj.header.value = obj.getText();
+            // Remove cursor
+            obj.setCursor();
             // Events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
@@ -910,6 +1064,8 @@ jSuites.dropdown = (function(el, options) {
             el.classList.remove('jdropdown-focus');
             // Start tracking
             jSuites.tracking(obj, false);
+            // Current dropdown
+            jSuites.dropdown.current = null;
         }
 
         return obj.getValue();
@@ -1011,19 +1167,40 @@ jSuites.dropdown = (function(el, options) {
         obj.setCursor(newIndex);
     }
 
-    obj.next = function() {
-        var newIndex = null;
-        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
-                newIndex = i;
-                break;
+    var next = function(index, letter) {
+        for (var i = index; i < obj.items.length; i++) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || Text(i).toLowerCase() == letter)) {
+                return i;
             }
         }
 
-        if (newIndex == null) {
-            return false;
+        return null;
+    }
+
+    obj.next = function(letter) {
+        if (letter && letter.length == 1) {
+            letter = letter.toLowerCase();
         }
 
+        if (obj.currentIndex === null) {
+            var index = obj.currentIndex = 0;
+        } else {
+            var index = obj.currentIndex + 1;
+        }
+
+        // Try to find the next from the current position
+        var newIndex = next(index, letter);
+
+        if (newIndex == null && letter) {
+            // Trying to find from the begining
+            newIndex = next(0, letter);
+            // Did not find
+            if (newIndex == null) {
+                return false;
+            }
+        }
+
+        // Set cursor
         obj.setCursor(newIndex);
     }
 
@@ -1089,7 +1266,34 @@ jSuites.dropdown = (function(el, options) {
     return obj;
 });
 
-jSuites.dropdown.hasEvents = false;
+jSuites.dropdown.keydown = function(e) {
+    var dropdown = null;
+    if (dropdown = jSuites.dropdown.current) {
+        if (e.which == 13) {
+            dropdown.selectIndex(dropdown.currentIndex);
+        } else if (e.which == 38) {
+            if (dropdown.currentIndex == null) {
+                dropdown.firstVisible();
+            } else if (dropdown.currentIndex > 0) {
+                dropdown.prev();
+            }
+            e.preventDefault();
+        } else if (e.which == 40) {
+            if (dropdown.currentIndex == null) {
+                dropdown.firstVisible();
+            } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
+                dropdown.next();
+            }
+            e.preventDefault();
+        } else if (e.which == 36) {
+            dropdown.first();
+        } else if (e.which == 35) {
+            dropdown.last();
+        } else if (e.which == 27) {
+            dropdown.close();
+        }
+    }
+}
 
 jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.findElement(e.target, 'jdropdown');

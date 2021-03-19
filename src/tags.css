@@ -11,6 +11,11 @@
     border: 1px solid #ccc;
 } 
 
+.jtags-focus {
+    outline: auto 5px Highlight;
+    outline: auto 5px -webkit-focus-ring-color;
+}
+
 .jtags.jtags-empty:not(.jtags-focus)::before {
     position: absolute;
     margin: 5px;

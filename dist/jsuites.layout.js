@@ -2229,6 +2229,17 @@ jSuites.organogram = (function(el, options) {
         }
     }
 
+    obj.setUrl = function(url) {
+        jSuites.ajax({
+            url: url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(result) {
+                obj.setData(result);
+            }
+        });
+    }
+
     /**
      * Refreshes the organozation chart
      */

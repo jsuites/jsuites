@@ -70,11 +70,6 @@ jSuites.calendar = (function(el, options) {
             }
         }
 
-        // Value
-        if (! obj.options.value && obj.options.today) {
-            obj.options.value = jSuites.calendar.now();
-        }
-
         // Reset button
         if (obj.options.resetButton == false) {
             calendarReset.style.display = 'none';
@@ -104,17 +99,22 @@ jSuites.calendar = (function(el, options) {
         // Define mask
         el.setAttribute('data-mask', obj.options.format.toLowerCase());
 
-        // Update current internal date controllers
-        if (obj.options.value) {
-            var value = obj.options.value;
-        } else {
+        // Value
+        if (! obj.options.value && obj.options.today) {
             var value = jSuites.calendar.now();
+        } else {
+            var value = obj.options.value;
         }
 
         // Set internal date
-        if (obj.options.value) {
-            obj.date = jSuites.calendar.toArray(obj.options.value);
+        if (value) {
+            // Force the update
+            obj.options.value = null;
+            // New value
+            obj.setValue(value);
         }
+
+        return obj;
     }
 
     /**
@@ -123,6 +123,8 @@ jSuites.calendar = (function(el, options) {
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
             if (! calendar.classList.contains('jcalendar-inline')) {
+                // Current
+                jSuites.calendar.current = obj;
                 // Start tracking
                 jSuites.tracking(obj, true);
                 // Create the days
@@ -142,11 +144,12 @@ jSuites.calendar = (function(el, options) {
 
                 // Get the position of the corner helper
                 if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen) {
-                    // Full
                     calendar.classList.add('jcalendar-fullsize');
                     // Animation
                     jSuites.animation.slideBottom(calendarContent, 1);
                 } else {
+                    calendar.classList.remove('jcalendar-fullsize');
+
                     var rect = el.getBoundingClientRect();
                     var rectContent = calendarContent.getBoundingClientRect();
 
@@ -199,7 +202,8 @@ jSuites.calendar = (function(el, options) {
             calendar.classList.remove('jcalendar-focus');
             // Stop tracking
             jSuites.tracking(obj, false);
-
+            // Current
+            jSuites.calendar.current = null;
         }
 
         return obj.options.value;
@@ -277,20 +281,25 @@ jSuites.calendar = (function(el, options) {
 
         if (oldValue != newValue) {
             // Set label
-            var value = obj.setLabel(newValue, obj.options);
-            var date = newValue.split(' ');
-            if (! date[1]) {
-                date[1] = '00:00:00';
+            if (! newValue) {
+                obj.date = null;
+                var val = '';
+            } else {
+                var value = obj.setLabel(newValue, obj.options);
+                var date = newValue.split(' ');
+                if (! date[1]) {
+                    date[1] = '00:00:00';
+                }
+                var time = date[1].split(':')
+                var date = date[0].split('-');
+                var y = parseInt(date[0]);
+                var m = parseInt(date[1]);
+                var d = parseInt(date[2]);
+                var h = parseInt(time[0]);
+                var i = parseInt(time[1]);
+                obj.date = [ y, m, d, h, i, 0 ];
+                var val = obj.setLabel(newValue, obj.options);
             }
-            var time = date[1].split(':')
-            var date = date[0].split('-');
-            var y = parseInt(date[0]);
-            var m = parseInt(date[1]);
-            var d = parseInt(date[2]);
-            var h = parseInt(time[0]);
-            var i = parseInt(time[1]);
-            obj.date = [ y, m, d, h, i, 0 ];
-            var val = obj.setLabel(newValue, obj.options);
 
             // New value
             obj.options.value = newValue;
@@ -364,6 +373,7 @@ jSuites.calendar = (function(el, options) {
     obj.reset = function() {
         // Close calendar
         obj.setValue('');
+        obj.date = null;
         obj.close(false, false);
     }
 
@@ -692,16 +702,6 @@ jSuites.calendar = (function(el, options) {
         }
     }
 
-    var keyDownControls = function(e) {
-        if (e.which == 13) {
-            // ENTER
-            obj.close(false, true);
-        } else if (e.which == 27) {
-            // ESC
-            obj.close(false, false);
-        }
-    }
-
     var keyUpControls = function(e) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
@@ -919,7 +919,7 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
         });
 
-        el.onclick = function() {
+        el.onmouseup = function() {
             obj.open();
         }
 
@@ -929,8 +929,13 @@ jSuites.calendar = (function(el, options) {
             calendar.addEventListener("mouseup", mouseUpControls);
         }
 
-        // Keydown options
-        document.addEventListener("keydown", keyDownControls);
+        // Global controls
+        if (! jSuites.calendar.hasEvents) {
+            // Execute only one time
+            jSuites.calendar.hasEvents = true;
+            // Enter and Esc
+            document.addEventListener("keydown", jSuites.calendar.keydown);
+        }
 
         // Set configuration
         obj.setOptions(options);
@@ -960,7 +965,7 @@ jSuites.calendar = (function(el, options) {
         }
 
         // Change method
-        calendar.change = obj.setValue;
+        el.change = obj.setValue;
 
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;
@@ -970,6 +975,19 @@ jSuites.calendar = (function(el, options) {
 
     return obj;
 });
+
+jSuites.calendar.keydown = function(e) {
+    var calendar = null;
+    if (calendar = jSuites.calendar.current) { 
+        if (e.which == 13) {
+            // ENTER
+            calendar.close(false, true);
+        } else if (e.which == 27) {
+            // ESC
+            calendar.close(false, false);
+        }
+    }
+}
 
 jSuites.calendar.prettify = function(d, texts) {
     if (! texts) {

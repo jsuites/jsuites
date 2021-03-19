@@ -252,7 +252,7 @@ jSuites.organogram = (function(el, options) {
         if (obj.options.search) {
             el.appendChild(search);
         } else {
-            if (search.parent) {
+            if (search.parentElement) {
                 el.removeChild(search);
             }
         }
@@ -273,6 +273,8 @@ jSuites.organogram = (function(el, options) {
         if (el.organogram) {
             obj.refresh();
         }
+
+        return obj;
     }
 
     /**
@@ -283,6 +285,17 @@ jSuites.organogram = (function(el, options) {
             obj.options.roles = roles;
             obj.refresh();
         }
+    }
+
+    obj.setUrl = function(url) {
+        jSuites.ajax({
+            url: url,
+            method: 'GET',
+            dataType: 'json',
+            success: function(result) {
+                obj.setData(result);
+            }
+        });
     }
 
     /**
