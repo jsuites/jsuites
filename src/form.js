@@ -60,8 +60,6 @@ jSuites.form = (function(el, options) {
 
     obj.setUrl = function(url) {
         obj.options.url = url;
-
-        window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
     }
 
     obj.load = function() {

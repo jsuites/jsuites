@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.3.1)
+ * (c) jSuites Javascript Web Components (v4.3.2)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.3.1';
+    var version = '4.3.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -2621,7 +2621,7 @@ jSuites.dropdown = (function(el, options) {
 
             // Onload method
             if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data, value);
+                obj.options.onload(el, obj, data, val);
             }
         }
 
@@ -3774,7 +3774,7 @@ jSuites.dropdown = (function(el, options) {
 
     var next = function(index, letter) {
         for (var i = index; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || Text(i).toLowerCase() == letter)) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || (''+Text(i)).substr(0,1).toLowerCase() == letter)) {
                 return i;
             }
         }
@@ -5369,8 +5369,6 @@ jSuites.form = (function(el, options) {
 
     obj.setUrl = function(url) {
         obj.options.url = url;
-
-        window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
     }
 
     obj.load = function() {

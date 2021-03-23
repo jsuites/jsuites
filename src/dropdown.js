@@ -16,7 +16,7 @@ jSuites.dropdown = (function(el, options) {
 
             // Onload method
             if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data, value);
+                obj.options.onload(el, obj, data, val);
             }
         }
 
@@ -1169,7 +1169,7 @@ jSuites.dropdown = (function(el, options) {
 
     var next = function(index, letter) {
         for (var i = index; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || Text(i).toLowerCase() == letter)) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || (''+Text(i)).substr(0,1).toLowerCase() == letter)) {
                 return i;
             }
         }

@@ -1889,7 +1889,9 @@ jSuites.menu = (function(el, options) {
 
         // Close menu if is oped
         if (jSuites.getWindowWidth() < 800) {
-            obj.hide();
+            setTimeout(function() {
+                obj.hide();
+            }, 0);
         }
     }
 
