@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.3.2)
+ * (c) jSuites Javascript Web Components (v4.3.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.3.2';
+    var version = '4.3.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -62,6 +62,19 @@ var jSuites = function(options) {
                 jSuites.current[index] = null;
             }
         }
+    }
+
+    obj.path = function(str) {
+        str = str.split('.');
+        if (str.length) {
+            var o = this;
+            var t = null;
+            while (t = str.shift()) {
+                o = o[t];
+            }
+            return o;
+        }
+        return false;
     }
 
     // Array of opened components
@@ -1366,6 +1379,15 @@ jSuites.calendar = (function(el, options) {
         // Change method
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;
     }
@@ -2356,6 +2378,15 @@ jSuites.color = (function(el, options) {
         // Change
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.color = obj;
 
@@ -3007,6 +3038,15 @@ jSuites.dropdown = (function(el, options) {
 
         // Change method
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue(obj.options.multiple ? true : false);
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         // Keep object available from the node
         el.dropdown = obj;
@@ -4904,6 +4944,15 @@ jSuites.editor = (function(el, options) {
     // Change method
     el.change = obj.setData;
 
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getData();
+        } else {
+            obj.setData(val);
+        }
+    }
+
     el.editor = obj;
 
     return obj;
@@ -6757,6 +6806,15 @@ jSuites.picker = (function(el, options) {
         // Change
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Reference
         el.picker = obj;
     }
@@ -6891,6 +6949,15 @@ jSuites.rating = (function(el, options) {
 
         // Change
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         // Reference
         el.rating = obj;

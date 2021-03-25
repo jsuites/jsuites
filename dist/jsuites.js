@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.3.2)
+ * (c) jSuites Javascript Web Components (v4.3.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.3.2';
+    var version = '4.3.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -62,6 +62,19 @@ var jSuites = function(options) {
                 jSuites.current[index] = null;
             }
         }
+    }
+
+    obj.path = function(str) {
+        str = str.split('.');
+        if (str.length) {
+            var o = this;
+            var t = null;
+            while (t = str.shift()) {
+                o = o[t];
+            }
+            return o;
+        }
+        return false;
     }
 
     // Array of opened components
@@ -1377,6 +1390,15 @@ jSuites.calendar = (function(el, options) {
         // Change method
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;
     }
@@ -2367,6 +2389,15 @@ jSuites.color = (function(el, options) {
         // Change
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.color = obj;
 
@@ -3018,6 +3049,15 @@ jSuites.dropdown = (function(el, options) {
 
         // Change method
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue(obj.options.multiple ? true : false);
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         // Keep object available from the node
         el.dropdown = obj;
@@ -4915,6 +4955,15 @@ jSuites.editor = (function(el, options) {
     // Change method
     el.change = obj.setData;
 
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getData();
+        } else {
+            obj.setData(val);
+        }
+    }
+
     el.editor = obj;
 
     return obj;
@@ -5632,21 +5681,36 @@ jSuites.form = (function(el, options) {
     return obj;
 });
 
-// Get form elements
+//Get form elements
 jSuites.form.getElements = function(el, asArray) {
     var data = {};
-    var elements = el.querySelectorAll("input, select, textarea");
+    var elements = el.querySelectorAll("input, select, textarea, div[name]");
 
     for (var i = 0; i < elements.length; i++) {
         var element = elements[i];
-        var name = element.name;
+        var name = element.getAttribute('name');
         var value = element.value;
 
         if (name) {
-            if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
-                value = elements[i].checked;
+            if (elements[i].type == 'checkbox') {
+                if (elements[i].checked == true) {
+                    data[name] = elements[i].value || true;
+                }
+            } else if (elements[i].type == 'radio') {
+                if (elements[i].checked == true) {
+                    data[name] = elements[i].value;
+                }
+            } else if (elements[i].tagName == 'select' && elements[i].multiple == true) {
+                data[name] = [];
+                var options = elements[i].querySelectorAll("options[selected]");
+                for (var j = 0; j < options.length; j++) {
+                    data[name].push(options[j].value);
+                }
+            } else if (typeof(elements[i].val) == 'function') {
+                data[name] = elements[i].val();
+            } else {
+                data[name] = value || '';
             }
-            data[name] = value;
         }
     }
 
@@ -5655,21 +5719,26 @@ jSuites.form.getElements = function(el, asArray) {
 
 //Get form elements
 jSuites.form.setElements = function(el, data) {
-    var elements = el.querySelectorAll("input, select, textarea");
-
+    var value = null;
+    var elements = el.querySelectorAll("input, select, textarea, div[name]");
     for (var i = 0; i < elements.length; i++) {
+        // Attributes
         var name = elements[i].getAttribute('name');
         var type = elements[i].getAttribute('type');
-        if (type == 'checkbox' || type == 'radio') {
-            if (data[name]) {
+        // Path
+        if (name) {
+            // Transform variable names in pathname
+            name = name.replace(new RegExp(/\[(.*?)\]/ig), '.$1');
+            // Seach for the data in the path
+            value = jSuites.path.call(data, name) || '';
+            // Set the values
+            if (type == 'checkbox' || type == 'radio') {
                 elements[i].checked = true;
-            }
-        } else {
-            if (data[name]) {
-                if (typeof(elements[i].change) == 'function') {
-                    elements[i].change(data[name]);
+            } else {
+                if (typeof (elements[i].val) == 'function') {
+                    elements[i].val(v);
                 } else {
-                    elements[i].value = data[name];
+                    elements[i].value = v;
                 }
             }
         }
@@ -7566,6 +7635,15 @@ jSuites.picker = (function(el, options) {
         // Change
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Reference
         el.picker = obj;
     }
@@ -7674,6 +7752,15 @@ jSuites.progressbar = (function(el, options) {
 
     // Change
     el.change = obj.setValue;
+
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getValue();
+        } else {
+            obj.setValue(val);
+        }
+    }
 
     // Reference
     el.progressbar = obj;
@@ -7806,6 +7893,15 @@ jSuites.rating = (function(el, options) {
 
         // Change
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         // Reference
         el.rating = obj;
@@ -9587,6 +9683,15 @@ jSuites.tags = (function(el, options) {
 
         // Change methods
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         el.tags = obj;
     }
