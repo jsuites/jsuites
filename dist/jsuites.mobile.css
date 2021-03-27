@@ -902,6 +902,10 @@ japp.jwarning .page {
     margin-right:10px;
 }
 
+.japp .material-icons {
+    font-size: 24px;
+}
+
 .jdialog
 {
     position:fixed;

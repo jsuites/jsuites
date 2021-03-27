@@ -27,16 +27,17 @@ jSuites.app = (function(el, options) {
     el.classList.add('japp');
 
     // Toolbar
-        var toolbar = document.createElement('div');
+    var toolbar = document.createElement('div');
 
     obj.setToolbar = function(o) {
         if (o) {
             obj.options.toolbar = o;
         }
-        obj.toolbar = jSuites.toolbar(toolbar, {
-            app: obj,
-            items: obj.options.toolbar,
-        });
+        // Force application
+        obj.options.toolbar.app = obj;
+        // Set toolbar
+        obj.toolbar = jSuites.toolbar(toolbar, obj.options.toolbar);
+        // Add to the DOM
         el.appendChild(toolbar);
     }
 
@@ -542,7 +543,7 @@ jSuites.app = (function(el, options) {
         }
 
         // Grouped buttons
-        if (e.target.parentNode && e.target.parentNode.classList.contains('jbuttons-group')) {
+        if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
             for (var j = 0; j < e.target.parentNode.children.length; j++) {
                 e.target.parentNode.children[j].classList.remove('selected');
             }
