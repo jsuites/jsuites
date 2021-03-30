@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.3.4)
+ * (c) jSuites Javascript Web Components (v4.3.6)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.3.4';
+    var version = '4.3.6';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5244,9 +5244,9 @@ jSuites.files = (function(element) {
         // Get attachments
         var data = {};
         for (var i = 0; i < D.length; i++) {
-            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
+            if (D[i] && D[i].src && D[i].src.substr(0,5) == 'blob:') {
                 var name = D[i].src.split('/');
-                data[D[i].src] = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
+                data[D[i].src] = folder + '/' + name[name.length - 1] + '.' + D[i].content[i].extension;
             }
         }
 
@@ -5265,9 +5265,9 @@ jSuites.files = (function(element) {
 
         // Get attachments
         for (var i = 0; i < D.length; i++) {
-            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
+            if (D[i] && D[i].src && D[i].src.substr(0,5) == 'blob:') {
                 var name = D[i].src.split('/');
-                D[i].src = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
+                D[i].src = folder + '/' + name[name.length - 1] + '.' + D[i].content[i].extension;
             }
         }
     }
@@ -5283,9 +5283,6 @@ jSuites.files = (function(element) {
             // Read all files
             for (var i = 0; i < files.length; i++) {
                 var file = {};
-
-                var src = files[i].getAttribute('src');
-
                 if (files[i].classList.contains('jremove')) {
                     files[i].remove();
                 }
@@ -5308,51 +5305,44 @@ jSuites.files = (function(element) {
         if (files.length > 0) {
             // Read all files
             for (var i = 0; i < files.length; i++) {
-                var file = {};
-
-                var src = files[i].getAttribute('src');
-
-                if (files[i].classList.contains('jremove')) {
-                    file.remove = 1;
+                if (Array.isArray(files[i].content)) {
+                    if (files[i].content.length) {
+                        for (var j = 0; j < files[i].content.length; j++) {
+                            // File name
+                            if (! files[i].content[j].content) {
+                                files[i].content[j].content = files[i].content[j].file;
+                                if (files[i].src && files[i].src.length < 255) {
+                                    files[i].content[j].file = files[i].src;
+                                } else {
+                                    files[i].content[j].file = jSuites.guid();
+                                }
+                            }
+                            // Push file
+                            obj.data.push(files[i].content[j]);
+                        }
+                    }
                 } else {
-                    if (src.substr(0,5) == 'data:') {
-                        file.content = src.substr(5);
-                        file.extension = files[i].getAttribute('data-extension');
-                    } else {
-                        file.file = src;
-                        file.extension = files[i].getAttribute('data-extension');
-                        if (! file.extension) {
-                            file.extension =  src.substr(src.lastIndexOf('.') + 1);
+                    if (files[i].content) {
+                        if (files[i].classList.contains('jremove')) {
+                            files[i].content.file.remove = 1;
                         }
 
-                        if (files[i].content) {
-                            file.content = files[i].content;
+                        // File name
+                        if (! files[i].content.content) {
+                            files[i].content.content = files[i].content.file;
+                            if (files[i].src && files[i].src.length < 255) {
+                                files[i].content.file = files[i].src;
+                            } else {
+                                files[i].content.file = jSuites.guid();
+                            }
                         }
-                    }
-
-                    // Optional file information
-                    if (files[i].getAttribute('data-name')) {
-                        file.name = files[i].getAttribute('data-name');
-                    }
-                    if (files[i].getAttribute('data-file')) {
-                        file.file = files[i].getAttribute('data-file');
-                    }
-                    if (files[i].getAttribute('data-size')) {
-                        file.size = files[i].getAttribute('data-size');
-                    }
-                    if (files[i].getAttribute('data-date')) {
-                        file.date = files[i].getAttribute('data-date');
-                    }
-                    if (files[i].getAttribute('data-cover')) {
-                        file.cover = files[i].getAttribute('data-cover');
+                        // Push file
+                        obj.data.push(files[i].content);
                     }
                 }
 
                 // DOM reference
                 D.push(files[i]);
-
-                // Push file
-                obj.data.push(file);
             }
 
             return obj.data;
@@ -5363,6 +5353,8 @@ jSuites.files = (function(element) {
 
     return obj;
 });
+
+
 
 jSuites.form = (function(el, options) {
     var obj = {};
@@ -5477,8 +5469,6 @@ jSuites.form = (function(el, options) {
                     if (typeof(obj.options.onsave) == 'function') {
                         obj.options.onsave(el, data, result);
                     }
-
-                    obj.reset();
                 }
             });
         }
@@ -5566,16 +5556,19 @@ jSuites.form = (function(el, options) {
 
     obj.reset = function() {
         // Get elements in the form
+        var name = null;
         var elements = el.querySelectorAll("input, select, textarea, div[name]");
         // Run all elements 
         for (var i = 0; i < elements.length; i++) {
-            if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
-                elements[i].removeAttribute('checked');
-            } else {
-                if (typeof(elements[i].val) == 'function') {
-                    elements[i].val('');
+            if (name = elements[i].getAttribute('name')) {
+                if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
+                    elements[i].checked = false;
                 } else {
-                    elements[i].value = '';
+                    if (typeof(elements[i].val) == 'function') {
+                        elements[i].val('');
+                    } else {
+                        elements[i].value = '';
+                    }
                 }
             }
         }
@@ -5639,11 +5632,6 @@ jSuites.form = (function(el, options) {
 
     // Restart tracking
     obj.resetTracker = function() {
-        obj.options.currentHash = obj.setHash();
-        obj.options.ignore = false;
-    }
-
-    obj.reset = function() {
         obj.options.currentHash = obj.setHash();
         obj.options.ignore = false;
     }
@@ -5744,14 +5732,13 @@ jSuites.form.getElements = function(el, asArray) {
 
 //Get form elements
 jSuites.form.setElements = function(el, data) {
+    var name = null;
     var value = null;
     var elements = el.querySelectorAll("input, select, textarea, div[name]");
     for (var i = 0; i < elements.length; i++) {
         // Attributes
-        var name = elements[i].getAttribute('name');
         var type = elements[i].getAttribute('type');
-        // Path
-        if (name) {
+        if (name = elements[i].getAttribute('name')) {
             // Transform variable names in pathname
             name = name.replace(new RegExp(/\[(.*?)\]/ig), '.$1');
             // Seach for the data in the path
@@ -6190,12 +6177,14 @@ if (! jSuites.login) {
     jSuites.login.sha512 = jSuites.sha512;
 }
 
-jSuites.image = (function(el, options) {
+jSuites.image = jSuites.upload = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Default configuration
     var defaults = {
+        type: 'image',
+        extension: '*',
         input: false,
         minWidth: false,
         maxWidth: null,
@@ -6206,7 +6195,6 @@ jSuites.image = (function(el, options) {
         remoteParser: null,
         text:{
             extensionNotAllowed:'The extension is not allowed',
-            imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
         }
     };
 
@@ -6219,79 +6207,61 @@ jSuites.image = (function(el, options) {
         }
     }
 
+    // Container
+    el.content = [];
+
     // Upload icon
     el.classList.add('jupload');
 
     if (obj.options.input == true) {
         el.classList.add('input');
+        el.classList.add('jfile');
     }
 
-    // Add image
-    obj.addImage = function(file) {
-        return jSuites.image.create(file);
-    }
-
-    // Add image
-    obj.addImages = function(files) {
+    var add = function(type, data) {
+        // Reset container for single files
         if (obj.options.singleFile == true) {
-            el.innerHTML = '';
+            el.content = [];
+            el.innerText = '';
+        }
+        // Push content
+        el.content.push(data);
+
+        // Append to the element
+        if (type == 'image') {
+            el.appendChild(jSuites.image.create(data));
+        } else {
+            var div = document.createElement('div');
+            div.innerText = data.name || (type + '.' + data.extension);
+            div.classList.add('jupload-item');
+            el.appendChild(div);
         }
 
-        for (var i = 0; i < files.length; i++) {
-            el.appendChild(obj.addImage(files[i]));
+        // Onchange
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, data);
         }
     }
 
     obj.addFromFile = function(file) {
         var type = file.type.split('/');
-        if (type[0] == 'image') {
-            if (obj.options.singleFile == true) {
-                el.innerHTML = '';
-            }
+        if (type[0] == obj.options.type) {
+            var readFile = new FileReader();
+            readFile.addEventListener("load", function (v) {
+                var data = {
+                    file: v.srcElement.result,
+                    extension: file.name.substr(file.name.lastIndexOf('.') + 1),
+                    name: file.name,
+                    size: file.size,
+                    lastmodified: file.lastModified,
+                }
 
-            var imageFile = new FileReader();
-            imageFile.addEventListener("load", function (v) {
-
-                var img = new Image();
-
-                img.onload = function onload() {
-                    var canvas = document.createElement('canvas');
-                    canvas.width = img.width;
-                    canvas.height = img.height;
-
-                    var ctx = canvas.getContext('2d');
-                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                    var data = {
-                        file: obj.getDataURL(canvas, file.type),
-                        extension: file.name.substr(file.name.lastIndexOf('.') + 1),
-                        name: file.name,
-                        size: file.size,
-                        lastmodified: file.lastModified,
-                    }
-
-                    // Content
-                    if (this.src.substr(0,5) == 'data:') {
-                        var content = this.src.split(',');
-                        data.content = content[1];
-                    }
-
-                    // Add image
-                    var newImage = obj.addImage(data);
-                    el.appendChild(newImage);
-
-                    // Onchange
-                    if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage, data);
-                    }
-                };
-
-                img.src = v.srcElement.result;
+                add(type[0], data);
             });
 
-            imageFile.readAsDataURL(file);
+            readFile.readAsDataURL(file);
         } else {
-            alert(text.extentionNotAllowed);
+            alert(obj.options.text.extensionNotAllowed);
         }
     }
 
@@ -6303,60 +6273,34 @@ jSuites.image = (function(el, options) {
             if (src.substr(0,4) == 'data') {
                 var extension = src.split(';')
                 extension = extension[0].split('/');
-                extension = extension[1];
+                var type = extension[0].replace('data:','');
+                if (type == obj.options.type) {
+                    var data = {
+                        file: src,
+                        extension: extension[1],
+                    }
+                    add(type, data);
+                } else {
+                    alert(obj.options.text.extensionNotAllowed);
+                }
             } else {
                 var extension = src.substr(src.lastIndexOf('.') + 1);
                 // Work for cross browsers
                 src = obj.options.remoteParser + src;
+                // Get remove content
+                jSuites.ajax({
+                    url: src,
+                    type: 'GET',
+                    dataType: 'blob',
+                    success: function(data) {
+                        //add(extension[0].replace('data:',''), data);
+                    }
+                })
             }
-
-            var img = new Image();
-
-            img.onload = function onload() {
-                var canvas = document.createElement('canvas');
-                canvas.width = img.width;
-                canvas.height = img.height;
-
-                var ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-                canvas.toBlob(function(blob) {
-                    var data = {
-                        file: window.URL.createObjectURL(blob),
-                        extension: extension
-                    }
-
-                    // Content to be uploaded
-                    data.content = canvas.toDataURL();
-                    data.content = data.content.split(',');
-                    data.content = data.content[1];
-
-                    // Add image
-                    var newImage = obj.addImage(data);
-                    el.appendChild(newImage);
-
-                    // Onchange
-                    if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage, data);
-                    }
-                });
-            };
-
-            img.src = src;
         }
     }
 
-    obj.getCanvas = function(img) {
-        var canvas = document.createElement('canvas');
-        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
-        var r2 = (obj.options.maxHeight || img.height) / img.height;
-        var r = Math.min(r1, r2, 1);
-        canvas.width = img.width * r;
-        canvas.height = img.height * r;
-        return canvas;
-    }
-
-    obj.getDataURL = function(canvas, type) {
+    var getDataURL = function(canvas, type) {
         var compression = 0.92;
         var lastContentLength = null;
         var content = canvas.toDataURL(type, compression);
@@ -6370,17 +6314,18 @@ jSuites.image = (function(el, options) {
         return content;
     }
 
-    var attachmentInput = document.createElement('input');
-    attachmentInput.type = 'file';
-    attachmentInput.setAttribute('accept', 'image/*');
-    attachmentInput.onchange = function() {
+    var mime = obj.options.type + '/' + obj.options.extension;
+    var input = document.createElement('input');
+    input.type = 'file';
+    input.setAttribute('accept', mime);
+    input.onchange = function() {
         for (var i = 0; i < this.files.length; i++) {
             obj.addFromFile(this.files[i]);
         }
     }
 
     el.addEventListener("click", function(e) {
-        jSuites.click(attachmentInput);
+        jSuites.click(input);
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -6402,7 +6347,6 @@ jSuites.image = (function(el, options) {
     el.addEventListener('drop', function(e) {
         e.preventDefault();  
         e.stopPropagation();
-
 
         var html = (e.originalEvent || e).dataTransfer.getData('text/html');
         var file = (e.originalEvent || e).dataTransfer.files;
@@ -6435,32 +6379,36 @@ jSuites.image = (function(el, options) {
         return false;
     });
 
-    el.image = obj;
+    el.val = function(val) {
+        if (val === undefined) {
+            return el.innerText;
+        } else {
+            el.innerText = val;
+
+            if (! val) {
+                el.content = [];
+            }
+        }
+    }
+
+    el.upload = el.image = obj;
 
     return obj;
 });
 
-jSuites.image.create = function(file) {
-    if (! file.date) {
-        file.date = '';
+jSuites.image.create = function(data) {
+    if (! data.date) {
+        data.date = '';
     }
     var img = document.createElement('img');
-    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
-    img.setAttribute('data-name', file.name);
-    img.setAttribute('data-size', file.size);
-    img.setAttribute('data-small', file.small ? file.small : '');
-    img.setAttribute('data-cover', file.cover ? 1 : 0);
-    img.setAttribute('data-extension', file.extension);
-    img.setAttribute('src', file.file);
+    img.setAttribute('src', data.file);
     img.className = 'jfile';
     img.style.width = '100%';
-
-    if (file.content) {
-        img.content = file.content;
-    }
+    img.content = data;
 
     return img;
 }
+
 
 jSuites.lazyLoading = (function(el, options) {
     var obj = {}
@@ -9076,10 +9024,10 @@ jSuites.tags = (function(el, options) {
      * @param {mixed} value - A string or array object with values
      */
     obj.setValue = function(mixed) {
-        if (el.value != obj.options.value) {
-            if (! mixed) {
-                obj.reset();
-            } else {
+        if (! mixed) {
+            obj.reset();
+        } else {
+            if (obj.options.value != mixed) {
                 if (Array.isArray(mixed)) {
                     obj.add(mixed);
                 } else {

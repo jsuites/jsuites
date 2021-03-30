@@ -11,6 +11,7 @@ jSuites.app = (function(el, options) {
         oncreatepage: null,
         onloadpage: null,
         toolbar: null,
+        route: null,
         detachHiddenPages: false
     }
 
@@ -69,30 +70,35 @@ jSuites.app = (function(el, options) {
                 } else {
                     if (! callback && typeof(o) == 'function') {
                         callback = o;
-                    } 
+                    }
                 }
             }
 
-            // If exists just open
-            if (component.container[route]) {
-                component.show(component.container[route], options, callback);
+            if (typeof(obj.options.route) == 'function') {
+                route = obj.options.route(route, options);
+            }
+
+            if (route === false) {
+                console.error('JSUITES: Permission denied');
             } else {
-                // Create a new page
-                if (! route) {
-                    console.error('JSUITES: Error, no route provided');
+                // If exists just open
+                if (component.container[route]) {
+                    component.show(component.container[route], options, callback);
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
                     // Keep Route
                     options.route = route;
-
                     // New page url
                     if (! options.url) {
                         options.url = obj.options.path + route + '.html';
                     }
 
                     // Create new page
-                    component.create(options, callback);
+                    var page = component.create(options, callback);
+
+                    // Container
+                    component.container[route] = page;
                 }
             }
         }
@@ -105,12 +111,17 @@ jSuites.app = (function(el, options) {
             var page = document.createElement('div');
             page.classList.add('page');
 
-            // Container
-            component.container[o.route] = page;
-
             // Keep options
             page.options = o ? o : {};
 
+            // Create page overwrite
+            var ret = null;
+            if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                var ret = obj.options.onbeforecreatepage(obj, page);
+                if (ret === false) {
+                    return false;
+                }
+            }
 
             var updateDOM = function() {
                 // Remove to avoid id conflicts
@@ -132,15 +143,6 @@ jSuites.app = (function(el, options) {
                 page.style.display = 'none';
                 // Update DOM
                 updateDOM();
-            }
-
-            // Create page overwrite
-            var ret = null;
-            if (typeof(obj.options.onbeforecreatepage) == 'function') {
-                var ret = obj.options.onbeforecreatepage(obj, page);
-                if (ret === false) {
-                    return false;
-                }
             }
 
             // Url
