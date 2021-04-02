@@ -136,25 +136,22 @@
     border-bottom-right-radius: 3px;
 }
 
-.jcolor-spectrum {
-    height: 194px;
+.jcolor-hsl {
     box-sizing: border-box;
 }
 
-.jcolor-spectrum > div {
+.jcolor-hsl > div {
     height: 100%;
     position: relative;
-    overflow: hidden;
 }
 
-.jcolor-spectrum canvas {
-    height: 100%;
-    width: 100%;
+.jcolor-hsl canvas {
+    display: block;
     border-radius: 4px;
     -webkit-user-drag: none;
 }
 
-.jcolor-moving-point {
+.jcolor-point {
     height: 5px;
     width: 5px;
     background-color: #000;

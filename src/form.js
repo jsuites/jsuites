@@ -111,8 +111,6 @@ jSuites.form = (function(el, options) {
                     if (typeof(obj.options.onsave) == 'function') {
                         obj.options.onsave(el, data, result);
                     }
-
-                    obj.reset();
                 }
             });
         }
@@ -159,7 +157,7 @@ jSuites.form = (function(el, options) {
         element.classList.remove('error');
         element.removeAttribute('title');
         // Get elements in the form
-        var elements = el.querySelectorAll("input, select, textarea");
+        var elements = el.querySelectorAll("input, select, textarea, div[name]");
         // Run all elements 
         for (var i = 0; i < elements.length; i++) {
             if (elements[i].getAttribute('data-validation')) {
@@ -181,10 +179,12 @@ jSuites.form = (function(el, options) {
     obj.validateElement = function(element) {
         // Test results
         var test = false;
+        // Value
+        var value = jSuites.form.getValue(element);
         // Validation
         var validation = element.getAttribute('data-validation');
         // Parse
-        if (typeof(obj.options.validations[validation]) == 'function' && ! obj.options.validations[validation](element.value, element)) {
+        if (typeof(obj.options.validations[validation]) == 'function' && ! obj.options.validations[validation](value, element)) {
             // Not passed in the test
             test = addError(element);
         } else {
@@ -198,13 +198,20 @@ jSuites.form = (function(el, options) {
 
     obj.reset = function() {
         // Get elements in the form
-        var elements = el.querySelectorAll("input, select, textarea");
+        var name = null;
+        var elements = el.querySelectorAll("input, select, textarea, div[name]");
         // Run all elements 
         for (var i = 0; i < elements.length; i++) {
-            if (elements[i].tagName == 'INPUT' && elements[i].type == 'checkbox') {
-                elements[i].removeAttribute('checked');
-            } else {
-                elements[i].value = '';
+            if (name = elements[i].getAttribute('name')) {
+                if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
+                    elements[i].checked = false;
+                } else {
+                    if (typeof(elements[i].val) == 'function') {
+                        elements[i].val('');
+                    } else {
+                        elements[i].value = '';
+                    }
+                }
             }
         }
     }
@@ -213,7 +220,7 @@ jSuites.form = (function(el, options) {
     obj.validate = function() {
         var test = [];
         // Get elements in the form
-        var elements = el.querySelectorAll("input, select, textarea");
+        var elements = el.querySelectorAll("input, select, textarea, div[name]");
         // Run all elements 
         for (var i = 0; i < elements.length; i++) {
             // Required
@@ -271,11 +278,6 @@ jSuites.form = (function(el, options) {
         obj.options.ignore = false;
     }
 
-    obj.reset = function() {
-        obj.options.currentHash = obj.setHash();
-        obj.options.ignore = false;
-    }
-
     // Ignore flag
     obj.setIgnore = function(ignoreFlag) {
         obj.options.ignore = ignoreFlag ? true : false;
@@ -323,21 +325,50 @@ jSuites.form = (function(el, options) {
     return obj;
 });
 
+// Get value from one element
+jSuites.form.getValue = function(element) {
+    var value = null;
+    if (element.type == 'checkbox') {
+        if (element.checked == true) {
+            value = element.value || true;
+        }
+    } else if (element.type == 'radio') {
+        if (element.checked == true) {
+            value = element.value;
+        }
+    } else if (element.tagName == 'select' && element.multiple == true) {
+        value = [];
+        var options = element.querySelectorAll("options[selected]");
+        for (var j = 0; j < options.length; j++) {
+            value.push(options[j].value);
+        }
+    } else if (typeof(element.val) == 'function') {
+        value = element.val();
+    } else {
+        value = element.value || '';
+    }
+
+    return value;
+}
+
 // Get form elements
 jSuites.form.getElements = function(el, asArray) {
     var data = {};
-    var elements = el.querySelectorAll("input, select, textarea");
+    var name = null;
+    var elements = el.querySelectorAll("input, select, textarea, div[name]");
 
     for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        var name = element.name;
-        var value = element.value;
+        if (name = elements[i].getAttribute('name')) {
+            data[name] = jSuites.form.getValue(elements[i]) || '';
+        }
+    }
 
-        if (name) {
-            if (elements[i].type == 'checkbox' || elements[i].type == 'radio') {
-                value = elements[i].checked;
-            }
-            data[name] = value;
+    // Get files
+    var tmp = null;
+    var files = jSuites.files(el);
+    if (tmp = files.get()) {
+        if (tmp.length) {
+            data.files = tmp;
         }
     }
 
@@ -346,21 +377,25 @@ jSuites.form.getElements = function(el, asArray) {
 
 //Get form elements
 jSuites.form.setElements = function(el, data) {
-    var elements = el.querySelectorAll("input, select, textarea");
-
+    var name = null;
+    var value = null;
+    var elements = el.querySelectorAll("input, select, textarea, div[name]");
     for (var i = 0; i < elements.length; i++) {
-        var name = elements[i].getAttribute('name');
+        // Attributes
         var type = elements[i].getAttribute('type');
-        if (type == 'checkbox' || type == 'radio') {
-            if (data[name]) {
-                elements[i].checked = true;
-            }
-        } else {
-            if (data[name]) {
-                if (typeof(elements[i].change) == 'function') {
-                    elements[i].change(data[name]);
+        if (name = elements[i].getAttribute('name')) {
+            // Transform variable names in pathname
+            name = name.replace(new RegExp(/\[(.*?)\]/ig), '.$1');
+            // Seach for the data in the path
+            value = jSuites.path.call(data, name) || '';
+            // Set the values
+            if (type == 'checkbox' || type == 'radio') {
+                elements[i].checked = value ? true : false;
+            } else {
+                if (typeof (elements[i].val) == 'function') {
+                    elements[i].val(value);
                 } else {
-                    elements[i].value = data[name];
+                    elements[i].value = value;
                 }
             }
         }

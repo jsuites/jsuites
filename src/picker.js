@@ -241,6 +241,15 @@ jSuites.picker = (function(el, options) {
         // Change
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Reference
         el.picker = obj;
     }

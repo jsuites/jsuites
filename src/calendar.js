@@ -967,6 +967,15 @@ jSuites.calendar = (function(el, options) {
         // Change method
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.calendar = calendar.calendar = obj;
     }

@@ -214,9 +214,21 @@ section.middle {
     align-self: flex-end;
 }
 
-@media only screen and (max-width : 320px) {
+@media only screen and (max-width: 480px) {
     .column {
         min-width: 100%;
+    }
+    .cmr1 {
+        margin-right: 0px;
+    }
+    .cmr2 {
+        margin-right: 0px;
+    }
+    .cml1 {
+        margin-left: 0px;
+    }
+    .cml2 {
+        margin-left: 0px;
     }
 }
 
@@ -542,6 +554,22 @@ section.middle {
     padding-right:30px;
 }
 
+.cmr1 {
+    margin-right: 10px;
+}
+
+.cmr2 {
+    margin-right: 20px;
+}
+
+.cml1 {
+    margin-left: 10px;
+}
+
+.cml2 {
+    margin-left: 20px;
+}
+
 .section {
     background-color: #fff;
     box-shadow: 1px 1px 2px rgba(0,0,0,.1);
@@ -730,7 +758,7 @@ section.middle {
 }
 
 .error {
-    border:1px solid red;
+    outline: 1px solid red;
 }
 
 .users {
@@ -846,11 +874,6 @@ section.middle {
     height:24px;
     line-height:24px;
     cursor:pointer;
-}
-
-[contenteditable=true] div:empty:not(:focus)::before{
-    content:attr(placeholder);
-    color:#ccc;
 }
 
 .mirror {

@@ -64,6 +64,7 @@ jSuites.tags = (function(el, options) {
         // Update value
         obj.setValue(obj.options.value);
 
+        // Validate items
         filter();
 
         return obj;
@@ -75,12 +76,12 @@ jSuites.tags = (function(el, options) {
      */
     obj.add = function(value, focus) {
         if (typeof(obj.options.onbeforechange) == 'function') {
-            var v = obj.options.onbeforechange(el, obj, value);
-            if (v === false) {
+            var ret = obj.options.onbeforechange(el, obj, obj.options.value, value);
+            if (ret === false) {
                 return false;
             } else { 
-                if (v != null) {
-                    value = v;
+                if (ret != null) {
+                    value = ret;
                 }
             }
         }
@@ -96,63 +97,57 @@ jSuites.tags = (function(el, options) {
             // Get node
             var node = getSelectionStart();
 
-            // Mix argument string or array
-            if (! value || typeof(value) == 'string') {
-                var div = createElement(value, value, node);
+            if (node && node.parentNode && node.parentNode.classList.contains('jtags') &&
+                node.nextSibling && (! (node.nextSibling.innerText && node.nextSibling.innerText.trim()))) {
+                div = node.nextSibling;
             } else {
-                if (node && node.parentNode.classList.contains('jtags')) {
-                    if (! node.innerText.replace("\n", "")) {
-                        el.removeChild(node);
-                    }
-                }
                 // Remove not used last item
                 if (el.lastChild) {
-                    if (! el.lastChild.innerText.replace("\n", "")) {
+                    if (! el.lastChild.innerText.trim()) {
                         el.removeChild(el.lastChild);
                     }
                 }
 
-                for (var i = 0; i <= value.length; i++) {
-                    if (! obj.options.limit || el.children.length < obj.options.limit) {
-                        if (! value[i] || typeof(value[i]) == 'string') {
-                            var t = value[i] || '';
-                            var v = null;
-                        } else {
-                            var t = value[i].text;
-                            var v = value[i].value;
-                        }
+                // Mix argument string or array
+                if (! value || typeof(value) == 'string') {
+                    var div = createElement(value, value, node);
+                } else {
+                    for (var i = 0; i <= value.length; i++) {
+                        if (! obj.options.limit || el.children.length < obj.options.limit) {
+                            if (! value[i] || typeof(value[i]) == 'string') {
+                                var t = value[i] || '';
+                                var v = null;
+                            } else {
+                                var t = value[i].text;
+                                var v = value[i].value;
+                            }
 
-                        // Add element
-                        var div = createElement(t, v);
+                            // Add element
+                            var div = createElement(t, v);
+                        }
                     }
                 }
+
+                // Change
+                change();
             }
 
             // Place caret
             if (focus) {
                 setFocus(div);
             }
-
-            // Filter
-            filter();
-
-            // Change
-            change();
         }
     }
 
     // Remove a item node
     obj.remove = function(node) {
-        if (node.previousSibling) {
-            setFocus(node.previousSibling)
-        } else {
-            setFocus(el.lastChild);
-        }
         // Remove node
         node.parentNode.removeChild(node);
         // Make sure element is not blank
         if (! el.children.length) {
             obj.add('', true);
+        } else {
+            change();
         }
     }
 
@@ -212,10 +207,10 @@ jSuites.tags = (function(el, options) {
      * @param {mixed} value - A string or array object with values
      */
     obj.setValue = function(mixed) {
-        if (el.value != obj.options.value) {
-            if (! mixed) {
-                obj.reset();
-            } else {
+        if (! mixed) {
+            obj.reset();
+        } else {
+            if (el.value != mixed) {
                 if (Array.isArray(mixed)) {
                     obj.add(mixed);
                 } else {
@@ -239,9 +234,9 @@ jSuites.tags = (function(el, options) {
         // Empty class
         el.classList.add('jtags-empty');
         // Empty element
-        el.innerHTML = '';
-        // Add a new blank tag
-        obj.add('');
+        el.innerHTML = '<div></div>';
+        // Execute changes
+        change();
     }
 
     /**
@@ -450,62 +445,21 @@ jSuites.tags = (function(el, options) {
         el.removeEventListener('keydown', tagsKeyDown);
         el.removeEventListener('keyup', tagsKeyUp);
         el.removeEventListener('paste', tagsPaste);
+        el.removeEventListener('focus', tagsFocus);
+        el.removeEventListener('blur', tagsBlur);
+
         // Remove element
         el.parentNode.removeChild(el);
     }
 
-    // Start edition
-    obj.open = function(e) {
-        if (! el.classList.contains('jtags-focus')) {
-            if (! el.children.length || obj.getValue(el.children.length - 1)) {
-                if (! obj.options.limit || el.children.length < obj.options.limit) {
-                    createElement('');
-                }
-            }
-
-            if (typeof(obj.options.onfocus) == 'function') {
-                obj.options.onfocus(el, obj, obj.getValue());
-            }
-
-            el.classList.add('jtags-focus');
-
-            // Start tracking
-            jSuites.tracking(obj, true);
-        }
-    }
-
-    obj.close = function() {
-        if (el.classList.contains('jtags-focus')) {
-            for (var i = 0; i < el.children.length - 1; i++) {
-                // Create label design
-                if (! obj.getValue(i)) {
-                    el.removeChild(el.children[i]);
-                }
-            }
-
-            change();
-
-            if (searchContainer) {
-                setTimeout(function() {
-                    searchContainer.style.display = '';
-                }, 200);
-            }
-
-            el.classList.remove('jtags-focus');
-
-            if (typeof(obj.options.onblur) == 'function') {
-                obj.options.onblur(el, obj, obj.getValue());
-            }
-
-            // Stop tracking
-            jSuites.tracking(obj, false);
-        }
-    }
-
-    var setFocus = function(e) {
-        e.focus();
-        // collapse selection to the end
-        jSuites.focus(e)
+    var setFocus = function(node) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        range.setStart(node, node.innerText.length||0)
+        range.collapse(true)
+        sel.removeAllRanges()
+        sel.addRange(range)
+        node.scrollLeft = node.scrollWidth;
     }
 
     var createElement = function(label, value, node) {
@@ -514,8 +468,6 @@ jSuites.tags = (function(el, options) {
         if (value) {
             div.setAttribute('data-value', value);
         }
-        div.setAttribute('contenteditable', true);
-        div.onblur = change;
 
         if (node && node.parentNode.classList.contains('jtags')) {
             el.insertBefore(div, node.nextSibling);
@@ -547,14 +499,9 @@ jSuites.tags = (function(el, options) {
                     });
                 }
             }
-
-            // Empty CSS
-            if (el.children[0].innerText.trim()) {
-                el.classList.remove('jtags-empty');
-            } else {
-                el.classList.add('jtags-empty');
-            }
         }
+
+        filter();
     }
 
     /**
@@ -584,8 +531,20 @@ jSuites.tags = (function(el, options) {
                 }
             }
         }
+
+        isEmpty();
     }
 
+    var isEmpty = function() {
+        // Can't be empty
+        if (! el.innerText.trim()) {
+            el.innerHTML = '<div></div>';
+            el.classList.add('jtags-empty');
+        } else {
+            el.classList.remove('jtags-empty');
+        }
+
+    }
     /**
      * Selection
      */
@@ -596,6 +555,11 @@ jSuites.tags = (function(el, options) {
         } else {
             return null;
         }
+    }
+
+    var getFocusedNode = function () {
+        var node = document.getSelection().anchorNode;
+        return (node.nodeType == 3 ? node.parentNode : node);
     }
 
     /**
@@ -630,6 +594,8 @@ jSuites.tags = (function(el, options) {
             }
         }
 
+        console.log(data);
+        
         return data;
     }
 
@@ -641,16 +607,12 @@ jSuites.tags = (function(el, options) {
      * @param e {object}
      */
     var tagsKeyDown = function(e) {
-        // Make sure is opened
-        obj.open();
-
         // Anchoroffset
         anchorOffset = window.getSelection().anchorOffset;
 
-        // If starts blank create the first element
-        if (! el.children.length) {
-            createElement('');
-        }
+        // Verify if is empty
+        isEmpty();
+
         // Comma
         if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
             var n = window.getSelection().anchorOffset;
@@ -701,11 +663,6 @@ jSuites.tags = (function(el, options) {
         }
     }
 
-    var getFocusedNode = function () {
-        var node = document.getSelection().anchorNode;
-        return (node.nodeType == 3 ? node.parentNode : node);
-     }
-
     /**
      * Processing event keyup on the element
      * @param e {object}
@@ -715,41 +672,9 @@ jSuites.tags = (function(el, options) {
             // Right arrow
             var n = window.getSelection().anchorOffset;
             if (n > 1 && n == anchorOffset) {
-                if (e.target.nextSibling) {
-                    e.target.nextSibling.focus();
-                } else {
-                    obj.add('', true);
-                }
-            }
-        } else if (e.which == 37) {
-            // Left
-            if (anchorOffset == 0) {
-                if (e.target.previousSibling) {
-                    setFocus(e.target.previousSibling)
-                }
+                obj.add('', true);
             }
         } else if (e.which == 13 || e.which == 38 || e.which == 40) {
-        } else if (e.which == 46) {
-            if (! e.target.innerText.trim()) {
-                obj.remove(e.target);
-                e.preventDefault();
-            }
-        } else if (e.which == 8) {
-            if (! e.target.innerText.trim()) {
-                obj.remove(e.target);
-            } else {
-                if (anchorOffset == 0) {
-                    if (e.target.previousSibling) {
-                        setFocus(e.target.previousSibling)
-                    }
-                }
-            }
-            e.preventDefault();
-        } else if (e.which == 46) {
-            // Verify content and don't let blank element
-            if (! el.children.length) {
-                createElement('');
-            }
             e.preventDefault();
         } else {
             if (searchTimer) {
@@ -759,7 +684,7 @@ jSuites.tags = (function(el, options) {
             searchTimer = setTimeout(function() {
                 // Current node
                 var node = getFocusedNode();
-                if (node && node.innerText.trim()) {
+                if (node) {
                     // Search
                     if (obj.options.search) {
                         obj.search(node);
@@ -804,20 +729,52 @@ jSuites.tags = (function(el, options) {
                     obj.remove(e.target);
                 }
             }
-        } else if (e.target.classList.contains('jtags')) {
-            if (el.lastChild.innerText.trim()) {
-                obj.add('', true);
-            } else {
-                setFocus(el.lastChild);
-            }
         }
 
         if (searchContainer) {
             searchContainer.style.display = '';
         }
+    }
 
-        // Start edition
-        obj.open();
+    var tagsFocus = function() {
+        if (! el.classList.contains('jtags-focus')) {
+            if (! el.children.length || obj.getValue(el.children.length - 1)) {
+                if (! obj.options.limit || el.children.length < obj.options.limit) {
+                    createElement('');
+                }
+            }
+
+            if (typeof(obj.options.onfocus) == 'function') {
+                obj.options.onfocus(el, obj, obj.getValue());
+            }
+
+            el.classList.add('jtags-focus');
+        }
+    }
+
+    var tagsBlur = function() {
+        if (el.classList.contains('jtags-focus')) {
+            if (searchContainer) {
+                setTimeout(function() {
+                    searchContainer.style.display = '';
+                }, 200);
+            }
+
+            for (var i = 0; i < el.children.length - 1; i++) {
+                // Create label design
+                if (! obj.getValue(i)) {
+                    el.removeChild(el.children[i]);
+                }
+            }
+
+            change();
+
+            el.classList.remove('jtags-focus');
+
+            if (typeof(obj.options.onblur) == 'function') {
+                obj.options.onblur(el, obj, obj.getValue());
+            }
+        }
     }
 
     var init = function() {
@@ -831,6 +788,11 @@ jSuites.tags = (function(el, options) {
         el.addEventListener('keydown', tagsKeyDown);
         el.addEventListener('keyup', tagsKeyUp);
         el.addEventListener('paste', tagsPaste);
+        el.addEventListener('focus', tagsFocus);
+        el.addEventListener('blur', tagsBlur);
+
+        // Editable
+        el.setAttribute('contenteditable', true);
 
         // Prepare container
         el.classList.add('jtags');
@@ -844,6 +806,15 @@ jSuites.tags = (function(el, options) {
 
         // Change methods
         el.change = obj.setValue;
+
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue();
+            } else {
+                obj.setValue(val);
+            }
+        }
 
         el.tags = obj;
     }

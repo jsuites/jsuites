@@ -81,24 +81,28 @@ jSuites.app = (function(el, options) {
             if (route === false) {
                 console.error('JSUITES: Permission denied');
             } else {
+                // Query string does not make part in the route
+                options.ident = route.split('?')[0].replace(/\/\d+$/g, '');
+                // Current Route
+                options.route = route;
+
                 // If exists just open
-                if (component.container[route]) {
-                    component.show(component.container[route], options, callback);
+                if (component.container[options.ident]) {
+                    component.show(component.container[options.ident], options, callback);
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
-                    // Keep Route
-                    options.route = route;
+
                     // New page url
                     if (! options.url) {
-                        options.url = obj.options.path + route + '.html';
+                        options.url = obj.options.path + options.ident + '.html';
                     }
 
                     // Create new page
                     var page = component.create(options, callback);
 
                     // Container
-                    component.container[route] = page;
+                    component.container[options.ident] = page;
                 }
             }
         }
@@ -145,14 +149,8 @@ jSuites.app = (function(el, options) {
                 updateDOM();
             }
 
-            // Url
-            var url = o.url;
-            if (url.indexOf('?') == '-1') {
-                url += '?ts=' + new Date().getTime();
-            }
-
             jSuites.ajax({
-                url: url,
+                url: o.url + '?ts=' + new Date().getTime(),
                 method: 'GET',
                 dataType: 'html',
                 queue: true,
@@ -208,6 +206,27 @@ jSuites.app = (function(el, options) {
         }
 
         component.show = function(page, o, callback) {
+            if (o) {
+                if (o.onenter) {
+                    page.options.onenter = o.onenter;
+                }
+                if (o.onleave) {
+                    page.options.onleave = o.onleave;
+                }
+            }
+
+            // Add history
+            if (! o || ! o.ignoreHistory) {
+                // Route
+                if (o && o.route) {
+                    var route = o.route;
+                }  else {
+                    var route = page.options.route;
+                }
+                // Add history
+                window.history.pushState({ route: route }, page.options.title, route);
+            }
+
             var pageIsReady = function() {
                 if (component.current) {
                     component.current.style.display = 'none';
@@ -282,6 +301,16 @@ jSuites.app = (function(el, options) {
                             pageIsReady();
                         }
                     }
+                } else {
+                    // Enter event
+                    if (typeof(page.options.onenter) == 'function') {
+                        page.options.onenter(obj, page, component.current);
+                    }
+
+                    // Page is the same but should execute the callback anyway
+                    if (typeof(callback) == 'function') {
+                        callback(obj, page);
+                    }
                 }
             } else {
                 // Show
@@ -295,20 +324,15 @@ jSuites.app = (function(el, options) {
             if (page.options.toolbarItem) {
                 obj.toolbar.selectItem(page.options.toolbarItem);
             }
-
-            // Add history
-            if (! o || ! o.ignoreHistory) {
-                // Add history
-                window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
-            }
         }
 
         /**
          * Get a page by route
          */
         component.get = function(route) {
-            if (component.container[route]) {
-                return component.container[route]; 
+            var key = route.split('?')[0];
+            if (component.container[key]) {
+                return component.container[key]; 
             }
         }
 

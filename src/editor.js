@@ -340,7 +340,10 @@ jSuites.editor = (function(el, options) {
      */
     obj.setData = function(html) {
         editor.innerHTML = html;
-        jSuites.editor.setCursor(editor, true);
+
+        if (obj.options.focus) {
+            jSuites.editor.setCursor(editor, true);
+        }
     }
 
     obj.getText = function() {
@@ -886,6 +889,15 @@ jSuites.editor = (function(el, options) {
 
     // Change method
     el.change = obj.setData;
+
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getData();
+        } else {
+            obj.setData(val);
+        }
+    }
 
     el.editor = obj;
 

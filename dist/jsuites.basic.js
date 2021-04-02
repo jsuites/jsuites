@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.3.6)
+ * (c) jSuites Javascript Web Components (v4.4.0)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.3.6';
+    var version = '4.4.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5631,7 +5631,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
         maxHeight: null,
         maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
-        singleFile: true,
+        multiple: false,
         remoteParser: null,
         text:{
             extensionNotAllowed:'The extension is not allowed',
@@ -5647,6 +5647,11 @@ jSuites.image = jSuites.upload = (function(el, options) {
         }
     }
 
+    // Multiple
+    if (obj.options.multiple == true) {
+        el.setAttribute('data-multiple', true);
+    }
+
     // Container
     el.content = [];
 
@@ -5655,27 +5660,44 @@ jSuites.image = jSuites.upload = (function(el, options) {
 
     if (obj.options.input == true) {
         el.classList.add('input');
-        el.classList.add('jfile');
     }
 
-    var add = function(type, data) {
+    obj.add = function(data) {
         // Reset container for single files
-        if (obj.options.singleFile == true) {
+        if (obj.options.multiple == false) {
             el.content = [];
             el.innerText = '';
         }
-        // Push content
-        el.content.push(data);
 
         // Append to the element
-        if (type == 'image') {
-            el.appendChild(jSuites.image.create(data));
+        if (obj.options.type == 'image') {
+            var img = document.createElement('img');
+            img.setAttribute('src', data.file);
+            img.setAttribute('tabindex', -1);
+            if (! el.getAttribute('name')) {
+                img.className = 'jfile';
+                img.content = data;
+            }
+            el.appendChild(img);
         } else {
+            if (data.name) {
+                var name = data.name;
+            } else {
+                var name = data.file;
+            }
             var div = document.createElement('div');
-            div.innerText = data.name || (type + '.' + data.extension);
+            div.innerText = name || obj.options.type;
             div.classList.add('jupload-item');
+            div.setAttribute('tabindex', -1);
             el.appendChild(div);
         }
+
+        if (data.content) {
+            data.file = jSuites.guid();
+        }
+
+        // Push content
+        el.content.push(data);
 
         // Onchange
         if (typeof(obj.options.onchange) == 'function') {
@@ -5694,9 +5716,10 @@ jSuites.image = jSuites.upload = (function(el, options) {
                     name: file.name,
                     size: file.size,
                     lastmodified: file.lastModified,
+                    content: v.srcElement.result,
                 }
 
-                add(type[0], data);
+                obj.add(data);
             });
 
             readFile.readAsDataURL(file);
@@ -5717,9 +5740,11 @@ jSuites.image = jSuites.upload = (function(el, options) {
                 if (type == obj.options.type) {
                     var data = {
                         file: src,
+                        name: '',
                         extension: extension[1],
+                        content: src,
                     }
-                    add(type, data);
+                    obj.add(data);
                 } else {
                     alert(obj.options.text.extensionNotAllowed);
                 }
@@ -5764,7 +5789,25 @@ jSuites.image = jSuites.upload = (function(el, options) {
         }
     }
 
+    // Allow multiple files
+    if (obj.options.multiple == true) {
+        input.setAttribute('multiple', true);
+    }
+
+    var current = null;
+
     el.addEventListener("click", function(e) {
+        current = null;
+        if (! el.children.length || e.target === el) {
+            jSuites.click(input);
+        } else {
+            if (e.target.parentNode == el) {
+                current = e.target;
+            }
+        }
+    });
+
+    el.addEventListener("dblclick", function(e) {
         jSuites.click(input);
     });
 
@@ -5784,6 +5827,17 @@ jSuites.image = jSuites.upload = (function(el, options) {
         e.preventDefault();
     });
 
+    el.addEventListener('keydown', function(e) {
+        if (current && e.which == 46) {
+            var index = Array.prototype.indexOf.call(el.children, current);
+            if (index >= 0) {
+                el.content.splice(index, 1);
+                current.remove();
+                current = null;
+            }
+        }
+    });
+
     el.addEventListener('drop', function(e) {
         e.preventDefault();  
         e.stopPropagation();
@@ -5796,8 +5850,8 @@ jSuites.image = jSuites.upload = (function(el, options) {
                 obj.addFromFile(e.dataTransfer.files[i]);
             }
         } else if (html) {
-            if (obj.options.singleFile == true) {
-                el.innerHTML = '';
+            if (obj.options.multiple == false) {
+                el.innerText = '';
             }
 
             // Create temp element
@@ -5821,12 +5875,21 @@ jSuites.image = jSuites.upload = (function(el, options) {
 
     el.val = function(val) {
         if (val === undefined) {
-            return el.innerText;
+            return el.content && el.content.length ? el.content : null;
         } else {
-            el.innerText = val;
+            // Reset
+            el.innerText = '';
+            el.content = [];
 
-            if (! val) {
-                el.content = [];
+            if (val) {
+                if (Array.isArray(val)) {
+                    // Add
+                    for (var i = 0; i < val.length; i++) {
+                        obj.add(val[i]);
+                    }
+                } else if (typeof(val) == 'string') {
+                    obj.add({ file: val });
+                }
             }
         }
     }
@@ -5837,13 +5900,10 @@ jSuites.image = jSuites.upload = (function(el, options) {
 });
 
 jSuites.image.create = function(data) {
-    if (! data.date) {
-        data.date = '';
-    }
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
-    img.style.width = '100%';
+    img.setAttribute('tabindex', -1);
     img.content = data;
 
     return img;
@@ -7102,6 +7162,17 @@ jSuites.sorting = (function(el, options) {
         if (! el.children[i].hasAttribute('draggable')) {
             el.children[i].setAttribute('draggable', 'true');
         }
+    }
+
+    el.val = function() {
+        var id = null;
+        var data = [];
+        for (var i = 0; i < el.children.length; i++) {
+            if (id = el.children[i].getAttribute('data-id')) {
+                data.push(id);
+            }
+        }
+        return data;
     }
 
     return el;

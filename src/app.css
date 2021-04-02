@@ -890,3 +890,7 @@ japp.jwarning .page {
     padding-bottom:10px;
     margin-right:10px;
 }
+
+.japp .material-icons {
+    font-size: 24px;
+}

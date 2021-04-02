@@ -1,6 +1,6 @@
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.0.2';
+    var version = '4.4.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -45,6 +45,19 @@ var jSuites = function(options) {
                 jSuites.current[index] = null;
             }
         }
+    }
+
+    obj.path = function(str) {
+        str = str.split('.');
+        if (str.length) {
+            var o = this;
+            var t = null;
+            while (t = str.shift()) {
+                o = o[t];
+            }
+            return o;
+        }
+        return false;
     }
 
     // Array of opened components

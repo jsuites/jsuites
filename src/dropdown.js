@@ -414,6 +414,15 @@ jSuites.dropdown = (function(el, options) {
         // Change method
         el.change = obj.setValue;
 
+        // Global generic value handler
+        el.val = function(val) {
+            if (val === undefined) {
+                return obj.getValue(obj.options.multiple ? true : false);
+            } else {
+                obj.setValue(val);
+            }
+        }
+
         // Keep object available from the node
         el.dropdown = obj;
     }

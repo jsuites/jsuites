@@ -11,6 +11,7 @@ jSuites.app = (function(el, options) {
         oncreatepage: null,
         onloadpage: null,
         toolbar: null,
+        route: null,
         detachHiddenPages: false
     }
 
@@ -27,16 +28,17 @@ jSuites.app = (function(el, options) {
     el.classList.add('japp');
 
     // Toolbar
-        var toolbar = document.createElement('div');
+    var toolbar = document.createElement('div');
 
     obj.setToolbar = function(o) {
         if (o) {
             obj.options.toolbar = o;
         }
-        obj.toolbar = jSuites.toolbar(toolbar, {
-            app: obj,
-            items: obj.options.toolbar,
-        });
+        // Force application
+        obj.options.toolbar.app = obj;
+        // Set toolbar
+        obj.toolbar = jSuites.toolbar(toolbar, obj.options.toolbar);
+        // Add to the DOM
         el.appendChild(toolbar);
     }
 
@@ -68,30 +70,39 @@ jSuites.app = (function(el, options) {
                 } else {
                     if (! callback && typeof(o) == 'function') {
                         callback = o;
-                    } 
+                    }
                 }
             }
 
-            // If exists just open
-            if (component.container[route]) {
-                component.show(component.container[route], options, callback);
+            if (typeof(obj.options.route) == 'function') {
+                route = obj.options.route(route, options);
+            }
+
+            if (route === false) {
+                console.error('JSUITES: Permission denied');
             } else {
-                // Create a new page
-                if (! route) {
-                    console.error('JSUITES: Error, no route provided');
+                // Query string does not make part in the route
+                options.ident = route.split('?')[0].replace(/\/\d+$/g, '');
+                // Current Route
+                options.route = route;
+
+                // If exists just open
+                if (component.container[options.ident]) {
+                    component.show(component.container[options.ident], options, callback);
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
-                    // Keep Route
-                    options.route = route;
 
                     // New page url
                     if (! options.url) {
-                        options.url = obj.options.path + route + '.html';
+                        options.url = obj.options.path + options.ident + '.html';
                     }
 
                     // Create new page
-                    component.create(options, callback);
+                    var page = component.create(options, callback);
+
+                    // Container
+                    component.container[options.ident] = page;
                 }
             }
         }
@@ -104,12 +115,17 @@ jSuites.app = (function(el, options) {
             var page = document.createElement('div');
             page.classList.add('page');
 
-            // Container
-            component.container[o.route] = page;
-
             // Keep options
             page.options = o ? o : {};
 
+            // Create page overwrite
+            var ret = null;
+            if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                var ret = obj.options.onbeforecreatepage(obj, page);
+                if (ret === false) {
+                    return false;
+                }
+            }
 
             var updateDOM = function() {
                 // Remove to avoid id conflicts
@@ -133,23 +149,8 @@ jSuites.app = (function(el, options) {
                 updateDOM();
             }
 
-            // Create page overwrite
-            var ret = null;
-            if (typeof(obj.options.onbeforecreatepage) == 'function') {
-                var ret = obj.options.onbeforecreatepage(obj, page);
-                if (ret === false) {
-                    return false;
-                }
-            }
-
-            // Url
-            var url = o.url;
-            if (url.indexOf('?') == '-1') {
-                url += '?ts=' + new Date().getTime();
-            }
-
             jSuites.ajax({
-                url: url,
+                url: o.url + '?ts=' + new Date().getTime(),
                 method: 'GET',
                 dataType: 'html',
                 queue: true,
@@ -205,6 +206,27 @@ jSuites.app = (function(el, options) {
         }
 
         component.show = function(page, o, callback) {
+            if (o) {
+                if (o.onenter) {
+                    page.options.onenter = o.onenter;
+                }
+                if (o.onleave) {
+                    page.options.onleave = o.onleave;
+                }
+            }
+
+            // Add history
+            if (! o || ! o.ignoreHistory) {
+                // Route
+                if (o && o.route) {
+                    var route = o.route;
+                }  else {
+                    var route = page.options.route;
+                }
+                // Add history
+                window.history.pushState({ route: route }, page.options.title, route);
+            }
+
             var pageIsReady = function() {
                 if (component.current) {
                     component.current.style.display = 'none';
@@ -279,6 +301,16 @@ jSuites.app = (function(el, options) {
                             pageIsReady();
                         }
                     }
+                } else {
+                    // Enter event
+                    if (typeof(page.options.onenter) == 'function') {
+                        page.options.onenter(obj, page, component.current);
+                    }
+
+                    // Page is the same but should execute the callback anyway
+                    if (typeof(callback) == 'function') {
+                        callback(obj, page);
+                    }
                 }
             } else {
                 // Show
@@ -292,20 +324,15 @@ jSuites.app = (function(el, options) {
             if (page.options.toolbarItem) {
                 obj.toolbar.selectItem(page.options.toolbarItem);
             }
-
-            // Add history
-            if (! o || ! o.ignoreHistory) {
-                // Add history
-                window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
-            }
         }
 
         /**
          * Get a page by route
          */
         component.get = function(route) {
-            if (component.container[route]) {
-                return component.container[route]; 
+            var key = route.split('?')[0];
+            if (component.container[key]) {
+                return component.container[key]; 
             }
         }
 
@@ -542,7 +569,7 @@ jSuites.app = (function(el, options) {
         }
 
         // Grouped buttons
-        if (e.target.parentNode && e.target.parentNode.classList.contains('jbuttons-group')) {
+        if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
             for (var j = 0; j < e.target.parentNode.children.length; j++) {
                 e.target.parentNode.children[j].classList.remove('selected');
             }
