@@ -213,6 +213,9 @@ jSuites.app = (function(el, options) {
                 if (o.onleave) {
                     page.options.onleave = o.onleave;
                 }
+                if (o.route) {
+                    page.options.route = o.route;
+                }
             }
 
             // Add history

@@ -9480,8 +9480,6 @@ jSuites.tags = (function(el, options) {
             }
         }
 
-        console.log(data);
-        
         return data;
     }
 
