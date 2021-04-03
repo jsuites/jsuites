@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.1)
+ * (c) jSuites Javascript Web Components (v4.4.2)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.1';
+    var version = '4.4.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -6052,69 +6052,96 @@ jSuites.mask = (function() {
         }
     }
 
+    /**
+     * Process new string by keydown or paste
+     */
+    var execute = function(str) {
+        index = 0;
+        values = [];
+        // Create mask token
+        obj.prepare(this.getAttribute('data-mask'));
+        // Current value
+        var currentValue = '';
+        // Process selection
+        if (this.tagName == 'DIV') {
+            if (this.innerText) {
+                var s = window.getSelection();
+                if (s && s.anchorOffset != s.focusOffset) {
+                    var offset = s.anchorOffset > s.focusOffset ? s.focusOffset : s.anchorOffset;
+                    var currentValue = this.innerText.substring(0, offset);
+                } else {
+                    var currentValue = this.innerText;
+                }
+            }
+        } else {
+            if (this.selectionStart < this.selectionEnd) {
+                var currentValue = this.value.substring(0, this.selectionStart); 
+            } else {
+                var currentValue = this.value;
+            }
+        }
+
+        // New string to the input
+        currentValue += str;
+
+        // Checking current value
+        for (var i = 0; i < currentValue.length; i++) {
+            if (currentValue[i] != null) {
+                obj.process(currentValue[i]);
+            }
+        }
+
+        // New value 
+        var value = values.join('');
+
+        // Update value to the element
+        if (this.tagName == 'DIV') {
+            if (value != this.innerText) {
+                this.innerText = value;
+                // Set focus
+                jSuites.focus(this);
+            }
+        } else {
+            this.value = value;
+        }
+
+        // Completed attribute
+        if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
+            this.setAttribute('data-completed', 'true');
+        } else {
+            this.setAttribute('data-completed', 'false');
+        }
+    }
+
     obj.apply = function(e) {
         if (e.target && ! e.target.getAttribute('readonly')) {
             var mask = e.target.getAttribute('data-mask');
-            if (mask && e.key && e.key.length < 2) {
-                index = 0;
-                values = [];
-                // Create mask token
-                obj.prepare(mask);
-                // Current value
-                var currentValue = '';
-                // Process selection
-                if (e.target.tagName == 'DIV') {
-                    if (e.target.innerText) {
-                        var s = window.getSelection();
-                        if (s && s.anchorOffset != s.focusOffset) {
-                            var offset = s.anchorOffset > s.focusOffset ? s.focusOffset : s.anchorOffset;
-                            var currentValue = e.target.innerText.substring(0, offset);
-                        } else {
-                            var currentValue = e.target.innerText;
-                        }
-                    }
-                } else {
-                    if (e.target.selectionStart < e.target.selectionEnd) {
-                        var currentValue = e.target.value.substring(0, e.target.selectionStart); 
-                    } else {
-                        var currentValue = e.target.value;
-                    }
-                }
-
-                if (currentValue) {
-                    // Checking current value
-                    for (var i = 0; i < currentValue.length; i++) {
-                        if (currentValue[i] != null) {
-                            obj.process(currentValue[i]);
-                        }
-                    }
-                }
-
-                // Process input
-                var ret = obj.process(e.key);
-
+            if (mask && e.key && e.key.length < 2 && ! e.ctrlKey) {
                 // Prevent default
                 e.preventDefault();
+                // Process new char
+                execute.call(e.target, e.key);
+            }
+        }
+    }
 
-                // New value 
-                var value = values.join('');
-
-                // Update value to the element
-                if (e.target.tagName == 'DIV') {
-                    if (value != e.target.innerText) {
-                        e.target.innerText = value;
-                        // Set focus
-                        jSuites.focus(e.target);
-                    }
-                } else {
-                    e.target.value = value;
+    obj.paste = function(e) {
+        if (e.target && ! e.target.getAttribute('readonly')) {
+            // Only apply paste to jsuites mask elements
+            var mask = e.target.getAttribute('data-mask');
+            if (mask) {
+                // Get the pasted text
+                if (e.clipboardData || e.originalEvent.clipboardData) {
+                    var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                } else if (window.clipboardData) {
+                    var text = window.clipboardData.getData('Text');
                 }
-
-                // Completed attribute
-                if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
-                    e.target.setAttribute('data-completed', 'true');
-                } else {
-                    e.target.setAttribute('data-completed', 'false');
+                // Process the new text
+                if (text) {
+                    // Prevent default
+                    e.preventDefault();
+                    // Process new information
+                    execute.call(e.target, text);
                 }
             }
         }
@@ -6445,6 +6472,7 @@ jSuites.mask = (function() {
     }
 
     if (typeof document !== 'undefined') {
+        document.addEventListener('paste', obj.paste);
         document.addEventListener('keydown', obj.apply);
     }
 
