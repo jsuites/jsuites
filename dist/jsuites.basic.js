@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.2)
+ * (c) jSuites Javascript Web Components (v4.4.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.2';
+    var version = '4.4.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -249,7 +249,7 @@ jSuites.ajax = (function(options, complete) {
                     options.complete(result);
                 }
                 // Global event
-                if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
+                if (typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
                     jSuites.ajax.oncomplete[options.group]();
                     jSuites.ajax.oncomplete[options.group] = null;
                 }
@@ -270,6 +270,8 @@ jSuites.ajax = (function(options, complete) {
         }
     }
 
+    // Keep the options
+    httpRequest.options = options;
     // Data
     httpRequest.data = data;
 
@@ -300,6 +302,19 @@ jSuites.ajax.exists = function(url, __callback) {
     if (http.status) {
         __callback(http.status);
     }
+}
+
+jSuites.ajax.pending = function(group) {
+    var n = 0;
+    var o = jSuites.ajax.requests;
+    if (o && o.length) {
+        for (var i = 0; i < o.length; i++) {
+            if (! group || group == o[i].options.group) {
+                n++
+            }
+        }
+    }
+    return n;
 }
 
 jSuites.ajax.oncomplete = {};
@@ -6728,6 +6743,7 @@ jSuites.picker = (function(el, options) {
             right: false,
             content: false,
             columns: null,
+            height: null,
         }
 
         // Legacy purpose only
@@ -6758,6 +6774,14 @@ jSuites.picker = (function(el, options) {
             dropdownHeader.style.width = parseInt(obj.options.width) + 'px';
         } else {
             dropdownHeader.style.width = '';
+        }
+
+        // Height
+        if (obj.options.height) {
+            dropdownContent.style.maxHeight = obj.options.height + 'px';
+            dropdownContent.style.overflow = 'scroll';
+        } else {
+            dropdownContent.style.overflow = '';
         }
 
         if (obj.options.columns > 0) {

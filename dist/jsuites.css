@@ -1818,7 +1818,6 @@
     z-index: 50;
     text-align: left;
     max-height: 200px;
-    overflow: auto;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
 }
