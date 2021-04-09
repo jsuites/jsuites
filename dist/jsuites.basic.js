@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.3)
+ * (c) jSuites Javascript Web Components (v4.4.4)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.3';
+    var version = '4.4.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -3207,6 +3207,11 @@ jSuites.dropdown = (function(el, options) {
             item.element.setAttribute('id', data.id);
         }
 
+        // Disabled
+        if (data.disabled == true) {
+            item.element.setAttribute('data-disabled', true);
+        }
+
         // Image
         if (data.image) {
             var image = document.createElement('img');
@@ -3575,8 +3580,13 @@ jSuites.dropdown = (function(el, options) {
                 var title = obj.items[i].data.title || '';
                 // Group name
                 var groupName = obj.items[i].data.group || '';
+                // Synonym
+                var synonym = obj.items[i].data.synonym || '';
+                if (synonym) {
+                    synonym = synonym.join(' ');
+                }
 
-                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str)) {
+                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
                     obj.results.push(obj.items[i]);
 
                     if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {

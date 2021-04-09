@@ -1356,6 +1356,11 @@
     margin-right: 6px;
 }
 
+.jdropdown-item[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .jeditor-container {
     border:1px solid #ccc;
     box-sizing: border-box;

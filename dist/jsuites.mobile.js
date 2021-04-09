@@ -305,6 +305,11 @@ jSuites.app = (function(el, options) {
                         }
                     }
                 } else {
+                    // New page
+                    if (typeof(obj.options.onchangepage) == 'function') {
+                        obj.options.onchangepage(obj, page, component.current, o);
+                    }
+
                     // Enter event
                     if (typeof(page.options.onenter) == 'function') {
                         page.options.onenter(obj, page, component.current);
