@@ -320,42 +320,6 @@
 }
 
 
-.jheatmap .jheatmap-header {
-  font-size: 1.3em;
-  margin-bottom: 10px;
-}
-
-.jheatmap .jheatmap-body {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.jheatmap-body table:first-child {
-  align-self: flex-end;
-}
-
-.jheatmap-body thead td {
-  text-align: center;
-}
-
-.jheatmap-body tbody td, .jheatmap-footer tbody td {
-  height: 8px;
-  width: 8px;
-  padding: 0;
-}
-
-.jheatmap-body .blank-day, .jheatmap-body .day-not-informed {
-  background-color: transparent;
-}
-
-.jheatmap .jheatmap-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 150px;
-  margin-top: 15px;
-}
-
 @media (min-width: 576px)
 {
     .container {
@@ -454,8 +418,8 @@ input, select, textarea, button, .input {
 }
 
 .jdropdown .jdropdown-header {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
     
 .input[data-mask] {

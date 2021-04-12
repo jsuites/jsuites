@@ -334,7 +334,7 @@ japp.jwarning .page {
 
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
-    padding: 0px;
+    padding: 0px !important;
     border-bottom: 1px solid #e6e6e8;
     text-transform: uppercase;
     outline: none;

@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.4)
+ * (c) jSuites Javascript Web Components (v4.4.7)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.4';
+    var version = '4.4.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -590,9 +590,20 @@ jSuites.calendar = (function(el, options) {
                         calendarContainer.style.left = rect.left + 'px';
                     } else {
                         if (window.innerHeight < rect.bottom + rectContent.height) {
-                            calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
+                            var d = -1 * (rect.height + rectContent.height + 2);
+                            if (d + rect.top < 0) {
+                                d = -1 * (rect.top + rect.height);
+                            }
+                            calendarContainer.style.top = d + 'px';
                         } else {
                             calendarContainer.style.top = 2 + 'px'; 
+                        }
+
+                        if (window.innerWidth < rect.left + rectContent.width) {
+                            var d = window.innerWidth - (rect.left + rectContent.width + 20);
+                            calendarContainer.style.left = d + 'px';
+                        } else {
+                            calendarContainer.style.left = '0px'; 
                         }
                     }
                 }
@@ -3082,8 +3093,9 @@ jSuites.dropdown = (function(el, options) {
     /**
      * Set the new data from a remote source
      * @param {string} url - url from the remote source
+     * @param {function} callback - callback when the data is loaded
      */
-    obj.setUrl = function(url) {
+    obj.setUrl = function(url, callback) {
         obj.options.url = url;
 
         jSuites.ajax({
@@ -3092,6 +3104,10 @@ jSuites.dropdown = (function(el, options) {
             dataType: 'json',
             success: function(data) {
                 obj.setData(data);
+                // Callback
+                if (typeof(callback) == 'function') {
+                    callback(obj);
+                }
             }
         });
     }
