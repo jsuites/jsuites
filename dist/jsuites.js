@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.7)
+ * (c) jSuites Javascript Web Components (v4.4.8)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.7';
+    var version = '4.4.8';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -532,7 +532,7 @@ jSuites.calendar = (function(el, options) {
         // Texts
         calendarReset.innerHTML = obj.options.textReset;
         calendarConfirm.innerHTML = obj.options.textDone;
-        calendarControlsUpdateButton.value = obj.options.textUpdate;
+        calendarControlsUpdateButton.innerHTML = obj.options.textUpdate;
 
         // Define mask
         el.setAttribute('data-mask', obj.options.format.toLowerCase());
@@ -1326,7 +1326,7 @@ jSuites.calendar = (function(el, options) {
         calendarControlsTime.appendChild(calendarSelectHour);
         calendarControlsTime.appendChild(calendarSelectMin);
 
-        calendarControlsUpdateButton = document.createElement('input');
+        calendarControlsUpdateButton = document.createElement('button');
         calendarControlsUpdateButton.setAttribute('type', 'button');
         calendarControlsUpdateButton.className = 'jcalendar-update';
 
@@ -2677,8 +2677,12 @@ jSuites.dropdown = (function(el, options) {
 
     // Success
     var success = function(data, val) {
+        if (val === undefined || val === null) {
+            val = '';
+        }
+
         // Set data
-        if (data) {
+        if (data && data.length) {
             obj.setData(data);
 
             // Onload method
@@ -2726,29 +2730,27 @@ jSuites.dropdown = (function(el, options) {
         resetValue();
 
         // Read values
-        if (values) {
-            if (! Array.isArray(values)) {
-                values = (''+values).split(';');
-            }
-            for (var i = 0; i < values.length; i++) {
-                obj.value[values[i]] = '';
-            }
-            // Update the DOM
-            for (var i = 0; i < obj.items.length; i++) {
-                if (typeof(obj.value[Value(i)]) !== 'undefined') {
-                    if (obj.items[i].element) {
-                        obj.items[i].element.classList.add('jdropdown-selected')
-                    }
-                    obj.items[i].selected = true;
-
-                    // Keep label
-                    obj.value[Value(i)] = Text(i);
-                }
-            }
-
-            // Global value
-            obj.options.value = Object.keys(obj.value).join(';');
+        if (! Array.isArray(values)) {
+            values = (''+values).split(';');
         }
+        for (var i = 0; i < values.length; i++) {
+            obj.value[values[i]] = '';
+        }
+        // Update the DOM
+        for (var i = 0; i < obj.items.length; i++) {
+            if (typeof(obj.value[Value(i)]) !== 'undefined') {
+                if (obj.items[i].element) {
+                    obj.items[i].element.classList.add('jdropdown-selected')
+                }
+                obj.items[i].selected = true;
+
+                // Keep label
+                obj.value[Value(i)] = Text(i);
+            }
+        }
+
+        // Global value
+        obj.options.value = Object.keys(obj.value).join(';');
 
         // Update labels
         obj.header.value = obj.getText();
@@ -2917,19 +2919,19 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Load the content
-        if (options.url && ! options.data) {
+        if (obj.options.url && ! options.data) {
             jSuites.ajax({
-                url: options.url,
+                url: obj.options.url,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
                     if (data) {
-                        success(data, options.value);
+                        success(data, obj.options.value);
                     }
                 }
             });
         } else {
-            success(options.data, options.value);
+            success(obj.options.data, obj.options.value);
         }
 
         // Return the instance
@@ -3490,7 +3492,7 @@ jSuites.dropdown = (function(el, options) {
             newValue = newValue.join(';')
         }
 
-        if (oldValue != newValue) {
+        if (oldValue !== newValue) {
             // Set value
             applyValue(newValue);
 

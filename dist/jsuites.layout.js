@@ -3570,7 +3570,6 @@ jSuites.timeline = (function(el, options) {
         // Days
         var timelineDays = [];
         var events = getEventByDate(date);
-        console.log(events);
 
         // Itens
         if (! events.length) {
