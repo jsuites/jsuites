@@ -3624,9 +3624,10 @@ jSuites.timeline = (function(el, options) {
                 var timelineEdit = document.createElement('i');
                 timelineEdit.className = 'material-icons timeline-edit';
                 timelineEdit.innerHTML = 'edit';
+                timelineEdit.id = v.id;
                 timelineEdit.onclick = function() {
                     if (typeof(obj.options.onaction) == 'function') {
-                        obj.options.onaction(obj, this);
+                        obj.options.onaction(obj, this, this.id);
                     }
                 }
                 if (v.author == 1) {

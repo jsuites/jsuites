@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.4.8)
+ * (c) jSuites Javascript Web Components (v4.5.0)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.8';
+    var version = '4.5.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -70,7 +70,11 @@ var jSuites = function(options) {
             var o = this;
             var t = null;
             while (t = str.shift()) {
-                o = o[t];
+                if (typeof(o) == 'object' && o.hasOwnProperty(t)) {
+                    o = o[t];
+                } else {
+                    return undefined;
+                }
             }
             return o;
         }
@@ -4564,7 +4568,7 @@ jSuites.editor = (function(el, options) {
         return jSuites.files(editor).get();
     }
 
-    obj.addImage = function(src, name, size, date) {
+    obj.addImage = function(src, name, size, date, handler) {
         if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
             console.error('remoteParser not defined in your initialization');
         } else {
@@ -4592,24 +4596,22 @@ jSuites.editor = (function(el, options) {
                 canvas.toBlob(function(blob) {
                     var newImage = document.createElement('img');
                     newImage.src = window.URL.createObjectURL(blob);
-                    newImage.setAttribute('tabindex', '900');
-                    newImage.setAttribute('data-extension', extension);
-                    if (name) {
-                        newImage.setAttribute('data-name', name);
-                    }
-                    if (size) {
-                        newImage.setAttribute('data-size', size);
-                    }
-                    if (date) {
-                        newImage.setAttribute('data-date', date);
-                    }
                     newImage.className = 'jfile';
-                    var content = canvas.toDataURL();
-                    insertNodeAtCaret(newImage);
-
-                    // Image content
-                    newImage.content = content.substr(content.indexOf(',') + 1);
-
+                    newImage.setAttribute('tabindex', '900');
+                    var data = {
+                        file: newImage.src,
+                        name: name,
+                        size: size,
+                        date: date,
+                        extension: extension,
+                        content: canvas.toDataURL(),
+                    }
+                    newImage.content = data;
+                    if (typeof(handler) == 'function') {
+                        handler(newImage, data);
+                    } else {
+                        insertNodeAtCaret(newImage);
+                    }
                     change();
                 });
             };
@@ -4698,6 +4700,10 @@ jSuites.editor = (function(el, options) {
 
     // Event handlers
     var editorMouseUp = function(e) {
+        if (editorAction && editorAction.e) {
+            editorAction.e.classList.remove('resizing');
+        }
+
         editorAction = false;
     }
 
@@ -4722,12 +4728,12 @@ jSuites.editor = (function(el, options) {
                     d: e.target.style.cursor,
                 }
 
-                if (! e.target.style.width) {
-                    e.target.style.width = rect.width + 'px';
+                if (! e.target.width) {
+                    e.target.width = rect.width + 'px';
                 }
 
-                if (! e.target.style.height) {
-                    e.target.style.height = rect.height + 'px';
+                if (! e.target.height) {
+                    e.target.height = rect.height + 'px';
                 }
 
                 var s = window.getSelection();
@@ -4736,6 +4742,8 @@ jSuites.editor = (function(el, options) {
                         s.removeRange(s.getRangeAt(i));
                     }
                 }
+
+                e.target.classList.add('resizing');
             } else {
                 editorAction = true;
             }
@@ -4783,11 +4791,11 @@ jSuites.editor = (function(el, options) {
         // Move
         if (e.which == 1 && editorAction && editorAction.d) {
             if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' ||  editorAction.d == 'se-resize') {
-                editorAction.e.style.width = (editorAction.w + (e.clientX - editorAction.x)) + 'px';
+                editorAction.e.width = (editorAction.w + (e.clientX - editorAction.x));
 
                 if (e.shiftKey) {
                     var newHeight = (e.clientX - editorAction.x) * (editorAction.h / editorAction.w);
-                    editorAction.e.style.height = editorAction.h + newHeight + 'px';
+                    editorAction.e.height = editorAction.h + newHeight;
                 } else {
                     var newHeight =  null;
                 }
@@ -4796,7 +4804,7 @@ jSuites.editor = (function(el, options) {
             if (! newHeight) {
                 if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
                     if (! e.shiftKey) {
-                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y) + 'px';
+                        editorAction.e.height = editorAction.h + (e.clientY - editorAction.y);
                     }
                 }
             }
@@ -4825,6 +4833,80 @@ jSuites.editor = (function(el, options) {
         }
     }
 
+    // Elements to be removed
+    var remove = [HTMLUnknownElement];
+
+    // Valid CSS attributes
+    var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
+
+    var parse = function(element) {
+       // Remove attributes
+       if (element.attributes && element.attributes.length) {
+           var image = null;
+           var style = null;
+           // Process style attribute
+           var elementStyle = element.getAttribute('style');
+           if (elementStyle) {
+               style = [];
+               var t = elementStyle.split(';');
+               for (var j = 0; j < t.length; j++) {
+                   var v = t[j].trim().split(':');
+                   if (validStyle.indexOf(v[0].trim()) >= 0) {
+                       var k = v.shift();
+                       var v = v.join(':');
+                       style.push(k + ':' + v);
+                   }
+               }
+           }
+           // Process image
+           if (element.tagName == 'IMG') {
+               if (! obj.options.acceptImages) {
+                   element.remove();
+               } else {
+                   // Check if is data
+                   element.setAttribute('tabindex', '900');
+                   // Check attributes for persistance
+                   obj.addImage(element.src, null, null, null, function(a, b) {
+                       element.src = b.file;
+                       element.content = b;
+                       element.classList.add('jfile');
+                   });
+               }
+           } else {
+               // Remove attributes
+               var numAttributes = element.attributes.length - 1;
+               for (var i = numAttributes; i >= 0 ; i--) {
+                   element.removeAttribute(element.attributes[i].name);
+               }
+           }
+           element.style = '';
+           // Add valid style
+           if (style && style.length) {
+               element.setAttribute('style', style.join(';'));
+           }
+       }
+       // Parse children
+       if (element.children.length) {
+           for (var i = 0; i < element.children.length; i++) {
+               parse(element.children[i]);
+           }
+       }
+
+       if (remove.indexOf(element.constructor) >= 0) {
+           element.remove();
+       }
+    }
+
+    var filter = function(data) {
+        if (data) {
+            data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
+        }
+        var span = document.createElement('span');
+        span.innerHTML = data;
+        parse(span);
+        return span;
+    } 
+
     var editorPaste = function(e) {
         if (obj.options.filterPaste == true) {
             if (e.clipboardData || e.originalEvent.clipboardData) {
@@ -4841,35 +4923,25 @@ jSuites.editor = (function(el, options) {
                 // Paste a image from the clipboard
                 obj.addFile(file);
             } else {
-                // Paste text
-                text = text.split('\r\n');
-                var str = '';
-                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
-                    for (var i = 0; i < text.length; i++) {
-                        var tmp = document.createElement('div');
-                        if (text[i]) {
-                            tmp.innerText = text[i];
-                        } else {
-                            tmp.innerHTML = '<br/>';
-                        }
-                        e.target.appendChild(tmp);
+                if (! html) {
+                    html = text.split('\r\n');
+                    if (! e.target.innerText) {
+                        html.map(function(v) {
+                            var d = document.createElement('div');
+                            d.innerText = v;
+                            editor.appendChild(d);
+                        });
+                    } else {
+                        html = html.map(function(v) {
+                            return '<div>' + v + '</div>';
+                        });
+                        document.execCommand('insertHtml', false, html.join(''));
                     }
                 } else {
-                    var content = document.createElement('div');
-                    for (var i = 0; i < text.length; i++) {
-                        if (text[i]) {
-                            var div = document.createElement('div');
-                            div.innerText = text[i];
-                            content.appendChild(div);
-                        }
-                    }
-                    // Insert text
-                    document.execCommand('insertHtml', false, content.innerHTML);
-                }
-
-                // Extra images from the paste
-                if (obj.options.acceptImages == true) {
-                    extractImageFromHtml(html);
+                    var d = filter(html);
+                    console.log(d)
+                    // Paste to the editor
+                    insertNodeAtCaret(d)
                 }
             }
 
@@ -5788,16 +5860,28 @@ jSuites.form.setElements = function(el, data) {
         if (name = elements[i].getAttribute('name')) {
             // Transform variable names in pathname
             name = name.replace(new RegExp(/\[(.*?)\]/ig), '.$1');
+            value = null;
             // Seach for the data in the path
-            value = jSuites.path.call(data, name) || '';
-            // Set the values
-            if (type == 'checkbox' || type == 'radio') {
-                elements[i].checked = value ? true : false;
+            if (name.match(/\./)) {
+                var tmp = jSuites.path.call(data, name) || '';
+                if (typeof(tmp) !== 'undefined') {
+                    value = tmp;
+                }
             } else {
-                if (typeof (elements[i].val) == 'function') {
-                    elements[i].val(value);
+                if (typeof(data[name]) !== 'undefined') {
+                    value = data[name];
+                }
+            }
+            // Set the values
+            if (value !== null) {
+                if (type == 'checkbox' || type == 'radio') {
+                    elements[i].checked = value ? true : false;
                 } else {
-                    elements[i].value = value;
+                    if (typeof (elements[i].val) == 'function') {
+                        elements[i].val(value);
+                    } else {
+                        elements[i].value = value;
+                    }
                 }
             }
         }
@@ -6490,9 +6574,12 @@ jSuites.image = jSuites.upload = (function(el, options) {
 
             if (val) {
                 if (Array.isArray(val)) {
-                    // Add
                     for (var i = 0; i < val.length; i++) {
-                        obj.add(val[i]);
+                        if (typeof(val[i]) == 'string') {
+                            obj.add({ file: val[i] });
+                        } else {
+                            obj.add(val[i]);
+                        }
                     }
                 } else if (typeof(val) == 'string') {
                     obj.add({ file: val });

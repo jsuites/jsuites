@@ -2398,7 +2398,6 @@ section.middle {
 
 .jtimeline-navigation div {
     display:inline-block;
-    background-color:#eee;
     padding-right:12px;
     padding-left:12px;
     margin-left:4px;
@@ -2464,10 +2463,7 @@ section.middle {
 
 .jtimeline-title {
     font-size:1.4em;
-    white-space: nowrap; 
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width:calc(100% - 60px);
+    max-width:calc(100% - 30px);
 }
 
 .jtimeline-controls {
