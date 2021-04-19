@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.5.0)
+ * (c) jSuites Javascript Web Components (v4.5.1)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.0';
+    var version = '4.5.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -70,7 +70,7 @@ var jSuites = function(options) {
             var o = this;
             var t = null;
             while (t = str.shift()) {
-                if (typeof(o) == 'object' && o.hasOwnProperty(t)) {
+                if (o.hasOwnProperty(t)) {
                     o = o[t];
                 } else {
                     return undefined;

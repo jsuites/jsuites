@@ -1221,6 +1221,11 @@ section.middle {
     user-select: none;
 }
 
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
 ::-webkit-input-placeholder {
    color: #ccc;
 }
