@@ -2911,6 +2911,7 @@ jSuites.template = (function(el, options) {
             onchange: null,
             onsearch: null,
             onclick: null,
+            oncreateitem: null,
         }
 
         // Loop through our object
@@ -2972,6 +2973,11 @@ jSuites.template = (function(el, options) {
         }
 
         parse(b);
+
+        // Oncreate a new item
+        if (typeof(obj.options.oncreateitem) == 'function') {
+            obj.options.oncreateitem(el, obj, b.children[0], a);
+        }
     }
 
     /**
