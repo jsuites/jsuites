@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.5.3)
+ * (c) jSuites Javascript Web Components
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.3';
+    var version = '4.5.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5915,6 +5915,14 @@ jSuites.guid = function() {
     });
 }
 
+jSuites.getNode = function() {
+    var node = document.getSelection().anchorNode;
+    if (node) {
+        return (node.nodeType == 3 ? node.parentNode : node);
+    } else {
+        return null;
+    }
+}
 /**
  * Generate hash from a string
  */
@@ -8124,37 +8132,7 @@ jSuites.search = (function(el, options) {
 
     var index =  null;
 
-    var keydown = function(e) {
-        if (e.key == 'Enter') {
-            // Enter
-            if (obj.isOpened()) {
-                obj.selectIndex(container.children[index]);
-            }
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-            // Up
-            if (obj.isOpened()) {
-                container.children[index].classList.remove('selected');
-                if (index > 0) {
-                    index--;
-                }
-                container.children[index].classList.add('selected');
-                e.preventDefault();
-            }
-        } else if (e.key === 'ArrowDown') {
-            // Down
-            if (obj.isOpened()) {
-                container.children[index].classList.remove('selected');
-                if (index < 9) {
-                    index++;
-                }
-                container.children[index].classList.add('selected');
-                e.preventDefault();
-            }
-        }
-    }
-
-    var click = function(e) {
+    var select = function(e) {
         if (e.target.classList.contains('jsearch_item')) {
             var element = e.target;
         } else {
@@ -8162,6 +8140,7 @@ jSuites.search = (function(el, options) {
         }
 
         obj.selectIndex(element);
+        e.preventDefault();
     }
 
     var createList = function(data) {
@@ -8192,6 +8171,10 @@ jSuites.search = (function(el, options) {
                 div.setAttribute('data-value', value);
                 div.setAttribute('data-text', text);
                 div.className = 'jsearch_item';
+
+                if (data[i].id) {
+                    div.setAttribute('id', data[i].id)
+                }
 
                 if (i == 0) {
                     div.classList.add('selected');
@@ -8268,22 +8251,30 @@ jSuites.search = (function(el, options) {
 
     obj.options = {
         data: options.data || null,
-        onclick: options.onclick || null,
-        parent: options.parent || null,
+        input: options.input || null,
+        onselect: options.onselect || null,
     };
 
     obj.selectIndex = function(item) {
+        var id = item.getAttribute('id');
         var text = item.getAttribute('data-text');
         var value = item.getAttribute('data-value');
         // Onselect
-        if (typeof(obj.options.onclick) == 'function') {
-            obj.options.onclick(obj, text, value);
+        if (typeof(obj.options.onselect) == 'function') {
+            obj.options.onselect(obj, text, value, id);
         }
         // Close container
         obj.close();
     }
 
+    obj.open = function() {
+        el.style.display = 'block';
+    }
+
     obj.close = function() {
+        if (timer) {
+            clearTimeout(timer);
+        }
         // Current terms
         obj.terms = '';
         // Remove results
@@ -8296,18 +8287,55 @@ jSuites.search = (function(el, options) {
         return el.style.display ? true : false;
     }
 
+    obj.keydown = function(e) {
+        if (obj.isOpened()) {
+            if (e.key == 'Enter') {
+                // Enter
+                if (container.children[index]) {
+                    obj.selectIndex(container.children[index]);
+                    e.preventDefault();
+                }
+            } else if (e.key === 'ArrowUp') {
+                // Up
+                if (container.children[0]) {
+                    container.children[index].classList.remove('selected');
+                    if (index > 0) {
+                        index--;
+                    }
+                    container.children[index].classList.add('selected');
+                }
+                e.preventDefault();
+            } else if (e.key === 'ArrowDown') {
+                // Down
+                container.children[index].classList.remove('selected');
+                if (index < 9 && container.children[index+1]) {
+                    index++;
+                }
+                container.children[index].classList.add('selected');
+                e.preventDefault();
+            }
+        }
+    }
+
+    obj.keyup = function(e) {
+        if (obj.options.input) {
+            obj(obj.options.input.value)
+        } else {
+            // Current node
+            var node = jSuites.getNode();
+            if (node) {
+                obj(node.innerText);
+            }
+        }
+    }
+
     // Append element
     var container = document.createElement('div');
     container.classList.add('jsearch_container');
-    container.onclick = click;
+    container.onmousedown = select;
     el.appendChild(container);
 
     el.classList.add('jsearch')
-
-    if (obj.options.parent) {
-        obj.options.parent.onkeydown = keydown;
-    }
-
     el.search = obj;
 
     return obj;
@@ -9328,9 +9356,8 @@ jSuites.tags = (function(el, options) {
 
                 // Create container
                 search = jSuites.search(searchContainer, {
-                    parent: el,
                     data: obj.options.search,
-                    onclick: function(a,b,c) {
+                    onselect: function(a,b,c) {
                         obj.selectIndex(b,c);
                     }
                 });
@@ -9371,7 +9398,7 @@ jSuites.tags = (function(el, options) {
             alert(obj.options.limitMessage + ' ' + obj.options.limit);
         } else {
             // Get node
-            var node = getSelectionStart();
+            var node = jSuites.getNode();
 
             if (node && node.parentNode && node.parentNode.classList.contains('jtags') &&
                 node.nextSibling && (! (node.nextSibling.innerText && node.nextSibling.innerText.trim()))) {
@@ -9534,18 +9561,20 @@ jSuites.tags = (function(el, options) {
      * @param {object} item - Node element in the suggestions container
      */ 
     obj.selectIndex = function(text, value) {
-        var node = getSelectionStart();
-        // Append text to the caret
-        node.innerText = text;
-        // Set node id
-        if (value) {
-            node.setAttribute('data-value', value);
-        }
-        // Remove any error
-        node.classList.remove('jtags_error');
-        if (! limit()) {
-            // Add new item
-            obj.add('', true);
+        var node = jSuites.getNode();
+        if (node) {
+            // Append text to the caret
+            node.innerText = text;
+            // Set node id
+            if (value) {
+                node.setAttribute('data-value', value);
+            }
+            // Remove any error
+            node.classList.remove('jtags_error');
+            if (! limit()) {
+                // Add new item
+                obj.add('', true);
+            }
         }
     }
 
@@ -9663,23 +9692,6 @@ jSuites.tags = (function(el, options) {
         } else {
             el.classList.remove('jtags-empty');
         }
-
-    }
-    /**
-     * Selection
-     */
-    var getSelectionStart = function() {
-        var node = document.getSelection().anchorNode;
-        if (node) {
-            return (node.nodeType == 3 ? node.parentNode : node);
-        } else {
-            return null;
-        }
-    }
-
-    var getFocusedNode = function () {
-        var node = document.getSelection().anchorNode;
-        return (node.nodeType == 3 ? node.parentNode : node);
     }
 
     /**
@@ -9755,6 +9767,11 @@ jSuites.tags = (function(el, options) {
                 e.preventDefault();
             }
         }
+
+        // Search events
+        if (search) {
+            search.keydown(e);
+        }
     }
 
     /**
@@ -9772,11 +9789,7 @@ jSuites.tags = (function(el, options) {
             e.preventDefault();
         } else {
             if (search) {
-                // Current node
-                var node = getFocusedNode();
-                if (node) {
-                    search(node.innerText);
-                }
+                search.keyup(e);
             }
         }
 

@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components (v4.5.3)
+ * (c) jSuites Javascript Web Components
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.3';
+    var version = '4.5.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5339,6 +5339,14 @@ jSuites.guid = function() {
     });
 }
 
+jSuites.getNode = function() {
+    var node = document.getSelection().anchorNode;
+    if (node) {
+        return (node.nodeType == 3 ? node.parentNode : node);
+    } else {
+        return null;
+    }
+}
 /**
  * Generate hash from a string
  */

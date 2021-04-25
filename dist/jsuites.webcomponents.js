@@ -1,6 +1,6 @@
 
 /**
- * (c) jSuites Javascript Web Components (v4.4.0)
+ * (c) jSuites Javascript Web Components
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.

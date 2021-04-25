@@ -1939,6 +1939,10 @@
 .jsearch {
     position: relative;
     display: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .jsearch_container {
@@ -1961,7 +1965,14 @@
     min-width: 300px;
     outline: none;
     width: auto;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
     user-select: none;
+}
+
+.jsearch_container:empty:after {
+    content: attr(data-placeholder);
 }
 
 .jsearch_container > div {
@@ -1974,6 +1985,11 @@
     user-select: none;
     -webkit-align-items: center;
     align-items: center;
+    
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .jsearch_container > div:hover {
