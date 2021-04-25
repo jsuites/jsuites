@@ -149,8 +149,15 @@ jSuites.app = (function(el, options) {
                 updateDOM();
             }
 
+            // URL
+            if (o.url.indexOf('?') == -1) {
+                var url = o.url + '?';
+            } else {
+                var url = o.url + '&';
+            }
+
             jSuites.ajax({
-                url: o.url + '?ts=' + new Date().getTime(),
+                url: url + 'ts=' + new Date().getTime(),
                 method: 'GET',
                 dataType: 'html',
                 queue: true,
