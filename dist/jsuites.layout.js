@@ -955,11 +955,6 @@ jSuites.floating = (function(el, options) {
         height: 472,
     }
 
-    var dialogTypes = {
-        big : 'big',
-        small: 'small'
-    }
-
     // Loop through our object
     for (var property in defaults) {
         if (options && options.hasOwnProperty(property)) {
@@ -1035,11 +1030,7 @@ jSuites.floating = (function(el, options) {
     }
 
     var setType = function() {
-        if (obj.options.type === dialogTypes.big) {
-            obj.container.classList.add('jfloating-big');
-        } else if (obj.options.type === dialogTypes.small) {
-            obj.container.classList.add('jfloating-small');
-        }
+        obj.container.classList.add('jfloating-' + obj.options.type);
     }
 
     obj.state = {

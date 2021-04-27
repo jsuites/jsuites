@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.4';
+    var version = '4.5.5';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -6814,22 +6814,11 @@ jSuites.picker = (function(el, options) {
         for (var i = 0; i < keys.length; i++) {
             // Item
             var dropdownItem = document.createElement('div');
+            dropdownItem.classList.add('jpicker-item');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
             dropdownItem.innerHTML = obj.getLabel(keys[i]);
-
-            // Onchange
-            dropdownItem.onclick = function() {
-                // Update label
-                obj.setValue(this.k);
-
-                // Call method
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange.call(obj, el, obj, 'reserved', this.v, this.k);
-                }
-            }
-
             // Append
             dropdownContent.appendChild(dropdownItem);
         }
@@ -7011,11 +7000,22 @@ jSuites.picker = (function(el, options) {
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        dropdownHeader.onmouseup = function(e) {
-            if (! el.classList.contains('jpicker-focus')) {
-                obj.open();
+        el.onmouseup = function(e) {
+            var item = jSuites.findElement(e.target, 'jpicker-item');
+            if (item) {
+                // Update label
+                obj.setValue(item.k);
+
+                // Call method
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                }
             } else {
-                obj.close();
+                if (! el.classList.contains('jpicker-focus')) {
+                    obj.open();
+                } else {
+                    obj.close();
+                }
             }
         }
 

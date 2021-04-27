@@ -346,6 +346,11 @@
     height: 320px !important;
 }
 
+.jfloating.jfloating-large {
+    width: 600px !important;
+    height: 600px !important;
+}
+
 .jfloating:before {
     position:absolute;
     top:0;
