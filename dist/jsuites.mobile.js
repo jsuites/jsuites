@@ -583,7 +583,7 @@ jSuites.app = (function(el, options) {
             var mouseButton = e.which;
         }
 
-        if (mouseButton == 1) {
+        if (mouseButton < 2) {
             // Grouped options
             if (e.target.classList.contains('option-title')) {
                 if (e.target.classList.contains('selected')) {

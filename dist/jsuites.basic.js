@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.5';
+    var version = '4.5.6';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -2670,10 +2670,6 @@ jSuites.dropdown = (function(el, options) {
 
     // Success
     var success = function(data, val) {
-        if (val === undefined || val === null) {
-            val = '';
-        }
-
         // Set data
         if (data && data.length) {
             obj.setData(data);
@@ -2685,9 +2681,14 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Set value
-        applyValue(val);
+        if (val) {
+            applyValue(val);
+        }
 
         // Component value
+        if (val === undefined || val === null) {
+            obj.options.value = '';
+        }
         el.value = obj.options.value;
 
         // Open dropdown
@@ -2723,12 +2724,21 @@ jSuites.dropdown = (function(el, options) {
         resetValue();
 
         // Read values
-        if (! Array.isArray(values)) {
-            values = (''+values).split(';');
+        if (values !== null) {
+            if (! values) {
+                if (typeof(obj.value['']) !== 'undefined') {
+                    obj.value[''] = '';
+                }
+            } else {
+                if (! Array.isArray(values)) {
+                    values = ('' + values).split(';');
+                }
+                for (var i = 0; i < values.length; i++) {
+                    obj.value[values[i]] = '';
+                }
+            }
         }
-        for (var i = 0; i < values.length; i++) {
-            obj.value[values[i]] = '';
-        }
+
         // Update the DOM
         for (var i = 0; i < obj.items.length; i++) {
             if (typeof(obj.value[Value(i)]) !== 'undefined') {
@@ -3479,7 +3489,7 @@ jSuites.dropdown = (function(el, options) {
      */
     obj.setValue = function(newValue) {
         // Current value
-        var oldValue = getValue();
+        var oldValue = obj.getValue();
         // New value
         if (Array.isArray(newValue)) {
             newValue = newValue.join(';')

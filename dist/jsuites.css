@@ -2046,6 +2046,8 @@
 .jslider-album:not(.jslider-focus) img {
     object-fit: cover;
     cursor: pointer;
+
+    box-sizing: border-box;
 }
 
 .jslider-m1:not(.jslider-focus) img:first-child {
@@ -2056,25 +2058,45 @@
 .jslider-m2:not(.jslider-focus) img:first-child {
     height: 100%;
     width: 70%;
-    box-sizing: border-box;
-    padding-right: 5px;
+
+    padding-right: 2px;
 }
 
 .jslider-m2:not(.jslider-focus) img:not(:first-child) {
-    height: 48%;
-    width: 28%;
+    height: 50%;
+    width: 30%;
+}
+
+.jslider-m2:not(.jslider-focus) img:nth-child(2) {
+    padding-bottom: 1px;
+}
+
+.jslider-m2:not(.jslider-focus) img:nth-child(3) {
+    padding-top: 1px;
 }
 
 .jslider-m3:not(.jslider-focus) img:first-child {
     height: 100%;
     width: 75%;
-    box-sizing: border-box;
-    padding-right: 3px;
+
+    padding-right: 2px;
 }
 
 .jslider-m3:not(.jslider-focus) img:nth-child(n+2):nth-child(-n+4) {
-    height: 32%;
-    width: 24%;
+    height: 33.33%;
+    width: 25%;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(2) {
+    padding-bottom: 1px;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(3) {
+    padding: 1px 0;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(4) {
+    padding-top: 1px;
 }
 
 .jslider-m3:not(.jslider-focus) img:nth-child(n+5) {
