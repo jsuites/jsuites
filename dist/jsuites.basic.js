@@ -3565,6 +3565,21 @@ jSuites.dropdown = (function(el, options) {
         obj.selectIndex(item.indexValue);
     }
 
+    var exists = function(k, result) {
+        for (var j = 0; j < result.length; j++) {
+            if (! obj.options.format) {
+                if (result[j].value == k) {
+                    return true;
+                }
+            } else {
+                if (result[j].id == k) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     obj.find = function(str) {
         if (obj.search == str.trim()) {
             return false;
@@ -3588,8 +3603,22 @@ jSuites.dropdown = (function(el, options) {
                     // Reset items
                     obj.items = [];
                     content.innerHTML = '';
+                    // Current selected items
+                    var current = Object.keys(obj.value);
+                    if (current.length) {
+                        for (var i = 0; i < current.length; i++) {
+                            if (! exists(current[i], result)) {
+                                if (! obj.options.format) {
+                                    result.unshift({ value: current[i], text: obj.value[current[i]] });
+                                } else {
+                                    result.unshift({ id: current[i], name: obj.value[current[i]] });
+                                }
+                            }
+                        }
+                    }
+                    // Append data
                     obj.appendData(result);
-
+                    // Show or hide results
                     if (! result.length) {
                         content.style.display = 'none';
                     } else {
