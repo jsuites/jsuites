@@ -55,6 +55,13 @@ jSuites.app = (function(el, options) {
     }
 
     /**
+     * Page identification
+     */
+    var ident = function(route) {
+        return route.split('?')[0].replace(/\/\d+$/g, '')
+    }
+
+    /**
      * Pages
      */
     obj.pages = function() {
@@ -82,7 +89,7 @@ jSuites.app = (function(el, options) {
                 console.error('JSUITES: Permission denied');
             } else {
                 // Query string does not make part in the route
-                options.ident = route.split('?')[0].replace(/\/\d+$/g, '');
+                options.ident = ident(route);
                 // Current Route
                 options.route = route;
 
@@ -345,7 +352,7 @@ jSuites.app = (function(el, options) {
          * Get a page by route
          */
         component.get = function(route) {
-            var key = route.split('?')[0];
+            var key = ident(route);
             if (component.container[key]) {
                 return component.container[key]; 
             }
@@ -401,11 +408,14 @@ jSuites.app = (function(el, options) {
             }
             // Container
             var route = window.location.pathname;
-            component.container[route] = page;
+            var i = ident(route);
+            component.container[i] = page;
 
             // Keep options
-            page.options = {};
-            page.options.route = route;
+            page.options = {
+                route: route,
+                ident: i
+            };
 
             // Current page
             component.current = page;
@@ -571,7 +581,47 @@ jSuites.app = (function(el, options) {
         }
     }
 
-    var actionElement = null;
+    var action = null;
+
+    var clicked = function(e) {
+        // Grouped options
+        if (e.target.classList.contains('option-title')) {
+            if (e.target.classList.contains('selected')) {
+                e.target.classList.remove('selected');
+            } else {
+                e.target.classList.add('selected');
+            }
+        }
+
+        // Grouped buttons
+        if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
+            for (var j = 0; j < e.target.parentNode.children.length; j++) {
+                e.target.parentNode.children[j].classList.remove('selected');
+            }
+            e.target.classList.add('selected');
+        }
+
+        // App links
+        var tmp = jSuites.findElement(e.target, function(el) {
+            return el.tagName == 'A' && el.getAttribute('href') ? el : false;
+        });
+
+        if (tmp) {
+            var h = tmp.getAttribute('href');
+            if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link')) {
+                action = null;
+            } else {
+                action = {
+                    element: tmp,
+                    target: e.target,
+                };
+
+                setTimeout(function() {
+                    action = null;
+                }, 400);
+            }
+        }
+    }
 
     var actionDown = function(e) {
         e = e || window.event;
@@ -584,52 +634,24 @@ jSuites.app = (function(el, options) {
         }
 
         if (mouseButton < 2) {
-            // Grouped options
-            if (e.target.classList.contains('option-title')) {
-                if (e.target.classList.contains('selected')) {
-                    e.target.classList.remove('selected');
-                } else {
-                    e.target.classList.add('selected');
-                }
-            }
-
-            // Grouped buttons
-            if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
-                for (var j = 0; j < e.target.parentNode.children.length; j++) {
-                    e.target.parentNode.children[j].classList.remove('selected');
-                }
-                e.target.classList.add('selected');
-            }
-
-            // App links
-            actionElement = jSuites.findElement(e.target, function(e) {
-                return e.tagName == 'A' && e.getAttribute('href') ? e : false;
-            });
-
-            if (actionElement) {
-                var link = actionElement.getAttribute('href');
-                if (link == '#back') {
-                    window.history.back();
-                } else if (link == '#panel') {
-                    obj.panel();
-                } else {
-                    var href = actionElement.getAttribute('href');
-                    if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
-                        actionElement = null;
-                    } else {
-                        obj.pages(link);
-                    }
-                }
-            }
+            clicked(e);
         }
     }
 
     var actionUp = function(e) {
         obj.actionsheet.close();
-
-        if (actionElement) {
+        // Action
+        if (action) {
+            var h = action.element.getAttribute('href');
+            if (h == '#back') {
+                window.history.back();
+            } else if (h == '#panel') {
+                obj.panel();
+            } else {
+                obj.pages(h);
+            }
             e.preventDefault();
-            actionElement = null;
+            action  = null;
         }
     }
 
@@ -641,9 +663,7 @@ jSuites.app = (function(el, options) {
         document.addEventListener('touchend', actionUp);
     } else {
         document.addEventListener('mousedown', actionDown);
-        document.addEventListener('click', function(e) {
-            actionUp(e);
-        });
+        document.addEventListener('click', actionUp);
     }
 
     window.onpopstate = function(e) {

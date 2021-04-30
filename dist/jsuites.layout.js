@@ -860,11 +860,11 @@ jSuites.crop = (function(el, options) {
             // Update scale
             if (e.deltaY > 0) {
                 if (properties.zoom.scale > 0.1) {
-                    properties.zoom.scale *= 0.9;
+                    properties.zoom.scale *= 0.97;
                 }
             } else {
                 if (properties.zoom.scale < 5) {
-                    properties.zoom.scale *= 1.1;
+                    properties.zoom.scale *= 1.03;
                 }
             }
             properties.zoom.scale = parseFloat(properties.zoom.scale.toFixed(2));
@@ -3097,6 +3097,11 @@ jSuites.template = (function(el, options) {
             container.classList.add(obj.options.containerClass);
         }
     }
+    
+    /**
+     * Contains the cache of local data loaded
+     */
+    obj.cache = [];
 
     /**
      * Append data to the template and add to the DOMContainer
@@ -3114,7 +3119,7 @@ jSuites.template = (function(el, options) {
         }
 
         parse(b);
-
+    
         // Oncreate a new item
         if (typeof(obj.options.oncreateitem) == 'function') {
             obj.options.oncreateitem(el, obj, b.children[0], a);
@@ -3177,7 +3182,6 @@ jSuites.template = (function(el, options) {
             console.error('Element not found');
         }
     }
-
     /**
      * Reset the data of the element
      */
@@ -3230,6 +3234,7 @@ jSuites.template = (function(el, options) {
                 content.children[0].dataReference = data[i];
                 container.appendChild(content.children[0]);
             }
+            
         }
 
         if (obj.options.url && obj.options.remoteData == true) {
@@ -3306,10 +3311,17 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                // Get content
-                obj.setContent(data[i], content);
-                content.children[0].dataReference = data[i]; 
-                container.appendChild(content.children[0]);
+                // Check if cache obj contains the element
+                if (! data[i].element) {
+                    obj.setContent(data[i], content);
+                    content.children[0].dataReference = data[i];
+                    data[i].element = content.children[0];
+                    // append element into cache
+                    obj.cache.push(data[i]);
+                    container.appendChild(content.children[0]);
+                } else {
+                    container.appendChild(data[i].element);
+                }
             }
 
             if (obj.options.total) {
@@ -3378,7 +3390,7 @@ jSuites.template = (function(el, options) {
             if (typeof(obj.options.render) == 'function') {
                 container.innerHTML = obj.options.render(obj);
             } else {
-                container.innerHTML = '';
+               container.innerHTML = '';
             }
 
             // Load data
@@ -3481,10 +3493,12 @@ jSuites.template = (function(el, options) {
     }
 
     obj.refresh = function() {
+        obj.cache = [];
         obj.render();
     }
 
     obj.reload = function() {
+        obj.cache = [];
         obj.render(0, true);
     }
 

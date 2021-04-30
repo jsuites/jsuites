@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.5.6';
+    var version = '4.5.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -3603,7 +3603,7 @@ jSuites.dropdown = (function(el, options) {
                     // Reset items
                     obj.items = [];
                     content.innerHTML = '';
-                    // Current selected items
+                    // Add the current selected items to the results in case they are not there
                     var current = Object.keys(obj.value);
                     if (current.length) {
                         for (var i = 0; i < current.length; i++) {
