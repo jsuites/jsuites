@@ -1,9 +1,8 @@
 
 /**
- * (c) jSuites Javascript Web Components (v3.2)
+ * (c) jSuites Javascript Web Components
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License

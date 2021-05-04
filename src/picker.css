@@ -7,6 +7,7 @@
     -ms-user-select: none;
     user-select: none;
     outline: none;
+    position: relative;
 }
 
 .jpicker-header {
@@ -40,19 +41,48 @@
     padding: 4px;
     z-index: 50;
     text-align: left;
+    max-height: 200px;
+    overflow: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
 }
 
-.jpicker-content div {
+.jpicker-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.jpicker-content::-webkit-scrollbar-track {
+    background: #eee;
+}
+ 
+.jpicker-content::-webkit-scrollbar-thumb {
+    background: #888;
+}
+ 
+.jpicker-content > div {
     padding: 6px;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-.jpicker-focus .jpicker-content {
+.jpicker-focus > .jpicker-content {
     display: block;
 }
 
-.jpicker-content div:hover {
+.jpicker-content > div:hover {
     background-color:#efefef;
 }
 
+.jpicker-content > div:empty {
+    opacity: 0;
+}
+
+.jpicker-header > i, .jpicker-header > div {
+    display: block;
+}
+
+.jpicker-focus > .jpicker-content.jpicker-columns {
+    display: flex !important ;
+    justify-content: center;
+    flex-wrap: wrap;
+}

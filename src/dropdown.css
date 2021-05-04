@@ -1,11 +1,3 @@
-/**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Custom dropdowns
- */
-
 .jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;
@@ -72,7 +64,7 @@
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
-    padding-right:30px;
+    padding-right:30px !important;
 }
 
 .jdropdown-insert-button
@@ -217,20 +209,18 @@
     color:#fff;
 }
 
-.jdropdown-default .jdropdown-group
-{
+.jdropdown-default .jdropdown-group {
     margin-top:5px;
 }
 
-.jdropdown-default .jdropdown-group .jdropdown-item
-{
+.jdropdown-default .jdropdown-group .jdropdown-item {
     padding-left:16px;
 }
 
-.jdropdown-default .jdropdown-group-name
-{
-    padding-left:8px;
-    font-weight:bold;
+.jdropdown-default .jdropdown-group-name {
+    padding-left: 8px;
+    font-weight: bold;
+    text-align: left;
 }
 
 .jdropdown-default .jdropdown-reset_ {
@@ -335,21 +325,29 @@
 .jdropdown-searchbar.jdropdown-focus
 {
     position:fixed;
-    top:0px;
-    left:0px;
-    width:100%;
-    height:100%;
+    top:0px !important;
+    left:0px !important;
+    width:100% !important;
+    height:100% !important;
     background-color:#fafafa;
     padding:0px;
     z-index:9001;
     overflow-y:scroll;
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-container-header
 {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 9002;
     padding:10px;
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
+    max-height: 24px;
+    width: 100%;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header
@@ -374,6 +372,7 @@
 
 .jdropdown-searchbar .jdropdown-container
 {
+    margin-top: 40px;
     width:100%;
 }
 
@@ -498,18 +497,20 @@
     background-position:top 50% right 10px;
 }
 
-@media only screen and (max-device-width : 800px)
+@media only screen and (max-width : 800px)
 {
-    .jdropdown-list
-    {
+    .jdropdown-list {
         width:100% !important;
         border:0px;
         padding:0px;
     }
 
-    .jdropdown-list .jdropdown-container
-    {
+    .jdropdown-list .jdropdown-container {
         min-width:100%;
+    }
+
+    .jdropdown-searchbar.jdropdown-focus .jdropdown-description {
+        text-transform: uppercase;
     }
 }
 

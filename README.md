@@ -1,20 +1,6 @@
-![The javascript web components](https://bossanova.uk/templates/jsuites/img/logo.png)
+![The javascript web components](https://jsuites.net/templates/v4/img/icon.svg)
 
-## jSuites - The definitive common javascript web components
-
-New version!
----------
-
-The most recent version Jsuites has been splited in two distributions, and there are two optional extensions.
-
-jsuites.js - Complete version.
-jsuites.basic.js - Only the necessary files for Jexcel.
-jsuites.webcomponents.js - To use jsuites as webcomponents.
-
-jsuites.layout.js - Extensions and helpers for layout. (Alpha version).
-jsuites.mobile.js - Extensions to group the webApp components. (Alpha version).
-
-The source code is now available per component. The documentation is still under improvements.
+## jSuites v4 - Webcomponents and JavaScript plugins. 
 
 About
 ---------
@@ -49,8 +35,8 @@ Create a multiple and autocomplete responsive dropdown.
 
 ```html
 <html>
-<script src="https://bossanova.uk/jsuites/v2/jsuites.js"></script>
-<link rel="stylesheet" href="https://bossanova.uk/jsuites/v2/jsuites.css" type="text/css" />
+<script src="https://jsuites.net/v4/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
 
 <div id="dropdown1"></div>
 
@@ -70,51 +56,59 @@ jSuites.dropdown(document.getElementById('dropdown1'), {
 </html>
 ```
 The same code can render in different ways, by directive type: default, picker or searchbar\
-![Javascript dropdown](https://bossanova.uk/templates/jsuites/img/dropdown.png)
+![Javascript dropdown](https://jsuites.net/templates/v4/img/dropdown.png)
 
 
 Examples
 ---------
 
-* [Dropdown and autocomplete component](https://bossanova.uk/jsuites/dropdown-and-autocomplete)\
+* [JavaScript image cropper](https://jsuites.net/v4/image-cropper)\
+The jSuites.crop is a lightweight JavaScript plugin that allow users load, crop and apply filters to images.
+
+* [Dropdown and autocomplete component](https://jsuites.net/v4/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Javascript calendar, date and datetime picker](https://bossanova.uk/jsuites/javascript-calendar)\
+* [Javascript calendar, date and datetime picker](https://jsuites.net/v4/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
-* [Javascript mask](https://bossanova.uk/jsuites/javascript-mask)\
+* [Javascript tags plugin](https://jsuites.net/v4/javascript-tags)\
+JavaScript tags and keywords managment plugin
+
+* [Javascript tabs plugin](https://jsuites.net/v4/javascript-tabs)\
+JavaScript tabs plugin
+
+* [Javascript mask](https://jsuites.net/v4/javascript-mask)\
 A simple javascript mask plugin
 
-* [Javascript color picker plugin](https://bossanova.uk/jsuites/color-picker)\
-Vanilla javascript colorpicker plugin
+* [Javascript color picker plugin](https://jsuites.net/v4/color-picker)\
+Javascript color picker plugin
 
-* [Javascript contextmenu plugin](https://bossanova.uk/jsuites/contextmenu)\
+* [Javascript contextmenu plugin](https://jsuites.net/v4/contextmenu)\
 Vanilla javascript contextmenu plugin
 
-* [Javascript image slider plugin](https://bossanova.uk/jsuites/image-slider)\
-Simple vanilla javascript image slider plugin
+* [Tracking the form changes](https://jsuites.net/v4/richform)\
+Track changes in a online form, apply validations and manage ajax requests.
 
-* [Javascript mini HTML editor plugin with filter](https://bossanova.uk/jsuites/text-editor)\
-Simple vanilla javascript image slider plugin
-
-* [Tracking the form changes](https://bossanova.uk/jsuites/tracking-for-form-changes)\
-Alert the user for unsaved changes in a form before leave any page plugin.
-
-* [Javascript modal plugin](https://bossanova.uk/jsuites/modal)\
+* [Javascript modal plugin](https://jsuites.net/v4/modal)\
 Simple vanilla javascript modal plugin
+
+* [JavaSript general toolbar](https://jsuites.net/v4/toolbar)\
+Micro vanilla javascript toolbar plugin
+
+* [Javascript mini HTML editor plugin with filter](https://jsuites.net/v4/text-editor)\
+Simple vanilla javascript image slider plugin
 
 
 ## Official website
-- [jSuites Official](https://bossanova.uk/jsuites)
+- [jSuites Official](https://jsuites.net/v4)
 
 ## Community
-- [GitHub](https://github.com/paulhodel/jsuites/issues)
+- [GitHub](https://github.com/jsuites/jsuites/issues)
 
 ## Copyright and license
-jSuites is released under the [MIT license]. Copyrights belong to Paul Hodel <paul.hodel@gmail.com>
+jSuites is released under the [MIT license].
 
-## Other resources
+## Contact
+contact@jsuites.net
 
-- [jExcel CE Official](https://bossanova.uk/jexcel/v3)
-- [jExcel Pro Official](https://jexcel.net/v3)
-- [Banda Base](https://base.mus.br)
+

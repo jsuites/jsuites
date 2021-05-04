@@ -26,11 +26,27 @@
     box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
     background-color:#fff;
     box-sizing: border-box;
+    min-width: 260px;
+}
+
+.jcolor-controls {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+}
+
+.jcolor-controls div {
+    flex: 1;
+    font-size: 1em;
+    color: var(--active-color);
+    text-transform: uppercase;
+    font-weight: bold;
+    box-sizing: border-box;
 }
 
 .jcolor-content table {
-    border-collapse: initial;
-    padding: 7px !important;
+    border-collapse: collapse;
     box-sizing: border-box;
 }
 
@@ -41,17 +57,16 @@
 .jcolor table {
     width:100%;
     height:100%;
+    min-height: 160px;
 }
 
 .jcolor td {
     padding: 7px;
-    border:2px solid #fff;
 }
 
 .jcolor-selected {
-    border:2px solid #000 !important;
     background-repeat:no-repeat;
-    background-size: cover;
+    background-size: 16px;
     background-position: center;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' fill='white'/%3E%3C/svg%3E");
 }
@@ -60,28 +75,24 @@
     position: fixed;
     bottom: 0px;
     width:100%;
-    max-height:250px;
+    max-height: 290px;
     border-radius: 0px;
     box-sizing: border-box;
 }
 
-.jcolor-close {
-    display: none;
-    font-size: 1em;
-    color: var(--active-color);
-    text-transform: uppercase;
-    text-align: right;
+.jcolor-fullscreen .jcolor-controls {
     padding: 15px;
-    font-weight: bold;
     -webkit-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     -moz-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
-    width: 100%;
-    box-sizing: border-box;
 }
 
-.jcolor-fullscreen .jcolor-close {
-    display: block;
+.jcolor-reset {
+    text-align: left;
+}
+
+.jcolor-close {
+    text-align: right;
 }
 
 .jcolor-backdrop {
@@ -103,4 +114,139 @@
         -ms-user-select: none; /* Internet Explorer/Edge */
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
+}
+
+.jcolor-content .jtabs-content {
+    padding: 7px;
+}
+
+.jcolor-grid tr:first-child > td:first-child {
+    border-top-left-radius: 3px;
+}
+
+.jcolor-grid tr:first-child > td:last-child {
+    border-top-right-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:first-child {
+    border-bottom-left-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:last-child {
+    border-bottom-right-radius: 3px;
+}
+
+.jcolor-hsl {
+    box-sizing: border-box;
+}
+
+.jcolor-hsl > div {
+    height: 100%;
+    position: relative;
+}
+
+.jcolor-hsl canvas {
+    display: block;
+    border-radius: 4px;
+    -webkit-user-drag: none;
+}
+
+.jcolor-point {
+    height: 5px;
+    width: 5px;
+    background-color: #000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.jcolor-sliders {
+    padding: 10px 20px 10px 10px;
+}
+
+.jcolor-sliders input {
+    -webkit-appearance: none;
+
+    height: 12px;
+    width: 80%;
+
+    background: #d3d3d3;
+    opacity: 1;
+
+    border-radius: 30px;
+    outline: none;
+}
+
+.jcolor-sliders-input-subcontainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.jcolor-sliders-input-container {
+    margin-top: 4px;
+    line-height: 0.8em;
+    text-align: left;
+}
+
+.jcolor-sliders-input-container > label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #bbbbbd;
+}
+
+.jcolor-sliders-input-subcontainer > input {
+    border: 0px;
+    padding: 1px;
+}
+
+.jcolor-sliders-input-container input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-input-container input::-moz-range-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-final-color {
+    padding: 6px;
+    user-select: all;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.jcolor-sliders-final-color > div:nth-child(2) {
+    width: 71px;
+    text-transform: uppercase;
+}
+
+.jcolor .jtabs .jtabs-headers-container .jtabs-controls {
+    display: none !important;
+}
+
+.jcolor .jtabs .jtabs-headers-container {
+    display: flex !important;
+    justify-content: center;
+    padding: 4px;
+}
+
+.jcolor .jtabs-headers > div:not(.jtabs-border) {
+    padding: 2px !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    font-size: 0.8em;
 }

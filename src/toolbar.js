@@ -31,6 +31,15 @@ jSuites.toolbar = (function(el, options) {
         options.app.el.appendChild(el);
     }
 
+    // Arrow
+    var toolbarArrow = document.createElement('div');
+    toolbarArrow.classList.add('jtoolbar-item');
+    toolbarArrow.classList.add('jtoolbar-arrow');
+
+    var toolbarFloating = document.createElement('div');
+    toolbarFloating.classList.add('jtoolbar-floating');
+    toolbarArrow.appendChild(toolbarFloating);
+
     obj.selectItem = function(element) {
         var elements = toolbarContent.children;
         for (var i = 0; i < elements.length; i++) {
@@ -116,6 +125,7 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
+
                 if (typeof(items[i].onchange) == 'function') {
                     // Event for picker has different arguments
                     items[i].onchange = (function(o) {
@@ -128,6 +138,7 @@ jSuites.toolbar = (function(el, options) {
                         }
                     })(items[i].onchange);
                 }
+
                 jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
@@ -138,7 +149,7 @@ jSuites.toolbar = (function(el, options) {
                 // Material icons
                 var toolbarIcon = document.createElement('i');
                 if (typeof(items[i].class) === 'undefined') {
-                toolbarIcon.classList.add('material-icons');
+                    toolbarIcon.classList.add('material-icons');
                 } else {
                     var c = items[i].class.split(' ');
                     for (var j = 0; j < c.length; j++) {
@@ -185,16 +196,11 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].onclick) {
-                    toolbarItem.onclick = (function (a) {
-                        return function () {
-                            items[a].onclick(el, obj, this);
-                        };
-                    })(i);
-                }
-            
+
             // Attach parameter item in DOMElement
             toolbarItem.item = items[i];
-
+            toolbarItem.onclick = items[i].onclick.bind(items[i], el, obj, toolbarItem);
+            }
             toolbarContent.appendChild(toolbarItem);
         }
 
@@ -341,6 +347,12 @@ jSuites.toolbar = (function(el, options) {
         }
     }
 
+    obj.resize = function() {
+        el.style.width = el.parentNode.offsetWidth;
+
+        toolbarContent.appendChild(toolbarArrow);
+    }
+
     el.classList.add('jtoolbar');
 
     if (obj.options.container == true) {
@@ -353,6 +365,11 @@ jSuites.toolbar = (function(el, options) {
         if (element) {
             obj.selectItem(element);
         }
+
+        if (e.target.classList.contains('jtoolbar-arrow')) {
+            e.target.classList.add('jtoolbar-arrow-selected');
+            e.target.children[0].focus();
+        }
     }
 
     var toolbarContent = document.createElement('div');
@@ -360,6 +377,8 @@ jSuites.toolbar = (function(el, options) {
 
     if (obj.options.app) {
         el.classList.add('jtoolbar-mobile');
+    } else {
+        // Not a mobile version
     }
 
     obj.create(obj.options.items);

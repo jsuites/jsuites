@@ -1,4 +1,3 @@
-
 jSuites.progressbar = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -46,8 +45,23 @@ jSuites.progressbar = (function(el, options) {
             el.style.color = '#fff';
         }
 
+        // Update value
+        obj.options.value = value;
+
         if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, value);
+        }
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
         }
     }
 
@@ -81,6 +95,19 @@ jSuites.progressbar = (function(el, options) {
         el.addEventListener("mousemove", action);
     }
 
+    // Change
+    el.change = obj.setValue;
+
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getValue();
+        } else {
+            obj.setValue(val);
+        }
+    }
+
+    // Reference
     el.progressbar = obj;
 
     return obj;

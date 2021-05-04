@@ -1,11 +1,3 @@
-/**
- * (c) jSuites modal
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Modal
- */
-
 jSuites.modal = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -19,6 +11,7 @@ jSuites.modal = (function(el, options) {
         width: null,
         height: null,
         title: null,
+        padding: null,
     };
 
     // Loop through our object
@@ -36,22 +29,25 @@ jSuites.modal = (function(el, options) {
     }
 
     var temp = document.createElement('div');
-    for (var i = 0; i < el.children.length; i++) {
-        temp.appendChild(el.children[i]);
+    while (el.children[0]) {
+        temp.appendChild(el.children[0]);
     }
 
     obj.content = document.createElement('div');
     obj.content.className = 'jmodal_content';
     obj.content.innerHTML = el.innerHTML;
 
-    for (var i = 0; i < temp.children.length; i++) {
-        obj.content.appendChild(temp.children[i]);
+    while (temp.children[0]) {
+        obj.content.appendChild(temp.children[0]);
     }
 
     obj.container = document.createElement('div');
     obj.container.className = 'jmodal';
     obj.container.appendChild(obj.content);
 
+    if (obj.options.padding) {
+        obj.content.style.padding = obj.options.padding;
+    }
     if (obj.options.width) {
         obj.container.style.width = obj.options.width;
     }
@@ -70,6 +66,9 @@ jSuites.modal = (function(el, options) {
     // Backdrop
     var backdrop = document.createElement('div');
     backdrop.className = 'jmodal_backdrop';
+    backdrop.onclick = function() {
+        obj.close();
+    }
     el.appendChild(backdrop);
 
     obj.open = function() {
@@ -135,6 +134,7 @@ jSuites.modal = (function(el, options) {
         jSuites.ajax({
             url: obj.options.url,
             method: 'GET',
+            dataType: 'text/html',
             success: function(data) {
                 obj.content.innerHTML = data;
 

@@ -2,8 +2,7 @@
 /**
  * (c) jSuites Javascript Web Components
  *
- * Author: Paul Hodel <paul.hodel@gmail.com>
- * Website: https://bossanova.uk/jsuites/
+ * Website: https://jsuites.net
  * Description: Create amazing web based applications.
  *
  * MIT License
@@ -38,12 +37,29 @@
     background-size: initial;
     height: 33px;
     min-height: initial;
+    padding-right: 30px;
 }
 
+.jupload img {
+    width: 100%;
+} 
+
 .jupload.input img {
-    width: initial !important;
+    width: initial;
     max-width: 100%;
     height: 100%;
+}
+
+.jupload[data-multiple] {
+    padding: 10px;
+}
+
+.jupload[data-multiple] img {
+    height: 70px;
+    width: 100px;
+    object-fit: cover;
+    margin-right: 5px;
+    margin-bottom: 5px;
 }
 
 .jupload {
@@ -55,8 +71,16 @@
     border: 1px dotted #eee;
     cursor: pointer;
     box-sizing: border-box;
-    width:100%;
-    min-height:180px;
+    width: 100%;
+    height: 100%;
+    min-height: 180px;
+}
+
+.jupload-item {
+    padding-right: 22px;
+    border-radius: 1px;
+    display: inline-block;
+    position: relative;
 }
 
 .jremove {
@@ -75,34 +99,42 @@
 }
 
 .slide-left-in {
+    position: relative;
     animation: slide-left-in 0.4s forwards;
 }
 
 .slide-left-out {
+    position: relative;
     animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in {
+    position: relative;
     animation: slide-right-in 0.4s forwards;
 }
 
 .slide-right-out {
+    position: relative;
     animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in {
+    position: relative;
     animation: slide-top-in 0.4s forwards;
 }
 
 .slide-top-out {
+    position: relative;
     animation: slide-top-out 0.2s forwards;
 }
 
 .slide-bottom-in {
+    position: relative;
     animation: slide-bottom-in 0.4s forwards;
 }
 
 .slide-bottom-out {
+    position: relative;
     animation: slide-bottom-out 0.1s forwards;
 }
 
@@ -129,45 +161,45 @@
 
 /** Keyframes Left to Right **/
 @keyframes slide-left-in {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(0%); }
+    0% { left: -100%; }
+    100% { left: 0%; }
 }
 
 @-webkit-keyframes slide-left-in {
-    0% { transform: translateX(-100%); }
-    100% { -webkit-transform: translateX(0%); }
+    0% { left: -100%; }
+    100% { left: 0%; }
 }
     
 @keyframes slide-left-out {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(-100%); }
+    0% { left: 0%; }
+    100% { left: -100%; }
 }
 
 @-webkit-keyframes slide-left-out {
-    0% { -webkit-transform: translateX(0%); }
-    100% { -webkit-transform: translateX(-100%); }
+    0% { left: 0%; }
+    100% { left: -100%; }
 }
 
 /** Keyframes Right to Left **/
 @keyframes slide-right-in {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(0%); }
+    0% { left: 100%; }
+    100% { left: 0%; }
 }
 
 @-webkit-keyframes slide-right-in
 {
-    0% { transform: translateX(100%); }
-    100% { -webkit-transform: translateX(0%); }
+    0% { left: 100%; }
+    100% { left: 0%; }
 }
     
 @keyframes slide-right-out {
-    0% { transform: translateX(0%); }
-    100% { transform: translateX(100%); }
+    0% { left: 0%; }
+    100% { left: 100%; }
 }
 
 @-webkit-keyframes slide-right-out {
-    0% { -webkit-transform: translateX(0%); }
-    100% { -webkit-transform: translateX(100%); }
+    0% { left: 0%; }
+    100% { left: 100%; }
 }
 
 /** Keyframes Top to Bottom **/
@@ -230,12 +262,6 @@
     }
 }
 
-/**
- * Date & Datetime picker v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jtools
- */
- 
 .jcalendar {
     position:absolute;
     z-index:9000;
@@ -472,11 +498,27 @@
     box-shadow: 0 8px 10px 1px rgba(0,0,0,0.14), 0 3px 14px 2px rgba(0,0,0,0.12), 0 5px 5px -3px rgba(0,0,0,0.2);
     background-color:#fff;
     box-sizing: border-box;
+    min-width: 260px;
+}
+
+.jcolor-controls {
+    display: flex;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 5px;
+}
+
+.jcolor-controls div {
+    flex: 1;
+    font-size: 1em;
+    color: var(--active-color);
+    text-transform: uppercase;
+    font-weight: bold;
+    box-sizing: border-box;
 }
 
 .jcolor-content table {
-    border-collapse: initial;
-    padding: 7px !important;
+    border-collapse: collapse;
     box-sizing: border-box;
 }
 
@@ -487,17 +529,16 @@
 .jcolor table {
     width:100%;
     height:100%;
+    min-height: 160px;
 }
 
 .jcolor td {
     padding: 7px;
-    border:2px solid #fff;
 }
 
 .jcolor-selected {
-    border:2px solid #000 !important;
     background-repeat:no-repeat;
-    background-size: cover;
+    background-size: 16px;
     background-position: center;
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z' fill='white'/%3E%3C/svg%3E");
 }
@@ -506,28 +547,24 @@
     position: fixed;
     bottom: 0px;
     width:100%;
-    max-height:250px;
+    max-height: 290px;
     border-radius: 0px;
     box-sizing: border-box;
 }
 
-.jcolor-close {
-    display: none;
-    font-size: 1em;
-    color: var(--active-color);
-    text-transform: uppercase;
-    text-align: right;
+.jcolor-fullscreen .jcolor-controls {
     padding: 15px;
-    font-weight: bold;
     -webkit-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     -moz-box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
     box-shadow: 1px 0px 1px 0px rgba(0,0,0,0.39);
-    width: 100%;
-    box-sizing: border-box;
 }
 
-.jcolor-fullscreen .jcolor-close {
-    display: block;
+.jcolor-reset {
+    text-align: left;
+}
+
+.jcolor-close {
+    text-align: right;
 }
 
 .jcolor-backdrop {
@@ -551,12 +588,141 @@
                                   supported by Chrome and Opera */
 }
 
-/**
- * Contextmenu v1.0.1
- * Author: paul.hodel@gmail.com
- * https://github.com/paulhodel/jsuites
- */
- 
+.jcolor-content .jtabs-content {
+    padding: 7px;
+}
+
+.jcolor-grid tr:first-child > td:first-child {
+    border-top-left-radius: 3px;
+}
+
+.jcolor-grid tr:first-child > td:last-child {
+    border-top-right-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:first-child {
+    border-bottom-left-radius: 3px;
+}
+
+.jcolor-grid tr:last-child > td:last-child {
+    border-bottom-right-radius: 3px;
+}
+
+.jcolor-hsl {
+    box-sizing: border-box;
+}
+
+.jcolor-hsl > div {
+    height: 100%;
+    position: relative;
+}
+
+.jcolor-hsl canvas {
+    display: block;
+    border-radius: 4px;
+    -webkit-user-drag: none;
+}
+
+.jcolor-point {
+    height: 5px;
+    width: 5px;
+    background-color: #000;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+}
+
+.jcolor-sliders {
+    padding: 10px 20px 10px 10px;
+}
+
+.jcolor-sliders input {
+    -webkit-appearance: none;
+
+    height: 12px;
+    width: 80%;
+
+    background: #d3d3d3;
+    opacity: 1;
+
+    border-radius: 30px;
+    outline: none;
+}
+
+.jcolor-sliders-input-subcontainer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.jcolor-sliders-input-container {
+    margin-top: 4px;
+    line-height: 0.8em;
+    text-align: left;
+}
+
+.jcolor-sliders-input-container > label {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: #bbbbbd;
+}
+
+.jcolor-sliders-input-subcontainer > input {
+    border: 0px;
+    padding: 1px;
+}
+
+.jcolor-sliders-input-container input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-input-container input::-moz-range-thumb {
+    -webkit-appearance: none;
+    height: 12px;
+    width: 12px;
+    border-radius: 50%;
+    background: #000;
+    border: 2px solid #fff;
+    cursor: pointer;
+}
+
+.jcolor-sliders-final-color {
+    padding: 6px;
+    user-select: all;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.jcolor-sliders-final-color > div:nth-child(2) {
+    width: 71px;
+    text-transform: uppercase;
+}
+
+.jcolor .jtabs .jtabs-headers-container .jtabs-controls {
+    display: none !important;
+}
+
+.jcolor .jtabs .jtabs-headers-container {
+    display: flex !important;
+    justify-content: center;
+    padding: 4px;
+}
+
+.jcolor .jtabs-headers > div:not(.jtabs-border) {
+    padding: 2px !important;
+    padding-left: 15px !important;
+    padding-right: 15px !important;
+    font-size: 0.8em;
+}
+
 .jcontextmenu {
     position:fixed;
     z-index:10000;
@@ -656,14 +822,6 @@
   pointer-events: auto;
 }
 
-/**
- * (c) 2013 jDropdown
- * http://www.github.com/paulhodel/jdropdown
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Custom dropdowns
- */
-
 .jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;
@@ -730,7 +888,7 @@
     box-sizing: border-box;
     -webkit-appearance: none;
     -moz-appearance: none;
-    padding-right:30px;
+    padding-right:30px !important;
 }
 
 .jdropdown-insert-button
@@ -875,20 +1033,18 @@
     color:#fff;
 }
 
-.jdropdown-default .jdropdown-group
-{
+.jdropdown-default .jdropdown-group {
     margin-top:5px;
 }
 
-.jdropdown-default .jdropdown-group .jdropdown-item
-{
+.jdropdown-default .jdropdown-group .jdropdown-item {
     padding-left:16px;
 }
 
-.jdropdown-default .jdropdown-group-name
-{
-    padding-left:8px;
-    font-weight:bold;
+.jdropdown-default .jdropdown-group-name {
+    padding-left: 8px;
+    font-weight: bold;
+    text-align: left;
 }
 
 .jdropdown-default .jdropdown-reset_ {
@@ -993,21 +1149,29 @@
 .jdropdown-searchbar.jdropdown-focus
 {
     position:fixed;
-    top:0px;
-    left:0px;
-    width:100%;
-    height:100%;
+    top:0px !important;
+    left:0px !important;
+    width:100% !important;
+    height:100% !important;
     background-color:#fafafa;
     padding:0px;
     z-index:9001;
     overflow-y:scroll;
+    will-change: scroll-position;
+    -webkit-overflow-scrolling: touch;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-container-header
 {
+    position: fixed;
+    top: 0px;
+    left: 0px;
+    z-index: 9002;
     padding:10px;
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
+    max-height: 24px;
+    width: 100%;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header
@@ -1032,6 +1196,7 @@
 
 .jdropdown-searchbar .jdropdown-container
 {
+    margin-top: 40px;
     width:100%;
 }
 
@@ -1156,18 +1321,20 @@
     background-position:top 50% right 10px;
 }
 
-@media only screen and (max-device-width : 800px)
+@media only screen and (max-width : 800px)
 {
-    .jdropdown-list
-    {
+    .jdropdown-list {
         width:100% !important;
         border:0px;
         padding:0px;
     }
 
-    .jdropdown-list .jdropdown-container
-    {
+    .jdropdown-list .jdropdown-container {
         min-width:100%;
+    }
+
+    .jdropdown-searchbar.jdropdown-focus .jdropdown-description {
+        text-transform: uppercase;
     }
 }
 
@@ -1191,16 +1358,14 @@
     margin-right: 6px;
 }
 
-/**
- * (c) jTools Text Editor
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline richtext editor
- */
+.jdropdown-item[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
 
- .jeditor-container {
+.jeditor-container {
     border:1px solid #ccc;
+    box-sizing: border-box;
 }
 
 .jeditor-dragging {
@@ -1218,7 +1383,7 @@
 }
 
 .jeditor-container.jeditor-padding .jeditor {
-    min-height:160px;
+    min-height:100px;
     margin-bottom:10px;
     padding:10px;
 }
@@ -1354,6 +1519,9 @@
 .jeditor img {
     border:2px solid transparent;
     box-sizing: border-box;
+}
+
+.jeditor img.resizing {
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -1368,6 +1536,7 @@
 
 .jeditor img:focus {
     border:2px solid #0096FD;
+    outline: #0096FD;
 }
 
 .jeditor .pdf {
@@ -1378,14 +1547,6 @@
     height:60px;
 }
 
-
-/**
- * (c) jLoading
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Page loading spin
- */
 
 .jloading {
     position:fixed;
@@ -1438,9 +1599,9 @@
     background-color:#fff;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
-    padding-top:50px;
+    padding-top:50px !important;
     z-index:9002;
-    border-radius:5px;
+    border-radius: 8px;
 }
 
 .jmodal:before {
@@ -1451,11 +1612,10 @@
     content:attr(title);
     padding:15px;
     box-sizing: border-box;
-    background: #e3e3e3;
-    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#e3e3e3');
-    background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#e3e3e3));
-    background: -moz-linear-gradient(top,  #ededed,  #e3e3e3);
     font-size:1.2em;
+    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
+    background-color: #fff;
+    border-radius: 8px 8px 0px 0px;
 }
 
 .jmodal_content {
@@ -1466,7 +1626,7 @@
     height: -webkit-fill-available;
 }
 .jmodal.no-title {
-    padding-top:0px;
+    padding-top: initial !important;
 }
 
 .jmodal.no-title:before {
@@ -1525,6 +1685,7 @@
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 10px;
+    bottom: 0px;
 }
 
 .jnotification-container {
@@ -1532,6 +1693,14 @@
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     padding: 12px;
     border-radius: 8px;
+
+    background-color: #000;
+    background: rgba(92,92,92,1);
+    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
+    color: #fff;
+    width: 320px;
+    margin: 30px;
+    padding: 20px;
 }
 
 .jnotification-close {
@@ -1575,19 +1744,6 @@
     letter-spacing: 0.1em;
 }
 
-.jnotification {
-    bottom: 0px;
-}
-.jnotification-container {
-    background-color: #000;
-    background: rgba(92,92,92,1);
-    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
-    color: #fff;
-    width: 320px;
-    margin: 30px;
-    padding: 20px;
-}
-
 .jnotification-error .jnotification-container {
     background: rgb(182,38,6);
     background: linear-gradient(0deg, rgba(170,41,13,1) 0%, rgba(149,11,11,1) 100%);
@@ -1602,6 +1758,8 @@
         background: rgba(255,255,255,0.95);
         border: 1px solid #eee;
         color: #444;
+        margin: 0px;
+        width: initial;
     }
     .jnotification-error .jnotification-container {
         background: rgba(255,255,255,0.95);
@@ -1636,6 +1794,7 @@
     -ms-user-select: none;
     user-select: none;
     outline: none;
+    position: relative;
 }
 
 .jpicker-header {
@@ -1669,23 +1828,50 @@
     padding: 4px;
     z-index: 50;
     text-align: left;
+    max-height: 200px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
 }
 
-.jpicker-content div {
+.jpicker-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.jpicker-content::-webkit-scrollbar-track {
+    background: #eee;
+}
+ 
+.jpicker-content::-webkit-scrollbar-thumb {
+    background: #888;
+}
+ 
+.jpicker-content > div {
     padding: 6px;
     padding-left: 15px;
     padding-right: 15px;
 }
 
-.jpicker-focus .jpicker-content {
+.jpicker-focus > .jpicker-content {
     display: block;
 }
 
-.jpicker-content div:hover {
+.jpicker-content > div:hover {
     background-color:#efefef;
 }
 
+.jpicker-content > div:empty {
+    opacity: 0;
+}
 
+.jpicker-header > i, .jpicker-header > div {
+    display: block;
+}
+
+.jpicker-focus > .jpicker-content.jpicker-columns {
+    display: flex !important ;
+    justify-content: center;
+    flex-wrap: wrap;
+}
 
 
 .jprogressbar
@@ -1750,32 +1936,177 @@
 }
 
 
-/**
- * (c) Image slider
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Image Slider
- */
+.jsearch {
+    position: relative;
+    display: none;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jsearch_container {
+    position: absolute;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.302), 0 2px 6px 2px rgba(60,64,67,0.149);
+    border: none;
+    -webkit-border-radius: 4px;
+    border-radius: 4px;
+    width: 280px;
+    padding: 8px 0;
+
+    -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    -webkit-transition: opacity .218s;
+    transition: opacity .218s;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,.2);
+    cursor: pointer;
+    margin: 0;
+    min-width: 300px;
+    outline: none;
+    width: auto;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jsearch_container:empty:after {
+    content: attr(data-placeholder);
+}
+
+.jsearch_container > div {
+    color: #333;
+    cursor: pointer;
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: flex;
+    padding: 5px 10px;
+    user-select: none;
+    -webkit-align-items: center;
+    align-items: center;
+    
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jsearch_container > div:hover {
+    background-color: #e8eaed;
+}
+
+.jsearch_container > div > img {
+    width: 32px;
+    height: 32px;
+    user-select: none;
+    border-radius: 16px;
+    margin-right: 2px;
+}
+
+.jsearch_container > div > div {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-left: 2px;
+    max-width: 300px;
+    white-space: nowrap;
+    user-select: none;
+}
+
+.jsearch_container .selected {
+    background-color: #e8eaed;
+}
 
 .jslider {
-    margin-top:10px;
-    margin-bottom:10px;
+    outline: none;
 }
 
-.jslider-container img {
-    width:60px;
-    margin-right:5px;
-    margin-bottom:5px;
+.jslider-focus {
+    width: 100% !important;
+    height: 100% !important;
 }
 
-.jslider-attach {
-    cursor:pointer;
+.jslider-focus img {
+    display: none;
+}
+
+.jslider img {
+    width: 100px;
+}
+
+.jslider-album:not(.jslider-focus) {
+    height: -webkit-fill-available;
+
+    display: flex;
+    flex-direction: column;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.jslider-album:not(.jslider-focus) img {
+    object-fit: cover;
+    cursor: pointer;
+
+    box-sizing: border-box;
+}
+
+.jslider-m1:not(.jslider-focus) img:first-child {
+    height: 100%;
+    width: 100%;
+}
+
+.jslider-m2:not(.jslider-focus) img:first-child {
+    height: 100%;
+    width: 70%;
+
+    padding-right: 2px;
+}
+
+.jslider-m2:not(.jslider-focus) img:not(:first-child) {
+    height: 50%;
+    width: 30%;
+}
+
+.jslider-m2:not(.jslider-focus) img:nth-child(2) {
+    padding-bottom: 1px;
+}
+
+.jslider-m2:not(.jslider-focus) img:nth-child(3) {
+    padding-top: 1px;
+}
+
+.jslider-m3:not(.jslider-focus) img:first-child {
+    height: 100%;
+    width: 75%;
+
+    padding-right: 2px;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(n+2):nth-child(-n+4) {
+    height: 33.33%;
+    width: 25%;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(2) {
+    padding-bottom: 1px;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(3) {
+    padding: 1px 0;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(4) {
+    padding-top: 1px;
+}
+
+.jslider-m3:not(.jslider-focus) img:nth-child(n+5) {
+    display: none;
 }
 
 .jslider-left::before {
     position: fixed;
-    left: 10px;
+    left: 15px;
+    top: 50%;
     content:'arrow_back_ios';
     color: #fff;
     width: 30px;
@@ -1784,11 +2115,13 @@
     font-size: 30px;
     text-shadow: 0px 0px 0px #000;
     text-align: center;
+    cursor: pointer;
 }
 
 .jslider-right::after {
     position: fixed;
-    right: 5px;
+    right: 15px;
+    top: 50%;
     content: 'arrow_forward_ios';
     color: #fff;
     width: 30px;
@@ -1797,6 +2130,7 @@
     font-size: 30px;
     text-shadow: 0px 0px 0px #000;
     text-align: center;
+    cursor: pointer;
 }
 
 .jslider-close {
@@ -1806,24 +2140,70 @@
     position:fixed;
     top:15px;
     right:15px;
-    display:none;
     cursor:pointer;
     z-index:3000;
 }
 
-.jslider-preview {
+.jslider-counter {
+    height:24px;
+    background-color: transparent;
+    position:fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 15px;
+    cursor:pointer;
+    z-index:3000;
+
+    display: flex;
+    display: -webkit-flex;
+    -webkit-justify-content: center;
+    -webkit-align-items: center;   
+    -webkit-flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    flex-direction: row;
+}
+
+.jslider-caption {
+    position: fixed;
+    max-width: 90vw;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    top:15px;
+    left: 15px;
+    z-index:3000;
+    color: #FFF;
+    font-size: 1rem;
+}
+
+.jslider-counter div {
+    width: 10px;
+    height: 10px;
+    background: #fff;
+    border-radius: 50%;
+    margin: 0px 5px;
+}
+
+.jslider-counter .jslider-counter-focus {
+    background-color: cornflowerblue;
+    pointer-events: none;
+}
+
+.jslider-focus {
     position:fixed;
     left:0;
     top:0;
     width: 100%;
     min-height:100%;
+    max-height:100%;
     z-index:2000;
     margin:0px;
     box-sizing:border-box;
 
-    background-color:rgba(0,0,0,0.9);
-    -webkit-transition-duration: .4s;
-    transition-duration: .4s;
+    background-color:rgba(0,0,0,0.8);
+    -webkit-transition-duration: .05s;
+    transition-duration: .05s;
     display: flex;
     -ms-flex-align: center;
     -webkit-align-items: center;
@@ -1832,27 +2212,38 @@
     align-items: center;
 }
 
-.jslider-preview img {
-    min-width:70%;
-    max-width:100%;
-    height:auto;
+.jslider-focus img {
+    width: 50vw;
+    height: auto;
     box-sizing: border-box;
     margin:0 auto;
     vertical-align:middle;
     display:none;
 }
 
+.jslider-focus img.jslider-vertical {
+    width: auto;
+    height: 80vh;
+}
 
 .jtabs {
     max-width: 100vw;
     position: relative;
 }
-.jtabs > .jtabs-headers {
+
+.jtabs .jtabs-headers-container {
     display: flex;
-    overflow-x: auto;
+    align-items: center;
 }
 
-.jtabs > .jtabs-headers > div {
+.jtabs .jtabs-headers {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+.jtabs .jtabs-headers > div:not(.jtabs-border) {
     padding: 6px;
     padding-left: 20px;
     padding-right: 20px;
@@ -1862,45 +2253,123 @@
     background-color: #f1f1f1;
     cursor: pointer;
     white-space: nowrap;
+    text-align: center;
 }
 
-.jtabs > .jtabs-headers > div.jtabs-selected {
+.jtabs .jtabs-headers > div.jtabs-selected {
     background-color: #e8e8e8;
     color: #000;
 }
 
-.jtabs > .jtabs-content {
+.jtabs .jtabs-headers > div > div {
+    color: #555;
+    width: 100%;
+    overflow: hidden;
+}
+
+.jtabs .jtabs-headers i {
+    display: block;
+    margin: auto;
+}
+
+.jtabs .jtabs-content {
     box-sizing: border-box;
 }
 
-.jtabs > .jtabs-content > div {
+.jtabs .jtabs-content > div {
     display: none;
     box-sizing: border-box;
 }
 
-.jtabs > .jtabs-content > div.jtabs-selected {
+.jtabs .jtabs-content > div.jtabs-selected {
     display: block;
 }
 
-.jtabs > .jtabs-border {
+.jtabs .jtabs-border {
     position: absolute;
     height: 2px;
     background-color: #888;
     transform-origin: left;
     transition: all .2s cubic-bezier(0.4,0,0.2,1);
     transition-property: color,left,transform;
+    display: none;
 }
 
-.jtabs .jtabs-add {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z' fill='%23bbbbbb'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+.jtabs-animation .jtabs-border {
+    display: initial;
+}
+
+.jtabs .jtabs-controls {
+    margin: 3px;
+    margin-left: 10px;
+    display: flex;
+    min-width: 82px;
+}
+
+.jtabs .jtabs-controls > div {
     cursor: pointer;
     background-position: center;
     background-repeat: no-repeat;
     width: 24px;
     height: 24px;
     line-height: 24px;
-    margin: 3px;
+}
+
+.jtabs .jtabs-prev {
     margin-left: 10px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E");
+}
+
+.jtabs .jtabs-prev.disabled {
+    margin-left: 10px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='lightgray' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z'/%3E%3C/svg%3E");
+}
+
+.jtabs .jtabs-next {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E");
+}
+
+.jtabs .jtabs-next.disabled {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='lightgray' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z'/%3E%3C/svg%3E");
+}
+
+.jtabs .jtabs-add {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' height='24' viewBox='0 0 24 24' width='24'%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z' fill='%23bbbbbb'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+}
+
+/** Modern skin **/
+
+.jtabs.jtabs-modern .jtabs-headers > div:not(.jtabs-border) {
+    padding: 4px;
+    padding-left: 10px;
+    padding-right: 10px;
+    background-color: #fff;
+}
+
+.jtabs.jtabs-modern .jtabs-headers > .jtabs-selected  {
+    color: #000;
+}
+
+.jtabs.jtabs-modern .jtabs-headers > .jtabs-selected .material-icons {
+    color: #000;
+}
+
+.jtabs .jtabs-headers {
+    font-size: .9rem;
+}
+
+.jtabs.jtabs-modern .jtabs-headers {
+    background: #EEEEEF !important;
+    padding: 2px;
+    border-radius: 4px;
+}
+
+.jtabs.jtabs-modern .jtabs-headers .jtabs-border {
+    border-color: #EEEEEF !important;
+}
+
+.jtabs.jtabs-modern .jtabs-border {
+    background-color: rgba(194, 197, 188, 0.884);
 }
 
 .jtags {
@@ -1916,6 +2385,13 @@
     border: 1px solid #ccc;
 } 
 
+.jtags.jtags-empty:not(.jtags-focus)::before {
+    position: absolute;
+    margin: 5px;
+    color: #ccc;
+    content:attr(data-placeholder);
+}
+
 .jtags > div {
     padding: 3px;
     padding-left: 10px;
@@ -1925,6 +2401,11 @@
     margin: 2px;
     display: block;
     outline: none;
+}
+
+.jtags > div:empty:before {
+    content: " ";
+    white-space: pre;
 }
 
 .jtags > div::after {
@@ -1957,67 +2438,6 @@
 }
 
 
-.jtags_search {
-    position: absolute;
-    display: none;
-    box-shadow: 0 1px 2px 0 rgba(60,64,67,0.302), 0 2px 6px 2px rgba(60,64,67,0.149);
-    border: none;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-    width: 280px;
-    padding: 8px 0;
-
-    -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    -webkit-transition: opacity .218s;
-    transition: opacity .218s;
-    background: #fff;
-    border: 1px solid rgba(0,0,0,.2);
-    cursor: pointer;
-    margin: 0;
-    min-width: 300px;
-    outline: none;
-    width: auto;
-    user-select: none;
-}
-
-.jtags_search > div {
-    color: #333;
-    cursor: pointer;
-    display: -webkit-box;
-    display: -webkit-flex;
-    display: flex;
-    padding: 5px 10px;
-    user-select: none;
-    -webkit-align-items: center;
-    align-items: center;
-}
-
-.jtags_search > div:hover {
-    background-color: #e8eaed;
-}
-
-.jtags_search > div > img {
-    width: 32px;
-    height: 32px;
-    user-select: none;
-    border-radius: 16px;
-    margin-right: 2px;
-}
-
-.jtags_search > div > div {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    margin-left: 2px;
-    max-width: 300px;
-    white-space: nowrap;
-    user-select: none;
-}
-
-.jtags_search .selected {
-    background-color: #e8eaed;
-}
-
 .jtoolbar-container {
     border-radius: 2px;
     margin-bottom: 5px;
@@ -2044,7 +2464,7 @@
     left: 0;
     width: 100%;
     background: #f7f7f8;
-    z-index: 500;
+    z-index: 1;
     box-sizing: border-box;
     box-shadow: 0 -1px 2px rgba(0,0,0,.1);
     border-radius: 0px;
@@ -2078,7 +2498,7 @@
 
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
-    height: 24px;
+    height: 18px;
     padding: 0px;
     margin-left: 4px;
     margin-right: 4px;
@@ -2137,9 +2557,11 @@
     padding-right: 20px;
     padding-left: 4px;
     background-position: top 50% right 0px;
+    display: flex;
+    align-items: center;
 }
 
-.jtoolbar .jpicker-content div {
+.jtoolbar .jpicker-content > div {
     padding: 6px;
 }
 
@@ -2148,11 +2570,48 @@
 }
 
 .jtoolbar .fa {
+    width: 18px;
+    height: 18px;
+    display: block;
+    line-height: 18px;
+    font-size: 14px;
+}
+
+.jtoolbar .material-icons {
+    font-size: 18px;
     width: 24px;
     height: 24px;
     display: block;
     line-height: 24px;
+    transform: rotate(0.03deg);
+    text-align: center;
 }
 
+.jtoolbar .jtoolbar-arrow {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
+    width: 16px;
+    height: 18px;
+}
+
+.jtoolbar-floating {
+    position: absolute;
+    display: none;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 50;
+    text-align: left;
+}
+
+.jtoolbar-floating > div {
+    display: block;
+}
+
+.jtoolbar-arrow-selected .jtoolbar-floating {
+    display: block;
+}
 
 

@@ -107,6 +107,10 @@ jSuites.contextmenu = (function(el, options) {
             var itemText = document.createElement('a');
             itemText.innerHTML = item.title;
 
+            if (item.tooltip) {
+                itemContainer.setAttribute('title', item.tooltip);
+            }
+
             if (item.icon) {
                 itemContainer.setAttribute('data-icon', item.icon);
             }
@@ -119,6 +123,9 @@ jSuites.contextmenu = (function(el, options) {
                 itemContainer.className = 'jcontextmenu-disabled';
             } else if (item.onclick) {
                 itemContainer.method = item.onclick;
+                itemContainer.addEventListener("mousedown", function(e) {
+                    e.preventDefault();
+                });
                 itemContainer.addEventListener("mouseup", function() {
                     // Execute method
                     this.method(this);
@@ -166,9 +173,7 @@ jSuites.contextmenu = (function(el, options) {
     }
 
     el.addEventListener('blur', function(e) {
-        setTimeout(function() {
-            obj.close();
-        }, 120);
+        obj.close();
     });
 
     if (! jSuites.contextmenu.hasEvents) {

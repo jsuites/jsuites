@@ -1,11 +1,3 @@
-/**
- * (c) HTML Editor
- * https://github.com/paulhodel/jsuites
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline simple richtext editor
- */
-
 jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};
@@ -38,18 +30,23 @@ jSuites.editor = (function(el, options) {
         toolbar: null,
         // Website parser is to read websites and images from cross domain
         remoteParser: null,
+        // Placeholder
+        placeholder: null,
         // Parse URL
         parseURL: false,
+        filterPaste: true,
         // Accept drop files
         dropZone: false,
         dropAsAttachment: false,
         acceptImages: false,
         acceptFiles: false,
-        maxFileSize: 5000000, 
+        maxFileSize: 5000000,
+        allowImageResize: true,
         // Style
         border: true,
         padding: true,
         maxHeight: null,
+        height: null,
         focus: false,
         // Events
         onclick: null,
@@ -58,6 +55,7 @@ jSuites.editor = (function(el, options) {
         onload: null,
         onkeyup: null,
         onkeydown: null,
+        onchange: null,
     };
 
     // Loop through our object
@@ -91,6 +89,11 @@ jSuites.editor = (function(el, options) {
         el.classList.add('jeditor-padding');
     }
 
+    // Placeholder
+    if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
+    }
+
     // Border
     if (obj.options.border == false) {
         el.style.border = '0px';
@@ -112,9 +115,15 @@ jSuites.editor = (function(el, options) {
     editor.className = 'jeditor';
 
     // Max height
-    if (obj.options.maxHeight) {
+    if (obj.options.maxHeight || obj.options.height) {
         editor.style.overflowY = 'auto';
-        editor.style.maxHeight = obj.options.maxHeight;
+
+        if (obj.options.maxHeight) {
+            editor.style.maxHeight = obj.options.maxHeight;
+        }
+        if (obj.options.height) {
+            editor.style.height = obj.options.height;
+        }
     }
 
     // Set editor initial value
@@ -126,6 +135,30 @@ jSuites.editor = (function(el, options) {
 
     if (! value) {
         var value = '<br>';
+    }
+
+    /**
+     * Onchange event controllers
+     */
+    var change = function(e) {
+        if (typeof(obj.options.onchange) == 'function') { 
+            obj.options.onchange(el, obj, e);
+        }
+
+        // Update value
+        obj.options.value = obj.getData();
+
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
+        }
     }
 
     /**
@@ -307,7 +340,10 @@ jSuites.editor = (function(el, options) {
      */
     obj.setData = function(html) {
         editor.innerHTML = html;
-        jSuites.editor.setCursor(editor, true);
+
+        if (obj.options.focus) {
+            jSuites.editor.setCursor(editor, true);
+        }
     }
 
     obj.getText = function() {
@@ -401,9 +437,15 @@ jSuites.editor = (function(el, options) {
                 newImage.className = 'jfile pdf';
 
                 insertNodeAtCaret(newImage);
-                jSuites.files[newImage.src] = data.result.substr(data.result.indexOf(',') + 1);
+
+                // Image content
+                newImage.content = data.result.substr(data.result.indexOf(',') + 1);
             });
         }
+    }
+
+    obj.getFiles = function() {
+        return jSuites.files(editor).get();
     }
 
     obj.addImage = function(src, name, size, date) {
@@ -449,7 +491,10 @@ jSuites.editor = (function(el, options) {
                     var content = canvas.toDataURL();
                     insertNodeAtCaret(newImage);
 
-                    jSuites.files[newImage.src] = content.substr(content.indexOf(',') + 1);
+                    // Image content
+                    newImage.content = content.substr(content.indexOf(',') + 1);
+
+                    change();
                 });
             };
 
@@ -590,7 +635,7 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.tagName == 'IMG') {
+        if (e.target.tagName == 'IMG' && obj.options.allowImageResize == true) {
             if (e.target.getAttribute('tabindex')) {
                 var rect = e.target.getBoundingClientRect();
                 if (e.clientY - rect.top < 5) {
@@ -665,50 +710,55 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorPaste = function(e) {
-        if (e.clipboardData || e.originalEvent.clipboardData) {
-            var html = (e.originalEvent || e).clipboardData.getData('text/html');
-            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-            var file = (e.originalEvent || e).clipboardData.files
-        } else if (window.clipboardData) {
-            var html = window.clipboardData.getData('Html');
-            var text = window.clipboardData.getData('Text');
-            var file = window.clipboardData.files
-        }
+        if (obj.options.filterPaste == true) {
+            if (e.clipboardData || e.originalEvent.clipboardData) {
+                var html = (e.originalEvent || e).clipboardData.getData('text/html');
+                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                var file = (e.originalEvent || e).clipboardData.files
+            } else if (window.clipboardData) {
+                var html = window.clipboardData.getData('Html');
+                var text = window.clipboardData.getData('Text');
+                var file = window.clipboardData.files
+            }
 
-        if (file.length) {
-            // Paste a image from the clipboard
-            obj.addFile(file);
-        } else {
-            // Paste text
-            text = text.split('\r\n');
-            var str = '';
-            if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
-                for (var i = 0; i < text.length; i++) {
-                    var tmp = document.createElement('div');
-                    if (text[i]) {
-                        tmp.innerHTML = text[i];
-                    } else {
-                        tmp.innerHTML = '<br/>';
-                    }
-                    e.target.appendChild(tmp);
-                }
+            if (file.length) {
+                // Paste a image from the clipboard
+                obj.addFile(file);
             } else {
-                for (var i = 0; i < text.length; i++) {
-                    if (text[i]) {
-                        str += '<div>' + text[i] + "</div>\r\n";
+                // Paste text
+                text = text.split('\r\n');
+                var str = '';
+                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
+                    for (var i = 0; i < text.length; i++) {
+                        var tmp = document.createElement('div');
+                        if (text[i]) {
+                            tmp.innerText = text[i];
+                        } else {
+                            tmp.innerHTML = '<br/>';
+                        }
+                        e.target.appendChild(tmp);
                     }
+                } else {
+                    var content = document.createElement('div');
+                    for (var i = 0; i < text.length; i++) {
+                        if (text[i]) {
+                            var div = document.createElement('div');
+                            div.innerText = text[i];
+                            content.appendChild(div);
+                        }
+                    }
+                    // Insert text
+                    document.execCommand('insertHtml', false, content.innerHTML);
                 }
-                // Insert text
-                document.execCommand('insertHtml', false, str);
+
+                // Extra images from the paste
+                if (obj.options.acceptImages == true) {
+                    extractImageFromHtml(html);
+                }
             }
 
-            // Extra images from the paste
-            if (obj.options.acceptImages == true) {
-                extractImageFromHtml(html);
-            }
+            e.preventDefault();
         }
-
-        e.preventDefault();
     }
 
     var editorDragStart = function(e) {
@@ -772,11 +822,19 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorBlur = function(e) {
-        obj.options.onblur(el, obj, e);
+        // Blur
+        if (typeof(obj.options.onblur) == 'function') {
+            obj.options.onblur(el, obj, e);
+        }
+
+        change(e);
     }
 
     var editorFocus = function(e) {
-        obj.options.onfocus(el, obj, e);
+        // Focus
+        if (typeof(obj.options.onfocus) == 'function') {
+            obj.options.onfocus(el, obj, e);
+        }
     }
 
     editor.addEventListener('mouseup', editorMouseUp);
@@ -789,16 +847,8 @@ jSuites.editor = (function(el, options) {
     editor.addEventListener('dragover', editorDragOver);
     editor.addEventListener('drop', editorDrop);
     editor.addEventListener('paste', editorPaste);
-
-    // Blur
-    if (typeof(obj.options.onblur) == 'function') {
-        editor.addEventListener('blur', editorBlur);
-    }
-
-    // Focus
-    if (typeof(obj.options.onfocus) == 'function') {
-        editor.addEventListener('focus', editorFocus);
-    }
+    editor.addEventListener('focus', editorFocus);
+    editor.addEventListener('blur', editorBlur);
 
     // Onload
     if (typeof(obj.options.onload) == 'function') {
@@ -835,6 +885,18 @@ jSuites.editor = (function(el, options) {
     // Focus to the editor
     if (obj.options.focus) {
         jSuites.editor.setCursor(editor, obj.options.focus == 'initial' ? true : false);
+    }
+
+    // Change method
+    el.change = obj.setData;
+
+    // Global generic value handler
+    el.val = function(val) {
+        if (val === undefined) {
+            return obj.getData();
+        } else {
+            obj.setData(val);
+        }
     }
 
     el.editor = obj;

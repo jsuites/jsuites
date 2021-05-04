@@ -7,9 +7,12 @@ jSuites.app = (function(el, options) {
         path: 'views',
         onbeforechangepage: null,
         onchangepage: null,
+        onbeforecreatepage: null,
         oncreatepage: null,
         onloadpage: null,
         toolbar: null,
+        route: null,
+        detachHiddenPages: false
     }
 
     // Loop through our object
@@ -24,16 +27,31 @@ jSuites.app = (function(el, options) {
     // App
     el.classList.add('japp');
 
-    obj.setToolbar = function(toolbar) {
-        if (toolbar) {
-            obj.options.toolbar = toolbar;
+    // Toolbar
+    var toolbar = document.createElement('div');
+
+    obj.setToolbar = function(o) {
+        if (o) {
+            obj.options.toolbar = o;
         }
-        var toolbar = document.createElement('div');
-        obj.toolbar = jSuites.toolbar(toolbar, {
-            app: obj,
-            items: obj.options.toolbar,
-        });
+        // Force application
+        obj.options.toolbar.app = obj;
+        // Set toolbar
+        obj.toolbar = jSuites.toolbar(toolbar, obj.options.toolbar);
+        // Add to the DOM
         el.appendChild(toolbar);
+    }
+
+    obj.hideToolbar = function() {
+        if (toolbar.style.display == '') {
+           toolbar.style.display = 'none';
+        }
+    }
+
+    obj.showToolbar = function() {
+        if (toolbar.style.display == 'none') {
+            toolbar.style.display = '';
+        }
     }
 
     /**
@@ -44,36 +62,47 @@ jSuites.app = (function(el, options) {
          * Create or access a page
          */
         var component = function(route, o, callback) {
-            // Page options
-            if (o && typeof(o) == 'object') {
-                var options = o;
-            } else {
-                var options = {};
-                if (! callback && typeof(o) == 'function') {
-                    callback = o;
+            var options = {};
+
+            if (o) {
+                if (typeof(o) == 'object') {
+                    var options = o;
+                } else {
+                    if (! callback && typeof(o) == 'function') {
+                        callback = o;
+                    }
                 }
             }
 
-            // If exists just open
-            if (component.container[route]) {
-                component.show(component.container[route], options, callback);
+            if (typeof(obj.options.route) == 'function') {
+                route = obj.options.route(route, options);
+            }
+
+            if (route === false) {
+                console.error('JSUITES: Permission denied');
             } else {
-                // Create a new page
-                if (! route) {
-                    console.error('JSUITES: Error, no route provided');
+                // Query string does not make part in the route
+                options.ident = route.split('?')[0].replace(/\/\d+$/g, '');
+                // Current Route
+                options.route = route;
+
+                // If exists just open
+                if (component.container[options.ident]) {
+                    component.show(component.container[options.ident], options, callback);
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
-                    // Keep Route
-                    options.route = route;
 
                     // New page url
                     if (! options.url) {
-                        options.url = obj.options.path + route + '.html';
+                        options.url = obj.options.path + options.ident + '.html';
                     }
 
                     // Create new page
-                    component.create(options, callback);
+                    var page = component.create(options, callback);
+
+                    // Container
+                    component.container[options.ident] = page;
                 }
             }
         }
@@ -86,30 +115,64 @@ jSuites.app = (function(el, options) {
             var page = document.createElement('div');
             page.classList.add('page');
 
-            // Container
-            component.container[o.route] = page;
-
-            // Always hidden
-            page.style.display = 'none';
-
             // Keep options
             page.options = o ? o : {};
 
-            if (! component.current) {
-                pages.appendChild(page);
-            } else {
-                pages.insertBefore(page, component.current.nextSibling);
+            // Create page overwrite
+            var ret = null;
+            if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                var ret = obj.options.onbeforecreatepage(obj, page);
+                if (ret === false) {
+                    return false;
+                }
+            }
+
+            var updateDOM = function() {
+                // Remove to avoid id conflicts
+                if (component.current && obj.options.detachHiddenPages == true) {
+                    while (component.element.children[0]) {
+                        component.element.children[0].parentNode.removeChild(component.element.children[0]);
+                    }
+                }
+
+                if (! component.current) {
+                    component.element.appendChild(page);
+                } else {
+                    component.element.insertBefore(page, component.current.nextSibling);
+                }
+            }
+
+            if (obj.options.detachHiddenPages == false) {
+                // Always hidden when created
+                page.style.display = 'none';
+                // Update DOM
+                updateDOM();
             }
 
             jSuites.ajax({
-                url: o.url,
+                url: o.url + '?ts=' + new Date().getTime(),
                 method: 'GET',
                 dataType: 'html',
+                queue: true,
                 success: function(result) {
+                    if (! page.parentNode) {
+                        // Update DOM
+                        updateDOM();
+                    }
+
+                    // Open page
+                    page.innerHTML = result;
+
+                    // Get javascript
+                    try {
+                        parseScript(page);
+                    } catch (e) {
+                        console.log(e);
+                    }
+
                     // Create page overwrite
-                    var ret = null;
                     if (typeof(obj.options.oncreatepage) == 'function') {
-                        ret = obj.options.oncreatepage(obj, page, result);
+                        obj.options.oncreatepage(obj, page, result);
                     }
 
                     // Push to refresh controls
@@ -117,12 +180,9 @@ jSuites.app = (function(el, options) {
                         jSuites.refresh(page, page.options.onpush);
                     }
 
-                    // Ignore create page actions 
-                    if (ret !== false) {
-                        // Open page
-                        page.innerHTML = result;
-                        // Get javascript
-                        parseScript(page);
+                    // Navbar
+                    if (page.querySelector('.navbar')) {
+                        page.classList.add('with-navbar');
                     }
 
                     // Global onload callback
@@ -146,10 +206,41 @@ jSuites.app = (function(el, options) {
         }
 
         component.show = function(page, o, callback) {
+            if (o) {
+                if (o.onenter) {
+                    page.options.onenter = o.onenter;
+                }
+                if (o.onleave) {
+                    page.options.onleave = o.onleave;
+                }
+            }
+
+            // Add history
+            if (! o || ! o.ignoreHistory) {
+                // Route
+                if (o && o.route) {
+                    var route = o.route;
+                }  else {
+                    var route = page.options.route;
+                }
+                // Add history
+                window.history.pushState({ route: route }, page.options.title, route);
+            }
+
             var pageIsReady = function() {
+                if (component.current) {
+                    component.current.style.display = 'none';
+
+                    if (component.current && obj.options.detachHiddenPages == true) {
+                        if (component.current.parentNode) {
+                            component.current.parentNode.removeChild(component.current);
+                        }
+                    }
+                }
+
                 // New page
                 if (typeof(obj.options.onchangepage) == 'function') {
-                    obj.options.onchangepage(obj, component.current, page, o);
+                    obj.options.onchangepage(obj, page, component.current, o);
                 }
 
                 // Enter event
@@ -166,16 +257,18 @@ jSuites.app = (function(el, options) {
                 component.current = page;
             }
 
+            // Append page in case was detached
+            if (! page.parentNode) {
+                component.element.appendChild(page);
+            }
+
             if (component.current) {
                 if (component.current != page) {
-                    // Keep scroll in the top
-                    window.scrollTo({ top: 0 });
-
                     // Show page
                     page.style.display = '';
 
-                    var a = Array.prototype.indexOf.call(pages.children, component.current);
-                    var b = Array.prototype.indexOf.call(pages.children, page);
+                    var a = Array.prototype.indexOf.call(component.element.children, component.current);
+                    var b = Array.prototype.indexOf.call(component.element.children, page);
 
                     // Before leave the page
                     if (typeof(obj.options.onbeforechangepage) == 'function') {
@@ -190,14 +283,34 @@ jSuites.app = (function(el, options) {
                         page.options.onleave(obj, component.current);
                     }
 
-                    jSuites.animation.slideLeft(pages, (a < b ? 0 : 1), function() {
-                        if (component.current != page) {
-                            component.current.style.display = 'none';
+                    // Animation only on mobile
+                    var rect = component.element.getBoundingClientRect();
 
-                            // Page is ready
+                    // Move to the top
+                    window.scrollTo({ top: 0 });
+
+                    // Page is ready
+                    if (rect.width < 800 && obj.options.detachHiddenPages == false) {
+                        jSuites.animation.slideLeft(component.element, (a < b ? 0 : 1), function() {
+                            if (component.current != page) {
+                                pageIsReady();
+                            }
+                        });
+                    } else {
+                        if (component.current != page) {
                             pageIsReady();
                         }
-                    });
+                    }
+                } else {
+                    // Enter event
+                    if (typeof(page.options.onenter) == 'function') {
+                        page.options.onenter(obj, page, component.current);
+                    }
+
+                    // Page is the same but should execute the callback anyway
+                    if (typeof(callback) == 'function') {
+                        callback(obj, page);
+                    }
                 }
             } else {
                 // Show
@@ -211,30 +324,37 @@ jSuites.app = (function(el, options) {
             if (page.options.toolbarItem) {
                 obj.toolbar.selectItem(page.options.toolbarItem);
             }
-
-            // Add history
-            if (! o || ! o.ignoreHistory) {
-                // Add history
-                window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
-            }
         }
 
         /**
          * Get a page by route
          */
         component.get = function(route) {
-            if (component.container[route]) {
-                return component.container[route]; 
+            var key = route.split('?')[0];
+            if (component.container[key]) {
+                return component.container[key]; 
             }
         }
 
         /**
-         * Destroy a page
+         * Reset the page container
          */
-        component.destroy = function() {
-            // TODO: create a destroy method
+        component.reset = function() {
+            // Container
+            component.element.innerHTML = '';
+            // Current
+            component.current = null;
         }
 
+        /**
+         * Reset the page container
+         */
+        component.destroy = function() {
+            // Reset container
+            component.reset();
+            // Destroy references
+            component.container = {};
+        }
         /**
          * Page container controller
          */
@@ -243,13 +363,53 @@ jSuites.app = (function(el, options) {
         /**
          * Pages DOM container
          */
-        var pages = el.querySelector('.pages');
-        if (! pages) {
-            pages = document.createElement('div');
-            pages.className = 'pages';
-            // Append page container to the application
-            el.appendChild(pages);
+        var pagesContainer = el.querySelector('.pages');
+        if (pagesContainer) {
+            component.element = pagesContainer;
+        } else {
+            component.element = document.createElement('div');
+            component.element.className = 'pages';
         }
+
+        // Prefetched content
+        if (el.innerHTML) {
+            // Create with the prefetched content
+            var page = document.createElement('div');
+            page.classList.add('page');
+            while (el.childNodes[0]) {
+                page.appendChild(el.childNodes[0]);
+            }
+            if (el.innerHTML) {
+                var div = document.createElement('div');
+                div.innerHTML = component.element.innerHTML;
+                page.appendChild(div);
+            }
+            // Container
+            var route = window.location.pathname;
+            component.container[route] = page;
+
+            // Keep options
+            page.options = {};
+            page.options.route = route;
+
+            // Current page
+            component.current = page;
+
+            // Place the page to the right container
+            if (! component.current) {
+                component.element.appendChild(page);
+            } else {
+                component.element.insertBefore(page, component.current.nextSibling);
+            }
+
+            // Create page overwrite
+            if (typeof(obj.options.oncreatepage) == 'function') {
+                obj.options.oncreatepage(obj, page, null);
+            }
+        }
+
+        // Append page container to the application
+        el.appendChild(component.element);
 
         return component;
     }();
@@ -352,81 +512,8 @@ jSuites.app = (function(el, options) {
         return component;
     }();
 
-    obj.actionsheet = function() {
-        // Actionsheet container
-        var actionsheet = el.querySelector('.actionsheet');
-        if (! actionsheet) {
-            var actionsheet = document.createElement('div');
-            actionsheet.className = 'jactionsheet';
-            actionsheet.style.display = 'none';
-
-            var actionContent = document.createElement('div');
-            actionContent.className = 'jactionsheet-content';
-            actionsheet.appendChild(actionContent);
-            // Append actionsheet container to the application
-            el.appendChild(actionsheet);
-        }
-
-        var component = function(options) {
-            if (options) {
-                obj.actionsheet.options = options;
-            }
-
-            // Reset container
-            actionContent.innerHTML = '';
-
-            // Create new elements
-            for (var i = 0; i < obj.actionsheet.options.length; i++) {
-                var actionGroup = document.createElement('div');
-                actionGroup.className = 'jactionsheet-group';
-
-                for (var j = 0; j < obj.actionsheet.options[i].length; j++) {
-                    var v = obj.actionsheet.options[i][j];
-                    var actionItem = document.createElement('div');
-                    var actionInput = document.createElement('input');
-                    actionInput.type = 'button';
-                    actionInput.value = v.title;
-                    if (v.className) {
-                        actionInput.className = v.className; 
-                    }
-                    if (v.onclick) {
-                        actionInput.event = v.onclick; 
-                        actionInput.onclick = function() {
-                            this.event(obj, component, this);
-                        }
-                    }
-                    if (v.action == 'cancel') {
-                        actionInput.style.color = 'red';
-                    }
-                    actionItem.appendChild(actionInput);
-                    actionGroup.appendChild(actionItem);
-                }
-
-                actionContent.appendChild(actionGroup);
-            }
-
-            // Show
-            actionsheet.style.display = '';
-
-            // Animation
-            jSuites.animation.slideBottom(actionContent, true);
-        }
-
-        component.close = function() {
-            if (actionsheet.style.display != 'none') {
-                // Remove any existing actionsheet
-                jSuites.animation.slideBottom(actionContent, false, function() {
-                    actionsheet.style.display = 'none';
-                });
-            }
-        }
-
-        component.get = function() {
-            return actionsheet;
-        }
-
-        return component;
-    }();
+    // Actionsheet
+    obj.actionsheet = jSuites.actionsheet(el, obj);
 
     /*
      * Parse javascript from an element
@@ -438,8 +525,8 @@ jSuites.app = (function(el, options) {
         for (var i = 0; i < script.length; i++) {
             // Get type
             var type = script[i].getAttribute('type');
-            if (! type || type == 'text/javascript') {
-                eval(script[i].innerHTML);
+            if (! type || type == 'text/javascript' || type == 'text/loader') {
+                eval(script[i].text);
             }
         }
     }
@@ -481,6 +568,14 @@ jSuites.app = (function(el, options) {
             }
         }
 
+        // Grouped buttons
+        if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
+            for (var j = 0; j < e.target.parentNode.children.length; j++) {
+                e.target.parentNode.children[j].classList.remove('selected');
+            }
+            e.target.classList.add('selected');
+        }
+
         // App links
         actionElement = jSuites.findElement(e.target, function(e) {
             return e.tagName == 'A' && e.getAttribute('href') ? e : false;
@@ -493,7 +588,8 @@ jSuites.app = (function(el, options) {
             } else if (link == '#panel') {
                 obj.panel();
             } else {
-                if (actionElement.classList.contains('link')) {
+                var href = actionElement.getAttribute('href');
+                if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
                     actionElement = null;
                 } else {
                     obj.pages(link);
@@ -519,14 +615,20 @@ jSuites.app = (function(el, options) {
         document.addEventListener('touchend', actionUp);
     } else {
         document.addEventListener('mousedown', actionDown);
-        document.addEventListener('mouseup', actionUp);
+        document.addEventListener('click', function(e) {
+            actionUp(e);
+        });
     }
 
     window.onpopstate = function(e) {
         if (e.state && e.state.route) {
             if (obj.pages.get(e.state.route)) {
                 obj.pages(e.state.route, { ignoreHistory: true });
+            } else {
+                window.location.href = e.state.route;
             }
+        } else {
+            window.location.reload();
         }
     }
 
@@ -535,6 +637,78 @@ jSuites.app = (function(el, options) {
     }
 
     el.app = obj;
+
+    return obj;
+});
+
+jSuites.actionsheet = (function(el, component) {
+    var obj = function(options) {
+        // Reset container
+        actionContent.innerHTML = '';
+
+        // Create new elements
+        for (var i = 0; i < options.length; i++) {
+            var actionGroup = document.createElement('div');
+            actionGroup.className = 'jactionsheet-group';
+
+            for (var j = 0; j < options[i].length; j++) {
+                var v = options[i][j];
+                var actionItem = document.createElement('div');
+                var actionInput = document.createElement('input');
+                actionInput.type = 'button';
+                actionInput.value = v.title;
+                if (v.className) {
+                    actionInput.className = v.className; 
+                }
+                if (v.onclick) {
+                    actionInput.event = v.onclick; 
+                    actionInput.onclick = function() {
+                        this.event(component, this);
+                    }
+                }
+                if (v.action == 'cancel') {
+                    actionInput.style.color = 'red';
+                }
+                actionItem.appendChild(actionInput);
+                actionGroup.appendChild(actionItem);
+            }
+
+            actionContent.appendChild(actionGroup);
+        }
+
+        // Show
+        actionsheet.style.display = '';
+
+        // Animation
+        jSuites.animation.slideBottom(actionContent, true);
+    }
+
+    obj.close = function() {
+        if (actionsheet.style.display != 'none') {
+            // Remove any existing actionsheet
+            jSuites.animation.slideBottom(actionContent, false, function() {
+                actionsheet.style.display = 'none';
+            });
+        }
+    }
+
+    obj.get = function() {
+        return actionsheet;
+    }
+
+    // Init action sheet
+    var actionsheet = document.createElement('div');
+    actionsheet.className = 'jactionsheet';
+    actionsheet.style.display = 'none';
+
+    var actionContent = document.createElement('div');
+    actionContent.className = 'jactionsheet-content';
+    actionsheet.appendChild(actionContent);
+
+    // Append actionsheet container to the application
+    el.appendChild(actionsheet);
+
+    el.actionsheet = obj;
 
     return obj;
 });

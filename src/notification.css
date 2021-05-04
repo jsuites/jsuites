@@ -4,6 +4,7 @@
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     padding: 10px;
+    bottom: 0px;
 }
 
 .jnotification-container {
@@ -11,6 +12,14 @@
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     padding: 12px;
     border-radius: 8px;
+
+    background-color: #000;
+    background: rgba(92,92,92,1);
+    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
+    color: #fff;
+    width: 320px;
+    margin: 30px;
+    padding: 20px;
 }
 
 .jnotification-close {
@@ -54,19 +63,6 @@
     letter-spacing: 0.1em;
 }
 
-.jnotification {
-    bottom: 0px;
-}
-.jnotification-container {
-    background-color: #000;
-    background: rgba(92,92,92,1);
-    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
-    color: #fff;
-    width: 320px;
-    margin: 30px;
-    padding: 20px;
-}
-
 .jnotification-error .jnotification-container {
     background: rgb(182,38,6);
     background: linear-gradient(0deg, rgba(170,41,13,1) 0%, rgba(149,11,11,1) 100%);
@@ -81,6 +77,8 @@
         background: rgba(255,255,255,0.95);
         border: 1px solid #eee;
         color: #444;
+        margin: 0px;
+        width: initial;
     }
     .jnotification-error .jnotification-container {
         background: rgba(255,255,255,0.95);

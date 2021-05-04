@@ -81,6 +81,7 @@ jSuites.animation.slideBottom = function(element, direction, done) {
 }
 
 jSuites.animation.fadeIn = function(element, done) {
+    element.style.display = '';
     element.classList.add('fade-in');
     setTimeout(function() {
         element.classList.remove('fade-in');
@@ -93,6 +94,7 @@ jSuites.animation.fadeIn = function(element, done) {
 jSuites.animation.fadeOut = function(element, done) {
     element.classList.add('fade-out');
     setTimeout(function() {
+        element.style.display = 'none';
         element.classList.remove('fade-out');
         if (typeof(done) == 'function') {
             done();

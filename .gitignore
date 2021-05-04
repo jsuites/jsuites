@@ -1,2 +1,11 @@
 .project
+<<<<<<< HEAD
 .settings
+/.buildpath
+=======
+.settings
+
+packages/react-cropper/node_modules/
+packages/react-cropper/dist/
+packages/react-cropper/yarn.lock
+>>>>>>> branch 'master' of https://github.com/jsuites/jsuites.git

@@ -87,6 +87,8 @@ jSuites.ajax = (function(options, complete) {
     } else {
         if (options.dataType == 'json') {
             httpRequest.setRequestHeader('Content-Type', 'text/json');
+        } else if (options.dataType == 'blob') {
+            httpRequest.responseType = "blob";
         }
     }
 
@@ -121,7 +123,11 @@ jSuites.ajax = (function(options, complete) {
                     }
                 }
             } else {
-                var result = httpRequest.responseText;
+                if (options.dataType == 'blob') {
+                    var result = httpRequest.response;
+                } else {
+                    var result = httpRequest.responseText;
+                }
 
                 if (options.success && typeof(options.success) == 'function') {
                     options.success(result);
@@ -146,8 +152,14 @@ jSuites.ajax = (function(options, complete) {
             jSuites.ajax.requests.splice(index, 1);
             // Last one?
             if (! jSuites.ajax.requests.length) {
+                // Object event
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
+                }
+                // Global event
+                if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
+                    jSuites.ajax.oncomplete[options.group]();
+                    jSuites.ajax.oncomplete[options.group] = null;
                 }
             }
             // Controllers
@@ -198,6 +210,6 @@ jSuites.ajax.exists = function(url, __callback) {
     }
 }
 
+jSuites.ajax.oncomplete = {};
 jSuites.ajax.requests = [];
-
 jSuites.ajax.queue = [];

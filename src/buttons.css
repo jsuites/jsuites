@@ -17,10 +17,25 @@
     color: #fff;
 }
 
+.jbutton.red {
+    background-color: #a23131;
+    border: 1px solid transparent;
+    color: #fff;
+}
+
 .jbutton.blue {
     border:1px solid transparent;
     color:#fff;
     background-color:#1a73e8;
+}
+
+.jbutton.mobile {
+    padding:4px;
+    padding-left:25px;
+    padding-right:25px;
+    cursor:pointer;
+    min-width:100px;
+    outline:none;
 }
 
 .jbutton[data-icon] {
@@ -55,23 +70,51 @@
     text-decoration: none;
 }
 
+@media only screen and (max-width : 800px) {
+    .jbutton {
+        margin: 2px;
+    }
+}
+
 .jbuttons-group {
     display: flex;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .jbuttons-group .jbutton {
     border-radius: 0px;
+    border: 1px solid gray;
     margin: 0px;
+    font-size: 0.9em;
+}
+
+.jbuttons-group.mobile .jbutton {
+    border-color: var(--active-color);
+    color: var(--active-color);
+    padding:4px;
+    padding-left:25px;
+    padding-right:25px;
+    cursor:pointer;
+    min-width:100px;
+    outline:none;
+}
+
+.jbuttons-group .jbutton.selected {
+    color: white;
+    background-color: var(--active-color);
 }
 
 .jbuttons-group .jbutton:first-child {
-    border-top-left-radius: 2px;
-    border-bottom-left-radius: 2px;
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
 }
 
 .jbuttons-group .jbutton:last-child {
-    border-top-right-radius: 2px;
-    border-bottom-right-radius: 2px;
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
 }
 
 /*.button-plain {
@@ -182,3 +225,29 @@
 .jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
 
 .jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
+
+.jrange {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: #d3d3d3;
+    outline: none;
+    opacity: 0.7;
+    -webkit-transition: .2s;
+    transition: opacity .2s;
+    padding: 0px;
+}
+
+.jrange:hover {
+  opacity: 1;
+}
+
+.jrange::-webkit-slider-thumb {
+  background: #4CAF50;
+  cursor: pointer;
+}
+
+.jrange::-moz-range-thumb {
+  background: #4CAF50;
+  cursor: pointer;
+}

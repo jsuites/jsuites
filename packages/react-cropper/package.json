@@ -1,0 +1,47 @@
+{
+    "name": "@jsuites/react-cropper",
+    "title": "React image cropper",
+    "description": "React image editor and cropper plugin, with crop, zoom, rotate, brightness, contract and methods to export the results.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "React plugins, javascript, image cropper, react image cropper, react image editor, rotate, zoom, crop, brightness, contract."
+    ],
+    "scripts": {
+        "build": "cross-env-shell NODE_ENV=production babel index.js --out-dir dist --copy-files --ignore __tests__,spec.js,test.js,__snapshots__"
+    },
+    "peerDependencies": {
+        "prop-types": "^15.7.2",
+        "react": "^17.0.0",
+        "react-dom": "^17.0.0"
+    },
+    "dependencies": {
+        "@jsuites/cropper": "^1.5.1"
+    },
+    "devDependencies": {
+        "@babel/cli": "^7.12.10",
+        "@babel/core": "^7.12.10",
+        "babel-preset-react-app": "^10.0.0",
+        "cross-env": "^7.0.3"
+    },
+    "main": "dist/index.js",
+    "files": [
+        "./dist"
+    ],
+    "version": "1.2.5",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v3",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}

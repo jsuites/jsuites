@@ -1,11 +1,3 @@
-/**
- * (c) jLoading
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Page loading spin
- */
-
 .jloading {
     position:fixed;
     z-index:10001;

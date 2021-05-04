@@ -15,7 +15,11 @@ jSuites.mask = (function() {
             }
 
             if (jSuites.isNumeric(value)) {
-                var number = (''+value).split(decimal);
+                if (typeof(value) == 'number') {
+                    var number = (''+value).split('.');
+                } else {
+                    var number = (''+value).split(decimal);
+                }
                 var value = number[0];
                 var valueDecimal = number[1];
             } else {
@@ -59,17 +63,32 @@ jSuites.mask = (function() {
     obj.apply = function(e) {
         if (e.target && ! e.target.getAttribute('readonly')) {
             var mask = e.target.getAttribute('data-mask');
-            if (mask) {
+            if (mask && e.key && e.key.length < 2) {
                 index = 0;
                 values = [];
                 // Create mask token
                 obj.prepare(mask);
                 // Current value
-                if (e.target.selectionStart < e.target.selectionEnd) {
-                    var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                var currentValue = '';
+                // Process selection
+                if (e.target.tagName == 'DIV') {
+                    if (e.target.innerText) {
+                        var s = window.getSelection();
+                        if (s && s.anchorOffset != s.focusOffset) {
+                            var offset = s.anchorOffset > s.focusOffset ? s.focusOffset : s.anchorOffset;
+                            var currentValue = e.target.innerText.substring(0, offset);
+                        } else {
+                            var currentValue = e.target.innerText;
+                        }
+                    }
                 } else {
-                    var currentValue = e.target.value;
+                    if (e.target.selectionStart < e.target.selectionEnd) {
+                        var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                    } else {
+                        var currentValue = e.target.value;
+                    }
                 }
+
                 if (currentValue) {
                     // Checking current value
                     for (var i = 0; i < currentValue.length; i++) {
@@ -78,14 +97,28 @@ jSuites.mask = (function() {
                         }
                     }
                 }
-                // New input
-                if (e.keyCode > 46) {
-                    obj.process(obj.fromKeyCode(e));
-                    // Prevent default
-                    e.preventDefault();
-                }
+
+                // Process input
+                var ret = obj.process(e.key);
+
+                // Prevent default
+                e.preventDefault();
+
+                // New value 
+                var value = values.join('');
+
                 // Update value to the element
-                e.target.value = values.join('');
+                if (e.target.tagName == 'DIV') {
+                    if (value != e.target.innerText) {
+                        e.target.innerText = value;
+                        // Set focus
+                        jSuites.focus(e.target);
+                    }
+                } else {
+                    e.target.value = value;
+                }
+
+                // Completed attribute
                 if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
                     e.target.setAttribute('data-completed', 'true');
                 } else {
@@ -236,7 +269,7 @@ jSuites.mask = (function() {
                 } else {
                     return false;
                 }
-            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##') {
+            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##' || pieces[index] == "#'##") {
                 if (input.match(/[0-9]/g)) {
                     if (pieces[index] == '#.##') {
                         var separator = '.';
@@ -244,6 +277,8 @@ jSuites.mask = (function() {
                         var separator = ',';
                     } else if (pieces[index] == '# ##') {
                         var separator = ' ';
+                    } else if (pieces[index] == "#'##") {
+                        var separator = "'";
                     } else {
                         var separator = '';
                     }
@@ -276,6 +311,8 @@ jSuites.mask = (function() {
                     } else if (pieces[index] == '#,##' && input == ',') {
                         // Do nothing
                     } else if (pieces[index] == '# ##' && input == ' ') {
+                        // Do nothing
+                    } else if (pieces[index] == "#'##" && input == "'") {
                         // Do nothing
                     } else {
                         if (values[index]) {
@@ -402,6 +439,9 @@ jSuites.mask = (function() {
                 } else if (mask[i] == '#' && mask[i+1] == ' ' && mask[i+2] == '#' && mask[i+3] == '#') {
                     pieces.push('# ##');
                     i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == "'" && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push("#'##");
+                    i += 3;
                 } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
                     pieces.push('[-]');
                     i += 2;
@@ -412,75 +452,8 @@ jSuites.mask = (function() {
         }
     }
 
-    /** 
-     * Thanks for the collaboration
-     */
-    obj.fromKeyCode = function(e) {
-        var _to_ascii = {
-            '188': '44',
-            '109': '45',
-            '190': '46',
-            '191': '47',
-            '192': '96',
-            '220': '92',
-            '222': '39',
-            '221': '93',
-            '219': '91',
-            '173': '45',
-            '187': '61', //IE Key codes
-            '186': '59', //IE Key codes
-            '189': '45'  //IE Key codes
-        }
-
-        var shiftUps = {
-            "96": "~",
-            "49": "!",
-            "50": "@",
-            "51": "#",
-            "52": "$",
-            "53": "%",
-            "54": "^",
-            "55": "&",
-            "56": "*",
-            "57": "(",
-            "48": ")",
-            "45": "_",
-            "61": "+",
-            "91": "{",
-            "93": "}",
-            "92": "|",
-            "59": ":",
-            "39": "\"",
-            "44": "<",
-            "46": ">",
-            "47": "?"
-        };
-
-        var c = e.which;
-
-        if (_to_ascii.hasOwnProperty(c)) {
-            c = _to_ascii[c];
-        }
-
-        if (!e.shiftKey && (c >= 65 && c <= 90)) {
-            c = String.fromCharCode(c + 32);
-        } else if (e.shiftKey && shiftUps.hasOwnProperty(c)) {
-            c = shiftUps[c];
-        } else if (96 <= c && c <= 105) {
-            c = String.fromCharCode(c - 48);
-        } else {
-            c = String.fromCharCode(c);
-        }
-
-        return c;
-    }
-
     if (typeof document !== 'undefined') {
-        document.addEventListener('keydown', function(e) {
-            if (jSuites.mask) {
-                jSuites.mask.apply(e);
-            }
-        });
+        document.addEventListener('keydown', obj.apply);
     }
 
     return obj;

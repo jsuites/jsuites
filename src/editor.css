@@ -1,13 +1,6 @@
-/**
- * (c) jTools Text Editor
- * https://github.com/paulhodel/jtools
- *
- * @author: Paul Hodel <paul.hodel@gmail.com>
- * @description: Inline richtext editor
- */
-
- .jeditor-container {
+.jeditor-container {
     border:1px solid #ccc;
+    box-sizing: border-box;
 }
 
 .jeditor-dragging {
@@ -25,7 +18,7 @@
 }
 
 .jeditor-container.jeditor-padding .jeditor {
-    min-height:160px;
+    min-height:100px;
     margin-bottom:10px;
     padding:10px;
 }

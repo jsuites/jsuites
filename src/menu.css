@@ -1,0 +1,132 @@
+.jmenu .close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.jmenu nav {
+    font-family: Roboto;
+    position: relative;
+    margin-left: 5px;
+    margin-bottom: 25px;
+}
+
+.jmenu nav[data-icon] {
+    padding-left: 28px;
+}
+
+.jmenu nav[data-icon]:before {
+    position: absolute;
+    margin-top: -2px;
+    top: 0px;
+    left: 0px;
+    content: attr(data-icon);
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    line-height: 24px;
+    font-family: 'Material icons';
+}
+
+.jmenu nav h2 {
+    text-transform: uppercase;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 0.9em;
+}
+
+.jmenu nav h2::before {
+    margin-left: -18px;
+    position: absolute;
+    width: 18px;
+    height: 18px;
+    content: '';
+    background-repeat: no-repeat;
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M10 17l5-5-5-5v10z'/%3E%3Cpath d='M0 24V0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    transition: transform .25s ease-in-out;
+}
+
+.jmenu nav[data-icon] h2::before {
+    margin-left: -44px;
+}
+
+.jmenu nav.selected h2::before {
+    transform: rotate(90deg);
+    -ms-transform: rotate(90deg);
+    -webkit-transform: rotate(90deg);
+}
+
+.jmenu nav div {
+    font-family: Roboto;
+    padding: 2px;
+    padding-bottom: 10px;
+    display: none;
+}
+
+.jmenu nav.selected div {
+    display: block;
+}
+
+.jmenu nav h3 {
+    font-size: 1em;
+    font-weight: normal;
+    color: #999;
+    margin-left: 10px;
+}
+
+.jmenu ul {
+    margin: 0px;
+    padding-left: 20px;
+    padding-bottom: 20px;
+}
+
+.jmenu div ul:last-child {
+    padding-bottom: 0px;
+}
+
+.jmenu li {
+    margin-bottom: 2px;
+    list-style: none;
+}
+
+.jmenu i {
+    margin-left: 2px;
+    margin-right: 5px;
+}
+
+.jmenu a {
+    color: #555;
+    text-decoration: none;
+}
+
+.jmenu a:hover, .jmenu a.selected {
+    text-decoration: underline;
+}
+
+.jmenu .title {
+    border-bottom: 1px solid #ddd;
+    margin-bottom: 20px;
+    padding-bottom: 5px;
+}
+
+@media only screen and (max-device-width : 800px) {
+    .jmenu {
+        height:100vh;
+        position: fixed;
+        top:0px;
+        left:0px;
+        background-color:#fff;
+        z-index:9000;
+        overflow: scroll;
+        padding-left: 20px;
+        box-shadow: 1px 1px 0px 0.1px #ccc !important;
+        -webkit-box-shadow: 1px 0px 1px 0.1px #ccc !important;
+        -moz-box-shadow: 1px 1px 0px 0.1px #ccc !important;
+    }
+
+    .jmenu li {
+        margin-bottom: 10px;
+    }
+}
