@@ -9,6 +9,12 @@ jSuites.toolbar = (function(el, options) {
         badge: false,
         title: false,
         items: [],
+
+        more: {
+            container: null,
+            items: [],
+            content:"expand_more"
+        }
     }
 
     // Loop through our object
@@ -67,9 +73,17 @@ jSuites.toolbar = (function(el, options) {
         }
     }
 
+    var widthToolbar = 0;
+    var toolbarItemMore = null;
+
     obj.create = function(items) {
         // Reset anything in the toolbar
         toolbarContent.innerHTML = '';
+        // Init width Toolbar
+        widthToolbar = 0;
+        // Init container for more
+        obj.options.more.items = [];
+
         // Create elements in the toolbar
         for (var i = 0; i < items.length; i++) {
             var toolbarItem = document.createElement('div');
@@ -107,6 +121,10 @@ jSuites.toolbar = (function(el, options) {
                     items[i].onchange = (function(o) {
                         return function(a,b,c,d) {
                             o(el, obj, a, c, d);
+                            // Close toolbarMore
+                            if( obj.options.more.container ) {
+                                obj.options.more.container.content.style.display="none";
+                            }
                         }
                     })(items[i].onchange);
                 }
@@ -173,8 +191,153 @@ jSuites.toolbar = (function(el, options) {
                         };
                     })(i);
                 }
+            
+            // Attach parameter item in DOMElement
+            toolbarItem.item = items[i];
 
             toolbarContent.appendChild(toolbarItem);
+        }
+
+        createButtonMore();
+        setTimeout(function () {
+            obj.update();
+        }, 10);
+    }
+
+    /**
+     * Create Button more with Sub Items
+     */
+    function createButtonMore() {
+        // Add button more
+        toolbarItemMore = document.createElement('div');
+        toolbarItemMore.classList.add('jtoolbar-item');
+        toolbarItemMore.classList.add('jtoolbar-item-more');
+        var toolbarIconMore = document.createElement('i');
+        if (typeof(obj.options.more.class) === 'undefined') {
+            toolbarIconMore.classList.add('material-icons');
+        } else {
+            var c = obj.options.more.class.split(' ');
+            for (var j = 0; j < c.length; j++) {
+                toolbarIconMore.classList.add(c[j]);
+            }
+        }
+        toolbarIconMore.style.fontSize = "medium";
+        toolbarIconMore.innerHTML = obj.options.more.content ? obj.options.more.content : '';
+        toolbarItemMore.appendChild(toolbarIconMore);
+
+        // create container
+        obj.options.more.container = document.createElement('div');
+        obj.options.more.container.classList.add('jtoolbar-more');
+        obj.options.more.container.setAttribute('tabindex', '900');
+        toolbarItemMore.appendChild(obj.options.more.container);
+
+        // Create content in container
+        obj.options.more.container.content = document.createElement('div');
+        obj.options.more.container.content.classList.add('jtoolbar-more-content');
+        obj.options.more.container.appendChild(obj.options.more.container.content);
+
+        // OnBlur of container
+        document.addEventListener("mouseup", function(e) {
+            if( obj.options.more.container ) {
+                if(!e.target.classList.contains("jtoolbar-item-more") && !toolbarItemMore.contains(e.target)) {
+                    obj.options.more.container.content.style.display="none";
+                }
+            }
+        });
+
+        // Onclick on button more
+        toolbarItemMore.onclick = function (e) {
+            if(e.target.classList.contains("jtoolbar-item-more") || e.target.parentNode.classList.contains("jtoolbar-item-more") ) {
+                if(obj.options.more.container.content.style.display=="none") {
+                    obj.options.more.container.content.style.display="block";
+                } else {
+                    obj.options.more.container.content.style.display="none";
+                }
+            }
+            e.preventDefault();
+        };
+
+        // Insert button on toolbar
+        toolbarContent.appendChild(toolbarItemMore);
+        toolbarItemMore.style.display = "none";
+    }
+
+    /**
+     * Update toolbar on resize
+     */
+    obj.update = function() {
+
+        // Move all item in more in toolbar
+        for(var indexToolbarItem = 0;  indexToolbarItem < obj.options.more.items.length; indexToolbarItem++) {
+            var toolbarItem = obj.options.more.items[indexToolbarItem].ref; 
+            toolbarContent.insertBefore(toolbarItem, toolbarItemMore);
+        }
+
+        // Reset var
+        obj.options.more.items = [];
+        var toolbarItems = toolbarContent.children;
+        var widthElement = el.parentNode.tagName == "BODY" ? window.innerWidth : el.parentNode.clientWidth;
+
+        widthToolbar = 0; 
+
+        // Hide all item
+        for(var indexToolbarItem = 0;  indexToolbarItem < toolbarItems.length; indexToolbarItem++) {
+            var toolbarItem = toolbarItems[indexToolbarItem]; 
+            toolbarItem.style.display = "none";
+        }                    
+
+        // Show item by item and when toolbar is size max, move item in toolbarMore
+        var countToolbarItem = toolbarItems.length;
+        for(var indexToolbarItem = 0;  indexToolbarItem < countToolbarItem; indexToolbarItem++) {
+            var toolbarItem = toolbarItems[indexToolbarItem];
+
+            // Show item and calc width
+            var previousWidth = toolbarContent.offsetWidth;
+            toolbarItem.style.display = "block";
+            var newWidth = toolbarContent.offsetWidth;
+
+            // If item button more, not moving test
+            if(toolbarItem.classList.contains("jtoolbar-item-more")) {
+                continue;
+            }
+
+            // Add width in withToolbar
+            var widthItem = newWidth-previousWidth;
+            widthToolbar += widthItem;
+
+            // If window width is less than width to toolbar
+            
+            if(widthElement < (widthToolbar+30)) {
+                // Moving item in toolbarmore
+                obj.options.more.container.content.appendChild(toolbarItem);
+
+                // Recreate new onclick
+                var newItemMore = Object.assign({}, toolbarItem.item);
+                newItemMore.ref = toolbarItem;
+                if(newItemMore.type == 'divisor') {
+                    toolbarItem.style.display = "none";
+                }
+                if(newItemMore.onclick) {
+                    newItemMore.onclick = (function (a) {
+                        return function () {
+                            toolbarContent.children[a].onclick();
+                        };
+                    })(indexToolbarItem);
+                }
+
+                // Push in array of all item in moretoolbar
+                obj.options.more.items.push(newItemMore);
+
+                // Adjust index loop
+                countToolbarItem--;
+                indexToolbarItem--;
+            }
+        };
+
+        // Manage show button more
+        toolbarItemMore.style.display = "none";
+        if(obj.options.more.items.length>0) {
+            toolbarItemMore.style.display = "block";
         }
     }
 
@@ -202,6 +365,11 @@ jSuites.toolbar = (function(el, options) {
     obj.create(obj.options.items);
 
     el.toolbar = obj;
+
+    // On resize with update toolbar for toolbarMore
+    window.addEventListener('resize', function(e) {
+        obj.update();
+    });
 
     return obj;
 });

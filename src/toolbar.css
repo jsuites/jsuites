@@ -133,3 +133,42 @@
     display: block;
     line-height: 24px;
 }
+
+.jtoolbar-more {
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    outline: none;
+}
+
+.jtoolbar-item-more {
+    padding: 6px 0px!important;
+    display: block;
+}
+
+.jtoolbar-more-content {
+    position: absolute;
+    display: none;
+    font-family: initial;
+    right: 0;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 50;
+    text-align: left;
+}
+
+.jtoolbar-more-content > div {
+    padding: 6px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.jtoolbar-more-content > div:hover {
+    background-color:#efefef;
+}    
