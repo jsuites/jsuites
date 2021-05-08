@@ -9,6 +9,7 @@ jSuites.app = (function(el, options) {
         onchangepage: null,
         onbeforecreatepage: null,
         oncreatepage: null,
+        onerrorpage: null,
         onloadpage: null,
         toolbar: null,
         route: null,
@@ -135,6 +136,9 @@ jSuites.app = (function(el, options) {
             }
 
             var updateDOM = function() {
+                // Always hidden when created
+                page.style.display = 'none';
+
                 // Remove to avoid id conflicts
                 if (component.current && obj.options.detachHiddenPages == true) {
                     while (component.element.children[0]) {
@@ -147,13 +151,6 @@ jSuites.app = (function(el, options) {
                 } else {
                     component.element.insertBefore(page, component.current.nextSibling);
                 }
-            }
-
-            if (obj.options.detachHiddenPages == false) {
-                // Always hidden when created
-                page.style.display = 'none';
-                // Update DOM
-                updateDOM();
             }
 
             // URL
@@ -201,7 +198,7 @@ jSuites.app = (function(el, options) {
 
                     // Global onload callback
                     if (typeof(obj.options.onloadpage) == 'function') {
-                        obj.options.onloadpage(page);
+                        obj.options.onloadpage(obj, page);
                     }
 
                     // Specific online callback
@@ -213,6 +210,13 @@ jSuites.app = (function(el, options) {
                     if (! page.options.closed) {
                         component.show(page, o, callback);
                     }
+                },
+                error: function(a,b) {
+                    if (typeof(obj.options.onerrorpage) == 'function') {
+                        obj.options.onerrorpage(obj, page, a, b);
+                    }
+
+                    component.destroy(page);
                 }
             });
 
@@ -371,12 +375,20 @@ jSuites.app = (function(el, options) {
         /**
          * Reset the page container
          */
-        component.destroy = function() {
-            // Reset container
-            component.reset();
-            // Destroy references
-            component.container = {};
+        component.destroy = function(page) {
+            if (page) {
+                if (page.parentNode) {
+                    page.remove();
+                }
+                delete component.container[page.options.ident];
+            } else {
+                // Reset container
+                component.reset();
+                // Destroy references
+                component.container = {};
+            }
         }
+
         /**
          * Page container controller
          */
