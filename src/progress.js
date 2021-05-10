@@ -79,6 +79,7 @@ jSuites.progress = (function () {
 
     // put above to loading spin
     modal.container.style.zIndex = 10002;
+    modal.content.style.overflow = "hidden";
   }
 
   /**
@@ -155,7 +156,7 @@ jSuites.progress = (function () {
       return;
     }
     elDescription.innerHTML = "&nbsp;";
-    elProgress.value = 0;
+    elProgress.setValue(0);
     titleModal = titleModalInit;
   };
 
