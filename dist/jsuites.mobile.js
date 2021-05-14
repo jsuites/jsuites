@@ -62,6 +62,22 @@ jSuites.app = (function(el, options) {
         return route.split('?')[0].replace(/\/\d+$/g, '')
     }
 
+    /*
+     * Parse javascript from an element
+     */
+    var parseScript = function(element) {
+        // Get javascript
+        var script = element.getElementsByTagName('script');
+        // Run possible inline scripts
+        for (var i = 0; i < script.length; i++) {
+            // Get type
+            var type = script[i].getAttribute('type');
+            if (! type || type == 'text/javascript' || type == 'text/loader') {
+                eval(script[i].text);
+            }
+        }
+    }
+
     /**
      * Pages
      */
@@ -69,7 +85,7 @@ jSuites.app = (function(el, options) {
         /**
          * Create or access a page
          */
-        var component = function(route, o, callback) {
+        var component = function(route, o, callback, element) {
             var options = {};
 
             if (o) {
@@ -107,7 +123,7 @@ jSuites.app = (function(el, options) {
                     }
 
                     // Create new page
-                    var page = component.create(options, callback);
+                    var page = component.create(options, callback, element);
 
                     // Container
                     component.container[options.ident] = page;
@@ -118,9 +134,14 @@ jSuites.app = (function(el, options) {
         /**
          * Create a new page
          */
-        component.create = function(o, callback) {
+        component.create = function(o, callback, fromElement) {
             // Create page
-            var page = document.createElement('div');
+            if (fromElement) {
+                var page = fromElement;
+            } else {
+                var page = document.createElement('div');
+            }
+
             page.classList.add('page');
 
             // Keep options
@@ -135,10 +156,7 @@ jSuites.app = (function(el, options) {
                 }
             }
 
-            var updateDOM = function() {
-                // Always hidden when created
-                page.style.display = 'none';
-
+            var success = function(result) {
                 // Remove to avoid id conflicts
                 if (component.current && obj.options.detachHiddenPages == true) {
                     while (component.element.children[0]) {
@@ -151,6 +169,51 @@ jSuites.app = (function(el, options) {
                 } else {
                     component.element.insertBefore(page, component.current.nextSibling);
                 }
+
+                // Open page
+                if (result) {
+                    page.innerHTML = result;
+                }
+
+                // Get javascript
+                try {
+                    parseScript(page);
+                } catch (e) {
+                    console.log(e);
+                }
+
+                // Create page overwrite
+                if (typeof(obj.options.oncreatepage) == 'function') {
+                    obj.options.oncreatepage(obj, page, result);
+                }
+
+                // Push to refresh controls
+                if (typeof(page.options.onpush) == 'function') {
+                    jSuites.refresh(page, page.options.onpush);
+                }
+
+                // Navbar
+                if (page.querySelector('.navbar')) {
+                    page.classList.add('with-navbar');
+                }
+
+                // Global onload callback
+                if (typeof(obj.options.onloadpage) == 'function') {
+                    obj.options.onloadpage(obj, page);
+                }
+
+                // Specific online callback
+                if (typeof(o.onload) == 'function') {
+                    o.onload(page);
+                }
+
+                // Always hidden when created
+                page.style.display = 'none';
+
+                // Show page
+                if (! page.options.closed) {
+                    component.show(page, o, callback);
+                }
             }
 
             // URL
@@ -160,65 +223,24 @@ jSuites.app = (function(el, options) {
                 var url = o.url + '&';
             }
 
-            jSuites.ajax({
-                url: url + 'ts=' + new Date().getTime(),
-                method: 'GET',
-                dataType: 'html',
-                queue: true,
-                success: function(result) {
-                    if (! page.parentNode) {
-                        // Update DOM
-                        updateDOM();
-                    }
+            if (fromElement) {
+                success();
+            } else {
+                jSuites.ajax({
+                    url: url + 'ts=' + new Date().getTime(),
+                    method: 'GET',
+                    dataType: 'html',
+                    queue: true,
+                    success: success,
+                    error: function(a,b) {
+                        if (typeof(obj.options.onerrorpage) == 'function') {
+                            obj.options.onerrorpage(obj, page, a, b);
+                        }
 
-                    // Open page
-                    page.innerHTML = result;
-
-                    // Get javascript
-                    try {
-                        parseScript(page);
-                    } catch (e) {
-                        console.log(e);
+                        component.destroy(page);
                     }
-
-                    // Create page overwrite
-                    if (typeof(obj.options.oncreatepage) == 'function') {
-                        obj.options.oncreatepage(obj, page, result);
-                    }
-
-                    // Push to refresh controls
-                    if (typeof(page.options.onpush) == 'function') {
-                        jSuites.refresh(page, page.options.onpush);
-                    }
-
-                    // Navbar
-                    if (page.querySelector('.navbar')) {
-                        page.classList.add('with-navbar');
-                    }
-
-                    // Global onload callback
-                    if (typeof(obj.options.onloadpage) == 'function') {
-                        obj.options.onloadpage(obj, page);
-                    }
-
-                    // Specific online callback
-                    if (typeof(o.onload) == 'function') {
-                        o.onload(page);
-                    }
-
-                    // Show page
-                    if (! page.options.closed) {
-                        component.show(page, o, callback);
-                    }
-                },
-                error: function(a,b) {
-                    if (typeof(obj.options.onerrorpage) == 'function') {
-                        obj.options.onerrorpage(obj, page, a, b);
-                    }
-
-                    component.destroy(page);
-                }
-            });
+                });
+            }
 
             return page;
         }
@@ -323,20 +345,9 @@ jSuites.app = (function(el, options) {
                         }
                     }
                 } else {
-                    // New page
-                    if (typeof(obj.options.onchangepage) == 'function') {
-                        obj.options.onchangepage(obj, page, component.current, o);
-                    }
+                    component.current = null;
 
-                    // Enter event
-                    if (typeof(page.options.onenter) == 'function') {
-                        page.options.onenter(obj, page, component.current);
-                    }
-
-                    // Page is the same but should execute the callback anyway
-                    if (typeof(callback) == 'function') {
-                        callback(obj, page);
-                    }
+                    pageIsReady();
                 }
             } else {
                 // Show
@@ -394,62 +405,40 @@ jSuites.app = (function(el, options) {
          */
         component.container = {};
 
-        /**
-         * Pages DOM container
-         */
-        var pagesContainer = el.querySelector('.pages');
-        if (pagesContainer) {
-            component.element = pagesContainer;
-        } else {
-            component.element = document.createElement('div');
-            component.element.className = 'pages';
-        }
-
-        // Prefetched content
-        if (el.innerHTML) {
-            // Create with the prefetched content
-            var page = document.createElement('div');
-            page.classList.add('page');
-            while (el.childNodes[0]) {
-                page.appendChild(el.childNodes[0]);
-            }
-            if (el.innerHTML) {
-                var div = document.createElement('div');
-                div.innerHTML = component.element.innerHTML;
-                page.appendChild(div);
-            }
-            // Container
-            var route = window.location.pathname;
-            var i = ident(route);
-            component.container[i] = page;
-
-            // Keep options
-            page.options = {
-                route: route,
-                ident: i
-            };
-
-            // Current page
-            component.current = page;
-
-            // Place the page to the right container
-            if (! component.current) {
-                component.element.appendChild(page);
+        component.init = function() {
+            /**
+             * Pages DOM container
+             */
+            var pagesContainer = el.querySelector('.pages');
+            if (pagesContainer) {
+                component.element = pagesContainer;
             } else {
-                component.element.insertBefore(page, component.current.nextSibling);
+                component.element = document.createElement('div');
+                component.element.className = 'pages';
             }
 
-            // Create page overwrite
-            if (typeof(obj.options.oncreatepage) == 'function') {
-                obj.options.oncreatepage(obj, page, null);
+            // Prefetched content
+            var current = null;
+            if (el.innerHTML) {
+                // Create with the prefetched content
+                current = document.createElement('div');
+                while (el.childNodes[0]) {
+                    current.appendChild(el.childNodes[0]);
+                }
             }
+
+            // Append page container to the application
+            el.appendChild(component.element);
+
+            // Go to the current page
+            component(window.location.pathname, null, null, current);
         }
-
-        // Append page container to the application
-        el.appendChild(component.element);
 
         return component;
     }();
+
+    // Start page object
+    obj.pages.init();
 
     /**
      * Panel methods
@@ -552,22 +541,6 @@ jSuites.app = (function(el, options) {
     // Actionsheet
     obj.actionsheet = jSuites.actionsheet(el, obj);
 
-    /*
-     * Parse javascript from an element
-     */
-    var parseScript = function(element) {
-        // Get javascript
-        var script = element.getElementsByTagName('script');
-        // Run possible inline scripts
-        for (var i = 0; i < script.length; i++) {
-            // Get type
-            var type = script[i].getAttribute('type');
-            if (! type || type == 'text/javascript' || type == 'text/loader') {
-                eval(script[i].text);
-            }
-        }
-    }
-
     var controlSwipeLeft = function(e) {
         var element = jSuites.findElement(e.target, 'option');
 
@@ -620,7 +593,7 @@ jSuites.app = (function(el, options) {
 
         if (tmp) {
             var h = tmp.getAttribute('href');
-            if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link')) {
+            if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link') || h.indexOf('#') >= 0) {
                 action = null;
             } else {
                 action = {
@@ -655,11 +628,7 @@ jSuites.app = (function(el, options) {
         // Action
         if (action) {
             var h = action.element.getAttribute('href');
-            if (h == '#back') {
-                window.history.back();
-            } else if (h == '#panel') {
-                obj.panel();
-            } else {
+            if (h) {
                 obj.pages(h);
             }
             e.preventDefault();
