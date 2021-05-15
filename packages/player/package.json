@@ -1,6 +1,6 @@
 {
     "name": "@jsuites/player",
-    "title": "JavaScript Audio Player",
+    "title": "JavaScript audio player",
     "description": "JavaScript audio player plugin. Build quick and responsive audio player.",
     "repository": {
         "type": "git",

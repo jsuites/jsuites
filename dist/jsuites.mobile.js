@@ -598,11 +598,15 @@ jSuites.app = (function(el, options) {
             if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link') || h.indexOf('#') >= 0) {
                 action = null;
             } else {
+                var p = jSuites.getPosition(e);
                 action = {
+                    h: h,
                     element: tmp,
                     target: e.target,
+                    y: p[1],
                 };
 
+                // Cancel click operation in 400ms
                 setTimeout(function() {
                     action = null;
                 }, 400);
@@ -629,12 +633,15 @@ jSuites.app = (function(el, options) {
         obj.actionsheet.close();
         // Action
         if (action) {
-            var h = action.element.getAttribute('href');
-            if (h) {
-                obj.pages(h);
+            var p = jSuites.getPosition(e);
+            // If mouse move cancel the click action
+            if ((action.y - p[0]) * 2 < 10) {
+                // Go to the page
+                obj.pages(action.h);
+                // Prevent default
+                e.preventDefault();
             }
-            e.preventDefault();
-            action  = null;
+            action = null;
         }
     }
 

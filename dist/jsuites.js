@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.6.1';
+    var version = '4.6.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8233,7 +8233,7 @@ jSuites.search = (function(el, options) {
     el.search = obj;
 
     return obj;
-})
+});
 
 jSuites.slider = (function(el, options) {
     var obj = {};
