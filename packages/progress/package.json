@@ -21,8 +21,8 @@
     "dependencies": {
         "jsuites": "^4.6.1"
     },
-    "main": "player.js",
-    "version": "1.0.0",
+    "main": "progress.js",
+    "version": "1.0.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",
