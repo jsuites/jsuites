@@ -3,22 +3,25 @@
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
+ * Plugin: Organogram
  *
  * MIT License
- *
  */
 
 ;(function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     global.organogram = factory();
+
+    if (typeof(jSuites) !== 'undefined') {
+        jSuites.organogram = global.organogram;
+    }
 }(this, (function () {
 
     'use strict';
 
     if (! jSuites && typeof(require) === 'function') {
         var jSuites = require('jsuites');
-        require('jsuites/dist/jsuites.css');
     }
 
     return (function(el, options) {

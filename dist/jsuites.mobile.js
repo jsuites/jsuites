@@ -431,7 +431,9 @@ jSuites.app = (function(el, options) {
             el.appendChild(component.element);
 
             // Go to the current page
-            component(window.location.pathname, null, null, current);
+            if (current) {
+                component(window.location.pathname, null, null, current);
+            }
         }
 
         return component;

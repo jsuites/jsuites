@@ -1,7 +1,7 @@
 {
-    "name": "jsuites",
-    "title": "A collection of common JavaScript plugins & web components",
-    "description": "jSuites is a collection of lightweight common required javascript plugins and web components. It is composed of fully responsive vanilla plugins to help you bring the best user experience to your projects, independent of the platform.",
+    "name": "@jsuites/progress",
+    "title": "JavaScript Loading Progress Bar",
+    "description": "JavaScript loading and progressbar plugin.",
     "repository": {
         "type": "git",
         "url": "https://github.com/jsuites/jsuites.git"
@@ -16,12 +16,15 @@
         }
     ],
     "keywords": [
-        "javascript plugins"
+        "javascript plugins, progress bar, loading"
     ],
-    "main": "dist/jsuites.js",
-    "version": "4.6.2",
+    "dependencies": {
+        "jsuites": "^4.6.1"
+    },
+    "main": "player.js",
+    "version": "1.0.0",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
-    "docs": "https://jsuites.net",
+    "docs": "https://jsuites.net/v4",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip"
 }

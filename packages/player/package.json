@@ -1,7 +1,7 @@
 {
-    "name": "jsuites",
-    "title": "A collection of common JavaScript plugins & web components",
-    "description": "jSuites is a collection of lightweight common required javascript plugins and web components. It is composed of fully responsive vanilla plugins to help you bring the best user experience to your projects, independent of the platform.",
+    "name": "@jsuites/player",
+    "title": "JavaScript Audio Player",
+    "description": "JavaScript audio player plugin. Build quick and responsive audio player.",
     "repository": {
         "type": "git",
         "url": "https://github.com/jsuites/jsuites.git"
@@ -16,12 +16,15 @@
         }
     ],
     "keywords": [
-        "javascript plugins"
+        "javascript plugins, audio player, javascript player plugin, javascript mp3 player"
     ],
-    "main": "dist/jsuites.js",
-    "version": "4.6.2",
+    "dependencies": {
+        "jsuites": "^4.6.0"
+    },
+    "main": "player.js",
+    "version": "1.0.0",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
-    "docs": "https://jsuites.net",
+    "docs": "https://jsuites.net/v4",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip"
 }
