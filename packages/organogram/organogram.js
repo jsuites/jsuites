@@ -20,8 +20,12 @@
 
     'use strict';
 
-    if (! jSuites && typeof(require) === 'function') {
-        var jSuites = require('jsuites');
+    if (! jSuites) {
+        if (window.jSuites) {
+            var jSuites = window.jSuites;
+        } else if (typeof(require) === 'function') {
+            var jSuites = require('jsuites');
+        }
     }
 
     return (function(el, options) {

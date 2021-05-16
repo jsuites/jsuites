@@ -603,6 +603,7 @@ jSuites.app = (function(el, options) {
                     h: h,
                     element: tmp,
                     target: e.target,
+                    x: p[0],
                     y: p[1],
                 };
 
@@ -635,12 +636,12 @@ jSuites.app = (function(el, options) {
         if (action) {
             var p = jSuites.getPosition(e);
             // If mouse move cancel the click action
-            if ((action.y - p[0]) * 2 < 10) {
+            if (Math.abs(action.x - p[0]) < 5 && Math.abs(action.y - p[1]) < 5) {
                 // Go to the page
                 obj.pages(action.h);
-                // Prevent default
-                e.preventDefault();
             }
+            // Prevent default
+            e.preventDefault();
             action = null;
         }
     }

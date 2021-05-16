@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.6.3';
+    var version = '4.6.5';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -4650,6 +4650,8 @@ jSuites.editor = (function(el, options) {
 
                     if (obj.options.dropAsSnippet || asSnippet) {
                         appendImage(newImage);
+                        // Just to understand the attachment is part of a snippet
+                        files[newImage.src].snippet = true;
                     } else {
                         insertNodeAtCaret(newImage);
                     }
@@ -5128,7 +5130,7 @@ jSuites.editor = (function(el, options) {
     el.val = function(val) {
         if (val === undefined) {
             // Data type
-            var o = el.getAttribute('data-json') === 'true' ? true : false;
+            var o = el.getAttribute('data-html') === 'true' ? false : true;
             return obj.getData(o);
         } else {
             obj.setData(val);
