@@ -111,8 +111,10 @@ jSuites.app = (function(el, options) {
                 options.route = route;
 
                 // If exists just open
-                if (component.container[options.ident]) {
-                    component.show(component.container[options.ident], options, callback);
+                var page = component.container[options.ident];
+                if (page) {
+                    page.options.closed = 0;
+                    component.show(page, options, callback);
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
@@ -123,7 +125,7 @@ jSuites.app = (function(el, options) {
                     }
 
                     // Create new page
-                    var page = component.create(options, callback, element);
+                    page = component.create(options, callback, element);
 
                     // Container
                     component.container[options.ident] = page;
@@ -306,10 +308,10 @@ jSuites.app = (function(el, options) {
             }
 
             if (component.current) {
-                if (component.current != page) {
-                    // Show page
-                    page.style.display = '';
+                // Show page
+                page.style.display = '';
 
+                if (component.current != page) {
                     var a = Array.prototype.indexOf.call(component.element.children, component.current);
                     var b = Array.prototype.indexOf.call(component.element.children, page);
 

@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.6.5';
+    var version = '4.6.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -10013,10 +10013,16 @@ jSuites.validations.required = function(data) {
     return data.trim() ? true : false;
 }
 
-jSuites.validations.number = function(data) {
+jSuites.validations.number = function(data, config) {
+
     return jSuites.isNumber(data);
 }
 
+jSuites.validations.date = function(data, config) {
+    if (config.operator == '>=') {
+        return data >= config.reference;
+    }
+}
 
 
 
