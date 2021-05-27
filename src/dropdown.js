@@ -169,6 +169,7 @@ jSuites.dropdown = (function(el, options) {
             onfocus: null,
             onblur: null,
             oninsert: null,
+            autofocus: false,
         }
 
         // Loop through our object
@@ -973,6 +974,11 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
+        }
+        
+        // Auto focus
+        if(obj.options.autofocus==true) {
+            obj.firstVisible();
         }
     }
 
