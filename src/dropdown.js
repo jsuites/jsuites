@@ -10,6 +10,15 @@ jSuites.dropdown = (function(el, options) {
 
     // Success
     var success = function(data, val) {
+        // Sort
+        if(obj.options.sortResults!==false) {
+            if(typeof obj.options.sortResults == "function") {
+                data.sort(obj.options.sortResults);
+            } else {
+                data.sort(sortData);
+            }
+        }
+        
         // Set data
         if (data) {
             obj.setData(data);
@@ -30,6 +39,32 @@ jSuites.dropdown = (function(el, options) {
         if (obj.options.opened == true) {
             obj.open();
         }
+    }
+    
+    // Default sort
+    var sortData = function(itemA, itemB) {
+        var testA, testB;
+        if(typeof itemA == "string") {
+            testA = itemA;
+        } else {
+            if(itemA.text) {
+                testA = itemA.text;
+            } else if(itemA.name) {
+                testA = itemA.name;
+            }
+        }
+        
+        if(typeof itemB == "string") {
+            testB = itemB;
+        } else {
+            if(itemB.text) {
+                testB = itemB.text;
+            } else if(itemB.name) {
+                testB = itemB.name;
+            }
+        }
+        
+        return testA.localeCompare(testB);
     }
 
     /**
@@ -169,6 +204,7 @@ jSuites.dropdown = (function(el, options) {
             onfocus: null,
             onblur: null,
             oninsert: null,
+            sortResults: false,
         }
 
         // Loop through our object
