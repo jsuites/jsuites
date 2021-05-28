@@ -64,7 +64,13 @@ jSuites.dropdown = (function(el, options) {
             }
         }
         
-        return testA.localeCompare(testB);
+        if(typeof testA == "string" || typeof testB == "string") {
+            if(typeof testA != "string") { testA = ""+testA; }
+            if(typeof testB != "string") { testB = ""+testB; }
+            return testA.localeCompare(testB);
+        } else {
+            return testA - testB;
+        }
     }
 
     /**
@@ -204,7 +210,6 @@ jSuites.dropdown = (function(el, options) {
             onfocus: null,
             onblur: null,
             oninsert: null,
-            autofocus: false,
             sortResults: false,
         }
 
@@ -1010,11 +1015,6 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
-        }
-        
-        // Auto focus
-        if(obj.options.autofocus==true) {
-            obj.firstVisible();
         }
     }
 
