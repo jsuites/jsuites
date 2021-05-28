@@ -551,7 +551,7 @@ jSuites.dropdown = (function(el, options) {
 
         // Callback
         if (typeof(obj.options.oninsert) == 'function') {
-            obj.options.oninsert(obj, item, item)
+            obj.options.oninsert(obj, item, newItem);
         }
 
         // Show content
