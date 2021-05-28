@@ -603,6 +603,11 @@ jSuites.dropdown = (function(el, options) {
         if (data.id) {
             item.element.setAttribute('id', data.id);
         }
+        
+        // Disabled
+        if (data.disabled == true) {
+            item.element.setAttribute('data-disabled', true);
+        }
 
         // Image
         if (data.image) {
