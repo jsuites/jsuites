@@ -1315,6 +1315,10 @@ jSuites.dropdown.keydown = function(e) {
     var dropdown = null;
     if (dropdown = jSuites.dropdown.current) {
         if (e.which == 13) {
+            // Quick Select/Filter
+            if(dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value!="") {
+                dropdown.find(dropdown.header.value);
+            }
             dropdown.selectIndex(dropdown.currentIndex);
         } else if (e.which == 38) {
             if (dropdown.currentIndex == null) {
