@@ -533,3 +533,8 @@
     height: 12px;
     margin-right: 6px;
 }
+
+.jdropdown-item[data-disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
