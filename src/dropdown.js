@@ -210,6 +210,7 @@ jSuites.dropdown = (function(el, options) {
             onfocus: null,
             onblur: null,
             oninsert: null,
+            onbeforeinsert: null,
             sortResults: false,
         }
 
@@ -538,6 +539,11 @@ jSuites.dropdown = (function(el, options) {
                 id: id,
                 name: title,
             };
+        }
+        
+        // Callback
+        if (typeof(obj.options.onbeforeinsert) == 'function') {
+            obj.options.onbeforeinsert(obj, item);
         }
 
         // Add item to the main list
