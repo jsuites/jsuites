@@ -603,6 +603,11 @@ jSuites.dropdown = (function(el, options) {
         if (data.id) {
             item.element.setAttribute('id', data.id);
         }
+        
+        // Disabled
+        if (data.disabled == true) {
+            item.element.setAttribute('data-disabled', true);
+        }
 
         // Image
         if (data.image) {
@@ -868,12 +873,12 @@ jSuites.dropdown = (function(el, options) {
         obj.setValue(null);
     } 
 
-    obj.selectIndex = function(index) {
+    obj.selectIndex = function(index, force) {
         // Make sure is a number
         var index = parseInt(index);
 
         // Only select those existing elements
-        if (obj.items && obj.items[index]) {
+        if (obj.items && obj.items[index] && (force===true || obj.items[index].data.disabled!==true)) {
             // Reset cursor to a new position
             obj.setCursor(index, false);
 
