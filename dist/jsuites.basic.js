@@ -293,7 +293,7 @@ jSuites.ajax = (function(options, complete) {
                     options.complete(result);
                 }
                 // Global event
-                if (typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
+                if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
                     jSuites.ajax.oncomplete[options.group]();
                     jSuites.ajax.oncomplete[options.group] = null;
                 }
@@ -2744,6 +2744,15 @@ jSuites.dropdown = (function(el, options) {
     var success = function(data, val) {
         // Set data
         if (data && data.length) {
+            // Sort
+            if (obj.options.sortResults !== false) {
+                if(typeof obj.options.sortResults == "function") {
+                    data.sort(obj.options.sortResults);
+                } else {
+                    data.sort(sortData);
+                }
+            }
+
             obj.setData(data);
 
             // Onload method
@@ -2766,6 +2775,39 @@ jSuites.dropdown = (function(el, options) {
         // Open dropdown
         if (obj.options.opened == true) {
             obj.open();
+        }
+    }
+
+    
+    // Default sort
+    var sortData = function(itemA, itemB) {
+        var testA, testB;
+        if(typeof itemA == "string") {
+            testA = itemA;
+        } else {
+            if(itemA.text) {
+                testA = itemA.text;
+            } else if(itemA.name) {
+                testA = itemA.name;
+            }
+        }
+        
+        if(typeof itemB == "string") {
+            testB = itemB;
+        } else {
+            if(itemB.text) {
+                testB = itemB.text;
+            } else if(itemB.name) {
+                testB = itemB.name;
+            }
+        }
+        
+        if(typeof testA == "string" || typeof testB == "string") {
+            if(typeof testA != "string") { testA = ""+testA; }
+            if(typeof testB != "string") { testB = ""+testB; }
+            return testA.localeCompare(testB);
+        } else {
+            return testA - testB;
         }
     }
 
@@ -2913,6 +2955,8 @@ jSuites.dropdown = (function(el, options) {
             onfocus: null,
             onblur: null,
             oninsert: null,
+            onbeforeinsert: null,
+            sortResults: false,
         }
 
         // Loop through our object
@@ -3247,6 +3291,11 @@ jSuites.dropdown = (function(el, options) {
             };
         }
 
+        // Callback
+        if (typeof(obj.options.onbeforeinsert) == 'function') {
+            obj.options.onbeforeinsert(obj, item);
+        }
+
         // Add item to the main list
         obj.options.data.push(item);
 
@@ -3258,7 +3307,7 @@ jSuites.dropdown = (function(el, options) {
 
         // Callback
         if (typeof(obj.options.oninsert) == 'function') {
-            obj.options.oninsert(obj, item, item)
+            obj.options.oninsert(obj, item, newItem);
         }
 
         // Show content
@@ -3580,12 +3629,12 @@ jSuites.dropdown = (function(el, options) {
         obj.setValue(null);
     } 
 
-    obj.selectIndex = function(index) {
+    obj.selectIndex = function(index, force) {
         // Make sure is a number
         var index = parseInt(index);
 
         // Only select those existing elements
-        if (obj.items && obj.items[index]) {
+        if (obj.items && obj.items[index] && (force === true || obj.items[index].data.disabled !== true)) {
             // Reset cursor to a new position
             obj.setCursor(index, false);
 
@@ -4067,6 +4116,10 @@ jSuites.dropdown.keydown = function(e) {
     var dropdown = null;
     if (dropdown = jSuites.dropdown.current) {
         if (e.which == 13) {
+            // Quick Select/Filter
+            if (dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value != "") {
+                dropdown.find(dropdown.header.value);
+            }
             dropdown.selectIndex(dropdown.currentIndex);
         } else if (e.which == 38) {
             if (dropdown.currentIndex == null) {

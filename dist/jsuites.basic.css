@@ -138,6 +138,10 @@
     animation: slide-bottom-out 0.1s forwards;
 }
 
+.spin {
+    animation: spin 2s infinite linear;
+}
+
 /** Fadein and Fadeout **/
 @keyframes fade-in {
     0% { opacity: 0; }
@@ -249,7 +253,7 @@
         -webkit-transform:rotate(0deg);
     }
     to {
-        -webkit-transform:rotate(360deg);
+        -webkit-transform:rotate(359deg);
     }
 }
 
@@ -258,7 +262,7 @@
         transform:rotate(0deg);
     }
     to {
-        transform:rotate(360deg);
+        transform:rotate(359deg);
     }
 }
 
