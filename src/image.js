@@ -264,9 +264,12 @@ jSuites.image = jSuites.upload = (function(el, options) {
 
             if (val) {
                 if (Array.isArray(val)) {
-                    // Add
                     for (var i = 0; i < val.length; i++) {
-                        obj.add(val[i]);
+                        if (typeof(val[i]) == 'string') {
+                            obj.add({ file: val[i] });
+                        } else {
+                            obj.add(val[i]);
+                        }
                     }
                 } else if (typeof(val) == 'string') {
                     obj.add({ file: val });

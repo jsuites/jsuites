@@ -7,11 +7,14 @@ jSuites.tags = (function(el, options) {
     var obj = { type:'tags' };
     obj.options = {};
 
+    // Limit
+    var limit = function() {
+        return obj.options.limit && el.children.length >= obj.options.limit ? true : false;
+    }
+
     // Search helpers
+    var search = null;
     var searchContainer = null;
-    var searchTerms = null;
-    var searchIndex = 0;
-    var searchTimer = 0;
 
     obj.setOptions = function(options, reset) {
         /**
@@ -67,6 +70,28 @@ jSuites.tags = (function(el, options) {
         // Validate items
         filter();
 
+        // Create search box
+        if (obj.options.search) {
+            if (! searchContainer) {
+                searchContainer = document.createElement('div');
+                el.parentNode.insertBefore(searchContainer, el.nextSibling);
+
+                // Create container
+                search = jSuites.search(searchContainer, {
+                    data: obj.options.search,
+                    onselect: function(a,b,c) {
+                        obj.selectIndex(b,c);
+                    }
+                });
+            }
+        } else {
+            if (searchContainer) {
+                search = null;
+                searchContainer.remove();
+                searchContainer = null;
+            }
+        }
+
         return obj;
     }
 
@@ -86,16 +111,16 @@ jSuites.tags = (function(el, options) {
             }
         }
 
-        // Close search
-        if (searchContainer) {
-            searchContainer.style.display = '';
+        // Make sure search is closed
+        if (search) {
+            search.close();
         }
 
-        if (obj.options.limit > 0 && el.children.length >= obj.options.limit) {
+        if (limit()) {
             alert(obj.options.limitMessage + ' ' + obj.options.limit);
         } else {
             // Get node
-            var node = getSelectionStart();
+            var node = jSuites.getNode();
 
             if (node && node.parentNode && node.parentNode.classList.contains('jtags') &&
                 node.nextSibling && (! (node.nextSibling.innerText && node.nextSibling.innerText.trim()))) {
@@ -113,7 +138,7 @@ jSuites.tags = (function(el, options) {
                     var div = createElement(value, value, node);
                 } else {
                     for (var i = 0; i <= value.length; i++) {
-                        if (! obj.options.limit || el.children.length < obj.options.limit) {
+                        if (! limit()) {
                             if (! value[i] || typeof(value[i]) == 'string') {
                                 var t = value[i] || '';
                                 var v = null;
@@ -257,25 +282,22 @@ jSuites.tags = (function(el, options) {
      * Add one element from the suggestions to the element
      * @param {object} item - Node element in the suggestions container
      */ 
-    obj.selectIndex = function(item) {
-        // Reset terms
-        searchTerms = '';
-        var node = getSelectionStart();
-        // Append text to the caret
-        node.innerText = item.getAttribute('data-text');
-        // Set node id
-        if (item.getAttribute('data-value')) {
-            node.setAttribute('data-value', item.getAttribute('data-value'));
+    obj.selectIndex = function(text, value) {
+        var node = jSuites.getNode();
+        if (node) {
+            // Append text to the caret
+            node.innerText = text;
+            // Set node id
+            if (value) {
+                node.setAttribute('data-value', value);
+            }
+            // Remove any error
+            node.classList.remove('jtags_error');
+            if (! limit()) {
+                // Add new item
+                obj.add('', true);
+            }
         }
-        // Close container
-        if (searchContainer) {
-            searchContainer.style.display = '';
-            searchContainer.innerHTML = '';
-        }
-        // Remove any error
-        node.classList.remove('jtags_error');
-        // Add new item
-        obj.add('', true);
     }
 
     /**
@@ -283,159 +305,8 @@ jSuites.tags = (function(el, options) {
      * @param {object} node - Target node for any suggestions
      */
     obj.search = function(node) {
-        // Create and append search container to the DOM
-        if (! searchContainer) {
-            var div = document.createElement('div');
-            div.style.position = 'relative';
-            el.parentNode.insertBefore(div, el.nextSibling);
-
-            // Create container
-            searchContainer = document.createElement('div');
-            searchContainer.classList.add('jtags_search');
-            div.appendChild(searchContainer);
-
-            var click = function(e) {
-                if (e.target.classList.contains('jtags_search_item')) {
-                    var element = e.target;
-                } else {
-                    var element = e.target.parentNode;
-                }
-
-                obj.selectIndex(element);
-            }
-
-            // Bind events
-            if ('touchstart' in document.documentElement === true) {
-                searchContainer.addEventListener('touchstart', click);
-            } else {
-                searchContainer.addEventListener('mousedown', click);
-            }
-        }
-
         // Search for
         var terms = node.innerText;
-
-        // Search
-        if (terms != searchTerms) {
-            // Terms
-            searchTerms = terms;
-            // Reset index
-            searchIndex = 0;
-
-            // If the search option is an array, perform a search on that array
-            if (Array.isArray(obj.options.search)) {
-                var data = [];
-
-                var i = 0;
-                while (i < obj.options.search.length && data.length <= 10) {
-                    if (obj.options.search[i].includes(searchTerms)) {
-                        data.push(obj.options.search[i]);
-                    }
-
-                    i++;
-                }
-
-                // Reset container
-                searchContainer.innerHTML = '';
-
-                // Print results
-                if (! data.length) {
-                    // Hide container
-                    searchContainer.style.display = '';
-                } else {
-                    // Show container
-                    searchContainer.style.display = 'block';
-
-                    // Show items
-                    var len = data.length < 11 ? data.length : 10;
-                    for (var i = 0; i < len; i++) {
-                        var text;
-                        var value
-
-                        if (typeof data[i] === "string") {
-                            text = data[i];
-                            value = data[i];
-                        } else {
-                            text = data[1].text;
-                            value = data[1].value;
-                        }
-
-                        var div = document.createElement('div');
-                        div.setAttribute('data-value', value);
-                        div.setAttribute('data-text', text);
-                        div.className = 'jtags_search_item';
-
-                        if (i == 0) {
-                            div.classList.add('selected');
-                        }
-
-                        var item = document.createElement('div');
-                        item.innerHTML = text;
-                        div.appendChild(item);
-                        // Append item to the container
-                        searchContainer.appendChild(div);
-                    }
-                }
-
-            // If the search option is a string, make a request using that string as a url
-            } else {
-                // Get remove results
-                jSuites.ajax({
-                    url: obj.options.search + searchTerms,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        // Reset container
-                        searchContainer.innerHTML = '';
-
-                        // Print results
-                        if (! data.length) {
-                            // Show container
-                            searchContainer.style.display = '';
-                        } else {
-                            // Show container
-                            searchContainer.style.display = 'block';
-
-                            // Show items
-                            var len = data.length < 11 ? data.length : 10;
-                            for (var i = 0; i < len; i++) {
-                                // Legacy
-                                var text = data[i].text;
-                                if (! text && data[i].name) {
-                                    text = data[i].name;
-                                }
-                                var value = data[i].value;
-                                if (! value && data[i].id) {
-                                    value = data[i].id;
-                                }
-
-                                var div = document.createElement('div');
-                                div.setAttribute('data-value', value);
-                                div.setAttribute('data-text', text);
-                                div.className = 'jtags_search_item';
-
-                                if (i == 0) {
-                                    div.classList.add('selected');
-                                }
-                                var img = document.createElement('img');
-                                if (data[i].image) {
-                                    img.src = data[i].image;
-                                } else {
-                                    img.style.display = 'none';
-                                }
-                                div.appendChild(img);
-
-                                var item = document.createElement('div');
-                                item.innerHTML = text;
-                                div.appendChild(item);
-                                // Append item to the container
-                                searchContainer.appendChild(div);
-                            }
-                        }
-                    }
-                });
-            }
-        }
     }
 
     // Destroy tags element
@@ -543,23 +414,6 @@ jSuites.tags = (function(el, options) {
         } else {
             el.classList.remove('jtags-empty');
         }
-
-    }
-    /**
-     * Selection
-     */
-    var getSelectionStart = function() {
-        var node = document.getSelection().anchorNode;
-        if (node) {
-            return (node.nodeType == 3 ? node.parentNode : node);
-        } else {
-            return null;
-        }
-    }
-
-    var getFocusedNode = function () {
-        var node = document.getSelection().anchorNode;
-        return (node.nodeType == 3 ? node.parentNode : node);
     }
 
     /**
@@ -594,8 +448,6 @@ jSuites.tags = (function(el, options) {
             }
         }
 
-        console.log(data);
-        
         return data;
     }
 
@@ -617,42 +469,19 @@ jSuites.tags = (function(el, options) {
         if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
-                if (! obj.options.limit || el.children.length < obj.options.limit) {
+                if (! limit()) {
                     obj.add('', true);
                 }
             }
             e.preventDefault();
         } else if (e.key == 'Enter') {
-            // Enter
-            if (searchContainer && searchContainer.style.display != '') {
-                obj.selectIndex(searchContainer.children[searchIndex]);
-            } else {
+            if (! search || ! search.isOpened()) {
                 var n = window.getSelection().anchorOffset;
                 if (n > 1) {
-                    if (! obj.options.limit || el.children.length < obj.options.limit) {
+                    if (! limit()) {
                         obj.add('', true);
                     }
                 }
-            }
-            e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
-            // Up
-            if (searchContainer && searchContainer.style.display != '') {
-                searchContainer.children[searchIndex].classList.remove('selected');
-                if (searchIndex > 0) {
-                    searchIndex--;
-                }
-                searchContainer.children[searchIndex].classList.add('selected');
-                e.preventDefault();
-            }
-        } else if (e.key === 'ArrowDown') {
-            // Down
-            if (searchContainer && searchContainer.style.display != '') {
-                searchContainer.children[searchIndex].classList.remove('selected');
-                if (searchIndex < 9) {
-                    searchIndex++;
-                }
-                searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
         } else if (e.key == 'Backspace') {
@@ -660,6 +489,11 @@ jSuites.tags = (function(el, options) {
             if (el.children.length == 1 && window.getSelection().anchorOffset < 1) {
                 e.preventDefault();
             }
+        }
+
+        // Search events
+        if (search) {
+            search.keydown(e);
         }
     }
 
@@ -677,21 +511,9 @@ jSuites.tags = (function(el, options) {
         } else if (e.which == 13 || e.which == 38 || e.which == 40) {
             e.preventDefault();
         } else {
-            if (searchTimer) {
-                clearTimeout(searchTimer);
+            if (search) {
+                search.keyup(e);
             }
-
-            searchTimer = setTimeout(function() {
-                // Current node
-                var node = getFocusedNode();
-                if (node) {
-                    // Search
-                    if (obj.options.search) {
-                        obj.search(node);
-                    }
-                }
-                searchTimer = null;
-            }, 300);
         }
 
         filter();
@@ -703,10 +525,8 @@ jSuites.tags = (function(el, options) {
      */
     var tagsPaste =  function(e) {
         if (e.clipboardData || e.originalEvent.clipboardData) {
-            var html = (e.originalEvent || e).clipboardData.getData('text/html');
             var text = (e.originalEvent || e).clipboardData.getData('text/plain');
         } else if (window.clipboardData) {
-            var html = window.clipboardData.getData('Html');
             var text = window.clipboardData.getData('Text');
         }
 
@@ -730,16 +550,12 @@ jSuites.tags = (function(el, options) {
                 }
             }
         }
-
-        if (searchContainer) {
-            searchContainer.style.display = '';
-        }
     }
 
     var tagsFocus = function() {
         if (! el.classList.contains('jtags-focus')) {
             if (! el.children.length || obj.getValue(el.children.length - 1)) {
-                if (! obj.options.limit || el.children.length < obj.options.limit) {
+                if (! limit()) {
                     createElement('');
                 }
             }
@@ -754,10 +570,8 @@ jSuites.tags = (function(el, options) {
 
     var tagsBlur = function() {
         if (el.classList.contains('jtags-focus')) {
-            if (searchContainer) {
-                setTimeout(function() {
-                    searchContainer.style.display = '';
-                }, 200);
+            if (search) {
+                search.close();
             }
 
             for (var i = 0; i < el.children.length - 1; i++) {

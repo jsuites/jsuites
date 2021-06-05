@@ -151,39 +151,32 @@
     background-repeat: no-repeat;
     background-position: center;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
-    width: 16px;
-    height: 18px;
+    width: 24px;
+    height: 16px;
+    margin-left: 4px;
+    border-left: 1px solid #f2f2f2;
 }
 
-.jtoolbar-more {
-    cursor: pointer;
-    white-space: nowrap;
-    display: inline-flex;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    outline: none;
+.jtoolbar-floating {
+    position: absolute;
+    display: none;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 50;
+    text-align: left;
 }
 
-.jtoolbar-item-more {
-    padding: 6px 0px!important;
+.jtoolbar-floating .jtoolbar-divisor {
+    display: none;
+}
+
+.jtoolbar-floating > div {
     display: block;
 }
 
-.jtoolbar-more-content {
-    position: absolute;
-    display: none;
-    font-family: initial;
-    right: 0;
-
-.jtoolbar-more-content > div {
-    padding: 6px;
-    padding-left: 15px;
-    padding-right: 15px;
+.jtoolbar-arrow-selected .jtoolbar-floating {
+    display: flex;
+    flex-wrap: wrap;
 }
-
-.jtoolbar-more-content > div:hover {
-    background-color:#efefef;
-}    
-

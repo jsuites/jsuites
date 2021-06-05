@@ -22,6 +22,14 @@ jSuites.guid = function() {
     });
 }
 
+jSuites.getNode = function() {
+    var node = document.getSelection().anchorNode;
+    if (node) {
+        return (node.nodeType == 3 ? node.parentNode : node);
+    } else {
+        return null;
+    }
+}
 /**
  * Generate hash from a string
  */

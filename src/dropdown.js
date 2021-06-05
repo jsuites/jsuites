@@ -10,17 +10,17 @@ jSuites.dropdown = (function(el, options) {
 
     // Success
     var success = function(data, val) {
-        // Sort
-        if(obj.options.sortResults!==false) {
-            if(typeof obj.options.sortResults == "function") {
-                data.sort(obj.options.sortResults);
-            } else {
-                data.sort(sortData);
-            }
-        }
-        
         // Set data
-        if (data) {
+        if (data && data.length) {
+            // Sort
+            if (obj.options.sortResults !== false) {
+                if(typeof obj.options.sortResults == "function") {
+                    data.sort(obj.options.sortResults);
+                } else {
+                    data.sort(sortData);
+                }
+            }
+
             obj.setData(data);
 
             // Onload method
@@ -30,9 +30,14 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Set value
-        applyValue(val);
+        if (val) {
+            applyValue(val);
+        }
 
         // Component value
+        if (val === undefined || val === null) {
+            obj.options.value = '';
+        }
         el.value = obj.options.value;
 
         // Open dropdown
@@ -100,29 +105,36 @@ jSuites.dropdown = (function(el, options) {
         resetValue();
 
         // Read values
-        if (values) {
-            if (! Array.isArray(values)) {
-                values = (''+values).split(';');
-            }
-            for (var i = 0; i < values.length; i++) {
-                obj.value[values[i]] = '';
-            }
-            // Update the DOM
-            for (var i = 0; i < obj.items.length; i++) {
-                if (typeof(obj.value[Value(i)]) !== 'undefined') {
-                    if (obj.items[i].element) {
-                        obj.items[i].element.classList.add('jdropdown-selected')
-                    }
-                    obj.items[i].selected = true;
-
-                    // Keep label
-                    obj.value[Value(i)] = Text(i);
+        if (values !== null) {
+            if (! values) {
+                if (typeof(obj.value['']) !== 'undefined') {
+                    obj.value[''] = '';
+                }
+            } else {
+                if (! Array.isArray(values)) {
+                    values = ('' + values).split(';');
+                }
+                for (var i = 0; i < values.length; i++) {
+                    obj.value[values[i]] = '';
                 }
             }
-
-            // Global value
-            obj.options.value = Object.keys(obj.value).join(';');
         }
+
+        // Update the DOM
+        for (var i = 0; i < obj.items.length; i++) {
+            if (typeof(obj.value[Value(i)]) !== 'undefined') {
+                if (obj.items[i].element) {
+                    obj.items[i].element.classList.add('jdropdown-selected')
+                }
+                obj.items[i].selected = true;
+
+                // Keep label
+                obj.value[Value(i)] = Text(i);
+            }
+        }
+
+        // Global value
+        obj.options.value = Object.keys(obj.value).join(';');
 
         // Update labels
         obj.header.value = obj.getText();
@@ -293,19 +305,19 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Load the content
-        if (options.url && ! options.data) {
+        if (obj.options.url && ! options.data) {
             jSuites.ajax({
-                url: options.url,
+                url: obj.options.url,
                 method: 'GET',
                 dataType: 'json',
                 success: function(data) {
                     if (data) {
-                        success(data, options.value);
+                        success(data, obj.options.value);
                     }
                 }
             });
         } else {
-            success(options.data, options.value);
+            success(obj.options.data, obj.options.value);
         }
 
         // Return the instance
@@ -480,8 +492,9 @@ jSuites.dropdown = (function(el, options) {
     /**
      * Set the new data from a remote source
      * @param {string} url - url from the remote source
+     * @param {function} callback - callback when the data is loaded
      */
-    obj.setUrl = function(url) {
+    obj.setUrl = function(url, callback) {
         obj.options.url = url;
 
         jSuites.ajax({
@@ -490,6 +503,10 @@ jSuites.dropdown = (function(el, options) {
             dataType: 'json',
             success: function(data) {
                 obj.setData(data);
+                // Callback
+                if (typeof(callback) == 'function') {
+                    callback(obj);
+                }
             }
         });
     }
@@ -860,13 +877,13 @@ jSuites.dropdown = (function(el, options) {
      */
     obj.setValue = function(newValue) {
         // Current value
-        var oldValue = getValue();
+        var oldValue = obj.getValue();
         // New value
         if (Array.isArray(newValue)) {
             newValue = newValue.join(';')
         }
 
-        if (oldValue != newValue) {
+        if (oldValue !== newValue) {
             // Set value
             applyValue(newValue);
 
@@ -884,7 +901,7 @@ jSuites.dropdown = (function(el, options) {
         var index = parseInt(index);
 
         // Only select those existing elements
-        if (obj.items && obj.items[index] && (force===true || obj.items[index].data.disabled!==true)) {
+        if (obj.items && obj.items[index] && (force === true || obj.items[index].data.disabled !== true)) {
             // Reset cursor to a new position
             obj.setCursor(index, false);
 
@@ -936,6 +953,21 @@ jSuites.dropdown = (function(el, options) {
         obj.selectIndex(item.indexValue);
     }
 
+    var exists = function(k, result) {
+        for (var j = 0; j < result.length; j++) {
+            if (! obj.options.format) {
+                if (result[j].value == k) {
+                    return true;
+                }
+            } else {
+                if (result[j].id == k) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
     obj.find = function(str) {
         if (obj.search == str.trim()) {
             return false;
@@ -959,8 +991,22 @@ jSuites.dropdown = (function(el, options) {
                     // Reset items
                     obj.items = [];
                     content.innerHTML = '';
+                    // Add the current selected items to the results in case they are not there
+                    var current = Object.keys(obj.value);
+                    if (current.length) {
+                        for (var i = 0; i < current.length; i++) {
+                            if (! exists(current[i], result)) {
+                                if (! obj.options.format) {
+                                    result.unshift({ value: current[i], text: obj.value[current[i]] });
+                                } else {
+                                    result.unshift({ id: current[i], name: obj.value[current[i]] });
+                                }
+                            }
+                        }
+                    }
+                    // Append data
                     obj.appendData(result);
-
+                    // Show or hide results
                     if (! result.length) {
                         content.style.display = 'none';
                     } else {
@@ -983,8 +1029,13 @@ jSuites.dropdown = (function(el, options) {
                 var title = obj.items[i].data.title || '';
                 // Group name
                 var groupName = obj.items[i].data.group || '';
+                // Synonym
+                var synonym = obj.items[i].data.synonym || '';
+                if (synonym) {
+                    synonym = synonym.join(' ');
+                }
 
-                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str)) {
+                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
                     obj.results.push(obj.items[i]);
 
                     if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {
@@ -1333,7 +1384,7 @@ jSuites.dropdown.keydown = function(e) {
     if (dropdown = jSuites.dropdown.current) {
         if (e.which == 13) {
             // Quick Select/Filter
-            if(dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value!="") {
+            if (dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value != "") {
                 dropdown.find(dropdown.header.value);
             }
             dropdown.selectIndex(dropdown.currentIndex);

@@ -860,11 +860,11 @@ jSuites.crop = (function(el, options) {
             // Update scale
             if (e.deltaY > 0) {
                 if (properties.zoom.scale > 0.1) {
-                    properties.zoom.scale *= 0.9;
+                    properties.zoom.scale *= 0.97;
                 }
             } else {
                 if (properties.zoom.scale < 5) {
-                    properties.zoom.scale *= 1.1;
+                    properties.zoom.scale *= 1.03;
                 }
             }
             properties.zoom.scale = parseFloat(properties.zoom.scale.toFixed(2));

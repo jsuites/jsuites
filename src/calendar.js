@@ -94,7 +94,7 @@ jSuites.calendar = (function(el, options) {
         // Texts
         calendarReset.innerHTML = obj.options.textReset;
         calendarConfirm.innerHTML = obj.options.textDone;
-        calendarControlsUpdateButton.value = obj.options.textUpdate;
+        calendarControlsUpdateButton.innerHTML = obj.options.textUpdate;
 
         // Define mask
         el.setAttribute('data-mask', obj.options.format.toLowerCase());
@@ -163,9 +163,20 @@ jSuites.calendar = (function(el, options) {
                         calendarContainer.style.left = rect.left + 'px';
                     } else {
                         if (window.innerHeight < rect.bottom + rectContent.height) {
-                            calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
+                            var d = -1 * (rect.height + rectContent.height + 2);
+                            if (d + rect.top < 0) {
+                                d = -1 * (rect.top + rect.height);
+                            }
+                            calendarContainer.style.top = d + 'px';
                         } else {
                             calendarContainer.style.top = 2 + 'px'; 
+                        }
+
+                        if (window.innerWidth < rect.left + rectContent.width) {
+                            var d = window.innerWidth - (rect.left + rectContent.width + 20);
+                            calendarContainer.style.left = d + 'px';
+                        } else {
+                            calendarContainer.style.left = '0px'; 
                         }
                     }
                 }
@@ -877,7 +888,7 @@ jSuites.calendar = (function(el, options) {
         calendarControlsTime.appendChild(calendarSelectHour);
         calendarControlsTime.appendChild(calendarSelectMin);
 
-        calendarControlsUpdateButton = document.createElement('input');
+        calendarControlsUpdateButton = document.createElement('button');
         calendarControlsUpdateButton.setAttribute('type', 'button');
         calendarControlsUpdateButton.className = 'jcalendar-update';
 
@@ -1161,17 +1172,40 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     return '';
 }
 
+/**
+ * Date to number
+ */
+jSuites.calendar.dateToNum = function(a, b) {
+    a = new Date(a);
+    b = new Date(b);
+    var v = b.getTime() - a.getTime();
+    return Math.round(v / 86400000);
+}
+
+/**
+ * Number to date
+ */
+jSuites.calendar.numToDate = function(value) {
+    var d = new Date(Math.round((value - 25569)*86400*1000));
+    return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+}
+
 // Helper to convert date into string
 jSuites.calendar.getDateString = function(value, options) {
     if (! options) {
         var options = {};
     }
 
+    // Date instance
+    if (value instanceof Date) {
+        value = jSuites.calendar.now(value);
+    }
+
     // Labels
-    if (typeof(options) == 'string') {
-        var format = options;
-    } else {
+    if (options && typeof(options) == 'object') {
         var format = options.format;
+    } else {
+        var format = options || 'YYYY-MM-DD';
     }
 
     // Labels
@@ -1198,6 +1232,9 @@ jSuites.calendar.getDateString = function(value, options) {
     // Default date format
     if (! format) {
         format = 'DD/MM/YYYY';
+    } else {
+        format = format.replace(/h{1,2}:m{1,2} AM\/PM/g, 'HH12:MI');
+        format = format.replace(/h{1,2}:m{1,2}/g, 'HH24:MI');
     }
 
     if (value) {
@@ -1233,11 +1270,9 @@ jSuites.calendar.getDateString = function(value, options) {
 
             // New value
             value = format;
-            // Legacy
-            value = value.replace('MMM', 'MON');
 
             // Extract tokens
-            var tokens = [ 'YYYY', 'YYY', 'YY', 'Y', 'MM', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON'];
+            var tokens = [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M'];
             var pieces = [];
             var tmp = value;
 
@@ -1261,7 +1296,7 @@ jSuites.calendar.getDateString = function(value, options) {
             var replace = function(k, v, c) {
                 if (c == true) {
                     for (var i = 0; i < pieces.length; i++) {
-                        if (pieces[i].toUpperCase() == k) {
+                        if (('' + pieces[i]).toUpperCase() == k) {
                             pieces[i] = v;
                         }
                     }
@@ -1277,9 +1312,9 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('YYYY', d[0], true);
             replace('YYY', d[0].substring(1,4), true);
             replace('YY', d[0].substring(2,4), true);
-            replace('Y', d[0].substring(3,4), true);
 
-            replace('MM', d[1], true);
+            replace('dddd', weekdays[calendar.getDay()]);
+            replace('ddd', weekdays[calendar.getDay()].substr(0,3));
             replace('DD', d[2], true);
             replace('Q', Math.floor((calendar.getMonth() + 3) / 3), true);
 
@@ -1308,9 +1343,14 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('Month', monthsFull[calendar.getMonth()]);
             replace('month', monthsFull[calendar.getMonth()].toLowerCase());
             replace('MON', months[calendar.getMonth()].toUpperCase());
+            replace('mmmmm', monthsFull[calendar.getMonth()].substr(0, 1));
+            replace('mmmm', months[calendar.getMonth()]);
+            replace('mmm', monthsFull[calendar.getMonth()]);
             replace('MMM', months[calendar.getMonth()].toUpperCase());
+            replace('MM', d[1], true);
             replace('Mon', months[calendar.getMonth()]);
             replace('mon', months[calendar.getMonth()].toLowerCase());
+            replace('m', d[1]);
 
             replace('DAY', weekdays[calendar.getDay()].toUpperCase());
             replace('Day', weekdays[calendar.getDay()]);
@@ -1320,6 +1360,9 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('dy', weekdays[calendar.getDay()].substr(0,3).toLowerCase());
             replace('D', weekdays[calendar.getDay()]);
             replace('WD', weekdays[calendar.getDay()]);
+            replace('d', d[2]);
+
+            replace('Y', d[0].substring(3,4), true);
 
             // Put pieces together
             value = pieces.join('');

@@ -24,22 +24,11 @@ jSuites.picker = (function(el, options) {
         for (var i = 0; i < keys.length; i++) {
             // Item
             var dropdownItem = document.createElement('div');
+            dropdownItem.classList.add('jpicker-item');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
             dropdownItem.innerHTML = obj.getLabel(keys[i]);
-
-            // Onchange
-            dropdownItem.onclick = function() {
-                // Update label
-                obj.setValue(this.k);
-
-                // Call method
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange.call(obj, el, obj, 'reserved', this.v, this.k);
-                }
-            }
-
             // Append
             dropdownContent.appendChild(dropdownItem);
         }
@@ -64,6 +53,7 @@ jSuites.picker = (function(el, options) {
             right: false,
             content: false,
             columns: null,
+            height: null,
         }
 
         // Legacy purpose only
@@ -94,6 +84,14 @@ jSuites.picker = (function(el, options) {
             dropdownHeader.style.width = parseInt(obj.options.width) + 'px';
         } else {
             dropdownHeader.style.width = '';
+        }
+
+        // Height
+        if (obj.options.height) {
+            dropdownContent.style.maxHeight = obj.options.height + 'px';
+            dropdownContent.style.overflow = 'scroll';
+        } else {
+            dropdownContent.style.overflow = '';
         }
 
         if (obj.options.columns > 0) {
@@ -212,12 +210,27 @@ jSuites.picker = (function(el, options) {
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        dropdownHeader.onmouseup = function(e) {
-            if (! el.classList.contains('jpicker-focus')) {
-                obj.open();
+        el.onmousedown = function(e) {
+            var element = jSuites.findElement(e.target, 'jpicker');
+            if (element) {
+                if (! el.classList.contains('jpicker-focus')) {
+                    obj.open();
+                } else {
+                    var item = jSuites.findElement(e.target, 'jpicker-item');
+                    if (item) {
+                        console.log(item)
+                        // Update label
+                        obj.setValue(item.k);
+                        // Call method
+                        if (typeof(obj.options.onchange) == 'function') {
+                            obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                        }
+                    }
+                }
             } else {
                 obj.close();
             }
+            e.stopPropagation();
         }
 
         // Dropdown content

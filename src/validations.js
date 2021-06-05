@@ -1,8 +1,8 @@
 jSuites.validations = {};
 
 jSuites.validations.email = function(data) {
-    var reg = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-    return data && reg.test(data) ? true : false; 
+    var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+    return data && pattern.test(data) ? true : false; 
 }
 
 jSuites.validations.length = function(data, element) {
@@ -18,3 +18,7 @@ jSuites.validations.number = function(data) {
     return jSuites.isNumber(data);
 }
 
+jSuites.validations.login = function(data) {
+    var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
+    return data && pattern.test(data) ? true : false;
+}

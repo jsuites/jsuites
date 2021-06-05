@@ -89,6 +89,8 @@ jSuites.ajax = (function(options, complete) {
             httpRequest.setRequestHeader('Content-Type', 'text/json');
         } else if (options.dataType == 'blob') {
             httpRequest.responseType = "blob";
+        } else if (options.dataType == 'html') {
+            httpRequest.setRequestHeader('Content-Type', 'text/html');
         }
     }
 
@@ -135,7 +137,7 @@ jSuites.ajax = (function(options, complete) {
             }
         } else {
             if (options.error && typeof(options.error) == 'function') {
-                options.error(httpRequest.responseText);
+                options.error(httpRequest.responseText, httpRequest.status);
             }
         }
 
@@ -178,6 +180,8 @@ jSuites.ajax = (function(options, complete) {
         }
     }
 
+    // Keep the options
+    httpRequest.options = options;
     // Data
     httpRequest.data = data;
 
@@ -208,6 +212,19 @@ jSuites.ajax.exists = function(url, __callback) {
     if (http.status) {
         __callback(http.status);
     }
+}
+
+jSuites.ajax.pending = function(group) {
+    var n = 0;
+    var o = jSuites.ajax.requests;
+    if (o && o.length) {
+        for (var i = 0; i < o.length; i++) {
+            if (! group || group == o[i].options.group) {
+                n++
+            }
+        }
+    }
+    return n;
 }
 
 jSuites.ajax.oncomplete = {};

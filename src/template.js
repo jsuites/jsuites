@@ -43,7 +43,7 @@ jSuites.template = (function(el, options) {
                     // Keep method to the event
                     element[k[i].substring(2)] = value;
                     element[event] = function(e) {
-                        Function('e', element[e.type]).call(obj.options.template, e);
+                        Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
                     }
                 }
             }
@@ -86,6 +86,7 @@ jSuites.template = (function(el, options) {
             onchange: null,
             onsearch: null,
             onclick: null,
+            oncreateitem: null,
         }
 
         // Loop through our object
@@ -130,6 +131,11 @@ jSuites.template = (function(el, options) {
             container.classList.add(obj.options.containerClass);
         }
     }
+    
+    /**
+     * Contains the cache of local data loaded
+     */
+    obj.cache = [];
 
     /**
      * Append data to the template and add to the DOMContainer
@@ -147,6 +153,11 @@ jSuites.template = (function(el, options) {
         }
 
         parse(b);
+    
+        // Oncreate a new item
+        if (typeof(obj.options.oncreateitem) == 'function') {
+            obj.options.oncreateitem(el, obj, b.children[0], a);
+        }
     }
 
     /**
@@ -205,7 +216,6 @@ jSuites.template = (function(el, options) {
             console.error('Element not found');
         }
     }
-
     /**
      * Reset the data of the element
      */
@@ -231,6 +241,13 @@ jSuites.template = (function(el, options) {
     }
 
     /**
+     * Get the current page number
+     */
+    obj.getPage = function() {
+        return pageNumber;
+    }
+
+    /**
      * Append data to the component 
      */
     obj.appendData = function(data, p) {
@@ -251,6 +268,7 @@ jSuites.template = (function(el, options) {
                 content.children[0].dataReference = data[i];
                 container.appendChild(content.children[0]);
             }
+            
         }
 
         if (obj.options.url && obj.options.remoteData == true) {
@@ -327,10 +345,17 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                // Get content
-                obj.setContent(data[i], content);
-                content.children[0].dataReference = data[i]; 
-                container.appendChild(content.children[0]);
+                // Check if cache obj contains the element
+                if (! data[i].element) {
+                    obj.setContent(data[i], content);
+                    content.children[0].dataReference = data[i];
+                    data[i].element = content.children[0];
+                    // append element into cache
+                    obj.cache.push(data[i]);
+                    container.appendChild(content.children[0]);
+                } else {
+                    container.appendChild(data[i].element);
+                }
             }
 
             if (obj.options.total) {
@@ -372,6 +397,7 @@ jSuites.template = (function(el, options) {
 
                     if (pageNumber == i) {
                         paginationItem.style.fontWeight = 'bold';
+                        paginationItem.style.textDecoration = 'underline';
                     }
                 }
 
@@ -398,7 +424,7 @@ jSuites.template = (function(el, options) {
             if (typeof(obj.options.render) == 'function') {
                 container.innerHTML = obj.options.render(obj);
             } else {
-                container.innerHTML = '';
+               container.innerHTML = '';
             }
 
             // Load data
@@ -501,10 +527,12 @@ jSuites.template = (function(el, options) {
     }
 
     obj.refresh = function() {
+        obj.cache = [];
         obj.render();
     }
 
     obj.reload = function() {
+        obj.cache = [];
         obj.render(0, true);
     }
 

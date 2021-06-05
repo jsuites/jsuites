@@ -67,6 +67,7 @@ jSuites.form = (function(el, options) {
             url: obj.options.url,
             method: 'GET',
             dataType: 'json',
+            queue: true,
             success: function(data) {
                 // Overwrite values from the backend
                 if (typeof(obj.options.onbeforeload) == 'function') {
@@ -363,15 +364,6 @@ jSuites.form.getElements = function(el, asArray) {
         }
     }
 
-    // Get files
-    var tmp = null;
-    var files = jSuites.files(el);
-    if (tmp = files.get()) {
-        if (tmp.length) {
-            data.files = tmp;
-        }
-    }
-
     return asArray == true ? data : JSON.stringify(data);
 }
 
@@ -386,16 +378,28 @@ jSuites.form.setElements = function(el, data) {
         if (name = elements[i].getAttribute('name')) {
             // Transform variable names in pathname
             name = name.replace(new RegExp(/\[(.*?)\]/ig), '.$1');
+            value = null;
             // Seach for the data in the path
-            value = jSuites.path.call(data, name) || '';
-            // Set the values
-            if (type == 'checkbox' || type == 'radio') {
-                elements[i].checked = value ? true : false;
+            if (name.match(/\./)) {
+                var tmp = jSuites.path.call(data, name) || '';
+                if (typeof(tmp) !== 'undefined') {
+                    value = tmp;
+                }
             } else {
-                if (typeof (elements[i].val) == 'function') {
-                    elements[i].val(value);
+                if (typeof(data[name]) !== 'undefined') {
+                    value = data[name];
+                }
+            }
+            // Set the values
+            if (value !== null) {
+                if (type == 'checkbox' || type == 'radio') {
+                    elements[i].checked = value ? true : false;
                 } else {
-                    elements[i].value = value;
+                    if (typeof (elements[i].val) == 'function') {
+                        elements[i].val(value);
+                    } else {
+                        elements[i].value = value;
+                    }
                 }
             }
         }

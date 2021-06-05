@@ -32,14 +32,6 @@ jSuites.login = (function(el, options) {
         }
     }
 
-    // Message console container
-    if (! obj.options.message) {
-        var messageElement = document.querySelector('.message');
-        if (messageElement) {
-            obj.options.message = messageElement;
-        }
-    }
-
     // Action
     var action = null;
 
@@ -60,7 +52,7 @@ jSuites.login = (function(el, options) {
 
     // Code
     var labelCode = document.createElement('label');
-    labelCode.innerHTML = 'Please enter here the code received';
+    labelCode.innerHTML = jSuites.translate('Please enter here the code received by email');
     var inputCode = document.createElement('input');
     inputCode.type = 'number';
     inputCode.id = 'code';
@@ -86,7 +78,7 @@ jSuites.login = (function(el, options) {
 
     // Login
     var labelLogin = document.createElement('label');
-    labelLogin.innerHTML = 'Login';
+    labelLogin.innerHTML = jSuites.translate('Login');
     var inputLogin = document.createElement('input');
     inputLogin.type = 'text';
     inputLogin.name = 'login';
@@ -100,7 +92,7 @@ jSuites.login = (function(el, options) {
 
     // Name
     var labelName = document.createElement('label');
-    labelName.innerHTML = 'Name';
+    labelName.innerHTML = jSuites.translate('Name');
     var inputName = document.createElement('input');
     inputName.type = 'text';
     inputName.name = 'name';
@@ -110,7 +102,7 @@ jSuites.login = (function(el, options) {
 
     // Email
     var labelUsername = document.createElement('label');
-    labelUsername.innerHTML = 'E-mail';
+    labelUsername.innerHTML = jSuites.translate('E-mail');
     var inputUsername = document.createElement('input');
     inputUsername.type = 'text';
     inputUsername.name = 'username';
@@ -121,7 +113,7 @@ jSuites.login = (function(el, options) {
 
     // Password
     var labelPassword = document.createElement('label');
-    labelPassword.innerHTML = 'Password';
+    labelPassword.innerHTML = jSuites.translate('Password');
     var inputPassword = document.createElement('input');
     inputPassword.type = 'password';
     inputPassword.name = 'password';
@@ -137,7 +129,7 @@ jSuites.login = (function(el, options) {
 
     // Repeat password
     var labelRepeatPassword = document.createElement('label');
-    labelRepeatPassword.innerHTML = 'Repeat the new password';
+    labelRepeatPassword.innerHTML = jSuites.translate('Repeat the new password');
     var inputRepeatPassword = document.createElement('input');
     inputRepeatPassword.type = 'password';
     inputRepeatPassword.name = 'password';
@@ -147,7 +139,7 @@ jSuites.login = (function(el, options) {
 
     // Remember checkbox
     var labelRemember = document.createElement('label');
-    labelRemember.innerHTML = 'Remember me on this device';
+    labelRemember.innerHTML = jSuites.translate('Remember me on this device');
     var inputRemember = document.createElement('input');
     inputRemember.type = 'checkbox';
     inputRemember.name = 'remember';
@@ -169,7 +161,7 @@ jSuites.login = (function(el, options) {
 
     // Cancel button
     var cancelButton = document.createElement('div');
-    cancelButton.innerHTML = 'Cancel';
+    cancelButton.innerHTML = jSuites.translate('Cancel');
     cancelButton.className = 'cancelButton';
     cancelButton.onclick = function() {
         obj.requestAccess();
@@ -179,7 +171,7 @@ jSuites.login = (function(el, options) {
 
     // Captcha
     var labelCaptcha = document.createElement('label');
-    labelCaptcha.innerHTML = 'Please type here the code below';
+    labelCaptcha.innerHTML = jSuites.translate('Please type here the code shown below');
     var inputCaptcha = document.createElement('input');
     inputCaptcha.type = 'text';
     inputCaptcha.name = 'captcha';
@@ -192,7 +184,7 @@ jSuites.login = (function(el, options) {
 
     // Facebook
     var facebookButton = document.createElement('div');
-    facebookButton.innerHTML = 'Login with Facebook';
+    facebookButton.innerHTML = jSuites.translate('Login with Facebook');
     facebookButton.className = 'facebookButton';
     var divFacebookButton = document.createElement('div');
     divFacebookButton.appendChild(facebookButton);
@@ -201,7 +193,7 @@ jSuites.login = (function(el, options) {
     }
     // Forgot password
     var inputRequest = document.createElement('span');
-    inputRequest.innerHTML = 'Request a new password';
+    inputRequest.innerHTML = jSuites.translate('Request a new password');
     var divRequestButton = document.createElement('div');
     divRequestButton.className = 'requestButton';
     divRequestButton.appendChild(inputRequest);
@@ -210,7 +202,7 @@ jSuites.login = (function(el, options) {
     }
     // Create a new Profile
     var inputNewProfile = document.createElement('span');
-    inputNewProfile.innerHTML = 'Create a new profile';
+    inputNewProfile.innerHTML = jSuites.translate('Create a new profile');
     var divNewProfileButton = document.createElement('div');
     divNewProfileButton.className = 'newProfileButton';
     divNewProfileButton.appendChild(inputNewProfile);
@@ -230,8 +222,8 @@ jSuites.login = (function(el, options) {
     obj.showMessage = function(data) {
         var message = (typeof(data) == 'object') ? data.message : data;
 
-        if (typeof(obj.options.showMessage) == 'function') {
-            obj.options.showMessage(data);
+        if (typeof(obj.options.message) == 'function') {
+            obj.options.message(data);
         } else {
             jSuites.alert(data);
         }
@@ -260,7 +252,7 @@ jSuites.login = (function(el, options) {
         inputPassword.value = '';
 
         // Button
-        actionButton.value = 'Create new profile';
+        actionButton.value = jSuites.translate('Create a new profile');
 
         // Action
         action = 'newProfile';
@@ -283,7 +275,7 @@ jSuites.login = (function(el, options) {
         }
         container.appendChild(divActionButton);
         container.appendChild(divCancelButton);
-        actionButton.value = 'Request a new password';
+        actionButton.value = jSuites.translate('Request a new password');
         inputRecovery.value = 1;
 
         // Action
@@ -300,7 +292,7 @@ jSuites.login = (function(el, options) {
         container.appendChild(divCode);
         container.appendChild(divActionButton);
         container.appendChild(divCancelButton);
-        actionButton.value = 'Confirm code';
+        actionButton.value = jSuites.translate('Confirm the code');
         inputRecovery.value = 2;
 
         // Action
@@ -318,7 +310,7 @@ jSuites.login = (function(el, options) {
         container.appendChild(divRepeatPassword);
         container.appendChild(divActionButton);
         container.appendChild(divCancelButton);
-        actionButton.value = 'Change my password';
+        actionButton.value = jSuites.translate('Change my password');
         inputHash.value = hash;
 
         // Action
@@ -345,7 +337,7 @@ jSuites.login = (function(el, options) {
         }
 
         // Button
-        actionButton.value = 'Login';
+        actionButton.value = jSuites.translate('Login');
 
         // Password
         inputPassword.value = '';
@@ -373,7 +365,7 @@ jSuites.login = (function(el, options) {
                         if (response.authResponse) {
                             obj.execute({ f:response.authResponse.accessToken });
                         } else {
-                            obj.showMessage('Not authorized by facebook');
+                            obj.showMessage(jSuites.translate('Not authorized by facebook'));
                         }
                     }, {scope: 'public_profile,email'});
                 } else {
@@ -404,7 +396,7 @@ jSuites.login = (function(el, options) {
                 if (url.indexOf("error=access_denied") >= 0) {
                    setTimeout(jDestroy ,500);
                    // Not authorized by facebook
-                   obj.showMessage('Not authorized by facebook');
+                   obj.showMessage(jSuites.translate('Not authorized by facebook'));
                 }
             }
 
@@ -430,25 +422,21 @@ jSuites.login = (function(el, options) {
     obj.execute = function(data) {
         // New profile
         if (action == 'newProfile') {
-            var pattern = new RegExp(/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/);
-            if (! inputUsername.value || ! pattern.test(inputUsername.value)) {
-                var message = 'Invalid e-mail address'; 
+            if (! jSuites.validations.email(inputUsername.value)) {
+                var message = jSuites.translate('Invalid e-mail address'); 
             }
-
-            var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
-            if (! inputLogin.value || ! pattern.test(inputLogin.value)) {
-                var message = 'Invalid username, please use only characters and numbers';
+            if (! jSuites.validations.login(inputLogin.value)) {
+                var message = jSuites.translate('Invalid username, please use only characters and numbers');
             }
-
             if (message) {
                 obj.showMessage(message);
                 return false;
             }
         } else if (action == 'changeMyPassword') {
             if (inputPassword.value.length < 3) {
-                var message = 'Password is too short';
+                var message = jSuites.translate('Password is too short');
             } else  if (inputPassword.value != inputRepeatPassword.value) {
-                var message = 'Password should match';
+                var message = jSuites.translate('Password should match');
             } else {
                 if (typeof(obj.options.newPasswordValidation) == 'function') {
                     var val = obj.options.newPasswordValidation(obj, inputPassword.value, inputPassword.value);
@@ -472,7 +460,7 @@ jSuites.login = (function(el, options) {
         // Captcha
         if (Array.prototype.indexOf.call(container.children, divCaptcha) >= 0) {
             if (inputCaptcha.value == '') {
-                obj.showMessage('Please enter the captch code below');
+                obj.showMessage(jSuites.translate('Please enter the captch code below'));
                 return false;
             }
         }

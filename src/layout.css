@@ -36,6 +36,7 @@
 {
     .form-group {
         min-width: 50vw !important;
+        margin-right: 0px !important;
     }
     .section {
         margin-right:0px !important;
@@ -116,8 +117,8 @@ input, select, textarea, button, .input {
 }
 
 .jdropdown .jdropdown-header {
-    padding-top: 8px !important;
-    padding-bottom: 8px !important;
+    padding-top: 8px;
+    padding-bottom: 8px;
 }
     
 .input[data-mask] {
@@ -176,8 +177,8 @@ section.middle {
 }
 
 .top {
-    padding-left:10px;
-    padding-right:10px;
+    padding-left:2px;
+    padding-right:2px;
 }
 
 .top > .row > .column {
@@ -284,15 +285,16 @@ section.middle {
 }
 
 .small {
-    font-size:0.8em;
+    font-size: 0.8em;
 }
 
 .extra-small {
-    font-size:0.7em;
+    font-size: 0.7em;
 }
 
 .form-group {
-    padding:4px;
+    padding: 4px;
+    margin-right: 4px;
 }
 
 .form-group label {
@@ -916,6 +918,11 @@ section.middle {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
 }
 
 ::-webkit-input-placeholder {

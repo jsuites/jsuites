@@ -49,7 +49,11 @@ jSuites.tabs = (function(el, options) {
             border.style.left = obj.headers.children[index].offsetLeft + 'px';
         }
 
-        border.style.bottom = '0px';
+        if (obj.options.position == 'bottom') {
+            border.style.top = '0px';
+        } else {
+            border.style.bottom = '0px';
+        }
     }
 
     var updateControls = function(x) {

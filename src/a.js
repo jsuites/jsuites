@@ -47,17 +47,59 @@ var jSuites = function(options) {
         }
     }
 
-    obj.path = function(str) {
+    /**
+     * Get or set a property from a JSON from a string.
+     */
+    obj.path = function(str, val) {
         str = str.split('.');
         if (str.length) {
             var o = this;
-            var t = null;
-            while (t = str.shift()) {
-                o = o[t];
+            var p = null;
+            while (str.length > 1) {
+                // Get the property
+                p = str.shift();
+                // Check if the property exists
+                if (o.hasOwnProperty(p)) {
+                    o = o[p];
+                } else {
+                    // Property does not exists
+                    if (val === undefined) {
+                        return undefined;
+                    } else {
+                        // Create the property
+                        o[p] = {};
+                        // Next property
+                        o = o[p];
+                    }
+                }
             }
-            return o;
+            // Get the property
+            p = str.shift();
+            // Set or get the value
+            if (val !== undefined) {
+                o[p] = val;
+                // Success
+                return true;
+            } else {
+                // Return the value
+                return o[p];
+            }
         }
+        // Something went wrong
         return false;
+    }
+
+    // Update dictionary
+    obj.setDictionary = function(d) {
+        obj.dictionary = d;
+    }
+
+    // Dictionary
+    obj.dictionary = {};
+
+    // Translate
+    obj.translate = function(t) {
+        return obj.dictionary[t] || t;
     }
 
     // Array of opened components

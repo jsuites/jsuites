@@ -323,7 +323,7 @@ japp.jwarning .page {
 
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
-    padding: 0px;
+    padding: 0px !important;
     border-bottom: 1px solid #e6e6e8;
     text-transform: uppercase;
     outline: none;
@@ -889,8 +889,4 @@ japp.jwarning .page {
     padding-top:10px;
     padding-bottom:10px;
     margin-right:10px;
-}
-
-.japp .material-icons {
-    font-size: 24px;
 }
