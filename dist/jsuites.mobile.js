@@ -13,6 +13,7 @@ jSuites.app = (function(el, options) {
         onloadpage: null,
         toolbar: null,
         route: null,
+        ident: null,
         detachHiddenPages: false
     }
 
@@ -59,7 +60,16 @@ jSuites.app = (function(el, options) {
      * Page identification
      */
     var ident = function(route) {
-        return route.split('?')[0].replace(/\/\d+$/g, '')
+        route = route.split('?')[0];
+
+        if (typeof(obj.options.ident) == 'function') {
+            var ret = obj.options.ident(route);
+            if (typeof(ret) !== 'undefined') {
+                return ret;
+            }
+        }
+
+        return route;
     }
 
     /*
@@ -152,7 +162,7 @@ jSuites.app = (function(el, options) {
             // Create page overwrite
             var ret = null;
             if (typeof(obj.options.onbeforecreatepage) == 'function') {
-                var ret = obj.options.onbeforecreatepage(obj, page);
+                ret = obj.options.onbeforecreatepage(obj, page);
                 if (ret === false) {
                     return false;
                 }

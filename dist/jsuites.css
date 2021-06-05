@@ -1994,7 +1994,8 @@
     height: 30px;
     font-family: 'Material Icons';
     font-size: 30px;
-    text-shadow: 0px 0px 0px #000;
+    /* before it was 0px 0px 0px #000 */
+    text-shadow: 0px 0px 6px rgb(56 56 56);
     text-align: center;
     cursor: pointer;
 }
@@ -2009,7 +2010,8 @@
     height: 30px;
     font-family: 'Material Icons';
     font-size: 30px;
-    text-shadow: 0px 0px 0px #000;
+    /* before it was 0px 0px 0px #000 */
+    text-shadow: 0px 0px 6px rgb(56 56 56);    
     text-align: center;
     cursor: pointer;
 }
@@ -2110,7 +2112,20 @@
 
 .jslider-focus img.jslider-vertical {
     width: auto;
-    height: 50vh;
+    /* before it was 50vh */
+    height: 80vh;
+}
+
+@media only screen and (max-width: 576px) {
+    .jslider-focus img.jslider-vertical {
+        width: 99vw !important;
+        height: auto !important;
+    }
+
+    .jslider-focus img {
+        width: 100vw !important;
+        height: auto !important;
+    }
 }
 
 .jslider-grid {
@@ -2262,7 +2277,6 @@
     padding-right: 20px;
     margin-left: 1px;
     margin-right: 1px;
-    margin-bottom: 1px;
     background-color: #f1f1f1;
     cursor: pointer;
     white-space: nowrap;
@@ -2604,8 +2618,10 @@
     background-repeat: no-repeat;
     background-position: center;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
-    width: 16px;
-    height: 18px;
+    width: 24px;
+    height: 16px;
+    margin-left: 4px;
+    border-left: 1px solid #f2f2f2;
 }
 
 .jtoolbar-floating {

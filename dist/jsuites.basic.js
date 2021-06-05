@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.6.7';
+    var version = '4.6.9';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -64,21 +64,59 @@ var jSuites = function(options) {
         }
     }
 
-    obj.path = function(str) {
+    /**
+     * Get or set a property from a JSON from a string.
+     */
+    obj.path = function(str, val) {
         str = str.split('.');
         if (str.length) {
             var o = this;
-            var t = null;
-            while (t = str.shift()) {
-                if (o.hasOwnProperty(t)) {
-                    o = o[t];
+            var p = null;
+            while (str.length > 1) {
+                // Get the property
+                p = str.shift();
+                // Check if the property exists
+                if (o.hasOwnProperty(p)) {
+                    o = o[p];
                 } else {
-                    return undefined;
+                    // Property does not exists
+                    if (val === undefined) {
+                        return undefined;
+                    } else {
+                        // Create the property
+                        o[p] = {};
+                        // Next property
+                        o = o[p];
+                    }
                 }
             }
-            return o;
+            // Get the property
+            p = str.shift();
+            // Set or get the value
+            if (val !== undefined) {
+                o[p] = val;
+                // Success
+                return true;
+            } else {
+                // Return the value
+                return o[p];
+            }
         }
+        // Something went wrong
         return false;
+    }
+
+    // Update dictionary
+    obj.setDictionary = function(d) {
+        obj.dictionary = d;
+    }
+
+    // Dictionary
+    obj.dictionary = {};
+
+    // Translate
+    obj.translate = function(t) {
+        return obj.dictionary[t] || t;
     }
 
     // Array of opened components
@@ -1605,17 +1643,40 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     return '';
 }
 
+/**
+ * Date to number
+ */
+jSuites.calendar.dateToNum = function(a, b) {
+    a = new Date(a);
+    b = new Date(b);
+    var v = b.getTime() - a.getTime();
+    return Math.round(v / 86400000);
+}
+
+/**
+ * Number to date
+ */
+jSuites.calendar.numToDate = function(value) {
+    var d = new Date(Math.round((value - 25569)*86400*1000));
+    return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+}
+
 // Helper to convert date into string
 jSuites.calendar.getDateString = function(value, options) {
     if (! options) {
         var options = {};
     }
 
+    // Date instance
+    if (value instanceof Date) {
+        value = jSuites.calendar.now(value);
+    }
+
     // Labels
-    if (typeof(options) == 'string') {
-        var format = options;
-    } else {
+    if (options && typeof(options) == 'object') {
         var format = options.format;
+    } else {
+        var format = options || 'YYYY-MM-DD';
     }
 
     // Labels
@@ -1642,6 +1703,9 @@ jSuites.calendar.getDateString = function(value, options) {
     // Default date format
     if (! format) {
         format = 'DD/MM/YYYY';
+    } else {
+        format = format.replace(/h{1,2}:m{1,2} AM\/PM/g, 'HH12:MI');
+        format = format.replace(/h{1,2}:m{1,2}/g, 'HH24:MI');
     }
 
     if (value) {
@@ -1677,11 +1741,9 @@ jSuites.calendar.getDateString = function(value, options) {
 
             // New value
             value = format;
-            // Legacy
-            value = value.replace('MMM', 'MON');
 
             // Extract tokens
-            var tokens = [ 'YYYY', 'YYY', 'YY', 'Y', 'MM', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON'];
+            var tokens = [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M'];
             var pieces = [];
             var tmp = value;
 
@@ -1705,7 +1767,7 @@ jSuites.calendar.getDateString = function(value, options) {
             var replace = function(k, v, c) {
                 if (c == true) {
                     for (var i = 0; i < pieces.length; i++) {
-                        if (pieces[i].toUpperCase() == k) {
+                        if (('' + pieces[i]).toUpperCase() == k) {
                             pieces[i] = v;
                         }
                     }
@@ -1721,9 +1783,9 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('YYYY', d[0], true);
             replace('YYY', d[0].substring(1,4), true);
             replace('YY', d[0].substring(2,4), true);
-            replace('Y', d[0].substring(3,4), true);
 
-            replace('MM', d[1], true);
+            replace('dddd', weekdays[calendar.getDay()]);
+            replace('ddd', weekdays[calendar.getDay()].substr(0,3));
             replace('DD', d[2], true);
             replace('Q', Math.floor((calendar.getMonth() + 3) / 3), true);
 
@@ -1752,9 +1814,14 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('Month', monthsFull[calendar.getMonth()]);
             replace('month', monthsFull[calendar.getMonth()].toLowerCase());
             replace('MON', months[calendar.getMonth()].toUpperCase());
+            replace('mmmmm', monthsFull[calendar.getMonth()].substr(0, 1));
+            replace('mmmm', months[calendar.getMonth()]);
+            replace('mmm', monthsFull[calendar.getMonth()]);
             replace('MMM', months[calendar.getMonth()].toUpperCase());
+            replace('MM', d[1], true);
             replace('Mon', months[calendar.getMonth()]);
             replace('mon', months[calendar.getMonth()].toLowerCase());
+            replace('m', d[1]);
 
             replace('DAY', weekdays[calendar.getDay()].toUpperCase());
             replace('Day', weekdays[calendar.getDay()]);
@@ -1764,6 +1831,9 @@ jSuites.calendar.getDateString = function(value, options) {
             replace('dy', weekdays[calendar.getDay()].substr(0,3).toLowerCase());
             replace('D', weekdays[calendar.getDay()]);
             replace('WD', weekdays[calendar.getDay()]);
+            replace('d', d[2]);
+
+            replace('Y', d[0].substring(3,4), true);
 
             // Put pieces together
             value = pieces.join('');
@@ -5103,6 +5173,7 @@ jSuites.editor = (function(el, options) {
         // Create toolbar
         jSuites.toolbar(toolbar, {
             container: true,
+            responsive: true,
             items: obj.options.toolbar
         });
     }
@@ -6182,17 +6253,14 @@ jSuites.mask = (function() {
                 decimal = '.';
             }
 
-            if (jSuites.isNumeric(value)) {
-                if (typeof(value) == 'number') {
-                    var number = (''+value).split('.');
-                } else {
-                    var number = (''+value).split(decimal);
-                }
-                var value = number[0];
-                var valueDecimal = number[1];
+            if (jSuites.isNumeric(value) && typeof(value) == 'number') {
+                var number = (''+value).split('.');
             } else {
-                value = '' + value;
+                var number = (''+value).split(decimal);
             }
+
+            var value = number[0];
+            var valueDecimal = number[1];
 
             // Helpers
             index = 0;
@@ -6200,29 +6268,21 @@ jSuites.mask = (function() {
             // Create mask token
             obj.prepare(mask);
             // Current value
-            var currentValue = value;
-            if (currentValue) {
+            var v = value;
+            if (v) {
                 // Checking current value
-                for (var i = 0; i < currentValue.length; i++) {
-                    if (currentValue[i] != null) {
-                        obj.process(currentValue[i]);
+                for (var i = 0; i < v.length; i++) {
+                    if (v[i] != null) {
+                        obj.process(v[i]);
                     }
                 }
             }
+            value = values.join('');
             if (valueDecimal) {
-                obj.process(decimal);
-                var currentValue = valueDecimal;
-                if (currentValue) {
-                    // Checking current value
-                    for (var i = 0; i < currentValue.length; i++) {
-                        if (currentValue[i] != null) {
-                            obj.process(currentValue[i]);
-                        }
-                    }
-                }
+                value += (decimal + valueDecimal);
             }
             // Formatted value
-            return values.join('');
+            return value;
         } else {
             return '';
         }
@@ -7050,23 +7110,27 @@ jSuites.picker = (function(el, options) {
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        el.onmouseup = function(e) {
-            var item = jSuites.findElement(e.target, 'jpicker-item');
-            if (item) {
-                // Update label
-                obj.setValue(item.k);
-
-                // Call method
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
-                }
-            } else {
+        el.onmousedown = function(e) {
+            var element = jSuites.findElement(e.target, 'jpicker');
+            if (element) {
                 if (! el.classList.contains('jpicker-focus')) {
                     obj.open();
                 } else {
-                    obj.close();
+                    var item = jSuites.findElement(e.target, 'jpicker-item');
+                    if (item) {
+                        console.log(item)
+                        // Update label
+                        obj.setValue(item.k);
+                        // Call method
+                        if (typeof(obj.options.onchange) == 'function') {
+                            obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                        }
+                    }
                 }
+            } else {
+                obj.close();
             }
+            e.stopPropagation();
         }
 
         // Dropdown content
@@ -7442,7 +7506,11 @@ jSuites.tabs = (function(el, options) {
             border.style.left = obj.headers.children[index].offsetLeft + 'px';
         }
 
-        border.style.bottom = '0px';
+        if (obj.options.position == 'bottom') {
+            border.style.top = '0px';
+        } else {
+            border.style.bottom = '0px';
+        }
     }
 
     var updateControls = function(x) {
