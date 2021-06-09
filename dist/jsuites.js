@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.7.0';
+    var version = '4.7.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -6730,6 +6730,16 @@ jSuites.mask = (function() {
 
             if (jSuites.isNumeric(value) && typeof(value) == 'number') {
                 var number = (''+value).split('.');
+
+                // Rouding
+                if (number[1] && mask.indexOf(decimal)) {
+                    var t = mask.split(decimal);
+                    if (t = (''+t[1]).length) {
+                        value = value.toFixed(t);
+                    }
+                }
+
+                number = (''+value).split('.');
             } else {
                 var number = (''+value).split(decimal);
             }
