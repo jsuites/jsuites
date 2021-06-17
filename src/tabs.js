@@ -19,6 +19,7 @@ jSuites.tabs = (function(el, options) {
         hideHeaders: false,
         padding: null,
         palette: null,
+        menu: false,
     }
 
     // Loop through the initial configuration
@@ -309,9 +310,81 @@ jSuites.tabs = (function(el, options) {
             obj.content.style.padding = parseInt(obj.options.padding) + 'px';
         }
 
+        // Menu
+        if (obj.options.menu) {
+            // Init contextMenu
+            var contextMenuElement = document.createElement("DIV");
+            contextMenuElement.className = 'jexcel_contextmenu';
+            el.appendChild(contextMenuElement);
+            
+            var contextMenu = jSuites.contextmenu(contextMenuElement, {
+                onclick:function() {
+                    contextMenu.close();
+                }
+            });
+            
+            // Init menu Element
+            var menuEl = document.createElement("DIV");
+            menuEl.classList.add("jtabs-menu");
+            
+            var menuBt = document.createElement("BUTTON");
+            menuBt.innerHTML = "&nbsp;";
+            menuEl.addEventListener("click", function(e) {
+                var clientRect = e.target.getBoundingClientRect();
+                var clientX = clientRect.left;
+                var clientY = clientRect.top+clientRect.height;
+
+                var coords = {x:clientX, y:clientY};
+                
+                var items = [];
+                // parse tabs
+                for(var ite_tab=0; ite_tab<obj.headers.children.length; ite_tab++) {
+                    if(!obj.headers.children[ite_tab].classList.contains("jtabs-border")) {
+                        var iconTabEl = obj.headers.children[ite_tab].querySelector("i.material-icons");
+                        var iconTab = null;
+                        var titleTab = "";
+                        if(iconTabEl) {
+                            iconTab = iconTabEl.innerText;
+                            titleTab = obj.headers.children[ite_tab].innerText.substring(iconTab.length);
+                        } else {
+                            titleTab = obj.headers.children[ite_tab].innerText;
+                        }
+                        
+                        items.push({
+                            title: titleTab,
+                            icon: iconTab,
+                            disabled: obj.headers.children[ite_tab].classList.contains("jtabs-selected"),
+                            onclick: function(index) {
+                                return function() {
+                                    obj.open(index);
+                                }
+                            }(ite_tab)
+                        });
+                    }
+                }
+                // add item for create new tab
+                if(obj.options.allowCreate) {
+                    items.push({
+                            title: "New tab",
+                            onclick: function() {
+                                obj.create();
+                            }
+                        });
+                }
+                
+                // open contextmenu
+                contextMenu.open(coords, items);
+            });
+            
+            menuEl.appendChild(menuBt)
+        }
+
         // Header
         var header = document.createElement('div');
         header.className = 'jtabs-headers-container';
+        if(obj.options.menu) {
+            header.appendChild(menuEl);
+        }
         header.appendChild(obj.headers);
 
         // Controls
