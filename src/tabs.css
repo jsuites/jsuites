@@ -8,34 +8,6 @@
     align-items: center;
 }
 
-.jtabs .jtabs-headers-container .jtabs-menu {
-    margin-left: 1px;
-    margin-right: 1px;
-    background-color: #f1f1f1;
-    cursor: pointer;
-    border: none;    
-    width: 30px;
-    text-align: center;
-    align-self: stretch;
-    
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.jtabs .jtabs-headers-container .jtabs-menu button {
-    padding: 6px;
-    padding-left: 10px;
-    padding-right: 10px;
-    background-color: transparent;
-    cursor: pointer;
-    border: none;
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMjQgNmgtMjR2LTRoMjR2NHptMCA0aC0yNHY0aDI0di00em0wIDhoLTI0djRoMjR2LTR6Ii8+PC9zdmc+);
-    background-size: 50%;
-    background-repeat: no-repeat;
-    background-position: center;
-}
-
 .jtabs .jtabs-headers {
     display: flex;
     align-items: center;
