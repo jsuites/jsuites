@@ -139,6 +139,19 @@
     height:24px;
 }
 
+.jdropdown-icon
+{
+    margin-right:10px;
+    font-size: 30px;
+    margin-left: -5px;
+}
+
+.jdropdown-icon-small
+{
+    font-size: 24px;
+    margin-left: 0px;
+}
+
 .jdropdown-title
 {
     font-size: 0.7em;
