@@ -1766,6 +1766,7 @@
     padding-right: 35px;
     outline: none;
     border-radius: 4px;
+    font-size: 0.8em;
 }
 
 .jpicker-header:hover {
@@ -2383,10 +2384,6 @@
 
 .jtabs.jtabs-modern .jtabs-headers > .jtabs-selected .material-icons {
     color: #000;
-}
-
-.jtabs .jtabs-headers {
-    font-size: .9rem;
 }
 
 .jtabs.jtabs-modern .jtabs-headers {

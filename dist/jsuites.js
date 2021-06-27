@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.7.1';
+    var version = '4.7.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -522,9 +522,9 @@ jSuites.calendar = (function(el, options) {
             monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
             weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-            textDone: 'Done',
-            textReset: 'Reset',
-            textUpdate: 'Update',
+            textDone: jSuites.translate('Done'),
+            textReset: jSuites.translate('Reset'),
+            textUpdate: jSuites.translate('Update'),
             // Value
             value: null,
             // Fullscreen (this is automatic set for screensize < 800)
@@ -540,6 +540,17 @@ jSuites.calendar = (function(el, options) {
             mode: null,
             position: null,
         };
+
+        // Translations
+        for (var i = 0; i < defaults.months.length; i++) {
+            defaults.months[i] = jSuites.translate(defaults.months[i]);
+        }
+        for (var i = 0; i < defaults.monthsFull.length; i++) {
+            defaults.monthsFull[i] = jSuites.translate(defaults.monthsFull[i]);
+        }
+        for (var i = 0; i < defaults.weekdays.length; i++) {
+            defaults.weekdays[i] = jSuites.translate(defaults.weekdays[i]);
+        }
 
         // Loop through our object
         for (var property in defaults) {
@@ -1659,8 +1670,11 @@ jSuites.calendar.extractDateFromString = function(date, format) {
  */
 jSuites.calendar.dateToNum = function(a, b) {
     a = new Date(a);
+    if (! b) {
+        b = '1899-12-30 ' + a.getHours() + ':' + a.getMinutes() + ':' + a.getSeconds();
+    }
     b = new Date(b);
-    var v = b.getTime() - a.getTime();
+    var v = a.getTime() - b.getTime();
     return Math.round(v / 86400000);
 }
 
@@ -1669,7 +1683,7 @@ jSuites.calendar.dateToNum = function(a, b) {
  */
 jSuites.calendar.numToDate = function(value) {
     var d = new Date(Math.round((value - 25569)*86400*1000));
-    return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+    return d.getFullYear() + "-" + jSuites.two(d.getMonth()+1) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
 }
 
 // Helper to convert date into string
@@ -1681,6 +1695,8 @@ jSuites.calendar.getDateString = function(value, options) {
     // Date instance
     if (value instanceof Date) {
         value = jSuites.calendar.now(value);
+    } else if (value && jSuites.isNumeric(value)) {
+        value = jSuites.calendar.numToDate(value);
     }
 
     // Labels
@@ -2156,7 +2172,7 @@ jSuites.color = (function(el, options) {
         tableContainer.appendChild(t);
 
         // Select color
-        tableContainer.addEventListener("mouseup", function(e) {
+        tableContainer.addEventListener("mousedown", function(e) {
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {
@@ -2968,6 +2984,7 @@ jSuites.dropdown = (function(el, options) {
             oninsert: null,
             onbeforeinsert: null,
             sortResults: false,
+            autofocus: false,
         }
 
         // Loop through our object
@@ -3821,6 +3838,11 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
+        }
+
+        // Auto focus
+        if (obj.options.autofocus == true) {
+            obj.firstVisible();
         }
     }
 
@@ -8765,20 +8787,22 @@ jSuites.tabs = (function(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        var rect = obj.headers.children[index].getBoundingClientRect();
+        if (obj.options.animation) {
+            var rect = obj.headers.children[index].getBoundingClientRect();
 
-        if (obj.options.palette == 'modern') {
-            border.style.width = rect.width - 4 + 'px';
-            border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-        } else {
-            border.style.width = rect.width + 'px';
-            border.style.left = obj.headers.children[index].offsetLeft + 'px';
-        }
+            if (obj.options.palette == 'modern') {
+                border.style.width = rect.width - 4 + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+            } else {
+                border.style.width = rect.width + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 'px';
+            }
 
-        if (obj.options.position == 'bottom') {
-            border.style.top = '0px';
-        } else {
-            border.style.bottom = '0px';
+            if (obj.options.position == 'bottom') {
+                border.style.top = '0px';
+            } else {
+                border.style.bottom = '0px';
+            }
         }
     }
 
@@ -8813,6 +8837,8 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
+    obj.setBorder = setBorder;
+
     // Set value
     obj.open = function(index) {
         var previous = null;
@@ -8844,9 +8870,7 @@ jSuites.tabs = (function(el, options) {
             obj.headers.parentNode.style.display = 'none';
         } else {
             // Set border
-            if (obj.options.animation == true) {
-                setBorder(index);
-            }
+            setBorder(index);
 
             obj.headers.parentNode.style.display = '';
 
@@ -10075,11 +10099,16 @@ jSuites.toolbar = (function(el, options) {
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Available space
-            var available = el.parentNode.offsetWidth - 60;
-            // Move to the floating option
-            while (available < toolbarContent.offsetWidth) {
-                if (toolbarContent.lastChild) {
+            // Width of the c
+            var rect = el.parentNode.getBoundingClientRect();
+            // Available parent space
+            var available = rect.width;
+            // Toolbar is larger than the parent, move elements to the floating element
+            if (available < toolbarContent.offsetWidth) {
+                // Give space to the floating element
+                available -= 50;
+                // Move to the floating option
+                while (toolbarContent.lastChild && available < toolbarContent.offsetWidth) {
                     toolbarFloating.insertBefore(toolbarContent.lastChild, toolbarFloating.firstChild);
                 }
             }
@@ -10128,7 +10157,12 @@ jSuites.toolbar = (function(el, options) {
     return obj;
 });
 
-jSuites.validations = {};
+jSuites.validations = function(value, options) {
+    if (typeof(jSuites.validations[options.type]) === 'function') {
+        return jSuites.validations[options.type](value, options);
+    }
+    return null;
+};
 
 jSuites.validations.email = function(data) {
     var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -10160,20 +10194,99 @@ jSuites.validations.login = function(data) {
  * Reference,
  * Value
  */
-jSuites.validations.date = function(options) {
-    if (typeof(options) == 'object') {
-        if (options.constraints === 'Valid date') {
-            var regex = /^(((0[1-9]|[12]\d|3[01])\/(0[13578]|1[02])\/((19|[2-9]\d)\d{2}))|((0[1-9]|[12]\d|30)\/(0[13456789]|1[012])\/((19|[2-9]\d)\d{2}))|((0[1-9]|1\d|2[0-8])\/02\/((19|[2-9]\d)\d{2}))|(29\/02\/((1[6-9]|[2-9]\d)(0[48]|[2468][048]|[13579][26])|((16|[2468][048]|[3579][26])00))))$/g;
-            if (options.value.matches(regex)) {
-                return true;
-            }
-            return false;
-        } else if (options.constraint === 'equal to') {
-            return options.value === options.reference;
-        }
-    } else if (options.constraint === '<') {
-    } else if (options.constraint === '<=') {
+
+var valueComparisons = function(data, options) {
+    if (options.constraint === '=') {
+        return data === options.reference;
     }
+    if (options.constraint === '<') {
+        return data < options.reference;
+    }
+    if (options.constraint === '<=') {
+        return data <= options.reference;
+    }
+    if (options.constraint === '>') {
+        return data > options.reference;
+    }
+    if (options.constraint === '>=') {
+        return data >= options.reference;
+    }
+    if (options.constraint === 'between') {
+        return data >= options.reference[0] && data <= options.reference[1];
+    }
+    if (options.constraint === 'not between') {
+        return data < options.reference[0] || data > options.reference[1];
+    }
+
+    return null;
+}
+
+jSuites.validations.number = function(data, options) {
+    if (!jSuites.isNumeric(data)) {
+        return false;
+    }
+
+    if (options === undefined || options.constraint === undefined) {
+        return true;
+    }
+
+    return valueComparisons(data, options);
+}
+
+jSuites.validations.date = function(data, options) {
+    if (new Date(data) == 'Invalid Date') {
+        return false;
+    }
+
+    if (options === undefined || options.constraint === undefined) {
+        return true;
+    } else if (typeof(options) === 'object') {
+        data = new Date(data).getTime();
+
+        if (Array.isArray(options.reference)) {
+            options.reference = options.reference.map(function(reference) {
+                return new Date(reference).getTime();
+            });
+        } else {
+            options.reference = new Date(options.reference).getTime();
+        }
+
+        return valueComparisons(data, options);
+    }
+    return null;
+}
+
+jSuites.validations.itemList = function(data, options) {
+    return options.reference.some(function(reference) {
+        return reference == data;
+    });
+}
+
+jSuites.validations.text = function(data, options) {
+    if (typeof data !== 'string') {
+        return false;
+    }
+
+    if (options === undefined || options.constraint === undefined) {
+        return true;
+    }
+    if (options.constraint === '=') {
+        return data === options.reference;
+    }
+    if (options.constraint === 'contains') {
+        return data.includes(options.reference);
+    }
+    if (options.constraint === 'not contain') {
+        return !data.includes(options.reference);
+    }
+    if (options.constraint === 'email') {
+        return jSuites.validations.email(data);
+    }
+    if (options.constraint === 'url') {
+        var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
+        return pattern.test(data) ? true : false;
+    }
+    return null;
 }
 
 jSuites.validations.constraints = function() {

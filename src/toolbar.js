@@ -210,11 +210,16 @@ jSuites.toolbar = (function(el, options) {
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Available space
-            var available = el.parentNode.offsetWidth - 60;
-            // Move to the floating option
-            while (available < toolbarContent.offsetWidth) {
-                if (toolbarContent.lastChild) {
+            // Width of the c
+            var rect = el.parentNode.getBoundingClientRect();
+            // Available parent space
+            var available = rect.width;
+            // Toolbar is larger than the parent, move elements to the floating element
+            if (available < toolbarContent.offsetWidth) {
+                // Give space to the floating element
+                available -= 50;
+                // Move to the floating option
+                while (toolbarContent.lastChild && available < toolbarContent.offsetWidth) {
                     toolbarFloating.insertBefore(toolbarContent.lastChild, toolbarFloating.firstChild);
                 }
             }

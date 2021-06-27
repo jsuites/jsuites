@@ -40,9 +40,9 @@ jSuites.calendar = (function(el, options) {
             monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
             weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-            textDone: 'Done',
-            textReset: 'Reset',
-            textUpdate: 'Update',
+            textDone: jSuites.translate('Done'),
+            textReset: jSuites.translate('Reset'),
+            textUpdate: jSuites.translate('Update'),
             // Value
             value: null,
             // Fullscreen (this is automatic set for screensize < 800)
@@ -58,6 +58,17 @@ jSuites.calendar = (function(el, options) {
             mode: null,
             position: null,
         };
+
+        // Translations
+        for (var i = 0; i < defaults.months.length; i++) {
+            defaults.months[i] = jSuites.translate(defaults.months[i]);
+        }
+        for (var i = 0; i < defaults.monthsFull.length; i++) {
+            defaults.monthsFull[i] = jSuites.translate(defaults.monthsFull[i]);
+        }
+        for (var i = 0; i < defaults.weekdays.length; i++) {
+            defaults.weekdays[i] = jSuites.translate(defaults.weekdays[i]);
+        }
 
         // Loop through our object
         for (var property in defaults) {
@@ -1177,8 +1188,11 @@ jSuites.calendar.extractDateFromString = function(date, format) {
  */
 jSuites.calendar.dateToNum = function(a, b) {
     a = new Date(a);
+    if (! b) {
+        b = '1899-12-30 ' + a.getHours() + ':' + a.getMinutes() + ':' + a.getSeconds();
+    }
     b = new Date(b);
-    var v = b.getTime() - a.getTime();
+    var v = a.getTime() - b.getTime();
     return Math.round(v / 86400000);
 }
 
@@ -1187,7 +1201,7 @@ jSuites.calendar.dateToNum = function(a, b) {
  */
 jSuites.calendar.numToDate = function(value) {
     var d = new Date(Math.round((value - 25569)*86400*1000));
-    return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+    return d.getFullYear() + "-" + jSuites.two(d.getMonth()+1) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
 }
 
 // Helper to convert date into string
@@ -1199,6 +1213,8 @@ jSuites.calendar.getDateString = function(value, options) {
     // Date instance
     if (value instanceof Date) {
         value = jSuites.calendar.now(value);
+    } else if (value && jSuites.isNumeric(value)) {
+        value = jSuites.calendar.numToDate(value);
     }
 
     // Labels

@@ -16,6 +16,16 @@ jSuites.mask = (function() {
 
             if (jSuites.isNumeric(value) && typeof(value) == 'number') {
                 var number = (''+value).split('.');
+
+                // Rouding
+                if (number[1] && mask.indexOf(decimal)) {
+                    var t = mask.split(decimal);
+                    if (t = (''+t[1]).length) {
+                        value = value.toFixed(t);
+                    }
+                }
+
+                number = (''+value).split('.');
             } else {
                 var number = (''+value).split(decimal);
             }

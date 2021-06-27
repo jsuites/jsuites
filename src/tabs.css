@@ -125,10 +125,6 @@
     color: #000;
 }
 
-.jtabs .jtabs-headers {
-    font-size: .9rem;
-}
-
 .jtabs.jtabs-modern .jtabs-headers {
     background: #EEEEEF !important;
     padding: 2px;

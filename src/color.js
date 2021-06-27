@@ -296,7 +296,7 @@ jSuites.color = (function(el, options) {
         tableContainer.appendChild(t);
 
         // Select color
-        tableContainer.addEventListener("mouseup", function(e) {
+        tableContainer.addEventListener("mousedown", function(e) {
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {

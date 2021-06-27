@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.7.1';
+    var version = '4.7.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -511,9 +511,9 @@ jSuites.calendar = (function(el, options) {
             monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
             weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
             weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
-            textDone: 'Done',
-            textReset: 'Reset',
-            textUpdate: 'Update',
+            textDone: jSuites.translate('Done'),
+            textReset: jSuites.translate('Reset'),
+            textUpdate: jSuites.translate('Update'),
             // Value
             value: null,
             // Fullscreen (this is automatic set for screensize < 800)
@@ -529,6 +529,17 @@ jSuites.calendar = (function(el, options) {
             mode: null,
             position: null,
         };
+
+        // Translations
+        for (var i = 0; i < defaults.months.length; i++) {
+            defaults.months[i] = jSuites.translate(defaults.months[i]);
+        }
+        for (var i = 0; i < defaults.monthsFull.length; i++) {
+            defaults.monthsFull[i] = jSuites.translate(defaults.monthsFull[i]);
+        }
+        for (var i = 0; i < defaults.weekdays.length; i++) {
+            defaults.weekdays[i] = jSuites.translate(defaults.weekdays[i]);
+        }
 
         // Loop through our object
         for (var property in defaults) {
@@ -1648,8 +1659,11 @@ jSuites.calendar.extractDateFromString = function(date, format) {
  */
 jSuites.calendar.dateToNum = function(a, b) {
     a = new Date(a);
+    if (! b) {
+        b = '1899-12-30 ' + a.getHours() + ':' + a.getMinutes() + ':' + a.getSeconds();
+    }
     b = new Date(b);
-    var v = b.getTime() - a.getTime();
+    var v = a.getTime() - b.getTime();
     return Math.round(v / 86400000);
 }
 
@@ -1658,7 +1672,7 @@ jSuites.calendar.dateToNum = function(a, b) {
  */
 jSuites.calendar.numToDate = function(value) {
     var d = new Date(Math.round((value - 25569)*86400*1000));
-    return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+    return d.getFullYear() + "-" + jSuites.two(d.getMonth()+1) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
 }
 
 // Helper to convert date into string
@@ -1670,6 +1684,8 @@ jSuites.calendar.getDateString = function(value, options) {
     // Date instance
     if (value instanceof Date) {
         value = jSuites.calendar.now(value);
+    } else if (value && jSuites.isNumeric(value)) {
+        value = jSuites.calendar.numToDate(value);
     }
 
     // Labels
@@ -2145,7 +2161,7 @@ jSuites.color = (function(el, options) {
         tableContainer.appendChild(t);
 
         // Select color
-        tableContainer.addEventListener("mouseup", function(e) {
+        tableContainer.addEventListener("mousedown", function(e) {
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {
@@ -2957,6 +2973,7 @@ jSuites.dropdown = (function(el, options) {
             oninsert: null,
             onbeforeinsert: null,
             sortResults: false,
+            autofocus: false,
         }
 
         // Loop through our object
@@ -3810,6 +3827,11 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
+        }
+
+        // Auto focus
+        if (obj.options.autofocus == true) {
+            obj.firstVisible();
         }
     }
 
@@ -7559,20 +7581,22 @@ jSuites.tabs = (function(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        var rect = obj.headers.children[index].getBoundingClientRect();
+        if (obj.options.animation) {
+            var rect = obj.headers.children[index].getBoundingClientRect();
 
-        if (obj.options.palette == 'modern') {
-            border.style.width = rect.width - 4 + 'px';
-            border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-        } else {
-            border.style.width = rect.width + 'px';
-            border.style.left = obj.headers.children[index].offsetLeft + 'px';
-        }
+            if (obj.options.palette == 'modern') {
+                border.style.width = rect.width - 4 + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+            } else {
+                border.style.width = rect.width + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 'px';
+            }
 
-        if (obj.options.position == 'bottom') {
-            border.style.top = '0px';
-        } else {
-            border.style.bottom = '0px';
+            if (obj.options.position == 'bottom') {
+                border.style.top = '0px';
+            } else {
+                border.style.bottom = '0px';
+            }
         }
     }
 
@@ -7607,6 +7631,8 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
+    obj.setBorder = setBorder;
+
     // Set value
     obj.open = function(index) {
         var previous = null;
@@ -7638,9 +7664,7 @@ jSuites.tabs = (function(el, options) {
             obj.headers.parentNode.style.display = 'none';
         } else {
             // Set border
-            if (obj.options.animation == true) {
-                setBorder(index);
-            }
+            setBorder(index);
 
             obj.headers.parentNode.style.display = '';
 
@@ -8229,11 +8253,16 @@ jSuites.toolbar = (function(el, options) {
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Available space
-            var available = el.parentNode.offsetWidth - 60;
-            // Move to the floating option
-            while (available < toolbarContent.offsetWidth) {
-                if (toolbarContent.lastChild) {
+            // Width of the c
+            var rect = el.parentNode.getBoundingClientRect();
+            // Available parent space
+            var available = rect.width;
+            // Toolbar is larger than the parent, move elements to the floating element
+            if (available < toolbarContent.offsetWidth) {
+                // Give space to the floating element
+                available -= 50;
+                // Move to the floating option
+                while (toolbarContent.lastChild && available < toolbarContent.offsetWidth) {
                     toolbarFloating.insertBefore(toolbarContent.lastChild, toolbarFloating.firstChild);
                 }
             }

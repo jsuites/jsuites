@@ -45,6 +45,7 @@ jSuites.dropdown = (function(el, options) {
             obj.open();
         }
     }
+
     
     // Default sort
     var sortData = function(itemA, itemB) {
@@ -224,6 +225,7 @@ jSuites.dropdown = (function(el, options) {
             oninsert: null,
             onbeforeinsert: null,
             sortResults: false,
+            autofocus: false,
         }
 
         // Loop through our object
@@ -557,7 +559,7 @@ jSuites.dropdown = (function(el, options) {
                 name: title,
             };
         }
-        
+
         // Callback
         if (typeof(obj.options.onbeforeinsert) == 'function') {
             obj.options.onbeforeinsert(obj, item);
@@ -626,7 +628,7 @@ jSuites.dropdown = (function(el, options) {
         if (data.id) {
             item.element.setAttribute('id', data.id);
         }
-        
+
         // Disabled
         if (data.disabled == true) {
             item.element.setAttribute('data-disabled', true);
@@ -1077,6 +1079,11 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
+        }
+
+        // Auto focus
+        if (obj.options.autofocus == true) {
+            obj.firstVisible();
         }
     }
 
