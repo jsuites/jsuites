@@ -152,19 +152,23 @@ jSuites.ajax = (function(options, complete) {
             var index = jSuites.ajax.requests.indexOf(httpRequest);
             // Remove from the ajax requests container
             jSuites.ajax.requests.splice(index, 1);
-            // Last one?
+            // Deprected: Last one?
             if (! jSuites.ajax.requests.length) {
                 // Object event
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
                 }
-                // Global event
+            }
+            // Group requests
+            if (options.group) {
                 if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
-                    jSuites.ajax.oncomplete[options.group]();
-                    jSuites.ajax.oncomplete[options.group] = null;
+                    if (! jSuites.ajax.pending(options.group)) {
+                        jSuites.ajax.oncomplete[options.group]();
+                        jSuites.ajax.oncomplete[options.group] = null;
+                    }
                 }
             }
-            // Controllers
+            // Multiple requests controller
             if (options.multiple && options.multiple.instance) {
                 // Get index of this request in the container
                 var index = options.multiple.instance.indexOf(httpRequest);
