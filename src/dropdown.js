@@ -226,6 +226,7 @@ jSuites.dropdown = (function(el, options) {
             onbeforeinsert: null,
             sortResults: false,
             autofocus: false,
+            customFormAdd: null, // Custom form add function(obj)
         }
 
         // Loop through our object
@@ -534,9 +535,15 @@ jSuites.dropdown = (function(el, options) {
     /**
      * Add a new item
      * @param {string} title - title of the new item
+     * @param {string} id - value/id of the new item
      */
-    obj.add = function(title) {
+    obj.add = function(title, id) {
         if (! title) {
+            // Open custom form add
+            if(typeof obj.options.customFormAdd == "function") {
+                obj.options.customFormAdd(obj); // Must recall obj.add(value) for add Item
+                return false;
+            }
             var current = obj.options.autocomplete == true ? obj.header.value : '';
             var title = prompt('Text', current);
             if (! title) {
@@ -545,7 +552,9 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Id
-        var id = jSuites.guid()
+        if(id === null) {
+           id = jSuites.guid();
+        }
 
         // Create new item
         if (! obj.options.format) {
