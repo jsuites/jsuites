@@ -857,6 +857,11 @@
     display:none;
 }
 
+.jdropdown[disabled] {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
 .jdropdown-focus {
     position:relative;
 }

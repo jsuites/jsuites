@@ -3785,9 +3785,13 @@ jSuites.dropdown = (function(el, options) {
 
         // Remove current items in the remote search
         if (obj.options.remoteSearch == true) {
+            // Reset results
             obj.results = null;
+            // URL
+            var url = obj.options.url + (obj.options.url.indexOf('?') > 0 ? '&' : '?') + 'q=' + str;
+            // Remote search
             jSuites.ajax({
-                url: obj.options.url + '?q=' + str,
+                url: url,
                 method: 'GET',
                 dataType: 'json',
                 success: function(result) {
