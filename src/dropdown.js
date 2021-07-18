@@ -226,7 +226,6 @@ jSuites.dropdown = (function(el, options) {
             onbeforeinsert: null,
             sortResults: false,
             autofocus: false,
-            customFormAdd: null, // Custom form add function(obj)
         }
 
         // Loop through our object
@@ -366,7 +365,6 @@ jSuites.dropdown = (function(el, options) {
         // Search options
         obj.search = '';
         obj.results = null;
-        obj.numOfItems = 0;
 
         // Create dropdown
         el.classList.add('jdropdown');
@@ -378,6 +376,7 @@ jSuites.dropdown = (function(el, options) {
         // Header
         obj.header = document.createElement('input');
         obj.header.className = 'jdropdown-header';
+        obj.header.type = 'text';
         obj.header.setAttribute('autocomplete', 'off');
         obj.header.onfocus = function() {
             if (typeof(obj.options.onfocus) == 'function') {
@@ -539,20 +538,15 @@ jSuites.dropdown = (function(el, options) {
      */
     obj.add = function(title, id) {
         if (! title) {
-            // Open custom form add
-            if(typeof obj.options.customFormAdd == "function") {
-                obj.options.customFormAdd(obj); // Must recall obj.add(value) for add Item
-                return false;
-            }
             var current = obj.options.autocomplete == true ? obj.header.value : '';
-            var title = prompt('Add A New Option', current);
+            var title = prompt(jSuites.translate('Add A New Option'), current);
             if (! title) {
                 return false;
             }
         }
 
         // Id
-        if(id === null) {
+        if (id === null) {
            id = jSuites.guid();
         }
 
@@ -566,12 +560,17 @@ jSuites.dropdown = (function(el, options) {
             var item = {
                 id: id,
                 name: title,
-            };
+            }
         }
 
         // Callback
         if (typeof(obj.options.onbeforeinsert) == 'function') {
-            obj.options.onbeforeinsert(obj, item);
+            var ret = obj.options.onbeforeinsert(obj, item);
+            if (ret === false) {
+                return false;
+            } else if (ret) {
+                item = ret;
+            }
         }
 
         // Add item to the main list
@@ -591,6 +590,11 @@ jSuites.dropdown = (function(el, options) {
         // Show content
         if (content.style.display == 'none') {
             content.style.display = '';
+        }
+
+        // Search?
+        if (obj.results) {
+            obj.results.push(newItem);
         }
 
         return item;
@@ -643,6 +647,11 @@ jSuites.dropdown = (function(el, options) {
             item.element.setAttribute('data-disabled', true);
         }
 
+        // Tooltip
+        if (data.tooltip) {
+            item.element.setAttribute('title', data.tooltip);
+        }
+
         // Image
         if (data.image) {
             var image = document.createElement('img');
@@ -659,11 +668,9 @@ jSuites.dropdown = (function(el, options) {
             if (! data.title) {
                icon.classList.add('jdropdown-icon-small');
             }
-            
-            if(data.color) {
+            if (data.color) {
                 icon.style.color = data.color;
             }
-            
             item.element.appendChild(icon);
         } else if (data.color) {
             var color = document.createElement('div');
@@ -716,9 +723,6 @@ jSuites.dropdown = (function(el, options) {
     obj.appendData = function(data) {
         // Create elements
         if (data.length) {
-            // Reset counter
-            obj.numOfItems = 0;
-
             // Helpers
             var items = [];
             var groups = [];
@@ -735,6 +739,9 @@ jSuites.dropdown = (function(el, options) {
                     items.push(i);
                 }
             }
+
+            // Number of items counter
+            var counter = 0;
 
             // Groups
             var groupNames = Object.keys(groups);
@@ -759,9 +766,9 @@ jSuites.dropdown = (function(el, options) {
                     for (var j = 0; j < groups[groupNames[i]].length; j++) {
                         var item = obj.createItem(data[groups[groupNames[i]][j]], group, groupNames[i]);
 
-                        if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
+                        if (obj.options.lazyLoading == false || counter < 200) {
                             groupContent.appendChild(item.element);
-                            obj.numOfItems++;
+                            counter++;
                         }
                     }
                     // Group itens
@@ -780,9 +787,9 @@ jSuites.dropdown = (function(el, options) {
             if (items.length) {
                 for (var i = 0; i < items.length; i++) {
                     var item = obj.createItem(data[items[i]]);
-                    if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
+                    if (obj.options.lazyLoading == false || counter < 200) {
                         content.appendChild(item.element);
-                        obj.numOfItems++;
+                        counter++;
                     }
                 }
             }
@@ -843,7 +850,7 @@ jSuites.dropdown = (function(el, options) {
                 return i;
             }
         }
-        return 0;
+        return false;
     }
 
     /**
@@ -1000,12 +1007,21 @@ jSuites.dropdown = (function(el, options) {
         // Search term
         obj.search = str;
 
-        // Results
-        obj.numOfItems = 0;
+        // Reset index
+        obj.setCursor();
+
+        // Remove nodes from all groups
+        if (obj.groups.length) {
+            for (var i = 0; i < obj.groups.length; i++) {
+                obj.groups[i].lastChild.innerHTML = '';
+            }
+        }
+
+        // Remove all nodes
+        content.innerHTML = '';
 
         // Remove current items in the remote search
         if (obj.options.remoteSearch == true) {
-            obj.currentIndex = null;
             obj.results = null;
             jSuites.ajax({
                 url: obj.options.url + '?q=' + str,
@@ -1014,7 +1030,7 @@ jSuites.dropdown = (function(el, options) {
                 success: function(result) {
                     // Reset items
                     obj.items = [];
-                    content.innerHTML = '';
+
                     // Add the current selected items to the results in case they are not there
                     var current = Object.keys(obj.value);
                     if (current.length) {
@@ -1043,7 +1059,7 @@ jSuites.dropdown = (function(el, options) {
             str = new RegExp(str, 'gi');
 
             // Reset search
-            obj.results = [];
+            var results = [];
 
             // Append options
             for (var i = 0; i < obj.items.length; i++) {
@@ -1060,57 +1076,45 @@ jSuites.dropdown = (function(el, options) {
                 }
 
                 if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
-                    obj.results.push(obj.items[i]);
-
-                    if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {
-                        // Remove all nodes
-                        while (obj.items[i].group.children[1].children[0]) {
-                            obj.items[i].group.children[1].removeChild(obj.items[i].group.children[1].children[0]);
-                        }
-                    }
+                    results.push(obj.items[i]);
                 }
             }
 
-            // Remove all nodes
-            while (content.children[0]) {
-                content.removeChild(content.children[0]);
-            }
-
-            // Show 200 items at once
-            var number = obj.results.length || 0;
-
-            // Lazyloading
-            if (obj.options.lazyLoading == true && number > 200) {
-                number = 200;
-            }
-
-            for (var i = 0; i < number; i++) {
-                if (obj.results[i].group) {
-                    if (! obj.results[i].group.parentNode) {
-                        content.appendChild(obj.results[i].group);
-                    }
-                    obj.results[i].group.children[1].appendChild(obj.results[i].element);
-                } else {
-                    content.appendChild(obj.results[i].element);
-                }
-                obj.numOfItems++;
-            }
-
-            if (! obj.results.length) {
+            if (! results.length) {
                 content.style.display = 'none';
+
+                // Results
+                obj.results = null;
             } else {
                 content.style.display = '';
-            }
 
-            // quick auto select if only one matching option and you don't need to insert new values
-            if(obj.results.length == 1 && obj.search != null && !obj.options.newOptions) {
-                obj.selectIndex(obj.results[0].element.indexValue);
+                // Results
+                obj.results = results;
+
+                // Show 200 items at once
+                var number = results.length || 0;
+
+                // Lazyloading
+                if (obj.options.lazyLoading == true && number > 200) {
+                    number = 200;
+                }
+
+                for (var i = 0; i < number; i++) {
+                    if (obj.results[i].group) {
+                        if (! obj.results[i].group.parentNode) {
+                            content.appendChild(obj.results[i].group);
+                        }
+                        obj.results[i].group.lastChild.appendChild(obj.results[i].element);
+                    } else {
+                        content.appendChild(obj.results[i].element);
+                    }
+                }
             }
         }
 
         // Auto focus
         if (obj.options.autofocus == true) {
-            obj.firstVisible();
+            obj.first();
         }
     }
 
@@ -1140,10 +1144,10 @@ jSuites.dropdown = (function(el, options) {
             }
 
             // Set cursor for the first or first selected element
-            var k = Object.keys(getValue());
+            var k = getValue();
             if (k[0]) {
                 var cursor = obj.getPosition(k[0]);
-                if (cursor) {
+                if (cursor !== false) {
                     obj.setCursor(cursor);
                 }
             }
@@ -1233,16 +1237,19 @@ jSuites.dropdown = (function(el, options) {
         if (index == undefined) {
             obj.currentIndex = null;
         } else {
-            parseInt(index);
+            index = parseInt(index);
 
-            obj.items[index].element.classList.add('jdropdown-cursor');
-            obj.currentIndex = index;
+            // Cursor only for visible items
+            if (obj.items[index].element.parentNode) {
+                obj.items[index].element.classList.add('jdropdown-cursor');
+                obj.currentIndex = index;
 
-            // Update scroll to the cursor element
-            if (setPosition !== false && obj.items[obj.currentIndex].element) {
-                var container = content.scrollTop;
-                var element = obj.items[obj.currentIndex].element;
-                content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
+                // Update scroll to the cursor element
+                if (setPosition !== false && obj.items[obj.currentIndex].element) {
+                    var container = content.scrollTop;
+                    var element = obj.items[obj.currentIndex].element;
+                    content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
+                }
             }
         }
     }
@@ -1263,112 +1270,247 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
-     * First visible item
+     * First available item
      */
-    obj.firstVisible = function() {
-        var newIndex = null;
-        for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
-                newIndex = i;
-                break;
-            }
+    obj.first = function() {
+        if (obj.options.lazyLoading === true) {
+            obj.loadFirst();
         }
 
-        if (newIndex == null) {
-            return false;
+        var items = content.querySelectorAll('.jdropdown-item');
+        if (items.length) {
+            var newIndex = items[0].indexValue;
+            obj.setCursor(newIndex);
         }
-
-        obj.setCursor(newIndex);
     }
 
     /**
-     * Navigation
+     * Last available item 
      */
-    obj.first = function() {
-        var newIndex = null;
-        for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
-                newIndex = i;
-            }
-        }
-
-        if (newIndex == null) {
-            return false;
-        }
-
-        obj.setCursor(newIndex);
-    }
-
     obj.last = function() {
-        var newIndex = null;
-        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
-                newIndex = i;
-            }
+        if (obj.options.lazyLoading === true) {
+            obj.loadLast();
         }
 
-        if (newIndex == null) {
-            return false;
+        var items = content.querySelectorAll('.jdropdown-item');
+        if (items.length) {
+            var newIndex = items[items.length-1].indexValue;
+            obj.setCursor(newIndex);
         }
-
-        obj.setCursor(newIndex);
-    }
-
-    var next = function(index, letter) {
-        for (var i = index; i < obj.items.length; i++) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && (! letter || (''+Text(i)).substr(0,1).toLowerCase() == letter)) {
-                return i;
-            }
-        }
-
-        return null;
     }
 
     obj.next = function(letter) {
-        if (letter && letter.length == 1) {
-            letter = letter.toLowerCase();
-        }
+        var newIndex = null;
 
-        if (obj.currentIndex === null) {
-            var index = obj.currentIndex = 0;
+        if (letter) {
+            if (letter.length == 1) {
+                // Current index
+                var current = obj.currentIndex || -1;
+                // Letter
+                letter = letter.toLowerCase();
+
+                var e = null;
+                var l = null;
+                var items = content.querySelectorAll('.jdropdown-item');
+                if (items.length) {
+                    for (var i = 0; i < items.length; i++) {
+                        if (items[i].indexValue > current) {
+                            if (e = obj.items[items[i].indexValue]) {
+                                if (l = e.element.innerText[0]) {
+                                    l = l.toLowerCase();
+                                    if (letter == l) {
+                                        newIndex = items[i].indexValue;
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    obj.setCursor(newIndex);
+                }
+            }
         } else {
-            var index = obj.currentIndex + 1;
-        }
+            if (obj.currentIndex == undefined || obj.currentIndex == null) {
+                obj.first();
+            } else {
+                var element = obj.items[obj.currentIndex].element;
 
-        // Try to find the next from the current position
-        var newIndex = next(index, letter);
+                var next = element.nextElementSibling;
+                if (next) {
+                    if (next.classList.contains('jdropdown-group')) {
+                        next = next.lastChild.firstChild;
+                    }
+                    newIndex = next.indexValue;
+                } else {
+                    if (element.parentNode.classList.contains('jdropdown-group-items')) {
+                        if (next = element.parentNode.parentNode.nextElementSibling) {
+                            if (next.classList.contains('jdropdown-group')) {
+                                next = next.lastChild.firstChild;
+                            } else if (next.classList.contains('jdropdown-item')) {
+                                newIndex = next.indexValue;
+                            } else {
+                                next = null;
+                            }
+                        }
 
-        if (newIndex == null && letter) {
-            // Trying to find from the begining
-            newIndex = next(0, letter);
-            // Did not find
-            if (newIndex == null) {
-                return false;
+                        if (next) {
+                            newIndex = next.indexValue;
+                        }
+                    }
+                }
+
+                if (newIndex !== null) {
+                    obj.setCursor(newIndex);
+                }
             }
         }
-
-        // Set cursor
-        obj.setCursor(newIndex);
     }
 
     obj.prev = function() {
         var newIndex = null;
-        for (var i = obj.currentIndex - 1; i >= 0; i--) {
-            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
-                newIndex = i;
-                break;
+
+        if (obj.currentIndex === null) {
+            obj.first();
+        } else {
+            var element = obj.items[obj.currentIndex].element;
+
+            var prev = element.previousElementSibling;
+            if (prev) {
+                if (prev.classList.contains('jdropdown-group')) {
+                    prev = prev.lastChild.lastChild;
+                }
+                newIndex = prev.indexValue;
+            } else {
+                if (element.parentNode.classList.contains('jdropdown-group-items')) {
+                    if (prev = element.parentNode.parentNode.previousElementSibling) {
+                        if (prev.classList.contains('jdropdown-group')) {
+                            prev = prev.lastChild.lastChild;
+                        } else if (prev.classList.contains('jdropdown-item')) {
+                            newIndex = prev.indexValue;
+                        } else {
+                            prev = null
+                        }
+                    }
+
+                    if (prev) {
+                        newIndex = prev.indexValue;
+                    }
+                }
             }
         }
 
-        if (newIndex == null) {
-            return false;
+        if (newIndex !== null) {
+            obj.setCursor(newIndex);
+        }
+    }
+
+    obj.loadFirst = function() {
+        // Search
+        if (obj.results) {
+            var results = obj.results;
+        } else {
+            var results = obj.items;
         }
 
-        obj.setCursor(newIndex);
+        // Show 200 items at once
+        var number = results.length || 0;
+
+        // Lazyloading
+        if (obj.options.lazyLoading == true && number > 200) {
+            number = 200;
+        }
+
+        // Reset container
+        content.innerHTML = '';
+
+        // First 200 items
+        for (var i = 0; i < number; i++) {
+            if (results[i].group) {
+                if (! results[i].group.parentNode) {
+                    content.appendChild(results[i].group);
+                }
+                results[i].group.lastChild.appendChild(results[i].element);
+            } else {
+                content.appendChild(results[i].element);
+            }
+        }
+
+        // Scroll go to the begin
+        content.scrollTop = 0;
+    }
+
+    obj.loadLast = function() {
+        // Search
+        if (obj.results) {
+            var results = obj.results;
+        } else {
+            var results = obj.items;
+        }
+
+        // Show first page
+        var number = results.length;
+
+        // Max 200 items
+        if (number > 200) {
+            number = number - 200;
+
+            // Reset container
+            content.innerHTML = '';
+
+            // First 200 items
+            for (var i = number; i < results.length; i++) {
+                if (results[i].group) {
+                    if (! results[i].group.parentNode) {
+                        content.appendChild(results[i].group);
+                    }
+                    results[i].group.lastChild.appendChild(results[i].element);
+                } else {
+                    content.appendChild(results[i].element);
+                }
+            }
+
+            // Scroll go to the begin
+            content.scrollTop = content.scrollHeight;
+        }
     }
 
     obj.loadUp = function() {
-        return false;
+        var test = false;
+
+        // Search
+        if (obj.results) {
+            var results = obj.results;
+        } else {
+            var results = obj.items;
+        }
+
+        var items = content.querySelectorAll('.jdropdown-item');
+        var fistItem = items[0].indexValue;
+        fistItem = obj.items[fistItem];
+        var index = results.indexOf(fistItem) - 1;
+
+        if (index > 0) {
+            var number = 0;
+
+            while (index > 0 && results[index] && number < 200) {
+                if (results[index].group) {
+                    if (! results[index].group.parentNode) {
+                        content.insertBefore(results[index].group, content.firstChild);
+                    }
+                    results[index].group.lastChild.insertBefore(results[index].element, results[index].group.lastChild.firstChild);
+                } else {
+                    content.insertBefore(results[index].element, content.firstChild);
+                }
+
+                index--;
+                number++;
+            }
+
+            // New item added
+            test = true;
+        }
+
+        return test;
     }
 
     obj.loadDown = function() {
@@ -1381,24 +1523,25 @@ jSuites.dropdown = (function(el, options) {
             var results = obj.items;
         }
 
-        if (results.length > obj.numOfItems) {
-            var numberOfItems = obj.numOfItems;
-            var number = results.length - numberOfItems;
-            if (number > 200) {
-                number = 200;
-            }
+        var items = content.querySelectorAll('.jdropdown-item');
+        var lastItem = items[items.length-1].indexValue;
+        lastItem = obj.items[lastItem];
+        var index = results.indexOf(lastItem) + 1;
 
-            for (var i = numberOfItems; i < numberOfItems + number; i++) {
-                if (results[i].group) {
-                    if (! results[i].group.parentNode) {
-                        content.appendChild(results[i].group);
+        if (index < results.length) {
+            var number = 0;
+            while (index < results.length && results[index] && number < 200) {
+                if (results[index].group) {
+                    if (! results[index].group.parentNode) {
+                        content.appendChild(results[index].group);
                     }
-                    results[i].group.children[2].appendChild(results[i].element);
+                    results[index].group.lastChild.appendChild(results[index].element);
                 } else {
-                    content.appendChild(results[i].element);
+                    content.appendChild(results[index].element);
                 }
 
-                obj.numOfItems++;
+                index++;
+                number++;
             }
 
             // New item added
@@ -1429,32 +1572,48 @@ jSuites.dropdown.keydown = function(e) {
             }
         } else if (e.which == 38) {  // up arrow
             if (dropdown.currentIndex == null) {
-                dropdown.firstVisible();
+                dropdown.first();
             } else if (dropdown.currentIndex > 0) {
                 dropdown.prev();
             }
             e.preventDefault();
         } else if (e.which == 40) {  // down arrow
             if (dropdown.currentIndex == null) {
-                dropdown.firstVisible();
+                dropdown.first();
             } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
                 dropdown.next();
             }
             e.preventDefault();
-        } else if (e.which == 36) {  // home
+        } else if (e.which == 36) {
             dropdown.first();
-        } else if (e.which == 35) {  // end
-            dropdown.last();
-        } else if (e.which == 27) {  // esc
-            dropdown.close();
-        } else if (e.which == 34) {  // page down
-           for(var i=0; i<10; i++){
-               dropdown.next()
-           }
-        } else if (e.which == 33) {  // page up
-            for (var i = 0; i < 10; i++) {
-                dropdown.prev()
+            if (! e.target.classList.contains('jdropdown-header')) {
+                e.preventDefault();
             }
+        } else if (e.which == 35) {
+            dropdown.last();
+            if (! e.target.classList.contains('jdropdown-header')) {
+                e.preventDefault();
+            }
+        } else if (e.which == 27) {
+            dropdown.close();
+        } else if (e.which == 33) {  // page up
+            if (dropdown.currentIndex == null) {
+                dropdown.first();
+            } else if (dropdown.currentIndex > 0) {
+                for (var i = 0; i < 7; i++) {
+                    dropdown.prev()
+                }
+            }
+            e.preventDefault();
+        } else if (e.which == 34) {  // page down
+            if (dropdown.currentIndex == null) {
+                dropdown.first();
+            } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
+                for (var i = 0; i < 7; i++) {
+                    dropdown.next()
+                }
+            }
+            e.preventDefault();
         }
     }
 }

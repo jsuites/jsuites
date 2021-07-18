@@ -210,32 +210,30 @@ jSuites.picker = (function(el, options) {
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        el.onmousedown = function(e) {
-            var element = jSuites.findElement(e.target, 'jpicker');
-            if (element) {
-                if (! el.classList.contains('jpicker-focus')) {
-                    obj.open();
-                } else {
-                    var item = jSuites.findElement(e.target, 'jpicker-item');
-                    if (item) {
-                        console.log(item)
-                        // Update label
-                        obj.setValue(item.k);
-                        // Call method
-                        if (typeof(obj.options.onchange) == 'function') {
-                            obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
-                        }
-                    }
-                }
+        el.onmouseup = function(e) {
+            if (! el.classList.contains('jpicker-focus')) {
+                obj.open();
             } else {
                 obj.close();
             }
-            e.stopPropagation();
         }
 
         // Dropdown content
         dropdownContent = document.createElement('div');
         dropdownContent.classList.add('jpicker-content');
+        dropdownContent.onmouseup = function(e) {
+            var item = jSuites.findElement(e.target, 'jpicker-item');
+            if (item) {
+                // Update label
+                obj.setValue(item.k);
+                // Call method
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                }
+            }
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
 
         // Append content and header
         el.appendChild(dropdownHeader);

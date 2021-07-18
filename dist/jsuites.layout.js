@@ -2488,8 +2488,14 @@ jSuites.template = (function(el, options) {
 
                     // Keep method to the event
                     element[k[i].substring(2)] = value;
-                    element[event] = function(e) {
-                        Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
+                    if (obj.options.version == 2) {
+                        element[event] = function(e) {
+                            Function('template', 'e', element[e.type]).call(element, obj.options.template, e);
+                        }
+                    } else {
+                        element[event] = function(e) {
+                            Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
+                        }
                     }
                 }
             }
@@ -2509,6 +2515,7 @@ jSuites.template = (function(el, options) {
     obj.setOptions = function() {
         // Default configuration
         var defaults = {
+            version: null,
             url: null,
             data: null,
             total: null,

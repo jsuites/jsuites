@@ -98,7 +98,6 @@ jSuites.form = (function(el, options) {
                 var data = obj.options.onbeforesave(el, data);
 
                 if (data === false) {
-                    console.log('Onbeforesave returned false');
                     return; 
                 }
             }

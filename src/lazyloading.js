@@ -23,24 +23,33 @@ jSuites.lazyLoading = (function(el, options) {
     // Controls
     var scrollControls = function(e) {
         if (timeControlLoading == null) {
+            var event = false;
             var scrollTop = el.scrollTop;
             if (el.scrollTop + (el.clientHeight * 2) >= el.scrollHeight) {
                 if (options.loadDown()) {
                     if (scrollTop == el.scrollTop) {
                         el.scrollTop = el.scrollTop - (el.clientHeight);
                     }
+                    event = true;
                 }
             } else if (el.scrollTop <= el.clientHeight) {
                 if (options.loadUp()) {
                     if (scrollTop == el.scrollTop) {
                         el.scrollTop = el.scrollTop + (el.clientHeight);
                     }
+                    event = true;
                 }
             }
 
             timeControlLoading = setTimeout(function() {
                 timeControlLoading = null;
             }, options.timer);
+
+            if (event) {
+                if (typeof(options.onupdate) == 'function') {
+                    options.onupdate();
+                }
+            }
         }
     }
 

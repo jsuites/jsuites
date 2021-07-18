@@ -967,6 +967,19 @@
     height:24px;
 }
 
+.jdropdown-icon
+{
+    margin-right:10px;
+    font-size: 30px;
+    margin-left: -5px;
+}
+
+.jdropdown-icon-small
+{
+    font-size: 24px;
+    margin-left: 0px;
+}
+
 .jdropdown-title
 {
     font-size: 0.7em;
@@ -1766,7 +1779,6 @@
     padding-right: 35px;
     outline: none;
     border-radius: 4px;
-    font-size: 0.8em;
 }
 
 .jpicker-header:hover {
@@ -2482,6 +2494,7 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    font-size: 13px;
 }
 
 .jtoolbar-mobile {
