@@ -3298,7 +3298,7 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Id
-        if (id === null) {
+        if (! id) {
            id = jSuites.guid();
         }
 
