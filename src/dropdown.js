@@ -545,7 +545,7 @@ jSuites.dropdown = (function(el, options) {
                 return false;
             }
             var current = obj.options.autocomplete == true ? obj.header.value : '';
-            var title = prompt('Text', current);
+            var title = prompt('Add A New Option', current);
             if (! title) {
                 return false;
             }
@@ -1088,6 +1088,11 @@ jSuites.dropdown = (function(el, options) {
             } else {
                 content.style.display = '';
             }
+
+            // quick auto select if only one matching option and you don't need to insert new values
+            if(obj.results.length == 1 && obj.search != null && !obj.options.newOptions) {
+                obj.selectIndex(obj.results[0].element.indexValue);
+            }
         }
 
         // Auto focus
@@ -1398,32 +1403,45 @@ jSuites.dropdown = (function(el, options) {
 jSuites.dropdown.keydown = function(e) {
     var dropdown = null;
     if (dropdown = jSuites.dropdown.current) {
-        if (e.which == 13) {
-            // Quick Select/Filter
-            if (dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value != "") {
-                dropdown.find(dropdown.header.value);
+        if (e.which == 13 || e.which == 9) {  // enter or tab
+            if (dropdown.header.value && dropdown.currentIndex == null && dropdown.options.newOptions) {
+                // if they typed something in, but it matched nothing, and newOptions are allowed, start that flow
+                dropdown.add();
+            } else {
+                // Quick Select/Filter
+                if (dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value != "") {
+                    dropdown.find(dropdown.header.value);
+                }
+                dropdown.selectIndex(dropdown.currentIndex);
             }
-            dropdown.selectIndex(dropdown.currentIndex);
-        } else if (e.which == 38) {
+        } else if (e.which == 38) {  // up arrow
             if (dropdown.currentIndex == null) {
                 dropdown.firstVisible();
             } else if (dropdown.currentIndex > 0) {
                 dropdown.prev();
             }
             e.preventDefault();
-        } else if (e.which == 40) {
+        } else if (e.which == 40) {  // down arrow
             if (dropdown.currentIndex == null) {
                 dropdown.firstVisible();
             } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
                 dropdown.next();
             }
             e.preventDefault();
-        } else if (e.which == 36) {
+        } else if (e.which == 36) {  // home
             dropdown.first();
-        } else if (e.which == 35) {
+        } else if (e.which == 35) {  // end
             dropdown.last();
-        } else if (e.which == 27) {
+        } else if (e.which == 27) {  // esc
             dropdown.close();
+        } else if (e.which == 34) {  // page down
+           for(var i=0; i<10; i++){
+               dropdown.next()
+           }
+        } else if (e.which == 33) {  // page up
+            for (var i = 0; i < 10; i++) {
+                dropdown.prev()
+            }
         }
     }
 }
