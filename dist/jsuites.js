@@ -10168,14 +10168,10 @@ jSuites.validations = function(value, options) {
     return null;
 };
 
+// Legacy
 jSuites.validations.email = function(data) {
     var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
     return data && pattern.test(data) ? true : false; 
-}
-
-jSuites.validations.length = function(data, element) {
-    var len = element.getAttribute('data-length') || 5;
-    return (data.length >= len) ? true : false;
 }
 
 jSuites.validations.required = function(data) {
