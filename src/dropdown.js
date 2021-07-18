@@ -652,6 +652,19 @@ jSuites.dropdown = (function(el, options) {
                image.classList.add('jdropdown-image-small');
             }
             item.element.appendChild(image);
+        } else if (data.icon) {
+            var icon = document.createElement('span');
+            icon.className = "jdropdown-icon material-icons";
+            icon.innerText = data.icon;
+            if (! data.title) {
+               icon.classList.add('jdropdown-icon-small');
+            }
+            
+            if(data.color) {
+                icon.style.color = data.color;
+            }
+            
+            item.element.appendChild(icon);
         } else if (data.color) {
             var color = document.createElement('div');
             color.className = 'jdropdown-color';
