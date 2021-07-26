@@ -1210,18 +1210,33 @@ jSuites.calendar.getDateString = function(value, options) {
         var options = {};
     }
 
-    // Date instance
-    if (value instanceof Date) {
-        value = jSuites.calendar.now(value);
-    } else if (value && jSuites.isNumeric(value)) {
-        value = jSuites.calendar.numToDate(value);
-    }
-
     // Labels
     if (options && typeof(options) == 'object') {
         var format = options.format;
     } else {
         var format = options || 'YYYY-MM-DD';
+    }
+
+    // Convert to hour
+    if (value && format.indexOf('[h]') >= 0) {
+        var result = parseFloat(24 * Number(value)).toFixed(2);
+        if (format.indexOf('mm') >= 0) {
+            var h = (''+result).split('.');
+            if (h[1]) {
+                var d = parseInt((60 * (parseInt(h[1]) / 100)));
+            } else {
+                var d = 0;
+            }
+            result = h[0] + ':' + jSuites.two(d);
+        }
+        return result;
+    }
+
+    // Date instance
+    if (value instanceof Date) {
+        value = jSuites.calendar.now(value);
+    } else if (value && jSuites.isNumeric(value)) {
+        value = jSuites.calendar.numToDate(value);
     }
 
     // Labels

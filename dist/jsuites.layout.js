@@ -1913,7 +1913,7 @@ jSuites.organogram = (function(el, options) {
     // Renders the organogram
     var render = function (parent, container) {
         for (var i = 0; i < obj.options.data.length; i ++) {
-            if (obj.options.data[i].parent === parent) {
+            if (obj.options.data[i].parent == parent) {
                 var ul = mountNodes(obj.options.data[i], container);
                 render(obj.options.data[i].id, ul);
             }
@@ -1997,13 +1997,17 @@ jSuites.organogram = (function(el, options) {
 
     //
     var setInitialPosition = function() {
-        ul.children[0].style.left = (ul.clientWidth / 2  - ul.children[0].clientWidth / 2) + 'px';
-        ul.children[0].style.top = '100px';
+        if (ul && ul.children[0]) {
+            ul.children[0].style.left = (ul.clientWidth / 2  - ul.children[0].clientWidth / 2) + 'px';
+            ul.children[0].style.top = '100px';
+        }
     }
 
     //
     var setInitialWidth = function() {
-        state.initialWidth = ul.children[0].clientWidth;
+        if (ul.children[0]) {
+            state.initialWidth = ul.children[0].clientWidth;
+        }
     }
 
     //

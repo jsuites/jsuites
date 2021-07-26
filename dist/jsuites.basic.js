@@ -7,17 +7,9 @@
  * MIT License
  *
  */
-;(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    global.jSuites = factory();
-}(this, (function () {
-
-    'use strict';
-
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.8.0';
+    var version = '4.8.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -1685,18 +1677,33 @@ jSuites.calendar.getDateString = function(value, options) {
         var options = {};
     }
 
-    // Date instance
-    if (value instanceof Date) {
-        value = jSuites.calendar.now(value);
-    } else if (value && jSuites.isNumeric(value)) {
-        value = jSuites.calendar.numToDate(value);
-    }
-
     // Labels
     if (options && typeof(options) == 'object') {
         var format = options.format;
     } else {
         var format = options || 'YYYY-MM-DD';
+    }
+
+    // Convert to hour
+    if (value && format.indexOf('[h]') >= 0) {
+        var result = parseFloat(24 * Number(value)).toFixed(2);
+        if (format.indexOf('mm') >= 0) {
+            var h = (''+result).split('.');
+            if (h[1]) {
+                var d = parseInt((60 * (parseInt(h[1]) / 100)));
+            } else {
+                var d = 0;
+            }
+            result = h[0] + ':' + jSuites.two(d);
+        }
+        return result;
+    }
+
+    // Date instance
+    if (value instanceof Date) {
+        value = jSuites.calendar.now(value);
+    } else if (value && jSuites.isNumeric(value)) {
+        value = jSuites.calendar.numToDate(value);
     }
 
     // Labels
@@ -8326,11 +8333,14 @@ jSuites.toolbar = (function(el, options) {
         el.innerHTML = '';
     }
 
-    var toggleState = function() {
-        if (this.classList.contains('jtoolbar-active')) {
-            this.classList.remove('jtoolbar-active');
-        } else {
-            this.classList.add('jtoolbar-active');
+    obj.update = function(a, b) {
+        for (var i = 0; i < toolbarContent.children.length; i++) {
+            // Toolbar element
+            var toolbarItem = toolbarContent.children[i];
+            // State management
+            if (typeof(toolbarItem.updateState) == 'function') {
+                toolbarItem.updateState(el, obj, toolbarItem, a, b);
+            }
         }
     }
 
@@ -8360,8 +8370,8 @@ jSuites.toolbar = (function(el, options) {
             }
 
             // Selected
-            if (items[i].state) {
-                toolbarItem.toggleState = toggleState;
+            if (items[i].updateState) {
+                toolbarItem.updateState = items[i].updateState;
             }
 
             if (items[i].active) {

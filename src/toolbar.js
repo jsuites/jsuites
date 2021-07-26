@@ -69,11 +69,14 @@ jSuites.toolbar = (function(el, options) {
         el.innerHTML = '';
     }
 
-    var toggleState = function() {
-        if (this.classList.contains('jtoolbar-active')) {
-            this.classList.remove('jtoolbar-active');
-        } else {
-            this.classList.add('jtoolbar-active');
+    obj.update = function(a, b) {
+        for (var i = 0; i < toolbarContent.children.length; i++) {
+            // Toolbar element
+            var toolbarItem = toolbarContent.children[i];
+            // State management
+            if (typeof(toolbarItem.updateState) == 'function') {
+                toolbarItem.updateState(el, obj, toolbarItem, a, b);
+            }
         }
     }
 
@@ -103,8 +106,8 @@ jSuites.toolbar = (function(el, options) {
             }
 
             // Selected
-            if (items[i].state) {
-                toolbarItem.toggleState = toggleState;
+            if (items[i].updateState) {
+                toolbarItem.updateState = items[i].updateState;
             }
 
             if (items[i].active) {
