@@ -189,6 +189,7 @@ jSuites.organogram = (function(el, options) {
         return 0;
     }
 
+    //
     var setInitialPosition = function() {
         if (ul && ul.children[0]) {
             ul.children[0].style.left = (ul.clientWidth / 2  - ul.children[0].clientWidth / 2) + 'px';

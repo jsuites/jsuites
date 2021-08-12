@@ -206,33 +206,31 @@ jSuites.picker = (function(el, options) {
         // Class
         el.classList.add('jpicker');
         el.setAttribute('tabindex', '900');
+        el.onmousedown = function(e) {
+            if (! el.classList.contains('jpicker-focus')) {
+                obj.open();
+            }
+        }
 
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
-        el.onmouseup = function(e) {
-            if (! el.classList.contains('jpicker-focus')) {
-                obj.open();
-            } else {
-                obj.close();
-            }
-        }
 
         // Dropdown content
         dropdownContent = document.createElement('div');
         dropdownContent.classList.add('jpicker-content');
-        dropdownContent.onmouseup = function(e) {
+        dropdownContent.onclick = function(e) {
             var item = jSuites.findElement(e.target, 'jpicker-item');
             if (item) {
-                // Update label
-                obj.setValue(item.k);
-                // Call method
-                if (typeof(obj.options.onchange) == 'function') {
-                    obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                if (item.parentNode === dropdownContent) {
+                    // Update label
+                    obj.setValue(item.k);
+                    // Call method
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                    }
                 }
             }
-            e.preventDefault();
-            e.stopImmediatePropagation();
         }
 
         // Append content and header

@@ -92,6 +92,23 @@ var jSuites = function(options) {
     // Update dictionary
     obj.setDictionary = function(d) {
         obj.dictionary = d;
+
+        // Translations
+        var t = null;
+        for (var i = 0; i < jSuites.calendar.weekdays.length; i++) {
+            t =  jSuites.translate(jSuites.calendar.weekdays[i]);
+            if (jSuites.calendar.weekdays[i]) {
+                jSuites.calendar.weekdays[i] = t;
+                jSuites.calendar.weekdaysShort[i] = t.substr(0,3);
+            }
+        }
+        for (var i = 0; i < jSuites.calendar.months.length; i++) {
+            t = jSuites.translate(jSuites.calendar.months[i]);
+            if (t) {
+                jSuites.calendar.months[i] = t;
+                jSuites.calendar.monthsShort[i] = t.substr(0,3);
+            }
+        }
     }
 
     // Dictionary

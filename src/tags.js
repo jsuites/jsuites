@@ -550,6 +550,11 @@ jSuites.tags = (function(el, options) {
                 }
             }
         }
+
+        // Set focus in the last item
+        if (e.target == el) {
+            setFocus(el.lastChild);
+        }
     }
 
     var tagsFocus = function() {

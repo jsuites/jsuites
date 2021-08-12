@@ -36,10 +36,10 @@ jSuites.calendar = (function(el, options) {
             // Placeholder
             placeholder: '',
             // Translations can be done here
-            months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-            monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-            weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
-            weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+            months: jSuites.calendar.monthsShort,
+            monthsFull: jSuites.calendar.months,
+            weekdays: jSuites.calendar.weekdays,
+            weekdays_short: jSuites.calendar.weekdays,
             textDone: jSuites.translate('Done'),
             textReset: jSuites.translate('Reset'),
             textUpdate: jSuites.translate('Update'),
@@ -57,17 +57,12 @@ jSuites.calendar = (function(el, options) {
             // Internal mode controller
             mode: null,
             position: null,
-        };
+            // Data type
+            dataType: null,
+        }
 
-        // Translations
-        for (var i = 0; i < defaults.months.length; i++) {
-            defaults.months[i] = jSuites.translate(defaults.months[i]);
-        }
-        for (var i = 0; i < defaults.monthsFull.length; i++) {
-            defaults.monthsFull[i] = jSuites.translate(defaults.monthsFull[i]);
-        }
-        for (var i = 0; i < defaults.weekdays.length; i++) {
-            defaults.weekdays[i] = jSuites.translate(defaults.weekdays[i]);
+        for (var i = 0; i < defaults.weekdays_short.length; i++) {
+            defaults.weekdays_short[i] = defaults.weekdays_short[i].substr(0,1);
         }
 
         // Loop through our object
@@ -100,6 +95,12 @@ jSuites.calendar = (function(el, options) {
             el.setAttribute('placeholder', obj.options.placeholder);
         } else {
             el.removeAttribute('placeholder');
+        }
+
+        if (jSuites.isNumeric(obj.options.value) && obj.options.value > 0) {
+            obj.options.value = jSuites.calendar.numToDate(obj.options.value);
+            // Data type numberic
+            obj.options.dataType = 'numeric';
         }
 
         // Texts
@@ -728,9 +729,7 @@ jSuites.calendar = (function(el, options) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
-                if (e.target.getAttribute('data-completed') == 'true') {
-                    obj.setValue(test);
-                }
+                obj.setValue(test);
             }
         }
     }
@@ -1073,15 +1072,24 @@ jSuites.calendar.prettifyAll = function() {
 }
 
 jSuites.calendar.now = function(date, dateOnly) {
-    if (! date) {
-        var date = new Date();
+    if (Array.isArray(date)) {
+        var y = date[0];
+        var m = date[1];
+        var d = date[2];
+        var h = date[3];
+        var i = date[4];
+        var s = date[5];
+    } else {
+        if (! date) {
+            var date = new Date();
+        }
+        var y = date.getFullYear();
+        var m = date.getMonth() + 1;
+        var d = date.getDate();
+        var h = date.getHours();
+        var i = date.getMinutes();
+        var s = date.getSeconds();
     }
-    var y = date.getFullYear();
-    var m = date.getMonth() + 1;
-    var d = date.getDate();
-    var h = date.getHours();
-    var i = date.getMinutes();
-    var s = date.getSeconds();
 
     if (dateOnly == true) {
         return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d);
@@ -1214,20 +1222,25 @@ jSuites.calendar.getDateString = function(value, options) {
     if (options && typeof(options) == 'object') {
         var format = options.format;
     } else {
-        var format = options || 'YYYY-MM-DD';
+        var format = options;
     }
 
-    // Convert to hour
-    if (value && format.indexOf('[h]') >= 0) {
-        var result = parseFloat(24 * Number(value)).toFixed(2);
+    if (! format) {
+        format = 'YYYY-MM-DD';
+    }
+
+    // Convert to number of hours
+    if (typeof(value) == 'number' && format.indexOf('[h]') >= 0) {
+        var result = parseFloat(24 * Number(value));
         if (format.indexOf('mm') >= 0) {
             var h = (''+result).split('.');
             if (h[1]) {
-                var d = parseInt((60 * (parseInt(h[1]) / 100)));
+                var d = 60 * parseFloat('0.' + h[1])
+                d = parseFloat(d.toFixed(2));
             } else {
                 var d = 0;
             }
-            result = h[0] + ':' + jSuites.two(d);
+            result = parseInt(h[0]) + ':' + jSuites.two(d);
         }
         return result;
     }
@@ -1239,164 +1252,151 @@ jSuites.calendar.getDateString = function(value, options) {
         value = jSuites.calendar.numToDate(value);
     }
 
-    // Labels
-    if (options && options.weekdays) {
-        var weekdays = options.weekdays;
-    } else {
-        var weekdays = [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ];
+    // Tokens
+    var tokens = [ 'DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.' ];
+
+    // Expression to extract all tokens from the string
+    var e = new RegExp(tokens.join('|'), 'gi');
+    // Extract
+    var t = format.match(e);
+
+    // Compatibility with excel
+    for (var i = 0; i < t.length; i++) {
+        if (t[i].toUpperCase() == 'MM') {
+            // Not a month, correct to minutes
+            if (t[i-1] && t[i-1].toUpperCase().indexOf('H') >= 0) {
+                t[i] = 'mi';
+            } else if (t[i-2] && t[i-2].toUpperCase().indexOf('H') >= 0) {
+                t[i] = 'mi';
+            } else if (t[i+1] && t[i+1].toUpperCase().indexOf('S') >= 0) {
+                t[i] = 'mi';
+            } else if (t[i+2] && t[i+2].toUpperCase().indexOf('S') >= 0) {
+                t[i] = 'mi';
+            }
+        }
     }
 
-    // Labels
-    if (options && options.months) {
-        var months = options.months;
-    } else {
-        var months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
+    // Object
+    var o = {
+        tokens: t
     }
 
-    // Labels
-    if (options && options.months) {
-        var monthsFull = options.monthsFull;
-    } else {
-        var monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    }
-
-    // Default date format
-    if (! format) {
-        format = 'DD/MM/YYYY';
-    } else {
-        format = format.replace(/h{1,2}:m{1,2} AM\/PM/g, 'HH12:MI');
-        format = format.replace(/h{1,2}:m{1,2}/g, 'HH24:MI');
-    }
-
+    // Value
     if (value) {
         var d = ''+value;
         var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
         d = d.split(splitStr);
-
-        var h = '';
-        var m = '';
-        var s = '';
+ 
+        var h = 0;
+        var m = 0;
+        var s = 0;
 
         if (d[1]) {
             h = d[1].split(':');
-            m = h[1] ? h[1] : '00';
-            s = h[2] ? h[2] : '00';
-            h = h[0] ? h[0] : '00';
-        } else {
-            h = '00';
-            m = '00';
-            s = '00';
+            m = h[1] ? h[1] : 0;
+            s = h[2] ? h[2] : 0;
+            h = h[0] ? h[0] : 0;
         }
 
         d = d[0].split('-');
 
         if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] < 32) {
-            var calendar = new Date(d[0], d[1]-1, d[2]);
 
-            d[1] = (d[1].length < 2 ? '0' : '') + d[1];
-            d[2] = (d[2].length < 2 ? '0' : '') + d[2];
-            h = (h.length < 2 ? '0' : '') + h;
-            m = (m.length < 2 ? '0' : '') + m;
-            s = (s.length < 2 ? '0' : '') + s;
+            // Data
+            o.data = [ d[0], d[1], d[2], h, m, s ];
 
-            // New value
-            value = format;
+            // Value
+            o.value = [];
 
-            // Extract tokens
-            var tokens = [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M'];
-            var pieces = [];
-            var tmp = value;
+            // Calendar instance
+            var calendar = new Date(o.data[0], o.data[1]-1, o.data[2], o.data[3], o.data[4], o.data[5]);
 
-            while (tmp) {
-                var t = 0;
-                for (var i = 0; i < tokens.length; i++) {
-                    if (t == 0 && tmp.toUpperCase().indexOf(tokens[i]) === 0) {
-                        t = tokens[i].length;
+            // Get method
+            var get = function(i) {
+                // Token
+                var t = this.tokens[i];
+                // Case token
+                var s = t.toUpperCase();
+                var v = null;
+
+                if (s === 'YYYY') {
+                    v = this.data[0];
+                } else if (s === 'YYY') {
+                    v = this.data[0].substring(1,4);
+                } else if (s === 'YY') {
+                    v = this.data[0].substring(2,4);
+                } else if (s === 'Y') {
+                    v = this.data[0].substring(3,4);
+                } else if (t === 'MON') {
+                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3).toUpperCase();
+                } else if (t === 'mon') {
+                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3).toLowerCase();
+                } else if (t === 'MONTH') {
+                    v = jSuites.calendar.months[calendar.getMonth()].toUpperCase();
+                } else if (t === 'month') {
+                    v = jSuites.calendar.months[calendar.getMonth()].toLowerCase();
+                } else if (s === 'MMMMM') {
+                    v = jSuites.calendar.months[calendar.getMonth()].substr(0, 1);
+                } else if (s === 'MMMM' || t === 'Month') {
+                    v = jSuites.calendar.months[calendar.getMonth()];
+                } else if (s === 'MMM' || t == 'Mon') {
+                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3);
+                } else if (s === 'MM') {
+                    v = jSuites.two(this.data[1]);
+                } else if (s === 'M') {
+                    v = calendar.getMonth()+1;
+                } else if (t === 'DAY') {
+                    v = jSuites.calendar.weekdays[calendar.getDay()].toUpperCase();
+                } else if (t === 'day') {
+                    v = jSuites.calendar.weekdays[calendar.getDay()].toLowerCase();
+                } else if (s === 'DDDD' || t == 'Day') {
+                    v = jSuites.calendar.weekdays[calendar.getDay()];
+                } else if (s === 'DDD') {
+                    v = jSuites.calendar.weekdays[calendar.getDay()].substr(0,3);
+                } else if (s === 'DD') {
+                    v = jSuites.two(this.data[2]);
+                } else if (s === 'D') {
+                    v = this.data[2];
+                } else if (s === 'Q') {
+                    v = Math.floor((calendar.getMonth() + 3) / 3);
+                } else if (s === 'HH24' || s === 'HH') {
+                    v = jSuites.two(this.data[3]);
+                } else if (s === 'HH12') {
+                    if (this.data[3] > 12) {
+                        v = jSuites.two(this.data[3] - 12);
+                    } else {
+                        v = jSuites.two(this.data[3]);
                     }
+                } else if (s === 'H') {
+                    v = this.data[3];
+                } else if (s === 'MI') {
+                    v = jSuites.two(this.data[4]);
+                } else if (s === 'SS') {
+                    v = jSuites.two(this.data[5]);
+                } else if (s === 'MS') {
+                    v = calendar.getMilliseconds();
+                } else if (s === 'AM/PM') {
+                    if (this.data[3] >= 12) {
+                        v = 'PM';
+                    } else {
+                        v = 'AM';
+                    }
+                } else if (s === 'WD') {
+                    v = jSuites.calendar.weekdays[calendar.getDay()];
                 }
-                if (t == 0) {
-                    pieces.push(tmp.substr(0, 1));
-                    tmp = tmp.substr(1);
+
+                if (v === null) {
+                    this.value[i] = this.tokens[i];
                 } else {
-                    pieces.push(tmp.substr(0, t));
-                    tmp = tmp.substr(t);
+                    this.value[i] = v;
                 }
             }
 
-            // Replace tokens per values
-            var replace = function(k, v, c) {
-                if (c == true) {
-                    for (var i = 0; i < pieces.length; i++) {
-                        if (('' + pieces[i]).toUpperCase() == k) {
-                            pieces[i] = v;
-                        }
-                    }
-                } else {
-                    for (var i = 0; i < pieces.length; i++) {
-                        if (pieces[i] == k) {
-                            pieces[i] = v;
-                        }
-                    }
-                }
+            for (var i = 0; i < o.tokens.length; i++) {
+                get.call(o, i);
             }
-
-            replace('YYYY', d[0], true);
-            replace('YYY', d[0].substring(1,4), true);
-            replace('YY', d[0].substring(2,4), true);
-
-            replace('dddd', weekdays[calendar.getDay()]);
-            replace('ddd', weekdays[calendar.getDay()].substr(0,3));
-            replace('DD', d[2], true);
-            replace('Q', Math.floor((calendar.getMonth() + 3) / 3), true);
-
-            if (h) {
-                replace('HH24', h);
-            }
-
-            if (h > 12) {
-                replace('HH12', h - 12, true);
-                replace('HH', h - 12, true);
-                replace('AM', 'pm', true);
-                replace('PM', 'pm', true);
-            } else {
-                replace('HH12', h, true);
-                replace('HH', h, true);
-                replace('AM', 'am', true);
-                replace('PM', 'am', true);
-            }
-
-            replace('MI', m, true);
-            replace('SS', s, true);
-            replace('MS', calendar.getMilliseconds(), true);
-
-            // Textual tokens
-            replace('MONTH', monthsFull[calendar.getMonth()].toUpperCase());
-            replace('Month', monthsFull[calendar.getMonth()]);
-            replace('month', monthsFull[calendar.getMonth()].toLowerCase());
-            replace('MON', months[calendar.getMonth()].toUpperCase());
-            replace('mmmmm', monthsFull[calendar.getMonth()].substr(0, 1));
-            replace('mmmm', months[calendar.getMonth()]);
-            replace('mmm', monthsFull[calendar.getMonth()]);
-            replace('MMM', months[calendar.getMonth()].toUpperCase());
-            replace('MM', d[1], true);
-            replace('Mon', months[calendar.getMonth()]);
-            replace('mon', months[calendar.getMonth()].toLowerCase());
-            replace('m', d[1]);
-
-            replace('DAY', weekdays[calendar.getDay()].toUpperCase());
-            replace('Day', weekdays[calendar.getDay()]);
-            replace('day', weekdays[calendar.getDay()].toLowerCase());
-            replace('DY', weekdays[calendar.getDay()].substr(0,3).toUpperCase());
-            replace('Dy', weekdays[calendar.getDay()].substr(0,3));
-            replace('dy', weekdays[calendar.getDay()].substr(0,3).toLowerCase());
-            replace('D', weekdays[calendar.getDay()]);
-            replace('WD', weekdays[calendar.getDay()]);
-            replace('d', d[2]);
-
-            replace('Y', d[0].substring(3,4), true);
-
             // Put pieces together
-            value = pieces.join('');
+            value = o.value.join('');
         } else {
             value = '';
         }
@@ -1405,3 +1405,8 @@ jSuites.calendar.getDateString = function(value, options) {
     return value;
 }
 
+// Jsuites calendar labels
+jSuites.calendar.weekdays = [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ];
+jSuites.calendar.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+jSuites.calendar.weekdaysShort = [ 'Sun','Mon','Tue','Wed','Thu','Fri','Sat' ];
+jSuites.calendar.monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
