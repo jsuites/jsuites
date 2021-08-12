@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.0';
+    var version = '4.9.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7790,6 +7790,10 @@ jSuites.mask = (function() {
                     var d = (''+value).split('.');
                     if (! d[1]) {
                         d[1] = '00';
+                    } else {
+                        if (d[1].length == 1) {
+                            d[1] += '0';
+                        }
                     }
                     t = d.join('.');
                 } else {
@@ -8796,7 +8800,7 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.appendElement = function(title) {
+    obj.appendElement = function(title, cb) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -8818,6 +8822,11 @@ jSuites.tabs = (function(el, options) {
             }
             // Open new tab
             obj.selectIndex(h);
+
+            // Callback
+            if (typeof(cb) == 'function') {
+                cb(div, h);
+            }
 
             // Return element
             return div;

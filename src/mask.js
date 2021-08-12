@@ -1223,6 +1223,10 @@ jSuites.mask = (function() {
                     var d = (''+value).split('.');
                     if (! d[1]) {
                         d[1] = '00';
+                    } else {
+                        if (d[1].length == 1) {
+                            d[1] += '0';
+                        }
                     }
                     t = d.join('.');
                 } else {

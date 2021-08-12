@@ -210,7 +210,7 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.appendElement = function(title) {
+    obj.appendElement = function(title, cb) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -232,6 +232,11 @@ jSuites.tabs = (function(el, options) {
             }
             // Open new tab
             obj.selectIndex(h);
+
+            // Callback
+            if (typeof(cb) == 'function') {
+                cb(div, h);
+            }
 
             // Return element
             return div;
