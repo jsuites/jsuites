@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.1';
+    var version = '4.9.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -10334,11 +10334,12 @@ jSuites.tags = (function(el, options) {
         var defaults = {
             value: '',
             limit: null,
-            limitMessage: 'The limit of entries is: ',
+            limitMessage: null,
             search: null,
             placeholder: null,
             validation: null,
             onbeforechange: null,
+            onlimit: null,
             onchange: null,
             onfocus: null,
             onblur: null,
@@ -10418,7 +10419,11 @@ jSuites.tags = (function(el, options) {
         }
 
         if (limit()) {
-            alert(obj.options.limitMessage + ' ' + obj.options.limit);
+            if (typeof(obj.options.onlimit) == 'function') {
+                obj.options.onlimit(obj, obj.options.limit);
+            } else if (obj.options.limitMessage) {
+                alert(obj.options.limitMessage + ' ' + obj.options.limit);
+            }
         } else {
             // Get node
             var node = jSuites.getNode();
@@ -10462,6 +10467,14 @@ jSuites.tags = (function(el, options) {
             if (focus) {
                 setFocus(div);
             }
+        }
+    }
+
+    obj.setLimit = function(limit) {
+        obj.options.limit = limit;
+        var n = el.children.length - limit;
+        while (el.children.length > limit) {
+            el.removeChild(el.lastChild);
         }
     }
 
@@ -10625,13 +10638,18 @@ jSuites.tags = (function(el, options) {
     }
 
     var setFocus = function(node) {
-        var range = document.createRange();
-        var sel = window.getSelection();
-        range.setStart(node, node.innerText.length||0)
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
-        node.scrollLeft = node.scrollWidth;
+        if (el.children.length > 1) {
+            var range = document.createRange();
+            var sel = window.getSelection();
+            if (! node) {
+                var node = el.childNodes[el.childNodes.length-1];
+            }
+            range.setStart(node, node.length)
+            range.collapse(true)
+            sel.removeAllRanges()
+            sel.addRange(range)
+            el.scrollLeft = el.scrollWidth;
+        }
     }
 
     var createElement = function(label, value, node) {
@@ -10770,7 +10788,11 @@ jSuites.tags = (function(el, options) {
         if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
-                if (! limit()) {
+                if (limit()) {
+                    if (typeof(obj.options.onlimit) == 'function') {
+                        obj.options.onlimit(obj, obj.options.limit)
+                    }
+                } else {
                     obj.add('', true);
                 }
             }
@@ -10854,7 +10876,7 @@ jSuites.tags = (function(el, options) {
 
         // Set focus in the last item
         if (e.target == el) {
-            setFocus(el.lastChild);
+            setFocus();
         }
     }
 
