@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.2';
+    var version = '4.9.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7063,8 +7063,7 @@ jSuites.mask = (function() {
                     } else {
                         // Did not find any decimal last resort the default
                         var e = new RegExp('#,##', 'ig');
-
-                        if (v.match(e)) {
+                        if (v.match(e) || '1.1'.toLocaleString().substring(1,2) == '.') {
                             this.options.decimal = '.';
                         } else {
                             this.options.decimal = ',';
@@ -7074,7 +7073,11 @@ jSuites.mask = (function() {
             }
         }
 
-        return null;
+        if (this.options.decimal) {
+            return this.options.decimal;
+        } else {
+            return null;
+        }
     }
 
     var ParseValue = function(v, decimal) {
