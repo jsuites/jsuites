@@ -2562,8 +2562,14 @@
     padding: 0px;
     margin-left: 4px;
     margin-right: 4px;
-    background-color: #f2f2f2;
+    background-color: #ddd;
 }
+
+.jtoolbar .jtoolbar-label {
+    padding-left: 8px;
+    padding-right: 8px;
+}
+
 
 
 .jtoolbar-mobile a

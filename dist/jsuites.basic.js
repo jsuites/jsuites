@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.4';
+    var version = '4.9.5';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -3255,6 +3255,10 @@ jSuites.dropdown = (function(el, options) {
                 loadUp: obj.loadUp,
                 loadDown: obj.loadDown,
             });
+        }
+
+        content.onwheel = function(e) {
+            e.stopPropagation();
         }
 
         // Change method
