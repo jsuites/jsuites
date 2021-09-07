@@ -81,7 +81,7 @@ jSuites.search = (function(el, options) {
                 var test = function(o) {
                     for (var key in o) {
                         var value = o[key];
-                        if ((''+value).toLowerCase().search(str) >= 0) {
+                        if ((''+value).toLowerCase().search(str.toLowerCase()) >= 0) {
                             return true;
                         }
                     }
@@ -119,7 +119,7 @@ jSuites.search = (function(el, options) {
         }
         timer = setTimeout(function() {
             execute(str);
-        }, 500)
+        }, 500);
     }
 
     obj.options = {
@@ -192,7 +192,7 @@ jSuites.search = (function(el, options) {
 
     obj.keyup = function(e) {
         if (obj.options.input) {
-            obj(obj.options.input.value)
+            obj(obj.options.input.value);
         } else {
             // Current node
             var node = jSuites.getNode();
@@ -201,6 +201,12 @@ jSuites.search = (function(el, options) {
             }
         }
     }
+    
+    // Add events
+    if (obj.options.input) {
+        obj.options.input.addEventListener("keyup", obj.keyup);
+        obj.options.input.addEventListener("keydown", obj.keydown);
+    }
 
     // Append element
     var container = document.createElement('div');
@@ -208,7 +214,7 @@ jSuites.search = (function(el, options) {
     container.onmousedown = select;
     el.appendChild(container);
 
-    el.classList.add('jsearch')
+    el.classList.add('jsearch');
     el.search = obj;
 
     return obj;
