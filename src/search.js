@@ -49,7 +49,7 @@ jSuites.search = (function(el, options) {
                     div.setAttribute('id', data[i].id)
                 }
 
-                if (i == 0) {
+                if (obj.options.forceSelect && i == 0) {
                     div.classList.add('selected');
                 }
                 var img = document.createElement('img');
@@ -75,7 +75,11 @@ jSuites.search = (function(el, options) {
             // New terms
             obj.terms = str;
             // New index
-            index = 0;
+            if (obj.options.forceSelect) {
+                index = 0;
+            } else {
+                index = null;
+            }
             // Array or remote search
             if (Array.isArray(obj.options.data)) {
                 var test = function(o) {
@@ -121,11 +125,14 @@ jSuites.search = (function(el, options) {
             execute(str);
         }, 500);
     }
-
+    if(options.forceSelect === null) {
+        options.forceSelect = true;
+    }
     obj.options = {
         data: options.data || null,
         input: options.input || null,
         onselect: options.onselect || null,
+        forceSelect: options.forceSelect,
     };
 
     obj.selectIndex = function(item) {
@@ -164,23 +171,31 @@ jSuites.search = (function(el, options) {
         if (obj.isOpened()) {
             if (e.key == 'Enter') {
                 // Enter
-                if (container.children[index]) {
+                if (index!==null && container.children[index]) {
                     obj.selectIndex(container.children[index]);
                     e.preventDefault();
+                } else {
+                    obj.close();
                 }
             } else if (e.key === 'ArrowUp') {
                 // Up
-                if (container.children[0]) {
+                if (index!==null && container.children[0]) {
                     container.children[index].classList.remove('selected');
-                    if (index > 0) {
-                        index--;
+                    if(!obj.options.forceSelect && index === 0) {
+                        index = null;
+                    } else {
+                        index = Math.max(0, index-1);
+                        container.children[index].classList.add('selected');
                     }
-                    container.children[index].classList.add('selected');
                 }
                 e.preventDefault();
             } else if (e.key === 'ArrowDown') {
                 // Down
-                container.children[index].classList.remove('selected');
+                if(index == null) {
+                    index = -1;
+                } else {
+                    container.children[index].classList.remove('selected');
+                }
                 if (index < 9 && container.children[index+1]) {
                     index++;
                 }
