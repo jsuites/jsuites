@@ -49,7 +49,7 @@ jSuites.search = (function(el, options) {
                     div.setAttribute('id', data[i].id)
                 }
 
-                if (i == 0) {
+                if (obj.options.forceSelect && i == 0) {
                     div.classList.add('selected');
                 }
                 var img = document.createElement('img');
@@ -75,13 +75,17 @@ jSuites.search = (function(el, options) {
             // New terms
             obj.terms = str;
             // New index
-            index = 0;
+            if (obj.options.forceSelect) {
+                index = 0;
+            } else {
+                index = null;
+            }
             // Array or remote search
             if (Array.isArray(obj.options.data)) {
                 var test = function(o) {
                     for (var key in o) {
                         var value = o[key];
-                        if ((''+value).toLowerCase().search(str) >= 0) {
+                        if ((''+value).toLowerCase().search(str.toLowerCase()) >= 0) {
                             return true;
                         }
                     }
@@ -119,13 +123,16 @@ jSuites.search = (function(el, options) {
         }
         timer = setTimeout(function() {
             execute(str);
-        }, 500)
+        }, 500);
     }
-
+    if(options.forceSelect === null) {
+        options.forceSelect = true;
+    }
     obj.options = {
         data: options.data || null,
         input: options.input || null,
         onselect: options.onselect || null,
+        forceSelect: options.forceSelect,
     };
 
     obj.selectIndex = function(item) {
@@ -164,23 +171,31 @@ jSuites.search = (function(el, options) {
         if (obj.isOpened()) {
             if (e.key == 'Enter') {
                 // Enter
-                if (container.children[index]) {
+                if (index!==null && container.children[index]) {
                     obj.selectIndex(container.children[index]);
                     e.preventDefault();
+                } else {
+                    obj.close();
                 }
             } else if (e.key === 'ArrowUp') {
                 // Up
-                if (container.children[0]) {
+                if (index!==null && container.children[0]) {
                     container.children[index].classList.remove('selected');
-                    if (index > 0) {
-                        index--;
+                    if(!obj.options.forceSelect && index === 0) {
+                        index = null;
+                    } else {
+                        index = Math.max(0, index-1);
+                        container.children[index].classList.add('selected');
                     }
-                    container.children[index].classList.add('selected');
                 }
                 e.preventDefault();
             } else if (e.key === 'ArrowDown') {
                 // Down
-                container.children[index].classList.remove('selected');
+                if(index == null) {
+                    index = -1;
+                } else {
+                    container.children[index].classList.remove('selected');
+                }
                 if (index < 9 && container.children[index+1]) {
                     index++;
                 }
@@ -192,7 +207,7 @@ jSuites.search = (function(el, options) {
 
     obj.keyup = function(e) {
         if (obj.options.input) {
-            obj(obj.options.input.value)
+            obj(obj.options.input.value);
         } else {
             // Current node
             var node = jSuites.getNode();
@@ -201,6 +216,12 @@ jSuites.search = (function(el, options) {
             }
         }
     }
+    
+    // Add events
+    if (obj.options.input) {
+        obj.options.input.addEventListener("keyup", obj.keyup);
+        obj.options.input.addEventListener("keydown", obj.keydown);
+    }
 
     // Append element
     var container = document.createElement('div');
@@ -208,7 +229,7 @@ jSuites.search = (function(el, options) {
     container.onmousedown = select;
     el.appendChild(container);
 
-    el.classList.add('jsearch')
+    el.classList.add('jsearch');
     el.search = obj;
 
     return obj;
