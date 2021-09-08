@@ -468,6 +468,10 @@ jSuites.dropdown = (function(el, options) {
             });
         }
 
+        content.onwheel = function(e) {
+            e.stopPropagation();
+        }
+
         // Change method
         el.change = obj.setValue;
 
