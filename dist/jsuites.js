@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.5';
+    var version = '4.9.6';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -1648,9 +1648,13 @@ jSuites.calendar.extractDateFromString = function(date, format) {
 
     // Get day
     var d = v2.search("DD");
-    d = v1.substr(d,2);
-    if (parseInt(d) != d  || d > 31) {
-        test = 0;
+    if (d >= 0) {
+        d = v1.substr(d,2);
+        if (parseInt(d) != d  || d > 31) {
+            test = 0;
+        }
+    } else {
+        d = '01';
     }
 
     // Get hour
