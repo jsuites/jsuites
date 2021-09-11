@@ -30,14 +30,19 @@ jSuites.search = (function(el, options) {
             // Show items (only 10)
             var len = data.length < 11 ? data.length : 10;
             for (var i = 0; i < len; i++) {
-                // Legacy
-                var text = data[i].text;
-                if (! text && data[i].name) {
-                    text = data[i].name;
-                }
-                var value = data[i].value;
-                if (! value && data[i].id) {
-                    value = data[i].id;
+                if (typeof(data[i]) == 'string') {
+                    var text = data[i];
+                    var value = data[i];
+                } else {
+                    // Legacy
+                    var text = data[i].text;
+                    if (! text && data[i].name) {
+                        text = data[i].name;
+                    }
+                    var value = data[i].value;
+                    if (! value && data[i].id) {
+                        value = data[i].id;
+                    }
                 }
 
                 var div = document.createElement('div');
@@ -83,10 +88,16 @@ jSuites.search = (function(el, options) {
             // Array or remote search
             if (Array.isArray(obj.options.data)) {
                 var test = function(o) {
-                    for (var key in o) {
-                        var value = o[key];
-                        if ((''+value).toLowerCase().search(str.toLowerCase()) >= 0) {
+                    if (typeof(o) == 'string') {
+                        if ((''+o).toLowerCase().search(str.toLowerCase()) >= 0) {
                             return true;
+                        }
+                    } else {
+                        for (var key in o) {
+                            var value = o[key];
+                            if ((''+value).toLowerCase().search(str.toLowerCase()) >= 0) {
+                                return true;
+                            }
                         }
                     }
                     return false;

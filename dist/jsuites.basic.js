@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.6';
+    var version = '4.9.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -6683,7 +6683,7 @@ jSuites.mask = (function() {
         if (v[0]) {
             v[0] = v[0].join('');
         }
-        if (v[0]) {
+        if (v[0] || v[1]) {
             if (v[1] !== undefined) {
                 v[1] = v[1].match(/[0-9]+/g, '');
                 if (v[1]) {
