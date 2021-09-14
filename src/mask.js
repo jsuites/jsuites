@@ -75,7 +75,7 @@ jSuites.mask = (function() {
                     } else {
                         // Did not find any decimal last resort the default
                         var e = new RegExp('#,##', 'ig');
-                        if (v.match(e) || '1.1'.toLocaleString().substring(1,2) == '.') {
+                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == '.') {
                             this.options.decimal = '.';
                         } else {
                             this.options.decimal = ',';
@@ -108,7 +108,7 @@ jSuites.mask = (function() {
         if (v[0]) {
             v[0] = v[0].join('');
         }
-        if (v[0]) {
+        if (v[0] || v[1]) {
             if (v[1] !== undefined) {
                 v[1] = v[1].match(/[0-9]+/g, '');
                 if (v[1]) {
@@ -621,11 +621,12 @@ jSuites.mask = (function() {
                 if (this.values[this.index] != '0' || v == decimal) {
                     this.values[this.index] += v;
                 }
-            } else if (this.values[this.index] && v == decimal) {
-                if (decimal) {
-                    if (this.values[this.index].indexOf(decimal) == -1) {
-                        this.values[this.index] += v;
+            } else if (decimal && v == decimal) {
+                if (this.values[this.index].indexOf(decimal) == -1) {
+                    if (! this.values[this.index]) {
+                        this.values[this.index] = '0';
                     }
+                    this.values[this.index] += v;
                 }
             } else if (v == '-') {
                 // Negative signed
@@ -983,6 +984,9 @@ jSuites.mask = (function() {
                         d[0] = d[0].replace(/-/g, '');
                         d[0] = d[0].replace('(','');
                         d[0] = d[0].replace(')','');
+                        d[0] = d[0].replace('##0.###','##0.000');
+                        d[0] = d[0].replace('##0.##','##0.00');
+                        d[0] = d[0].replace('##0.#','##0.0');
                     }
                     o.mask = d[0];
                 }

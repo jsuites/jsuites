@@ -19,6 +19,7 @@ jSuites.tabs = (function(el, options) {
         hideHeaders: false,
         padding: null,
         palette: null,
+        maxWidth: null,
     }
 
     // Loop through the initial configuration
@@ -320,6 +321,9 @@ jSuites.tabs = (function(el, options) {
         var header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
+        if (obj.options.maxWidth) {
+            header.style.maxWidth = parseInt(obj.options.maxWidth) + 'px';
+        }
 
         // Controls
         var controls = document.createElement('div');

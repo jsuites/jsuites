@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.7';
+    var version = '4.9.9';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7071,7 +7071,7 @@ jSuites.mask = (function() {
                     } else {
                         // Did not find any decimal last resort the default
                         var e = new RegExp('#,##', 'ig');
-                        if (v.match(e) || '1.1'.toLocaleString().substring(1,2) == '.') {
+                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == '.') {
                             this.options.decimal = '.';
                         } else {
                             this.options.decimal = ',';
@@ -7617,11 +7617,12 @@ jSuites.mask = (function() {
                 if (this.values[this.index] != '0' || v == decimal) {
                     this.values[this.index] += v;
                 }
-            } else if (this.values[this.index] && v == decimal) {
-                if (decimal) {
-                    if (this.values[this.index].indexOf(decimal) == -1) {
-                        this.values[this.index] += v;
+            } else if (decimal && v == decimal) {
+                if (this.values[this.index].indexOf(decimal) == -1) {
+                    if (! this.values[this.index]) {
+                        this.values[this.index] = '0';
                     }
+                    this.values[this.index] += v;
                 }
             } else if (v == '-') {
                 // Negative signed
@@ -7979,6 +7980,9 @@ jSuites.mask = (function() {
                         d[0] = d[0].replace(/-/g, '');
                         d[0] = d[0].replace('(','');
                         d[0] = d[0].replace(')','');
+                        d[0] = d[0].replace('##0.###','##0.000');
+                        d[0] = d[0].replace('##0.##','##0.00');
+                        d[0] = d[0].replace('##0.#','##0.0');
                     }
                     o.mask = d[0];
                 }
@@ -9319,7 +9323,6 @@ jSuites.search = (function(el, options) {
             if (Array.isArray(obj.options.data)) {
                 var test = function(o) {
                     if (typeof(o) == 'string') {
-                        console.log((''+o).toLowerCase().search(str.toLowerCase()))
                         if ((''+o).toLowerCase().search(str.toLowerCase()) >= 0) {
                             return true;
                         }
@@ -9859,6 +9862,7 @@ jSuites.tabs = (function(el, options) {
         hideHeaders: false,
         padding: null,
         palette: null,
+        maxWidth: null,
     }
 
     // Loop through the initial configuration
@@ -10160,6 +10164,9 @@ jSuites.tabs = (function(el, options) {
         var header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
+        if (obj.options.maxWidth) {
+            header.style.maxWidth = parseInt(obj.options.maxWidth) + 'px';
+        }
 
         // Controls
         var controls = document.createElement('div');
