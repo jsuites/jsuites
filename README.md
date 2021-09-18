@@ -111,4 +111,7 @@ jSuites is released under the [MIT license].
 ## Contact
 contact@jsuites.net
 
+## Other tools
 
+https://lemonadejs.net<br>
+https://jspreadsheet.com<br>
