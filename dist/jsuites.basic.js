@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.4.0';
+    var version = '4.9.11';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -4999,6 +4999,10 @@ jSuites.editor = (function(el, options) {
     }
 
     obj.addImage = function(src, asSnippet) {
+        if (! src) {
+            src = '';
+        }
+
         if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
             console.error('remoteParser not defined in your initialization');
         } else {
@@ -5273,6 +5277,9 @@ jSuites.editor = (function(el, options) {
     // Elements to be removed
     var remove = [HTMLUnknownElement,HTMLAudioElement,HTMLEmbedElement,HTMLIFrameElement,HTMLTextAreaElement,HTMLInputElement,HTMLScriptElement];
 
+    // Valid properties
+    var validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
+
     // Valid CSS attributes
     var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
 
@@ -5297,7 +5304,7 @@ jSuites.editor = (function(el, options) {
            }
            // Process image
            if (element.tagName.toUpperCase() == 'IMG') {
-               if (! obj.options.acceptImages) {
+               if (! obj.options.acceptImages || ! element.src) {
                    element.parentNode.removeChild(element);
                } else {
                    // Check if is data
@@ -5305,12 +5312,19 @@ jSuites.editor = (function(el, options) {
                    // Check attributes for persistance
                    obj.addImage(element.src);
                }
-           } else {
-               // Remove attributes
-               var numAttributes = element.attributes.length - 1;
+           }
+           // Remove attributes
+           var attr = [];
+           var numAttributes = element.attributes.length - 1;
+           if (numAttributes > 0) {
                for (var i = numAttributes; i >= 0 ; i--) {
-                   element.removeAttribute(element.attributes[i].name);
+                   attr.push(element.attributes[i].name);
                }
+               attr.forEach(function(v) {
+                   if (validProperty.indexOf(v) == -1) {
+                       element.removeAttribute(v);
+                   }
+               });
            }
            element.style = '';
            // Add valid style

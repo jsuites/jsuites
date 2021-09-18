@@ -1701,7 +1701,7 @@ jSuites.menu = (function(el, options) {
                 menu[i].classList.remove('selected');
                 if (menu[i].getAttribute('data-id')) {
                     var state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
-                    if (state === null || state == 1) {
+                    if (state == 1) {
                         menu[i].classList.add('selected');
                     }
                 }
@@ -1716,48 +1716,59 @@ jSuites.menu = (function(el, options) {
         }
     }
 
-    obj.select = function(o) {
-        var menu = el.querySelectorAll('nav a');
-        for (var i = 0; i < menu.length; i++) {
-            menu[i].classList.remove('selected');
-        }
-        o.classList.add('selected');
+    obj.select = function(o, e) {
+        if (o.tagName == 'NAV') {
+            var m = el.querySelectorAll('nav');
+            for (var i = 0; i < m.length; i++) {
+                m[i].style.display = 'none';
+            }
+            o.style.display = '';
+            o.classList.add('selected');
+        } else {
+            var m = el.querySelectorAll('nav a');
+            for (var i = 0; i < m.length; i++) {
+                m[i].classList.remove('selected');
+            }
+            o.classList.add('selected');
 
-        // Better navigation
-        if (options && options.collapse == true) {
-            if (o.classList.contains('show')) {
-                menu = el.querySelectorAll('nav');
-                for (var i = 0; i < menu.length; i++) {
-                    menu[i].style.display = '';
-                }
-                o.style.display = 'none';
-            } else {
-                menu = el.querySelectorAll('nav');
-                for (var i = 0; i < menu.length; i++) {
-                    menu[i].style.display = 'none';
-                }
+            // Better navigation
+            if (options && options.collapse == true) {
+                if (o.classList.contains('show')) {
+                    m = el.querySelectorAll('nav');
+                    for (var i = 0; i < m.length; i++) {
+                        m[i].style.display = '';
+                    }
+                    o.style.display = 'none';
+                } else {
+                    m = el.querySelectorAll('nav');
+                    for (var i = 0; i < m.length; i++) {
+                        m[i].style.display = 'none';
+                    }
 
-                menu = el.querySelector('.show');
-                if (menu) {
-                    menu.style.display = 'block';
-                }
+                    m = el.querySelector('.show');
+                    if (m) {
+                        m.style.display = 'block';
+                    }
 
-                menu = jSuites.findElement(o.parentNode, 'selected');
-                if (menu) {
-                    menu.style.display = '';
+                    m = jSuites.findElement(o.parentNode, 'selected');
+                    if (m) {
+                        m.style.display = '';
+                    }
                 }
             }
         }
 
+        if (options && typeof(options.onclick) == 'function') {
+            options.onclick(obj, e);
+        }
+
         // Close menu if is oped
         if (jSuites.getWindowWidth() < 800) {
-            setTimeout(function() {
-                obj.hide();
-            }, 0);
+            obj.hide();
         }
     }
 
-    var actionDown = function(e) {
+    var action = function(e) {
         if (e.target.tagName == 'H2') {
             if (e.target.parentNode.classList.contains('selected')) {
                 e.target.parentNode.classList.remove('selected');
@@ -1768,14 +1779,14 @@ jSuites.menu = (function(el, options) {
             }
         } else if (e.target.tagName == 'A') {
             // Mark link as selected
-            obj.select(e.target);
+            obj.select(e.target, e);
         }
     }
 
     if ('ontouchstart' in document.documentElement === true) {
-        el.addEventListener('touchstart', actionDown);
+        el.addEventListener('touchsend', action);
     } else {
-        el.addEventListener('mousedown', actionDown);
+        el.addEventListener('mouseup', action);
     }
 
     // Add close action
