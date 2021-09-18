@@ -65,16 +65,16 @@ Examples
 * [JavaScript image cropper](https://jsuites.net/v4/image-cropper)\
 The jSuites.crop is a lightweight JavaScript plugin that allow users load, crop and apply filters to images.
 
-* [Dropdown and autocomplete component](https://jsuites.net/v4/dropdown-and-autocomplete)\
+* [Dropdown and autocomplete](https://jsuites.net/v4/dropdown-and-autocomplete)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Javascript calendar, date and datetime picker](https://jsuites.net/v4/javascript-calendar)\
+* [Javascript calendar](https://jsuites.net/v4/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
-* [Javascript tags plugin](https://jsuites.net/v4/javascript-tags)\
+* [Javascript tags](https://jsuites.net/v4/javascript-tags)\
 JavaScript tags and keywords managment plugin
 
-* [Javascript tabs plugin](https://jsuites.net/v4/javascript-tabs)\
+* [Javascript tabs](https://jsuites.net/v4/javascript-tabs)\
 JavaScript tabs plugin
 
 * [Javascript mask](https://jsuites.net/v4/javascript-mask)\
@@ -111,4 +111,7 @@ jSuites is released under the [MIT license].
 ## Contact
 contact@jsuites.net
 
+## Other tools
 
+https://lemonadejs.net<br>
+https://jspreadsheet.com<br>
