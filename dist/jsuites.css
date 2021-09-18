@@ -840,6 +840,40 @@
   pointer-events: auto;
 }
 
+@media only screen and (max-width: 420px) {
+    .jcontextmenu {
+        top: initial !important;
+        left: 0px !important;
+        bottom: 0px !important;
+        width: 100vw;
+        height: 260px;
+        overflow: scroll;
+        animation: slide-bottom-in 0.4s forwards;
+    }
+    .jcontextmenu div {
+        width: 100%;
+        text-align: center;
+        border-bottom: 1px solid #ccc;
+        padding: 15px;
+    }
+    .jcontextmenu > div::before {
+        display: none;
+    }
+    .jcontextmenu a {
+        font-size: 1.4em;
+        text-transform: uppercase;
+    }
+    .jcontextmenu span {
+        display: none;
+    }
+    .jcontextmenu span {
+        display: none;
+    }
+    .jcontextmenu hr {
+        display: none;
+    }
+}
+
 .jdropdown {
     cursor:pointer;
     -webkit-touch-callout: none;

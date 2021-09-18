@@ -724,7 +724,7 @@ jSuites.editor = (function(el, options) {
     }
 
     // Elements to be removed
-    var remove = [HTMLUnknownElement];
+    var remove = [HTMLUnknownElement,HTMLAudioElement,HTMLEmbedElement,HTMLIFrameElement,HTMLTextAreaElement,HTMLInputElement,HTMLScriptElement];
 
     // Valid CSS attributes
     var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
@@ -749,9 +749,9 @@ jSuites.editor = (function(el, options) {
                }
            }
            // Process image
-           if (element.tagName == 'IMG') {
+           if (element.tagName.toUpperCase() == 'IMG') {
                if (! obj.options.acceptImages) {
-                   element.remove();
+                   element.parentNode.removeChild(element);
                } else {
                    // Check if is data
                    element.setAttribute('tabindex', '900');
@@ -787,9 +787,11 @@ jSuites.editor = (function(el, options) {
         if (data) {
             data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
         }
+        var parser = new DOMParser();
+        var d = parser.parseFromString(data, "text/html");
+        parse(d);
         var span = document.createElement('span');
-        span.innerHTML = data;
-        parse(span);
+        span.innerHTML = d.firstChild.innerHTML;
         return span;
     } 
 

@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.9';
+    var version = '4.4.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5282,7 +5282,7 @@ jSuites.editor = (function(el, options) {
     }
 
     // Elements to be removed
-    var remove = [HTMLUnknownElement];
+    var remove = [HTMLUnknownElement,HTMLAudioElement,HTMLEmbedElement,HTMLIFrameElement,HTMLTextAreaElement,HTMLInputElement,HTMLScriptElement];
 
     // Valid CSS attributes
     var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
@@ -5307,9 +5307,9 @@ jSuites.editor = (function(el, options) {
                }
            }
            // Process image
-           if (element.tagName == 'IMG') {
+           if (element.tagName.toUpperCase() == 'IMG') {
                if (! obj.options.acceptImages) {
-                   element.remove();
+                   element.parentNode.removeChild(element);
                } else {
                    // Check if is data
                    element.setAttribute('tabindex', '900');
@@ -5345,9 +5345,11 @@ jSuites.editor = (function(el, options) {
         if (data) {
             data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
         }
+        var parser = new DOMParser();
+        var d = parser.parseFromString(data, "text/html");
+        parse(d);
         var span = document.createElement('span');
-        span.innerHTML = data;
-        parse(span);
+        span.innerHTML = d.firstChild.innerHTML;
         return span;
     } 
 
@@ -11019,7 +11021,8 @@ jSuites.tags = (function(el, options) {
 });
 
 jSuites.toolbar = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'toolbar' };
     obj.options = {};
 
     // Default configuration
@@ -11029,6 +11032,7 @@ jSuites.toolbar = (function(el, options) {
         badge: false,
         title: false,
         responsive: false,
+        maxWidth: null,
         items: [],
     }
 
@@ -11227,16 +11231,21 @@ jSuites.toolbar = (function(el, options) {
 
     obj.refresh = function() {
         if (obj.options.responsive == true) {
+            // Width of the c
+            var rect = el.parentNode.getBoundingClientRect();
+            if (! obj.options.maxWidth) {
+                obj.options.maxWidth = rect.width;
+            }
+            // Max width
+            var width = parseInt(obj.options.maxWidth); 
             // Remove arrow
             toolbarArrow.remove();
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Width of the c
-            var rect = el.parentNode.getBoundingClientRect();
             // Available parent space
-            var available = rect.width;
+            var available = obj.options.maxWidth;
             // Toolbar is larger than the parent, move elements to the floating element
             if (available < toolbarContent.offsetWidth) {
                 // Give space to the floating element

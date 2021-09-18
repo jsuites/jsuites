@@ -1,5 +1,6 @@
 jSuites.toolbar = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'toolbar' };
     obj.options = {};
 
     // Default configuration
@@ -9,6 +10,7 @@ jSuites.toolbar = (function(el, options) {
         badge: false,
         title: false,
         responsive: false,
+        maxWidth: null,
         items: [],
     }
 
@@ -207,16 +209,21 @@ jSuites.toolbar = (function(el, options) {
 
     obj.refresh = function() {
         if (obj.options.responsive == true) {
+            // Width of the c
+            var rect = el.parentNode.getBoundingClientRect();
+            if (! obj.options.maxWidth) {
+                obj.options.maxWidth = rect.width;
+            }
+            // Max width
+            var width = parseInt(obj.options.maxWidth); 
             // Remove arrow
             toolbarArrow.remove();
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Width of the c
-            var rect = el.parentNode.getBoundingClientRect();
             // Available parent space
-            var available = rect.width;
+            var available = obj.options.maxWidth;
             // Toolbar is larger than the parent, move elements to the floating element
             if (available < toolbarContent.offsetWidth) {
                 // Give space to the floating element
