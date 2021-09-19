@@ -1,0 +1,27 @@
+{
+    "name": "@jsuites/ajax",
+    "title": "JavaScript ajax requests management",
+    "description": "JavaScript ajax request abstraction",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript plugins, ajax requests management"
+    ],
+    "main": "ajax.js",
+    "version": "5.0.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v5",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}

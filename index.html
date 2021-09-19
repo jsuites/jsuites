@@ -1,0 +1,12 @@
+<script src="packages/core/core.js"></script>
+<script src="packages/modal/modal.js"></script>
+<script src="packages/animation/animation.js"></script>
+<link rel="stylesheet" href="packages/modal/modal.css" type="text/css" />
+
+<div id="test"></div>
+<script>
+jSuites = Core;
+jSuites.modal = Modal;
+jSuites.animation = Animation;
+jSuites.modal(document.getElementById('test'));
+</script>

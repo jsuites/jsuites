@@ -1,0 +1,27 @@
+{
+    "name": "@jsuites/animation",
+    "title": "JavaScript micro animations",
+    "description": "JavaScript micro animation collection",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript plugins, small animation collection"
+    ],
+    "main": "animation.js",
+    "version": "5.0.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v5",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
