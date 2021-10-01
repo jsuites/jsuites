@@ -299,7 +299,7 @@
 }
 
 .jorg-disable-scrollbars::-webkit-scrollbar {
-    width: 0px;
+    width: 0;
     background: transparent; /* Chrome/Safari/Webkit */
 }
 
