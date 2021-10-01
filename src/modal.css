@@ -64,9 +64,9 @@
     top: 0px;
     left: 0px;
     transform: none;
+    border: 0px;
     border-radius: 0px;
 }
-
 
 .jmodal_backdrop {
     position: fixed;

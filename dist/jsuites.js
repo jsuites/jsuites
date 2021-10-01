@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.11';
+    var version = '4.9.12';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -43,6 +43,15 @@ var jSuites = function(options) {
         document.addEventListener("click", isOpened);
 
         obj.version = version;
+    }
+
+    obj.setExtensions = function(o) {
+        if (typeof(o) == 'object') {
+            var k = Object.keys(o);
+            for (var i = 0; i < k.length; i++) {
+                obj[k[i]] = o[k[i]];
+            }
+        }
     }
 
     obj.tracking = function(component, state) {
@@ -99,7 +108,9 @@ var jSuites = function(options) {
                 return true;
             } else {
                 // Return the value
-                return o[p];
+                if (o) {
+                    return o[p];
+                }
             }
         }
         // Something went wrong

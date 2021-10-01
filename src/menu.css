@@ -103,6 +103,7 @@
 
 .jmenu a:hover, .jmenu a.selected {
     text-decoration: underline;
+    font-weight: bold;
 }
 
 .jmenu .title {
