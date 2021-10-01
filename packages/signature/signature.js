@@ -61,15 +61,30 @@
         obj.setValue = function(c) {
             obj.reset();
 
-            ctx.beginPath();
-            ctx.lineWidth = obj.options.lineWidth;
-            ctx.lineCap = 'round';
-            ctx.strokeStyle = '#000';
-            ctx.moveTo(c[0][0], c[0][1]);
+            if (c && c.length) {
+                // Set the coordinates
+                coordinates = JSON.parse(JSON.stringify(c));
 
-            for (var i = 1; i < c.length; i++) {
-                ctx.lineTo(c[i][0], c[i][1]);
-                ctx.stroke();
+                var t = c.shift();
+                var p = null;
+                ctx.beginPath();
+                ctx.lineWidth = obj.options.lineWidth;
+                ctx.lineCap = 'round';
+                ctx.strokeStyle = '#000';
+                ctx.moveTo(t[0], t[1]);
+
+                while (t = c.shift()) {
+                    if (t == 1) {
+                        t = c.shift();
+                        if (Array.isArray(t)) {
+                            ctx.moveTo(t[0], t[1]);
+                        }
+                    }
+                    if (Array.isArray(t)) {
+                        ctx.lineTo(t[0], t[1]);
+                        ctx.stroke();
+                    }
+                }
             }
         }
 
@@ -83,6 +98,10 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         }
 
+        obj.resize = function() {
+            resize();
+        }
+
         var setPosition = function(e) {
             // Mark position
             if (e.changedTouches && e.changedTouches[0]) {
@@ -93,11 +112,15 @@
                 x = e.offsetX;
                 y = e.offsetY;
             }
+
+            coordinates.push([ x, y ]);
         }
 
         var resize = function() {
             ctx.canvas.width = el.offsetWidth;
             ctx.canvas.height = el.offsetHeight;
+
+            obj.setValue(coordinates);
         }
 
         var draw = function(e) {
@@ -112,8 +135,6 @@
                 } else {
                     var mouseButton = e.which;
                 }
-
-                coordinates.push([ x, y ]);
 
                 ctx.beginPath();
                 ctx.lineWidth = obj.options.lineWidth;
@@ -132,6 +153,8 @@
         var finalize = function() {
             x = null;
             y = null;
+
+            coordinates.push('1');
         }
 
         window.addEventListener('resize', resize);
