@@ -87,11 +87,45 @@ jSuites.contextmenu = (function(el, options) {
         // Update content
         el.innerHTML = '';
 
+        // Add header contextmenu
+        var itemHeader = createHeader();
+        el.appendChild(itemHeader);
+
         // Append items
         for (var i = 0; i < items.length; i++) {
             var itemContainer = createItemElement(items[i]);
             el.appendChild(itemContainer);
         }
+    }
+
+    /**
+     * createHeader for context menu
+     * @private
+     * @returns {HTMLElement}
+     */
+    function createHeader() {
+        var header = document.createElement('div');
+        header.classList.add("header");
+        header.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        var title = document.createElement('a');
+        title.classList.add("title");
+        title.innerHTML = jSuites.translate("Menu");
+
+        header.appendChild(title);
+
+        var closeButton = document.createElement('a');
+        closeButton.classList.add("close");
+        closeButton.innerHTML = jSuites.translate("close");
+        closeButton.addEventListener("click", function(e) {
+            obj.close();
+        });
+
+        header.appendChild(closeButton);
+
+        return header;
     }
     
     /**
