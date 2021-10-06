@@ -53,6 +53,10 @@
     left: 9px;
 }
 
+.jcontextmenu > div.header {
+    display: none;
+}
+
 .jcontextmenu > div a {
     color: #555;
     text-decoration: none;
@@ -106,6 +110,7 @@
         height: 260px;
         overflow: scroll;
         animation: slide-bottom-in 0.4s forwards;
+        padding-top: 0px;
     }
     .jcontextmenu div {
         width: 100%;
@@ -113,8 +118,38 @@
         border-bottom: 1px solid #ccc;
         padding: 15px;
     }
+    .jcontextmenu > div.header {
+        background-color: lightgray;
+        padding: 5px;
+        top: 0px;
+        position: sticky;
+        z-index: 2;
+    }                
+    .jcontextmenu > div.header > a.title {
+        text-align: left;
+    }
+
+    .jcontextmenu > div.header > a.close {
+        text-align: right;
+    }
+
     .jcontextmenu > div::before {
-        display: none;
+        content: attr(data-icon);
+        font-family: 'Material Icons' !important;
+        font-weight: normal;
+        font-style: normal;
+        font-size: 16px;
+        line-height: 1;
+        letter-spacing: normal;
+        text-transform: none;
+        display: inline-block;
+        white-space: nowrap;
+        word-wrap: normal;
+        direction: ltr;
+        -webkit-font-feature-settings: 'liga';
+        -webkit-font-smoothing: antialiased;
+        position: absolute;
+        left: 9px;
     }
     .jcontextmenu a {
         font-size: 1.4em;
