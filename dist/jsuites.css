@@ -2097,7 +2097,7 @@ div[data-before]:before {
     font-family: 'Material Icons';
     font-size: 30px;
     /* before it was 0px 0px 0px #000 */
-    text-shadow: 0px 0px 6px rgb(56,56,56);    
+    text-shadow: 0px 0px 6px rgb(56,56,56);
     text-align: center;
     cursor: pointer;
 }

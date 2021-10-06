@@ -1579,8 +1579,10 @@ jSuites.calendar.prettifyAll = function() {
         if (elements[i].getAttribute('data-date')) {
             elements[i].innerHTML = jSuites.calendar.prettify(elements[i].getAttribute('data-date'));
         } else {
-            elements[i].setAttribute('data-date', elements[i].innerHTML);
-            elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
+            if (elements[i].innerHTML) {
+                elements[i].setAttribute('data-date', elements[i].innerHTML);
+                elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
+            }
         }
     }
 }
