@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.12';
+    var version = '4.9.13';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -9155,6 +9155,7 @@ jSuites.toolbar = (function(el, options) {
         title: false,
         responsive: false,
         maxWidth: null,
+        bottom: true,
         items: [],
     }
 
@@ -9325,14 +9326,17 @@ jSuites.toolbar = (function(el, options) {
         }
 
         // Fits to the page
-        obj.refresh();
+        setTimeout(function() {
+            obj.refresh();
+        }, 0);
     }
 
     obj.open = function() {
         toolbarArrow.classList.add('jtoolbar-arrow-selected');
 
+        var rectElement = el.getBoundingClientRect();
         var rect = toolbarFloating.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight) {
+        if (rect.bottom > window.innerHeight || obj.options.bottom) {
             toolbarFloating.style.bottom = '0';
         } else {
             toolbarFloating.style.removeProperty('bottom');
@@ -9358,16 +9362,14 @@ jSuites.toolbar = (function(el, options) {
             if (! obj.options.maxWidth) {
                 obj.options.maxWidth = rect.width;
             }
-            // Max width
-            var width = parseInt(obj.options.maxWidth); 
+            // Available parent space
+            var available = parseInt(obj.options.maxWidth);
             // Remove arrow
             toolbarArrow.remove();
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
-            // Available parent space
-            var available = obj.options.maxWidth;
             // Toolbar is larger than the parent, move elements to the floating element
             if (available < toolbarContent.offsetWidth) {
                 // Give space to the floating element
