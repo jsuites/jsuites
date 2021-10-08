@@ -1,26 +1,13 @@
-/** Buttons **/
-
 .jbutton {
-    padding: 8px;
-    padding-left: 15px;
-    padding-right: 15px;
-    border: 1px solid #ddd;
-    border-radius: 2px;
+    padding:4px;
+    padding-left:10px;
+    padding-right:20px;
+    border:1px solid #ddd;
+    display:inline-flex;
+    border-radius:4px;
     cursor:pointer;
+    line-height: 24px;
     -webkit-font-smoothing: antialiased;
-    outline: none;
-}
-
-.jbutton.dark {
-    background-color: #737373;
-    border: 1px solid transparent;
-    color: #fff;
-}
-
-.jbutton.red {
-    background-color: #a23131;
-    border: 1px solid transparent;
-    color: #fff;
 }
 
 .jbutton.blue {
@@ -29,26 +16,7 @@
     background-color:#1a73e8;
 }
 
-.jbutton.mobile {
-    padding:4px;
-    padding-left:25px;
-    padding-right:25px;
-    cursor:pointer;
-    min-width:100px;
-    outline:none;
-}
-
-.jbutton[data-icon] {
-    display: flex;
-}
-
-.jbutton[data-icon].center {
-    -webkit-justify-content: center;
-    justify-content: center;
-    padding-right:20px;
-}
-
-.jbutton[data-icon]::before {
+.jbutton::before {
     content: attr(data-icon);
     width: 24px;
     height: 24px;
@@ -57,197 +25,17 @@
     font-family: 'Material icons';
     color: #999;
     margin-right:2px;
+}
+
+.jbutton.blue::before {
     color: #fff;
 }
 
 .jbutton:hover {
+    background-color: #eee;
+}
+
+.jbutton.blue:hover {
+    background-color: #1a73e8;
     opacity: 0.8;
-    text-decoration: underline;
-}
-
-.jbutton[disabled] {
-    opacity: 0.5;
-    text-decoration: none;
-}
-
-@media only screen and (max-width : 800px) {
-    .jbutton {
-        margin: 2px;
-    }
-}
-
-.jbuttons-group {
-    display: flex;
-    cursor: pointer;
-    align-items: center;
-    justify-content: center;
-    -webkit-tap-highlight-color: transparent;
-}
-
-.jbuttons-group .jbutton {
-    border-radius: 0px;
-    border: 1px solid gray;
-    margin: 0px;
-    font-size: 0.9em;
-}
-
-.jbuttons-group.mobile .jbutton {
-    border-color: var(--active-color);
-    color: var(--active-color);
-    padding:4px;
-    padding-left:25px;
-    padding-right:25px;
-    cursor:pointer;
-    min-width:100px;
-    outline:none;
-}
-
-.jbuttons-group .jbutton.selected {
-    color: white;
-    background-color: var(--active-color);
-}
-
-.jbuttons-group .jbutton:first-child {
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-}
-
-.jbuttons-group .jbutton:last-child {
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-}
-
-/*.button-plain {
-    border:0px;
-    background-color:transparent;
-    cursor:pointer;
-    outline: none;
-}
-
-.button-dark {
-    background-color:#737373;
-    color:#fff;
-    border:1px solid transparent;
-    border-radius:2px;
-    cursor:pointer;
-    min-width:120px;
-    outline:none;
-}
-
-.button-dark:disabled {
-    background-color:#d3d3d3;
-    color:#a3a3a3;
-}
-
-.button-light {
-    background-color:#fff;
-    color:#737373;
-    border:1px solid #737373;
-    border-radius:2px;
-    cursor:pointer;
-    min-width:120px;
-    outline:none;
-}
-
-.button-light:disabled {
-    color:#a3a3a3;
-}
-
-.button-red {
-    background-color:#733333;
-    color:#fff;
-    border:1px solid transparent;
-    border-radius:2px;
-    cursor:pointer;
-    min-width:120px;
-    outline:none;
-}*/
-
-
-
-
-/** Switch **/
-
-.jswitch {
-    display: flex;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    align-items: center;
-}
-
-.jswitch i {
-    position: relative;
-    display: inline-block;
-    width: 46px;
-    height: 26px;
-    background-color: #e6e6e6;
-    border-radius: 23px;
-    vertical-align: text-bottom;
-    transition: all 0.3s linear;
-}
-
-.jswitch i::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: 42px;
-  height: 22px;
-  background-color: #fff;
-  border-radius: 11px;
-  transform: translate3d(2px, 2px, 0) scale3d(1, 1, 1);
-  transition: all 0.25s linear;
-}
-
-.jswitch i::after {
-  content: "";
-  position: absolute;
-  left: 0;
-  width: 22px;
-  height: 22px;
-  background-color: #fff;
-  border-radius: 11px;
-  box-shadow: 0 2px 2px rgba(0, 0, 0, 0.24);
-  transform: translate3d(2px, 2px, 0);
-  transition: all 0.2s ease-in-out;
-}
-
-.jswitch:active i::after {
-  width: 28px;
-  transform: translate3d(2px, 2px, 0);
-}
-
-.jswitch:active input:checked + i::after { transform: translate3d(16px, 2px, 0); }
-
-.jswitch input { display: none; }
-
-.jswitch input:checked + i { background-color: #4BD763; }
-
-.jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
-
-.jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
-
-.jrange {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 4px;
-    background: #d3d3d3;
-    outline: none;
-    opacity: 0.7;
-    -webkit-transition: .2s;
-    transition: opacity .2s;
-    padding: 0px;
-}
-
-.jrange:hover {
-  opacity: 1;
-}
-
-.jrange::-webkit-slider-thumb {
-  background: #4CAF50;
-  cursor: pointer;
-}
-
-.jrange::-moz-range-thumb {
-  background: #4CAF50;
-  cursor: pointer;
 }

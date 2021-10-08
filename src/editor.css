@@ -1,6 +1,5 @@
-.jeditor-container {
+ .jeditor-container {
     border:1px solid #ccc;
-    box-sizing: border-box;
 }
 
 .jeditor-dragging {
@@ -18,9 +17,97 @@
 }
 
 .jeditor-container.jeditor-padding .jeditor {
-    min-height:100px;
+    min-height:120px;
     margin-bottom:10px;
     padding:10px;
+}
+
+.jeditor-toolbar {
+    cursor: pointer;
+    display: -webkit-inline-box;
+    display: -webkit-inline-flex;
+    display: -ms-inline-flexbox;
+    display: inline-flex;
+    -webkit-align-items: center;
+    align-items: center;
+    border: none;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    -webkit-box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    margin: 0px;
+    margin-bottom:5px;
+    padding: 5px;
+    white-space: nowrap;
+    border-radius:2px;
+}
+
+.jeditor-toolbar .jeditor-toolbar-group {
+    background-color:#f3f3f3;
+}
+
+.jeditor-toolbar div {
+    padding:4px;
+}
+
+.jeditor-toolbar div.jeditor-toolbar-button {
+    padding-left:20px;
+    padding-right:20px;
+}
+
+.jeditor-toolbar div {
+    -webkit-user-select: none;  /* Chrome all / Safari all */
+    -moz-user-select: none;     /* Firefox all */
+    -ms-user-select: none;      /* IE 10+ */
+    user-select: none;          /* Likely future */   
+}
+
+.jeditor-toolbar div i {
+    display:block;
+    font-size:20px;
+    width:20px;
+    height:20px;
+    line-height:20px;
+    color:#777;
+}
+
+.jeditor-toolbar select {
+    border:0px;
+    background-color:transparent;
+    padding:0px;
+    padding-left:5px;
+    padding-right:5px;
+    display:block;
+    height:32px;
+    outline:none;
+    border-radius:4px;
+    margin:1px;
+}
+
+.jeditor-toolbar .jtoolbar-divisor {
+    width: 2px;
+    height: 28px;
+    padding: 0px;
+    margin: 4px;
+    background-color: #f2f2f2;
+}
+
+.jeditor-toolbar select option {
+    background-color:#fff;
+    padding:20px;
+}
+
+.jeditor-toolbar div:hover, .toolbar select:hover {
+    background-color:#f2f2f2;
+    border-radius:2px;
+}
+
+.jeditor-toolbar div:hover i {
+    color:#222;
+}
+
+.jeditor-toolbar div.selected {
+    background-color:#cecece;
 }
 
 .jeditor-thumbs {
@@ -86,45 +173,49 @@
 
 /** Snippet **/
 
-.jsnippet {
+.snippet {
     margin-top:15px;
     cursor:pointer;
     border: 1px solid #eee;
     position:relative;
 }
 
-.jsnippet:focus {
+.snippet:focus {
     outline: none;
 }
 
-.jsnippet img {
-    width:100%;
+.snippet img {
+    width:25%;
+    max-width:120px;
+    float:left;
+    margin-right:10px;
+    margin-bottom:10px;
 }
 
-.jsnippet .jsnippet-title {
-    padding:15px;
+.snippet .snippet-title {
+    margin-top:15px;
     font-size:1.4em;
 }
 
-.jsnippet .jsnippet-description {
-    padding-left:15px;
-    padding-right:15px;
+.snippet .snippet-description {
+    margin-top:5px;
     font-size:1em;
 }
 
-.jsnippet .jsnippet-host {
-    padding:15px;
+.snippet .snippet-host {
+    margin-top:10px;
+    margin-bottom:10px;
     text-transform:uppercase;
     font-size:0.8em;
     color:#777;
     text-align:right;
 }
 
-.jsnippet .jsnippet-url {
+.snippet .snippet-url {
     display:none;
 }
 
-.jeditor .jsnippet:after {
+.jeditor .snippet:after {
     content:'';
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
     position:absolute;
@@ -138,7 +229,7 @@
     text-shadow: 0px 0px 5px #fff;
 }
 
-.jsnippet * {
+.snippet div, .snippet img {
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
@@ -154,16 +245,6 @@
 .jeditor img {
     border:2px solid transparent;
     box-sizing: border-box;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -o-user-select: none;
-    user-select: none;
-
-    -webkit-user-drag: none;
-    -khtml-user-drag: none;
-    -moz-user-drag: none;
-    -o-user-drag: none;
 }
 
 .jeditor img:focus {
@@ -177,3 +258,4 @@
     width:60px;
     height:60px;
 }
+

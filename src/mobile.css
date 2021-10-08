@@ -1,29 +1,97 @@
+@media only screen and (max-device-width : 800px)
+{
+    .jsuites * {
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+    }
 
-/**
- * (c) jSuites Javascript Web Components
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- *
- * MIT License
- *
- */
+    html.jsuites {
+        height:100%;
+    }
 
-.japp {
-    height: 100%;
+    .jsuites body {
+        margin:0px;
+        padding:0px;
+        width:100%;
+        height:100%;
+        min-height:100%;
+        line-height:1.4;
+        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+        background-color:#fff;
+    }
+
+    .jsuites input, .jsuites select, .jsuites textarea, .jsuites div {
+        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    }
+}
+
+.japp
+{
+    height:100%;
     box-sizing: border-box;
-    overflow: auto;
-    line-height: 1.4;
-    font-size: 16px;
-    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    overflow:scroll;
+    background-color:#fafafa;
 }
 
-.japp a {
-    text-decoration: none;
+.jwarning::before {
+    content:'No internet connection';
+    background-color:red;
+    color:#fff;
+    padding:2px;
+    position:fixed;
+    top:0px;
+    left:0px;
+    z-index:20000;
+    width:100%;
+    font-size:0.55em;
+    text-align:center;
 }
 
-.japp input, .japp textarea, .japp select, .japp div {
-    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+/*
+.japp .activeHighLight
+{
+    color:var(--active-color);
+}
+
+.japp .active a, .japp .active span, .japp .active i
+{
+    color:var(--active-color);
+}
+
+.japp .no-padding
+{
+    padding:0px;
+}
+
+.japp .action
+{
+    color:var(--active-color);
+    cursor:pointer;
+}
+
+
+.japp i.action
+{
+    position:absolute;
+    right:0px;
+    margin-right:15px;
+    cursor:pointer;
+}
+*/
+
+.japp button {
+    border-radius: 4px;
+    width: 100%;
+    border: 1px solid var(--active-color);
+    color: var(--active-color);
+    background-color: transparent;
+    padding: 4px;
+    outline: none;
+}
+
+.japp button:active {
+    border: 1px solid #000;
+    color: #000;
 }
 
 .japp .red {
@@ -36,22 +104,8 @@
     cursor: pointer;
 }
 
-.japp.warning::before {
-    content: 'No internet connection';
-    background-color: red;
-    color: #fff;
-    padding: 2px;
-    position: fixed;
-    top: 0px;
-    left: 0px;
-    z-index: 10;
-    width: 100%;
-    font-size: 0.55em;
-    text-align: center;
-}
-
-japp.jwarning .page {
-    padding-top: 60px;
+.japp .uppercase {
+    text-transform: uppercase;
 }
 
 /** Navbar **/
@@ -60,7 +114,7 @@ japp.jwarning .page {
     position:fixed;
     top: 0;
     width: 100%;
-    z-index: 1;
+    z-index: 500;
     margin: 0;
     -webkit-backface-visibility: hidden;
     -webkit-transform: translate3d(0,0,0);
@@ -73,7 +127,7 @@ japp.jwarning .page {
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
 }
 
-.japp.jwarning .navbar {
+.jwarning .navbar {
     top:16px;
 }
 
@@ -167,7 +221,7 @@ japp.jwarning .page {
 }
 
 .japp .block-footer {
-    text-transform: uppercase;
+	text-transform: uppercase;
     padding:15px;
     color: #6d6d72;
     font-size:0.7em;
@@ -187,16 +241,14 @@ japp.jwarning .page {
 }
 
 .japp .pages {
-    position: relative;
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
     height: 100%;
-    width: 100%;
 }
 
 .japp .page {
-    padding-top: 0px;
+    padding-top: 45px;
     padding-bottom: 45px;
     min-height: 100%;
     min-width: 100%;
@@ -209,8 +261,34 @@ japp.jwarning .page {
     -webkit-perspective: 1000;*/
 }
 
-.japp .page.with-navbar {
-    padding-top: 45px;
+.warning .page {
+    padding-top: 60px;
+}
+
+.japp .progressbar-container {
+    margin: 15px;
+    margin-left: 0px;
+    margin-right: 0px;
+    margin-top: 5px;
+}
+
+.japp .progressbar {
+    width:100%;
+    border:1px solid var(--active-color);
+    border-radius:1px;
+}
+
+.japp .progressbar-title {
+    margin-bottom:2px;
+    text-transform:uppercase;
+    display:flex;
+    justify-content:space-between;
+}
+
+.japp .progressbar div {
+    background-color:var(--active-color);
+    height:4px;
+    width:0%;
 }
 
 .japp .panel {
@@ -222,7 +300,7 @@ japp.jwarning .page {
     max-width:220px;
     height:100vh;
     background: #fff;
-    z-index: 2;
+    z-index: 1003;
     -webkit-box-sizing: border-box;
     box-sizing: border-box;
     box-shadow: 0 -1px 2px rgba(0,0,0,.1);
@@ -235,6 +313,74 @@ japp.jwarning .page {
 }
 
 .japp .panel a {
+    color:var(--active-color);
+}
+
+/** Toolbar **/
+
+.japp .jtoolbar
+{
+    position:fixed;
+    bottom: 0;
+    margin: 0;
+    left: 0;
+    width: 100%;
+    background: #f7f7f8;
+    z-index: 500;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
+    padding:4px;
+}
+
+.japp .jtoolbar > div
+{
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align:middle;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-flow: row wrap;
+    justify-content: space-evenly;
+    align-items:center;
+    width: 100%;
+    cursor:pointer;
+}
+
+.japp .jtoolbar > div > div
+{
+    text-align:center;
+    flex:1;
+    margin:auto;
+}
+
+.japp .jtoolbar a
+{
+    text-decoration:none;
+    display:inline-block;
+}
+
+.japp .jtoolbar i
+{
+    color:#929292;
+}
+
+.japp .jtoolbar span
+{
+    font-size:0.7em;
+    display:block;
+    color:#929292;
+}
+
+.japp .jtoolbar .selected a,
+.japp .jtoolbar .selected i,
+.japp .jtoolbar .selected span
+{
     color:var(--active-color);
 }
 
@@ -329,16 +475,14 @@ japp.jwarning .page {
 }
 
 .japp .options .jdropdown {
-    width: 100%;
     display: block;
 }
 
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
-    padding: 0px;
     border-bottom: 1px solid #e6e6e8;
+    padding: 15px;
     text-transform: uppercase;
-    outline: none;
 }
 
 .japp .options .jdropdown:last-child .jdropdown-header {
@@ -348,10 +492,6 @@ japp.jwarning .page {
 .japp .options .jdropdown-searchbar.jdropdown-focus .jdropdown-header {
     border:0px;
     padding: 5px;
-} 
-
-.japp .options .jcalendar-input {
-    background-position: top 50% right 8px;
 } 
 
 .japp .options .icon {
@@ -549,105 +689,6 @@ japp.jwarning .page {
     display:none;
 }
 
-.japp .options input::-webkit-input-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input::-moz-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input:-ms-input-placeholder
-{
-    text-transform:uppercase;
-}
-
-.japp .options input:-moz-placeholder
-{
-    text-transform:uppercase;
-}
-
-/** Actionsheet **/
-
-.jactionsheet
-{
-    position:fixed;
-    left: 0;
-    bottom: 0;
-    width: 100%;
-    min-height:100%;
-    z-index:10;
-
-    background-color:rgba(0,0,0,0.5);
-    -webkit-transition-duration: .2s;
-    transition-duration: .2s;
-    display: flex;
-    -ms-flex-align: baseline;
-    -webkit-align-items: baseline;
-    -webkit-box-align: baseline;
-
-    align-items: baseline;
-}
-
-.jactionsheet .jactionsheet-content
-{
-    width:100%;
-    align-self: flex-end;
-}
-
-.jactionsheet .jactionsheet-title
-{
-    font-size:1em;
-    font-weight:bold;
-    padding:8px;
-}
-
-.jactionsheet .jactionsheet-message
-{
-    padding:4px;
-}
-
-.jactionsheet .jactionsheet-group
-{
-    box-sizing: border-box;
-    margin:10px;
-    background-color:#fff;
-    border-radius:5px;
-}
-
-.jactionsheet .jactionsheet-group > div
-{
-    font-size:1.4em;
-    font-weight:bold;
-    padding:4px;
-    border-top:1px solid #ccc;
-    text-align:center;
-    width:100%;
-    box-sizing: border-box;
-}
-.jactionsheet .jactionsheet-group > div:first-child
-{
-    border-top:0px;
-}
-
-.jactionsheet .jactionsheet-group input
-{
-    border:0px;
-    margin:0px;
-    background-color:transparent;
-    color:var(--active-color);
-    width:100%;
-    outline:none;
-    font-size:1em;
-}
-
-.jactionsheet .jactionsheet-group input.jactionsheet-cancel
-{
-    color:red;
-}
-
 /** Badge **/
 
 .japp .jbadge
@@ -676,42 +717,56 @@ japp.jwarning .page {
     display:none;
 }
 
-/** Progressbar **/
+/** Picker **/
 
-
-.japp .progressbar-container {
-    margin: 15px;
-    margin-left: 0px;
-    margin-right: 0px;
-    margin-top: 5px;
-}
-
-.japp .progressbar {
+.japp .picker 
+{
+    background-color:#fff;
+    border-top:1px solid #e6e6e8;
+    border-bottom:1px solid #e6e6e8;
+    padding-left:15px;
+    margin-top:10px;
+    position:absolute;
+    bottom:0px;
     width:100%;
-    border:1px solid var(--active-color);
-    border-radius:1px;
+    z-index:700;
 }
 
-.japp .progressbar-title {
-    margin-bottom:2px;
-    text-transform:uppercase;
-    display:flex;
-    justify-content:space-between;
+.japp .picker .picker-options
+{
+    -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1), rgba(0,0,0,.2)), linear-gradient(to top, rgba(0,0,0,1), rgba(0,0,0,.2));
+    -webkit-mask-size: 100% 50%;
+    -webkit-mask-repeat: no-repeat;
+    -webkit-mask-position: center bottom, top center;
+    overflow-y:scroll;
+    padding-top:100px;
+    padding-bottom:100px;
 }
 
-.japp .progressbar div {
-    background-color:var(--active-color);
-    height:4px;
-    width:0%;
+.japp .picker label
+{
+    display: block;
+    padding-top: 10px;
+    padding-bottom: 10px;
 }
 
+.japp .picker .picker-selected
+{
+    border-top:1px solid #e6e6e8;
+    border-bottom:1px solid #e6e6e8;
+}
+
+.japp .picker input
+{
+    display:none;
+}
 
 /** Topsearch **/
 
 .japp .top-search {
-    margin: 0px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd; 
+    margin:0px;
+    padding:10px;
+    border-bottom:1px solid #ddd; 
 }
 
 .japp .top-search input {
@@ -722,9 +777,15 @@ japp.jwarning .page {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
     background-repeat: no-repeat;
     background-position: 5px center;
-    width: 100%;
-    padding: 8px;
     padding-left: 32px;
+    width: 100%;
+}
+
+.japp .searchbar-container i {
+    position:absolute;
+    margin-top:5px;
+    margin-left:8px;
+    color:#bbb;
 }
 
 /** Range **/
@@ -829,184 +890,124 @@ japp.jwarning .page {
   background: #ccc;
 }
 
-/** Placeholders **/
 
-.japp *::placeholder
-{
-    color: #cccccc;
-    opacity: 1;
-}
+/** Actionsheet **/
 
-.japp *:-ms-input-placeholder
-{
-    color: #cccccc;
-}
-
-.japp *::-ms-input-placeholder
-{
-    color: #cccccc;
-}
-
-.japp *::-webkit-input-placeholder
-{
-    color: #cccccc;
-}
-
-@supports (-webkit-overflow-scrolling: touch) {
-    .app .options input:checked:before {
-        top:-12px;
-    }
-}
-
-@media only screen and (max-device-width : 800px)
-{
-    .japp * {
-        -webkit-tap-highlight-color: transparent;
-        -webkit-touch-callout: none;
-    }
-
-    body {
-        margin: 0px;
-        padding: 0px;
-        width: 100%;
-        height: 100%;
-        min-height: 100%;
-        line-height: 1.4;
-        font-family: -apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
-        background-color: #fff;
-    }
-
-    .japp input, .japp select, .japp textarea, .japp div {
-        font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
-    }
-
-    .japp button {
-        border-radius: 4px;
-        width: 100%;
-        border: 1px solid var(--active-color);
-        color: var(--active-color);
-        background-color: transparent;
-        padding: 4px;
-        outline: none;
-    }
-    
-    .japp button:active {
-        border: 1px solid #000;
-        color: #000;
-    }
-}
-
-.japp .jtemplate-empty {
-    text-align:center;
-    padding-top:10px;
-    padding-bottom:10px;
-    margin-right:10px;
-}
-
-.jdialog
+.jactionsheet
 {
     position:fixed;
     left: 0;
-    top: 0;
+    bottom: 0;
     width: 100%;
     min-height:100%;
-    z-index:10;
+    z-index:10000;
 
     background-color:rgba(0,0,0,0.5);
-    -webkit-transition-duration: .1s;
-    transition-duration: .1s;
+    -webkit-transition-duration: .2s;
+    transition-duration: .2s;
     display: flex;
-    -ms-flex-align: center;
-    -webkit-align-items: center;
-    -webkit-box-align: center;
+    -ms-flex-align: baseline;
+    -webkit-align-items: baseline;
+    -webkit-box-align: baseline;
 
-    align-items: center;
+    align-items: baseline;
 }
 
-.jdialog .jdialog-container
+.jactionsheet .jactionsheet-content
 {
     width:100%;
-    max-width:280px;
-    box-sizing: border-box;
-    margin:0 auto;
-    vertical-align:middle;
-    background-color:#fff;
-    border-radius:10px;
-
-    opacity: 0;
-    transition: opacity .2s;
-    -webkit-transition: opacity .2s;
+    align-self: flex-end;
 }
 
-.jdialog .jdialog-header
-{
-    padding:10px;
-    text-align:center;
-}
-
-.jdialog .jdialog-header .jdialog-title
+.jactionsheet .jactionsheet-title
 {
     font-size:1em;
     font-weight:bold;
     padding:8px;
 }
 
-.jdialog .jdialog-header .jdialog-message
-{
-    padding: 4px;
-}
-
-.jdialog .jdialog-footer
-{
-    border-top: 1px solid #ccc;
-    display: flex;
-    flex-wrap: wrap;
-    align-content: stretch;
-    align-items: center;
-    text-align: center;
-}
-
-.jdialog .jdialog-footer > div
+.jactionsheet .jactionsheet-message
 {
     padding:4px;
-    border-left:1px solid #ccc;
+}
+
+.jactionsheet .jactionsheet-group
+{
+    box-sizing: border-box;
+    margin:10px;
+    background-color:#fff;
+    border-radius:5px;
+}
+
+.jactionsheet .jactionsheet-group > div
+{
+    font-size:1.4em;
+    font-weight:bold;
+    padding:4px;
+    border-top:1px solid #ccc;
     text-align:center;
-    flex: 1;
+    width:100%;
 }
-.jdialog .jdialog-footer > div:first-child
+.jactionsheet .jactionsheet-group > div:first-child
 {
-    border-left:0px;
+    border-top:0px;
 }
 
-.jdialog .jdialog-footer input
+.jactionsheet .jactionsheet-group input
 {
-    border: 0px;
-    margin: 0px;
-    background-color: transparent;
-    color: var(--active-color);
-    width: 100%;
-    outline: none;
+    border:0px;
+    margin:0px;
+    background-color:transparent;
+    color:var(--active-color);
+    width:100%;
+    outline:none;
+    font-size:1em;
 }
 
-.jrefresh {
-    background-image: url("data:image/svg+xml,%3Csvg class='lds-typing' width='100%25' height='100%25' xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' viewBox='0 0 100 100' preserveAspectRatio='xMidYMid'%3E%3Ccircle cx='27.5' cy='38.1294' r='5' fill='%23df1317'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.5s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='42.5' cy='38.9606' r='5' fill='%23e4934b'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.375s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='57.5' cy='48.6466' r='5' fill='%23e2bb8b'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.25s'%3E%3C/animate%3E%3C/circle%3E%3Ccircle cx='72.5' cy='62.5' r='5' fill='%23e1e7e7'%3E%3Canimate attributeName='cy' calcMode='spline' keySplines='0 0.5 0.5 1;0.5 0 1 0.5;0.5 0.5 0.5 0.5' repeatCount='indefinite' values='62.5;37.5;62.5;62.5' keyTimes='0;0.25;0.5;1' dur='1s' begin='-0.125s'%3E%3C/animate%3E%3C/circle%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-size: 70px;
-    background-position: center;
-    backgrounnd-color: transparent;
-    width: 100%;
-    height: 70px;
+.jactionsheet .jactionsheet-group input.jactionsheet-cancel
+{
+    color:red;
 }
 
-.jrefresh.holding {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
-    background-size: 24px;
+/** Placeholders **/
+
+.japp .options input::-webkit-input-placeholder
+{
+    text-transform:uppercase;
 }
 
-.jrefresh.ready {
-    transform: rotate(-180deg);
-    transition: transform 150ms ease;
+.japp .options input::-moz-placeholder
+{
+    text-transform:uppercase;
 }
 
+.japp .options input:-ms-input-placeholder
+{
+    text-transform:uppercase;
+}
 
+.japp .options input:-moz-placeholder
+{
+    text-transform:uppercase;
+}
 
+::placeholder
+{
+    color: #cccccc;
+    opacity: 1;
+}
+
+:-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+::-ms-input-placeholder
+{
+    color: #cccccc;
+}
+
+::-webkit-input-placeholder
+{
+    color: #cccccc;
+}

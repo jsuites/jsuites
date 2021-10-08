@@ -1,69 +1,49 @@
 jSuites.tags = (function(el, options) {
-    // Redefine configuration
-    if (el.classList.contains('jtags')) {
-        return el.tags.setOptions(options);
-    }
-
     var obj = {};
     obj.options = {};
+
+    /**
+     * @typedef {Object} defaults
+     * @property {(string|Array)} value - Initial value of the compontent
+     * @property {number} limit - Max number of tags inside the element
+     * @property {string} search - The URL for suggestions
+     * @property {string} placeholder - The default instruction text on the element
+     * @property {validation} validation - Method to validate the tags
+     * @property {requestCallback} onbeforechange - Method to be execute before any changes on the element
+     * @property {requestCallback} onchange - Method to be execute after any changes on the element
+     * @property {requestCallback} onfocus - Method to be execute when on focus
+     * @property {requestCallback} onblur - Method to be execute when on blur
+     * @property {requestCallback} onload - Method to be execute when the element is loaded
+     */
+    var defaults = {
+        value: null,
+        limit: null,
+        limitMessage: 'The limit of entries is: ',
+        search: null,
+        placeholder: null,
+        validation: null,
+        onbeforechange: null,
+        onchange: null,
+        onfocus: null,
+        onblur: null,
+        onload: null,
+        colors: null,
+    };
+
+    // Loop through though the default configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
 
     // Search helpers
     var searchContainer = null;
     var searchTerms = null;
     var searchIndex = 0;
     var searchTimer = 0;
-
-    obj.setOptions = function(options) {
-        /**
-         * @typedef {Object} defaults
-         * @property {(string|Array)} value - Initial value of the compontent
-         * @property {number} limit - Max number of tags inside the element
-         * @property {string} search - The URL for suggestions
-         * @property {string} placeholder - The default instruction text on the element
-         * @property {validation} validation - Method to validate the tags
-         * @property {requestCallback} onbeforechange - Method to be execute before any changes on the element
-         * @property {requestCallback} onchange - Method to be execute after any changes on the element
-         * @property {requestCallback} onfocus - Method to be execute when on focus
-         * @property {requestCallback} onblur - Method to be execute when on blur
-         * @property {requestCallback} onload - Method to be execute when the element is loaded
-         */
-        var defaults = {
-            value: null,
-            limit: null,
-            limitMessage: 'The limit of entries is: ',
-            search: null,
-            placeholder: null,
-            validation: null,
-            onbeforechange: null,
-            onchange: null,
-            onfocus: null,
-            onblur: null,
-            onload: null,
-            colors: null,
-        }
-
-        // Loop through though the default configuration
-        for (var property in defaults) {
-            if (options && options.hasOwnProperty(property)) {
-                obj.options[property] = options[property];
-            } else {
-                obj.options[property] = defaults[property];
-            }
-        }
-
-        // Placeholder
-        if (obj.options.placeholder) {
-            el.setAttribute('data-placeholder', obj.options.placeholder);
-        } else {
-            el.removeAttribute('data-placeholder');
-        }
-        el.placeholder = obj.options.placeholder;
-
-        // Make sure element is empty
-        if (obj.options.value && obj.options.value != el.value) {
-            obj.setValue(obj.options.value);
-        }
-    }
 
     /**
      * Add a new tag to the element
@@ -92,7 +72,6 @@ jSuites.tags = (function(el, options) {
             if (! value || typeof(value) == 'string') {
                 var div = document.createElement('div');
                 div.innerHTML = value ? value : '<br>';
-                div.setAttribute('data-value', value);
                 if (node && node.parentNode.classList.contains('jtags')) {
                     el.insertBefore(div, node.nextSibling);
                 } else {
@@ -108,18 +87,7 @@ jSuites.tags = (function(el, options) {
                 for (var i = 0; i <= value.length; i++) {
                     if (! obj.options.limit || el.children.length < obj.options.limit) {
                         var div = document.createElement('div');
-                        if (! value[i] || typeof(value[i]) == 'string') {
-                            var t = value[i] || '';
-                            var v = t;
-                            if (! t) {
-                                t = '<br>';
-                            }
-                        } else {
-                            var t = value[i].text;
-                            var v = value[i].value;
-                        }
-                        div.innerHTML = t;
-                        div.setAttribute('data-value', v);
+                        div.innerHTML = value[i] ? value[i] : '<br>';
                         el.appendChild(div);
                     }
                 }
@@ -128,19 +96,19 @@ jSuites.tags = (function(el, options) {
             // Place caret
             if (focus) {
                 setTimeout(function() {
-                    jSuites.focus(div);
+                    caret(div);
                 }, 0);
             }
 
             // Filter
             filter();
 
-            // Change
-            change();
+            if (typeof(obj.options.onchange) == 'function') {
+                obj.options.onchange(el, obj, value ? value : '');
+            }
         }
     }
 
-    // Remove a item node
     obj.remove = function(node) {
         // Remove node
         node.parentNode.removeChild(node);
@@ -156,16 +124,13 @@ jSuites.tags = (function(el, options) {
     obj.getData = function() {
         var data = [];
         for (var i = 0; i < el.children.length; i++) {
-            // Get value
-            var text = el.children[i].innerText.replace("\n", "");
-            // Get id
-            var value = el.children[i].getAttribute('data-value');
-            if (! value) {
-                value = text;
-            }
-            // Item
-            if (text || value) {
-                data.push({ text: text, value: value });
+            var value = obj.getValue(i);
+            if (value) {
+                var id = el.children[i].getAttribute('data-id');
+                if (! id) {
+                    id = value;
+                }
+                data.push({ id: id, value: value });
             }
         }
         return data;
@@ -181,10 +146,7 @@ jSuites.tags = (function(el, options) {
 
         if (index != null) {
             // Get one individual value
-            value = el.children[index].getAttribute('data-value');
-            if (! value) {
-                value = el.children[index].innerText.replace("\n", "");
-            }
+            value = el.children[index].innerText.replace("\n", "");
         } else {
             // Get all
             var data = [];
@@ -202,37 +164,22 @@ jSuites.tags = (function(el, options) {
 
     /**
      * Set the value of the element based on a string separeted by (,|;|\r\n)
-     * @param {mixed} value - A string or array object with values
+     * @param {string} value - A string with the tags
      */
-    obj.setValue = function(mixed) {
-        if (! mixed) {
-            obj.reset();
-        } else {
-            if (Array.isArray(mixed)) {
-                obj.add(mixed);
-            } else {
-                // Remove whitespaces
-                var text = (''+mixed).trim();
-                // Tags
-                var data = extractTags(text);
-                // Reset
-                el.innerHTML = '';
-                // Add tags to the element
-                obj.add(data);
-            }
+    obj.setValue = function(text) {
+        // Remove whitespaces
+        text = text.trim();
+
+        if (text) {
+            // Tags
+            var data = extractTags(text);
+            // Add tags to the element
+            obj.add(data);
         }
     }
 
-    /**
-     * Reset the data from the element
-     */
     obj.reset = function() {
-        // Empty class
-        el.classList.add('jtags-empty');
-        // Empty element
         el.innerHTML = '<div><br></div>';
-        // Execute changes
-        change();
     }
 
     /**
@@ -258,10 +205,10 @@ jSuites.tags = (function(el, options) {
         searchTerms = '';
         var node = getSelectionStart();
         // Append text to the caret
-        node.innerText = item.getAttribute('data-text');
+        node.innerText = item.children[1].innerText;
         // Set node id
-        if (item.getAttribute('data-value')) {
-            node.setAttribute('data-value', item.getAttribute('data-value'));
+        if (item.children[1].getAttribute('data-id')) {
+            node.setAttribute('data-id', item.children[1].getAttribute('data-id'));
         }
         // Close container
         if (searchContainer) {
@@ -271,7 +218,7 @@ jSuites.tags = (function(el, options) {
         // Remove any error
         node.classList.remove('jtags_error');
         // Add new item
-        obj.add('', true);
+        obj.add();
     }
 
     /**
@@ -289,148 +236,63 @@ jSuites.tags = (function(el, options) {
             searchContainer = document.createElement('div');
             searchContainer.classList.add('jtags_search');
             div.appendChild(searchContainer);
-
-            var click = function(e) {
-                if (e.target.classList.contains('jtags_search_item')) {
-                    var element = e.target;
-                } else {
-                    var element = e.target.parentNode;
-                }
-
-                obj.selectIndex(element);
-            }
-
-            // Bind events
-            if ('touchstart' in document.documentElement === true) {
-                searchContainer.addEventListener('touchstart', click);
-            } else {
-                searchContainer.addEventListener('mousedown', click);
-            }
         }
 
         // Search for
-        var terms = node.innerText;
+        var terms = node.anchorNode.nodeValue;
 
         // Search
-        if (terms != searchTerms) {
+        if (node.anchorNode.nodeValue && terms != searchTerms) {
             // Terms
-            searchTerms = terms;
+            searchTerms = node.anchorNode.nodeValue;
             // Reset index
             searchIndex = 0;
+            // Get remove results
+            jSuites.ajax({
+                url: obj.options.search + searchTerms,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    // Reset container
+                    searchContainer.innerHTML = '';
 
-            // If the search option is an array, perform a search on that array
-            if (Array.isArray(obj.options.search)) {
-                var data = [];
+                    // Print results
+                    if (! data.length) {
+                        // Show container
+                        searchContainer.style.display = '';
+                    } else {
+                        // Show container
+                        searchContainer.style.display = 'block';
 
-                var i = 0;
-                while (i < obj.options.search.length && data.length <= 10) {
-                    if (obj.options.search[i].includes(searchTerms)) {
-                        data.push(obj.options.search[i]);
-                    }
-
-                    i++;
-                }
-
-                // Reset container
-                searchContainer.innerHTML = '';
-
-                // Print results
-                if (! data.length) {
-                    // Hide container
-                    searchContainer.style.display = '';
-                } else {
-                    // Show container
-                    searchContainer.style.display = 'block';
-
-                    // Show items
-                    var len = data.length < 11 ? data.length : 10;
-                    for (var i = 0; i < len; i++) {
-                        var text;
-                        var value
-
-                        if (typeof data[i] === "string") {
-                            text = data[i];
-                            value = data[i];
-                        } else {
-                            text = data[1].text;
-                            value = data[1].value;
-                        }
-
-                        var div = document.createElement('div');
-                        div.setAttribute('data-value', value);
-                        div.setAttribute('data-text', text);
-                        div.className = 'jtags_search_item';
-
-                        if (i == 0) {
-                            div.classList.add('selected');
-                        }
-
-                        var item = document.createElement('div');
-                        item.innerHTML = text;
-                        div.appendChild(item);
-                        // Append item to the container
-                        searchContainer.appendChild(div);
-                    }
-                }
-
-            // If the search option is a string, make a request using that string as a url
-            } else {
-                // Get remove results
-                jSuites.ajax({
-                    url: obj.options.search + searchTerms,
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        // Reset container
-                        searchContainer.innerHTML = '';
-
-                        // Print results
-                        if (! data.length) {
-                            // Show container
-                            searchContainer.style.display = '';
-                        } else {
-                            // Show container
-                            searchContainer.style.display = 'block';
-
-                            // Show items
-                            var len = data.length < 11 ? data.length : 10;
-                            for (var i = 0; i < len; i++) {
-                                // Legacy
-                                var text = data[i].text;
-                                if (! text && data[i].name) {
-                                    text = data[i].name;
-                                }
-                                var value = data[i].value;
-                                if (! value && data[i].id) {
-                                    value = data[i].id;
-                                }
-
-                                var div = document.createElement('div');
-                                div.setAttribute('data-value', value);
-                                div.setAttribute('data-text', text);
-                                div.className = 'jtags_search_item';
-
-                                if (i == 0) {
-                                    div.classList.add('selected');
-                                }
-                                var img = document.createElement('img');
-                                if (data[i].image) {
-                                    img.src = data[i].image;
-                                } else {
-                                    img.style.display = 'none';
-                                }
-                                div.appendChild(img);
-
-                                var item = document.createElement('div');
-                                item.innerHTML = text;
-                                div.appendChild(item);
-                                // Append item to the container
-                                searchContainer.appendChild(div);
+                        // Show items
+                        var len = data.length < 11 ? data.length : 10;
+                        for (var i = 0; i < len; i++) {
+                            var div = document.createElement('div');
+                            if (i == 0) {
+                                div.classList.add('selected');
                             }
+                            var img = document.createElement('img');
+                            if (data[i].image) {
+                                img.src = data[i].image;
+                            } else {
+                                img.style.display = 'none';
+                            }
+                            div.appendChild(img);
+
+                            var item = document.createElement('div');
+                            item.setAttribute('data-id', data[i].id);
+                            item.innerHTML = data[i].name;
+                            div.onclick = function() {
+                                // Add item
+                                obj.selectIndex(this);
+                            }
+                            div.appendChild(item);
+                            // Append item to the container
+                            searchContainer.appendChild(div);
                         }
                     }
-                });
-            }
+                }
+            });
         }
     }
 
@@ -447,25 +309,11 @@ jSuites.tags = (function(el, options) {
         el.parentNode.removeChild(el);
     }
 
-    var change = function() {
-        // Value
-        obj.options.value = obj.getValue();
-
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, obj.options.value);
+    var getRandomColor = function(index) {
+        var rand = function(min, max) {
+            return min + Math.random() * (max - min);
         }
-
-        // Lemonade JS
-        if (el.value != obj.options.value) {
-            el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
-                    target: el,
-                    value: el.value
-                });
-            }
-        }
+        return 'hsl(' + rand(1, 360) + ',' + rand(40, 70) + '%,' + rand(65, 72) + '%)';
     }
 
     /**
@@ -482,7 +330,7 @@ jSuites.tags = (function(el, options) {
                 // Validation in place
                 if (typeof(obj.options.validation) == 'function') {
                     if (obj.getValue(i)) {
-                        if (! obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-value'))) {
+                        if (! obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-id'))) {
                             el.children[i].classList.add('jtags_error');
                         } else {
                             el.children[i].classList.remove('jtags_error');
@@ -493,6 +341,18 @@ jSuites.tags = (function(el, options) {
                 }
             }
         }
+    }
+
+    /**
+     * Place caret in the element node
+     */
+    var caret = function(e) {
+        var range = document.createRange();
+        var sel = window.getSelection();
+        range.setStart(e, e.innerText.length);
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
     }
 
     /**
@@ -524,9 +384,9 @@ jSuites.tags = (function(el, options) {
 
         if (text) {
             for (var i = 0; i < text.length; i++) {
-                if (text[i] == ',' || text[i] == ';' || text[i] == '\n') {
+                if (text[i] == ',' || text[i] == ';' || text[i] == '\r\n') {
                     if (word) {
-                        data.push(word.trim());
+                        data.push(word);
                         word = '';
                     }
                 } else {
@@ -553,14 +413,14 @@ jSuites.tags = (function(el, options) {
         // Anchoroffset
         anchorOffset = window.getSelection().anchorOffset;
 
-        // If starts blank create the first element
+        // Verify content
         if (! el.children.length) {
             var div = document.createElement('div');
-            div.innerHTML = '<div><br/></div>';
+            div.innerHTML = '<br>';
             el.appendChild(div);
         }
         // Comma
-        if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
+        if (e.which == 9 || e.which == 186 || e.which == 188) {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
                 if (! obj.options.limit || el.children.length < obj.options.limit) {
@@ -568,7 +428,7 @@ jSuites.tags = (function(el, options) {
                 }
             }
             e.preventDefault();
-        } else if (e.key == 'Enter') {
+        } else if (e.which == 13) {
             // Enter
             if (searchContainer && searchContainer.style.display != '') {
                 obj.selectIndex(searchContainer.children[searchIndex]);
@@ -581,7 +441,7 @@ jSuites.tags = (function(el, options) {
                 }
             }
             e.preventDefault();
-        } else if (e.key === 'ArrowUp') {
+        } else if (e.which == 38) {
             // Up
             if (searchContainer && searchContainer.style.display != '') {
                 searchContainer.children[searchIndex].classList.remove('selected');
@@ -591,7 +451,7 @@ jSuites.tags = (function(el, options) {
                 searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
-        } else if (e.key === 'ArrowDown') {
+        } else if (e.which == 40) {
             // Down
             if (searchContainer && searchContainer.style.display != '') {
                 searchContainer.children[searchIndex].classList.remove('selected');
@@ -601,18 +461,8 @@ jSuites.tags = (function(el, options) {
                 searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
-        } else if (e.key == 'Backspace') {
-            // Back space - do not let last item to be removed
-            if (el.children.length == 1 && window.getSelection().anchorOffset < 1) {
-                e.preventDefault();
-            }
         }
     }
-
-    var getFocusedNode = function () {
-        var node = document.getSelection().anchorNode;
-        return (node.nodeType == 3 ? node.parentNode : node);
-     }
 
     /**
      * Processing event keyup on the element
@@ -620,26 +470,11 @@ jSuites.tags = (function(el, options) {
      */
     var tagsKeyUp = function(e) {
         if (e.which == 39) {
-            // Right arrow
             var n = window.getSelection().anchorOffset;
             if (n > 1 && n == anchorOffset) {
-                obj.add('', true);
+                obj.add();
             }
         } else if (e.which == 13 || e.which == 38 || e.which == 40) {
-            e.preventDefault();
-        } else if (e.which == 8) {
-            // Back space - add a new element just in case is blank
-            if (! el.innerHTML) {
-                obj.add('', true);
-            }
-            e.preventDefault();
-        } else if (e.which == 46) {
-            // Verify content and don't let blank element
-            if (! el.children.length) {
-                var div = document.createElement('div');
-                div.innerHTML = '<div><br/></div>';
-                el.appendChild(div);
-            }
             e.preventDefault();
         } else {
             if (searchTimer) {
@@ -648,12 +483,10 @@ jSuites.tags = (function(el, options) {
 
             searchTimer = setTimeout(function() {
                 // Current node
-                var node = getFocusedNode();
-                if (node) {
-                    // Search
-                    if (obj.options.search) {
-                        obj.search(node);
-                    }
+                var node = window.getSelection();
+                // Search
+                if (obj.options.search) {
+                    obj.search(node);
                 }
                 searchTimer = null;
             }, 300);
@@ -686,7 +519,7 @@ jSuites.tags = (function(el, options) {
     var tagsMouseUp = function(e) {
         if (e.target.parentNode && e.target.parentNode.classList.contains('jtags')) {
             if (e.target.classList.contains('jtags_label') || e.target.classList.contains('jtags_error')) {
-                var rect = e.target.getBoundingClientRect();
+                const rect = e.target.getBoundingClientRect();
                 if (rect.width - (e.clientX - rect.left) < 16) {
                     obj.remove(e.target);
                 }
@@ -714,8 +547,6 @@ jSuites.tags = (function(el, options) {
         if (typeof(obj.options.onfocus) == 'function') {
             obj.options.onfocus(el, obj, obj.getValue());
         }
-
-        el.classList.add('jtags-focus');
     }
 
     /**
@@ -739,55 +570,37 @@ jSuites.tags = (function(el, options) {
         if (typeof(obj.options.onblur) == 'function') {
             obj.options.onblur(el, obj, obj.getValue());
         }
-
-        change();
-
-        // Focus CSS
-        el.classList.remove('jtags-focus');
-
-        // Empty CSS
-        if (el.children[0].innerText.trim()) {
-            el.classList.remove('jtags-empty');
-        } else {
-            el.classList.add('jtags-empty');
-        }
     }
 
-    var init = function() {
-        // Initial options
-        obj.setOptions(options);
-        // Force initial value
+    // Bind events
+    el.addEventListener('mouseup', tagsMouseUp);
+    el.addEventListener('keydown', tagsKeyDown);
+    el.addEventListener('keyup', tagsKeyUp);
+    el.addEventListener('paste', tagsPaste);
+    el.addEventListener('focus', tagsFocus);
+    el.addEventListener('blur', tagsBlur);
+
+    // Prepare container
+    el.classList.add('jtags');
+    el.setAttribute('contenteditable', true);
+    el.setAttribute('spellcheck', false);
+
+    if (obj.options.placeholder) {
+        el.placeholder = obj.options.placeholder;
+    }
+
+    // Make sure element is empty
+    if (obj.options.value) {
         obj.setValue(obj.options.value);
-
-        // Bind events
-        if ('touchend' in document.documentElement === true) {
-            el.addEventListener('touchend', tagsMouseUp);
-        } else {
-            el.addEventListener('mouseup', tagsMouseUp);
-        }
-
-        el.addEventListener('keydown', tagsKeyDown);
-        el.addEventListener('keyup', tagsKeyUp);
-        el.addEventListener('paste', tagsPaste);
-        el.addEventListener('focus', tagsFocus);
-        el.addEventListener('blur', tagsBlur);
-
-        // Prepare container
-        el.classList.add('jtags');
-        el.setAttribute('contenteditable', true);
-        el.setAttribute('spellcheck', false);
-
-        if (typeof(obj.options.onload) == 'function') {
-            obj.options.onload(el, obj);
-        }
-
-        // Change methods
-        el.change = obj.setValue;
-
-        el.tags = obj;
+    } else {
+        el.innerHTML = '<div><br></div>';
     }
 
-    init();
+    if (typeof(obj.options.onload) == 'function') {
+        obj.options.onload(el, obj);
+    }
+
+    el.tags = obj;
 
     return obj;
 });

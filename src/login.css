@@ -71,10 +71,6 @@
     padding:20px;
 }
 
-.jlogin .jlogin-logo:empty {
-    display: none;
-}
-
 .jlogin .captcha
 {
     width:100%;
@@ -128,10 +124,10 @@
 }
 
 @keyframes loading {
-    from { left: 0px; width: 25%; }
-    25%  { width: 25%; }
-    50%  { width: 50%; }
-    75%  { left:  75%; }
-    100% { left:  100%; }
+    from { left: -200px; width: 30%; }
+    50% { width: 30%; }
+    70% { width: 70%; }
+    80% { left: 50%; }
+    95% { left: 120%; }
     to { left: 100%; }
 }

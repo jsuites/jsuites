@@ -10,9 +10,9 @@
     background-color:#fff;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
-    padding-top:50px !important;
+    padding-top:50px;
     z-index:9002;
-    border-radius: 8px;
+    border-radius:5px;
 }
 
 .jmodal:before {
@@ -23,10 +23,11 @@
     content:attr(title);
     padding:15px;
     box-sizing: border-box;
+    background: #e3e3e3;
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#e3e3e3');
+    background: -webkit-gradient(linear, left top, left bottom, from(#ededed), to(#e3e3e3));
+    background: -moz-linear-gradient(top,  #ededed,  #e3e3e3);
     font-size:1.2em;
-    box-shadow: 1px 1px 3px rgba(0,0,0,.2);
-    background-color: #fff;
-    border-radius: 8px 8px 0px 0px;
 }
 
 .jmodal_content {
@@ -34,10 +35,9 @@
     overflow-y:auto;
     max-height:100%;
     box-sizing: border-box;
-    height: -webkit-fill-available;
 }
 .jmodal.no-title {
-    padding-top: initial !important;
+    padding-top:0px;
 }
 
 .jmodal.no-title:before {

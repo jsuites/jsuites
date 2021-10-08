@@ -11,7 +11,6 @@ jSuites.modal = (function(el, options) {
         width: null,
         height: null,
         title: null,
-        padding: null,
     };
 
     // Loop through our object
@@ -29,25 +28,22 @@ jSuites.modal = (function(el, options) {
     }
 
     var temp = document.createElement('div');
-    while (el.children[0]) {
-        temp.appendChild(el.children[0]);
+    for (var i = 0; i < el.children.length; i++) {
+        temp.appendChild(el.children[i]);
     }
 
     obj.content = document.createElement('div');
     obj.content.className = 'jmodal_content';
     obj.content.innerHTML = el.innerHTML;
 
-    while (temp.children[0]) {
-        obj.content.appendChild(temp.children[0]);
+    for (var i = 0; i < temp.children.length; i++) {
+        obj.content.appendChild(temp.children[i]);
     }
 
     obj.container = document.createElement('div');
     obj.container.className = 'jmodal';
     obj.container.appendChild(obj.content);
 
-    if (obj.options.padding) {
-        obj.content.style.padding = obj.options.padding;
-    }
     if (obj.options.width) {
         obj.container.style.width = obj.options.width;
     }
@@ -66,20 +62,17 @@ jSuites.modal = (function(el, options) {
     // Backdrop
     var backdrop = document.createElement('div');
     backdrop.className = 'jmodal_backdrop';
-    backdrop.onclick = function() {
-        obj.close();
-    }
     el.appendChild(backdrop);
 
     obj.open = function() {
         el.style.display = 'block';
         // Fullscreen
-        var rect = obj.container.getBoundingClientRect();
+        const rect = obj.container.getBoundingClientRect();
         if (jSuites.getWindowWidth() < rect.width) {
             obj.container.style.top = '';
             obj.container.style.left = '';
             obj.container.classList.add('jmodal_fullscreen');
-            jSuites.animation.slideBottom(obj.container, 1);
+            jSuites.slideBottom(obj.container, 1);
         } else {
             backdrop.style.display = 'block';
         }
@@ -134,7 +127,6 @@ jSuites.modal = (function(el, options) {
         jSuites.ajax({
             url: obj.options.url,
             method: 'GET',
-            dataType: 'text/html',
             success: function(data) {
                 obj.content.innerHTML = data;
 

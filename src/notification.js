@@ -7,7 +7,6 @@ jSuites.notification = (function(options) {
         icon: null,
         name: 'Notification',
         date: null,
-        error: null,
         title: null,
         message: null,
         timeout: 4000,
@@ -26,10 +25,6 @@ jSuites.notification = (function(options) {
 
     var notification = document.createElement('div');
     notification.className = 'jnotification';
-
-    if (obj.options.error) {
-        notification.classList.add('jnotification-error');
-    }
 
     var notificationContainer = document.createElement('div');
     notificationContainer.className = 'jnotification-container';
@@ -86,15 +81,15 @@ jSuites.notification = (function(options) {
     obj.show = function() {
         document.body.appendChild(notification);
         if (jSuites.getWindowWidth() > 800) { 
-            jSuites.animation.fadeIn(notification);
+            jSuites.fadeIn(notification);
         } else {
-            jSuites.animation.slideTop(notification, 1);
+            jSuites.slideTop(notification, 1);
         }
     }
 
     obj.hide = function() {
         if (jSuites.getWindowWidth() > 800) { 
-            jSuites.animation.fadeOut(notification, function() {
+            jSuites.fadeOut(notification, function() {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                     if (notificationTimeout) {
@@ -103,7 +98,7 @@ jSuites.notification = (function(options) {
                 }
             });
         } else {
-            jSuites.animation.slideTop(notification, 0, function() {
+            jSuites.slideTop(notification, 0, function() {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                     if (notificationTimeout) {
@@ -132,8 +127,3 @@ jSuites.notification = (function(options) {
 
     return obj;
 });
-
-jSuites.notification.isVisible = function() {
-    var j = document.querySelector('.jnotification');
-    return j && j.parentNode ? true : false;
-}

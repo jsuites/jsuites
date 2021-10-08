@@ -1,509 +1,478 @@
-jSuites.app = (function(el, options) {
-    var obj = {};
-    obj.options = {};
+var jSuites = function(options) {
+    var obj = {}
 
-    // Default configuration
-    var defaults = {
-        path: 'views',
-        onbeforechangepage: null,
-        onchangepage: null,
-        onbeforecreatepage: null,
-        oncreatepage: null,
-        onloadpage: null,
-        toolbar: null,
-        detachHiddenPages: false
-    }
+    obj.init = function() {
+        // Find root element
+        var app = document.querySelector('.japp');
 
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
+        // Root element
+        if (app) {
+            obj.el = app;
         } else {
-            obj.options[property] = defaults[property];
+            obj.el = document.body;
+        }
+
+        // Loading modules
+        var modules = document.querySelectorAll('[data-autoload]');
+        for (var i = 0; i < modules.length; i++) {
+            var m = modules[i].getAttribute('data-autoload');
+            if (typeof(window[m]) == 'function') {
+                window[m](modules[i]);
+            }
         }
     }
 
-    // App
-    el.classList.add('japp');
-
-    // Toolbar
-        var toolbar = document.createElement('div');
-
-    obj.setToolbar = function(o) {
-        if (o) {
-            obj.options.toolbar = o;
+    obj.guid = function() {
+        var guid = '';
+        for (var i = 0; i < 32; i++) {
+            guid += Math.floor(Math.random()*0xF).toString(0xF);
         }
-        obj.toolbar = jSuites.toolbar(toolbar, {
-            app: obj,
-            items: obj.options.toolbar,
-        });
-        el.appendChild(toolbar);
+        return guid;
     }
 
-    obj.hideToolbar = function() {
-        if (toolbar.style.display == '') {
-           toolbar.style.display = 'none';
-        }
+    obj.getWindowWidth = function() {
+        var w = window,
+        d = document,
+        e = d.documentElement,
+        g = d.getElementsByTagName('body')[0],
+        x = w.innerWidth || e.clientWidth || g.clientWidth;
+        return x;
     }
 
-    obj.showToolbar = function() {
-        if (toolbar.style.display == 'none') {
-            toolbar.style.display = '';
-        }
+    obj.getWindowHeight = function() {
+        var w = window,
+        d = document,
+        e = d.documentElement,
+        g = d.getElementsByTagName('body')[0],
+        y = w.innerHeight|| e.clientHeight|| g.clientHeight;
+        return  y;
     }
 
-    /**
-     * Pages
-     */
-    obj.pages = function() {
-        /**
-         * Create or access a page
-         */
-        var component = function(route, o, callback) {
-            var options = {};
-
-            if (o) {
-                if (typeof(o) == 'object') {
-                    var options = o;
-                } else {
-                    if (! callback && typeof(o) == 'function') {
-                        callback = o;
-                    } 
-                }
-            }
-
-            // If exists just open
-            if (component.container[route]) {
-                component.show(component.container[route], options, callback);
-            } else {
-                // Create a new page
-                if (! route) {
-                    console.error('JSUITES: Error, no route provided');
-                } else {
-                    // Closed
-                    options.closed = options.closed ? 1 : 0;
-                    // Keep Route
-                    options.route = route;
-
-                    // New page url
-                    if (! options.url) {
-                        options.url = obj.options.path + route + '.html';
-                    }
-
-                    // Create new page
-                    component.create(options, callback);
-                }
-            }
+    obj.getPosition = function(e) {
+        if (e.changedTouches && e.changedTouches[0]) {
+            var x = e.changedTouches[0].pageX;
+            var y = e.changedTouches[0].pageY;
+        } else {
+            var x = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+            var y = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
         }
 
-        /**
-         * Create a new page
-         */
-        component.create = function(o, callback) {
-            // Create page
-            var page = document.createElement('div');
-            page.classList.add('page');
+        return [ x, y ];
+    }
 
-            // Container
-            component.container[o.route] = page;
-
-            // Keep options
-            page.options = o ? o : {};
-
-
-            var updateDOM = function() {
-                // Remove to avoid id conflicts
-                if (component.current && obj.options.detachHiddenPages == true) {
-                    while (component.element.children[0]) {
-                        component.element.children[0].parentNode.removeChild(component.element.children[0]);
-                    }
-                }
-
-                if (! component.current) {
-                    component.element.appendChild(page);
-                } else {
-                    component.element.insertBefore(page, component.current.nextSibling);
-                }
-            }
-
-            if (obj.options.detachHiddenPages == false) {
-                // Always hidden when created
-                page.style.display = 'none';
-                // Update DOM
-                updateDOM();
-            }
-
-            // Create page overwrite
-            var ret = null;
-            if (typeof(obj.options.onbeforecreatepage) == 'function') {
-                var ret = obj.options.onbeforecreatepage(obj, page);
-                if (ret === false) {
-                    return false;
-                }
-            }
-
-            // Url
-            var url = o.url;
-            if (url.indexOf('?') == '-1') {
-                url += '?ts=' + new Date().getTime();
-            }
-
-            jSuites.ajax({
-                url: url,
-                method: 'GET',
-                dataType: 'html',
-                queue: true,
-                success: function(result) {
-                    if (! page.parentNode) {
-                        // Update DOM
-                        updateDOM();
-                    }
-
-                    // Create page overwrite
-                    var ret = null;
-                    if (typeof(obj.options.oncreatepage) == 'function') {
-                        ret = obj.options.oncreatepage(obj, page, result);
-                    }
-
-                    // Push to refresh controls
-                    if (typeof(page.options.onpush) == 'function') {
-                        jSuites.refresh(page, page.options.onpush);
-                    }
-
-                    // Ignore create page actions 
-                    if (ret !== false) {
-                        // Open page
-                        page.innerHTML = result;
-                        // Get javascript
-                        try {
-                            parseScript(page);
-                        } catch (e) {
-                            console.log(e);
-                        }
-                    }
-
-                    // Navbar
-                    if (page.querySelector('.navbar')) {
-                        page.classList.add('with-navbar');
-                    }
-
-                    // Global onload callback
-                    if (typeof(obj.options.onloadpage) == 'function') {
-                        obj.options.onloadpage(page);
-                    }
-
-                    // Specific online callback
-                    if (typeof(o.onload) == 'function') {
-                        o.onload(page);
-                    }
-
-                    // Show page
-                    if (! page.options.closed) {
-                        component.show(page, o, callback);
-                    }
-                }
+    obj.click = function(el) {
+        if (el.click) {
+            el.click();
+        } else {
+            var evt = new MouseEvent('click', {
+                bubbles: true,
+                cancelable: true,
+                view: window
             });
-
-            return page;
+            el.dispatchEvent(evt);
         }
+    }
 
-        component.show = function(page, o, callback) {
-            var pageIsReady = function() {
-                if (component.current) {
-                    component.current.style.display = 'none';
+    obj.getElement = function(element, className) {
+        var foundElement = false;
 
-                    if (component.current && obj.options.detachHiddenPages == true) {
-                        if (component.current.parentNode) {
-                            component.current.parentNode.removeChild(component.current);
-                        }
-                    }
+        function path (element) {
+            if (element.className) {
+                if (element.classList.contains(className)) {
+                    foundElement = element;
                 }
-
-                // New page
-                if (typeof(obj.options.onchangepage) == 'function') {
-                    obj.options.onchangepage(obj, component.current, page, o);
-                }
-
-                // Enter event
-                if (typeof(page.options.onenter) == 'function') {
-                    page.options.onenter(obj, page, component.current);
-                }
-
-                // Callback
-                if (typeof(callback) == 'function') {
-                    callback(obj, page);
-                }
-
-                // Current page
-                component.current = page;
             }
 
-            // Append page in case was detached
-            if (! page.parentNode) {
-                component.element.appendChild(page);
-            }
-
-            if (component.current) {
-                if (component.current != page) {
-                    // Show page
-                    page.style.display = '';
-
-                    var a = Array.prototype.indexOf.call(component.element.children, component.current);
-                    var b = Array.prototype.indexOf.call(component.element.children, page);
-
-                    // Before leave the page
-                    if (typeof(obj.options.onbeforechangepage) == 'function') {
-                        var ret = obj.options.onbeforechangepage(obj, component.current, page, o);
-                        if (ret === false) {
-                            return false;
-                        }
-                    }
-
-                    // Leave event
-                    if (typeof(page.options.onleave) == 'function') {
-                        page.options.onleave(obj, component.current);
-                    }
-
-                    // Animation only on mobile
-                    var rect = component.element.getBoundingClientRect();
-
-                    // Move to the top
-                    window.scrollTo({ top: 0 });
-
-                    // Page is ready
-                    if (rect.width < 800 && obj.options.detachHiddenPages == false) {
-                        jSuites.animation.slideLeft(component.element, (a < b ? 0 : 1), function() {
-                            if (component.current != page) {
-                                pageIsReady();
-                            }
-                        });
-                    } else {
-                        if (component.current != page) {
-                            pageIsReady();
-                        }
-                    }
-                }
-            } else {
-                // Show
-                page.style.display = '';
-
-                // Page is ready
-                pageIsReady();
-            }
-
-            // Select toolbar item
-            if (page.options.toolbarItem) {
-                obj.toolbar.selectItem(page.options.toolbarItem);
-            }
-
-            // Add history
-            if (! o || ! o.ignoreHistory) {
-                // Add history
-                window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
+            if (element.parentNode) {
+                path(element.parentNode);
             }
         }
 
-        /**
-         * Get a page by route
-         */
-        component.get = function(route) {
-            if (component.container[route]) {
-                return component.container[route]; 
+        path(element);
+
+        return foundElement;
+    }
+
+    obj.getLinkElement = function(element) {
+        var targetElement = false;
+
+        function path (element) {
+            if ((element.tagName == 'A' || element.tagName == 'DIV') && element.getAttribute('data-href')) {
+                targetElement = element;
+            }
+
+            if (element.parentNode) {
+                path(element.parentNode);
             }
         }
 
-        /**
-         * Reset the page container
-         */
-        component.reset = function() {
-            // Container
-            component.element.innerHTML = '';
-            // Current
-            component.current = null;
-        }
+        path(element);
 
-        /**
-         * Reset the page container
-         */
-        component.destroy = function() {
-            // Reset container
-            component.reset();
-            // Destroy references
-            component.container = {};
-        }
-        /**
-         * Page container controller
-         */
-        component.container = {};
+        return targetElement;
+    }
 
-        /**
-         * Pages DOM container
-         */
-        var pagesContainer = el.querySelector('.pages');
-        if (pagesContainer) {
-            component.element = pagesContainer;
+    obj.getFormElements = function(formObject) {
+        var ret = {};
+
+        if (formObject) {
+            var elements = formObject.querySelectorAll("input, select, textarea");
         } else {
-            component.element = document.createElement('div');
-            component.element.className = 'pages';
+            var elements = document.querySelectorAll("input, select, textarea");
         }
 
-        // Prefetched content
-        if (el.innerHTML) {
-            // Create with the prefetched content
-            var page = document.createElement('div');
-            page.classList.add('page');
-            while (el.childNodes[0]) {
-                page.appendChild(el.childNodes[0]);
-            }
-            if (el.innerHTML) {
-                var div = document.createElement('div');
-                div.innerHTML = component.element.innerHTML;
-                page.appendChild(div);
-            }
-            // Container
-            var route = window.location.pathname;
-            component.container[route] = page;
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var name = element.name;
+            var value = element.value;
 
-            // Keep options
-            page.options = {};
-            page.options.route = route;
-
-            // Current page
-            component.current = page;
-
-            // Place the page to the right container
-            if (! component.current) {
-                component.element.appendChild(page);
-            } else {
-                component.element.insertBefore(page, component.current.nextSibling);
+            if (name) {
+                ret[name] = value;
             }
         }
 
-        // Append page container to the application
-        el.appendChild(component.element);
+        return ret;
+    }
 
-        return component;
-    }();
+    obj.exists = function(url, __callback) {
+        var http = new XMLHttpRequest();
+        http.open('HEAD', url, false);
+        http.send();
+        if (http.status) {
+            __callback(http.status);
+        }
+    }
 
-    /**
-     * Panel methods
-     */
-    obj.panel = function() {
-        var panel = null;
+    obj.getFiles = function(element) {
+        if (! element) {
+            console.error('No element defined in the arguments of your method');
+        }
 
-        var component = function(route, o) {
-            if (! panel) {
-                // Create element
-                panel = document.createElement('div');
-                panel.classList.add('panel');
-                panel.classList.add('panel-left');
-                panel.style.display = 'none';
+        // Get attachments
+        var files = element.querySelectorAll('.jfile');
 
-                // Bind to the app
-                el.appendChild(panel);
-            }
+        if (files.length > 0) {
+            var data = [];
+            for (var i = 0; i < files.length; i++) {
+                var file = {};
 
-            // Remote content
-            if (route) {
-                // URL
-                if (! o) {
-                    o = {};
-                }
-                if (! o.url) {
-                    o.url = obj.options.path + route + '.html';
-                }
-                // Route
-                o.route = route;
-                // Panel
-                panel.options = o;
+                var src = files[i].getAttribute('src');
 
-                // Request remote data
-                jSuites.ajax({
-                    url: o.url,
-                    method: 'GET',
-                    dataType: 'html',
-                    success: function(result) {
-                        // Create page overwrite
-                        var ret = null;
-                        if (typeof(obj.options.oncreatepage) == 'function') {
-                            ret = obj.options.oncreatepage(obj, panel, result);
+                if (files[i].classList.contains('jremove')) {
+                    file.remove = 1;
+                } else {
+                    if (src.substr(0,4) == 'data') {
+                        file.content = src.substr(src.indexOf(',') + 1);
+                        file.extension = files[i].getAttribute('data-extension');
+                    } else {
+                        file.file = src;
+                        file.extension = files[i].getAttribute('data-extension');
+                        if (! file.extension) {
+                            file.extension =  src.substr(src.lastIndexOf('.') + 1);
                         }
-
-                        // Ignore create page actions 
-                        if (ret !== false) {
-                            // Open page
-                            panel.innerHTML = result;
-                            // Get javascript
-                            parseScript(page);
+                        if (jSuites.files[file.file]) {
+                            file.content = jSuites.files[file.file];
                         }
                     }
-                });
+
+                    // Optional file information
+                    if (files[i].getAttribute('data-name')) {
+                        file.name = files[i].getAttribute('data-name');
+                    }
+
+                    if (files[i].getAttribute('data-file')) {
+                        file.file = files[i].getAttribute('data-file');
+                    }
+
+                    if (files[i].getAttribute('data-size')) {
+                        file.size = files[i].getAttribute('data-size');
+                    }
+
+                    if (files[i].getAttribute('data-date')) {
+                        file.date = files[i].getAttribute('data-date');
+                    }
+
+                    if (files[i].getAttribute('data-cover')) {
+                        file.cover = files[i].getAttribute('data-cover');
+                    }
+                }
+
+                // TODO SMALL thumbs?
+
+                data[i] = file;
+            }
+
+            return data;
+        }
+    }
+
+    obj.ajax = function(options) {
+        if (! options.data) {
+            options.data = {};
+        }
+
+        if (options.type) {
+            options.method = options.type;
+        }
+
+        if (options.data) {
+            var data = [];
+            var keys = Object.keys(options.data);
+
+            if (keys.length) {
+                for (var i = 0; i < keys.length; i++) {
+                    if (typeof(options.data[keys[i]]) == 'object') {
+                        var o = options.data[keys[i]];
+                        for (var j = 0; j < o.length; j++) {
+                            if (typeof(o[j]) == 'string') {
+                                data.push(keys[i] + '[' + j + ']=' + encodeURIComponent(o[j]));
+                            } else {
+                                var prop = Object.keys(o[j]);
+                                for (var z = 0; z < prop.length; z++) {
+                                    data.push(keys[i] + '[' + j + '][' + prop[z] + ']=' + encodeURIComponent(o[j][prop[z]]));
+                                }
+                            }
+                        }
+                    } else {
+                        data.push(keys[i] + '=' + encodeURIComponent(options.data[keys[i]]));
+                    }
+                }
+            }
+
+            if (options.method == 'GET' && data.length > 0) {
+                if (options.url.indexOf('?') < 0) {
+                    options.url += '?';
+                }
+                options.url += data.join('&');
+            }
+        }
+
+        var httpRequest = new XMLHttpRequest();
+        httpRequest.open(options.method, options.url, true);
+        httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        if (options.method == 'POST') {
+            httpRequest.setRequestHeader('Accept', 'application/json');
+            httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+        } else {
+            if (options.dataType == 'json') {
+                httpRequest.setRequestHeader('Content-Type', 'text/json');
+            }
+        }
+
+        // No cache
+        if (options.cache != true) {
+            httpRequest.setRequestHeader('pragma', 'no-cache');
+            httpRequest.setRequestHeader('cache-control', 'no-cache');
+        }
+
+        // Authentication
+        if (options.withCredentials == true) {
+            httpRequest.withCredentials = true
+        }
+
+        // Before send
+        if (typeof(options.beforeSend) == 'function') {
+            options.beforeSend(httpRequest);
+        }
+
+        httpRequest.onload = function() {
+            if (httpRequest.status === 200) {
+                if (options.dataType == 'json') {
+                    try {
+                        var result = JSON.parse(httpRequest.responseText);
+
+                        if (options.success && typeof(options.success) == 'function') {
+                            options.success(result);
+                        }
+                    } catch(err) {
+                        if (options.error && typeof(options.error) == 'function') {
+                            options.error(result);
+                        }
+                    }
+                } else {
+                    var result = httpRequest.responseText;
+
+                    if (options.success && typeof(options.success) == 'function') {
+                        options.success(result);
+                    }
+                }
             } else {
-                component.show();
+                if (options.error && typeof(options.error) == 'function') {
+                    options.error(httpRequest.responseText);
+                }
             }
-        }
 
-        component.show = function() {
-            // Show panel
-            if (panel && panel.style.display == 'none') {
-                panel.style.display = '';
-                // Add animation
-                if (panel.classList.contains('panel-left')) {
-                    jSuites.animation.slideLeft(panel, 1);
-                } else {
-                    jSuites.animation.slideRight(panel, 1);
+            // Global complete method
+            if (obj.ajax.requests && obj.ajax.requests.length) {
+                // Get index of this request in the container
+                var index = obj.ajax.requests.indexOf(httpRequest)
+                // Remove from the ajax requests container
+                obj.ajax.requests.splice(index, 1);
+                // Last one?
+                if (! obj.ajax.requests.length) {
+                    if (options.complete && typeof(options.complete) == 'function') {
+                        options.complete(result);
+                    }
                 }
             }
         }
 
-        component.hide = function() {
-            if (panel && panel.style.display == '') {
-                // Animation
-                if (panel.classList.contains('panel-left')) {
-                    jSuites.animation.slideLeft(panel, 0, function() {
-                        panel.style.display = 'none';
-                    });
-                } else {
-                    jSuites.animation.slideRight(panel, 0, function() {
-                        panel.animation.style.display = 'none';
-                    });
+        if (data) {
+            httpRequest.send(data.join('&'));
+        } else {
+            httpRequest.send();
+        }
+
+        obj.ajax.requests.push(httpRequest);
+
+        return httpRequest;
+    }
+
+    obj.ajax.requests = [];
+
+    obj.slideLeft = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-left-in');
+            setTimeout(function() {
+                element.classList.remove('slide-left-in');
+                if (typeof(done) == 'function') {
+                    done();
                 }
+            }, 400);
+        } else {
+            element.classList.add('slide-left-out');
+            setTimeout(function() {
+                element.classList.remove('slide-left-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideRight = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-right-in');
+            setTimeout(function() {
+                element.classList.remove('slide-right-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-right-out');
+            setTimeout(function() {
+                element.classList.remove('slide-right-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideTop = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-top-in');
+            setTimeout(function() {
+                element.classList.remove('slide-top-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-top-out');
+            setTimeout(function() {
+                element.classList.remove('slide-top-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        }
+    }
+
+    obj.slideBottom = function(element, direction, done) {
+        if (direction == true) {
+            element.classList.add('slide-bottom-in');
+            setTimeout(function() {
+                element.classList.remove('slide-bottom-in');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 400);
+        } else {
+            element.classList.add('slide-bottom-out');
+            setTimeout(function() {
+                element.classList.remove('slide-bottom-out');
+                if (typeof(done) == 'function') {
+                    done();
+                }
+            }, 100);
+        }
+    }
+
+    obj.fadeIn = function(element, done) {
+        element.classList.add('fade-in');
+        setTimeout(function() {
+            element.classList.remove('fade-in');
+            if (typeof(done) == 'function') {
+                done();
+            }
+        }, 2000);
+    }
+
+    obj.fadeOut = function(element, done) {
+        element.classList.add('fade-out');
+        setTimeout(function() {
+            element.classList.remove('fade-out');
+            if (typeof(done) == 'function') {
+                done();
+            }
+        }, 1000);
+    }
+
+    obj.keyDownControls = function(e) {
+        if (e.which == 27) {
+            var nodes = document.querySelectorAll('.jslider');
+            if (nodes.length > 0) {
+                for (var i = 0; i < nodes.length; i++) {
+                    nodes[i].slider.close();
+                }
+            }
+
+            if (document.querySelector('.jdialog')) {
+                jSuites.dialog.close();
+            }
+        } else if (e.which == 13) {
+            if (document.querySelector('.jdialog')) {
+                if (typeof(jSuites.dialog.options.onconfirm) == 'function') {
+                    jSuites.dialog.options.onconfirm();
+                }
+                jSuites.dialog.close();
             }
         }
 
-        component.get = function() {
-            return panel;
+        // Verify mask
+        if (jSuites.mask) {
+            jSuites.mask.apply(e);
         }
+    }
 
-        component.destroy = function() {
-            el.removeChild(panel);
-            panel = null;
-        }
-
-        return component;
-    }();
-
-    // Actionsheet
-    obj.actionsheet = jSuites.actionsheet(el, obj);
-
-    /*
-     * Parse javascript from an element
-     */
-    var parseScript = function(element) {
-        // Get javascript
-        var script = element.getElementsByTagName('script');
-        // Run possible inline scripts
-        for (var i = 0; i < script.length; i++) {
-            // Get type
-            var type = script[i].getAttribute('type');
-            if (! type || type == 'text/javascript' || type == 'text/loader') {
-                eval(script[i].text);
+    var actionUpControl = function(e) {
+        var element = null;
+        if (element = jSuites.getLinkElement(e.target)) {
+            var link = element.getAttribute('data-href');
+            if (link == '#back') {
+                window.history.back();
+            } else if (link == '#panel') {
+                jSuites.panel();
+            } else {
+                jSuites.pages(link);
             }
         }
     }
 
     var controlSwipeLeft = function(e) {
-        var element = jSuites.findElement(e.target, 'option');
+        var element = jSuites.getElement(e.target, 'option');
 
         if (element && element.querySelector('.option-actions')) {
             element.scrollTo({
@@ -511,175 +480,88 @@ jSuites.app = (function(el, options) {
                 behavior: 'smooth'
             });
         } else {
-            obj.panel.hide();
+            var element = jSuites.getElement(e.target, 'jcalendar');
+            if (element && jSuites.calendar.current) {
+                jSuites.calendar.current.prev();
+            } else {
+                if (jSuites.panel) {
+                    var element = jSuites.panel.get();
+                    if (element) {
+                        if (element.style.display != 'none') {
+                            jSuites.panel.close();
+                        }
+                    }
+                }
+            }
         }
     }
 
     var controlSwipeRight = function(e) {
-        var element = jSuites.findElement(e.target, 'option');
+        var element = jSuites.getElement(e.target, 'option');
         if (element && element.querySelector('.option-actions')) {
             element.scrollTo({
                 left: 0,
                 behavior: 'smooth'
             });
         } else {
-            obj.panel.show();
-        }
-    }
-
-    var actionElement = null;
-
-    var actionDown = function(e) {
-        // Grouped options
-        if (e.target.classList.contains('option-title')) {
-            if (e.target.classList.contains('selected')) {
-                e.target.classList.remove('selected');
+            var element = jSuites.getElement(e.target, 'jcalendar');
+            if (element && jSuites.calendar.current) {
+                jSuites.calendar.current.next();
             } else {
-                e.target.classList.add('selected');
-            }
-        }
-
-        // Grouped buttons
-        if (e.target.parentNode && e.target.parentNode.classList.contains('jbuttons-group')) {
-            for (var j = 0; j < e.target.parentNode.children.length; j++) {
-                e.target.parentNode.children[j].classList.remove('selected');
-            }
-            e.target.classList.add('selected');
-        }
-
-        // App links
-        actionElement = jSuites.findElement(e.target, function(e) {
-            return e.tagName == 'A' && e.getAttribute('href') ? e : false;
-        });
-
-        if (actionElement) {
-            var link = actionElement.getAttribute('href');
-            if (link == '#back') {
-                window.history.back();
-            } else if (link == '#panel') {
-                obj.panel();
-            } else {
-                var href = actionElement.getAttribute('href');
-                if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
-                    actionElement = null;
-                } else {
-                    obj.pages(link);
-                }
-            }
-        }
-    }
-
-    var actionUp = function(e) {
-        obj.actionsheet.close();
-
-        if (actionElement) {
-            e.preventDefault();
-            actionElement = null;
-        }
-    }
-
-    el.addEventListener('swipeleft', controlSwipeLeft);
-    el.addEventListener('swiperight', controlSwipeRight);
-
-    if ('ontouchstart' in document.documentElement === true) {
-        document.addEventListener('touchstart', actionDown);
-        document.addEventListener('touchend', actionUp);
-    } else {
-        document.addEventListener('mousedown', actionDown);
-        document.addEventListener('click', function(e) {
-            actionUp(e);
-        });
-    }
-
-    window.onpopstate = function(e) {
-        if (e.state && e.state.route) {
-            if (obj.pages.get(e.state.route)) {
-                obj.pages(e.state.route, { ignoreHistory: true });
-            } else {
-                window.location.href = e.state.route;
-            }
-        } else {
-            window.location.reload();
-        }
-    }
-
-    if (obj.options.toolbar) {
-        obj.setToolbar();
-    }
-
-    el.app = obj;
-
-    return obj;
-});
-
-jSuites.actionsheet = (function(el, component) {
-    var obj = function(options) {
-        // Reset container
-        actionContent.innerHTML = '';
-
-        // Create new elements
-        for (var i = 0; i < options.length; i++) {
-            var actionGroup = document.createElement('div');
-            actionGroup.className = 'jactionsheet-group';
-
-            for (var j = 0; j < options[i].length; j++) {
-                var v = options[i][j];
-                var actionItem = document.createElement('div');
-                var actionInput = document.createElement('input');
-                actionInput.type = 'button';
-                actionInput.value = v.title;
-                if (v.className) {
-                    actionInput.className = v.className; 
-                }
-                if (v.onclick) {
-                    actionInput.event = v.onclick; 
-                    actionInput.onclick = function() {
-                        this.event(component, this);
+                if (jSuites.panel) {
+                    var element = jSuites.panel.get();
+                    if (element) {
+                        if (element.style.display == 'none') {
+                            jSuites.panel();
+                        }
                     }
                 }
-                if (v.action == 'cancel') {
-                    actionInput.style.color = 'red';
-                }
-                actionItem.appendChild(actionInput);
-                actionGroup.appendChild(actionItem);
             }
-
-            actionContent.appendChild(actionGroup);
-        }
-
-        // Show
-        actionsheet.style.display = '';
-
-        // Animation
-        jSuites.animation.slideBottom(actionContent, true);
-    }
-
-    obj.close = function() {
-        if (actionsheet.style.display != 'none') {
-            // Remove any existing actionsheet
-            jSuites.animation.slideBottom(actionContent, false, function() {
-                actionsheet.style.display = 'none';
-            });
         }
     }
 
-    obj.get = function() {
-        return actionsheet;
+    var actionOverControl = function(e) {
+        // Tooltip
+        if (jSuites.tooltip) {
+            jSuites.tooltip(e);
+        }
     }
 
-    // Init action sheet
-    var actionsheet = document.createElement('div');
-    actionsheet.className = 'jactionsheet';
-    actionsheet.style.display = 'none';
+    var actionOutControl = function(e) {
+        // Tooltip
+        if (jSuites.tooltip) {
+            jSuites.tooltip.hide();
+        }
+    }
 
-    var actionContent = document.createElement('div');
-    actionContent.className = 'jactionsheet-content';
-    actionsheet.appendChild(actionContent);
+    // Create page container
+    document.addEventListener('swipeleft', controlSwipeLeft);
+    document.addEventListener('swiperight', controlSwipeRight);
+    document.addEventListener('keydown', obj.keyDownControls);
 
-    // Append actionsheet container to the application
-    el.appendChild(actionsheet);
+    if ('ontouchend' in document.documentElement === true) {
+        document.addEventListener('touchend', actionUpControl);
+    } else {
+        document.addEventListener('mouseup', actionUpControl);
+    }
 
-    el.actionsheet = obj;
+    // Onmouseover
+    document.addEventListener('mouseover', actionOverControl);
+    document.addEventListener('mouseout', actionOutControl);
+    document.addEventListener('DOMContentLoaded', function() {
+        obj.init();
+    });
+
+    // Pop state control
+    window.onpopstate = function(e) {
+        if (e.state && e.state.route) {
+            if (jSuites.pages.get(e.state.route)) {
+                jSuites.pages(e.state.route, { ignoreHistory:true });
+            }
+        }
+    }
 
     return obj;
-});
+}();
+
+jSuites.files = [];

@@ -8,42 +8,34 @@
 }
 
 .slide-left-in {
-    position: relative;
     animation: slide-left-in 0.4s forwards;
 }
 
 .slide-left-out {
-    position: relative;
     animation: slide-left-out 0.4s forwards;
 }
 
 .slide-right-in {
-    position: relative;
     animation: slide-right-in 0.4s forwards;
 }
 
 .slide-right-out {
-    position: relative;
     animation: slide-right-out 0.4s forwards;
 }
 
 .slide-top-in {
-    position: relative;
     animation: slide-top-in 0.4s forwards;
 }
 
 .slide-top-out {
-    position: relative;
     animation: slide-top-out 0.2s forwards;
 }
 
 .slide-bottom-in {
-    position: relative;
     animation: slide-bottom-in 0.4s forwards;
 }
 
 .slide-bottom-out {
-    position: relative;
     animation: slide-bottom-out 0.1s forwards;
 }
 
@@ -70,45 +62,45 @@
 
 /** Keyframes Left to Right **/
 @keyframes slide-left-in {
-    0% { left: -100%; }
-    100% { left: 0%; }
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(0%); }
 }
 
 @-webkit-keyframes slide-left-in {
-    0% { left: -100%; }
-    100% { left: 0%; }
+    0% { transform: translateX(-100%); }
+    100% { -webkit-transform: translateX(0%); }
 }
     
 @keyframes slide-left-out {
-    0% { left: 0%; }
-    100% { left: -100%; }
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(-100%); }
 }
 
 @-webkit-keyframes slide-left-out {
-    0% { left: 0%; }
-    100% { left: -100%; }
+    0% { -webkit-transform: translateX(0%); }
+    100% { -webkit-transform: translateX(-100%); }
 }
 
 /** Keyframes Right to Left **/
 @keyframes slide-right-in {
-    0% { left: 100%; }
-    100% { left: 0%; }
+    0% { transform: translateX(100%); }
+    100% { transform: translateX(0%); }
 }
 
 @-webkit-keyframes slide-right-in
 {
-    0% { left: 100%; }
-    100% { left: 0%; }
+    0% { transform: translateX(100%); }
+    100% { -webkit-transform: translateX(0%); }
 }
     
 @keyframes slide-right-out {
-    0% { left: 0%; }
-    100% { left: 100%; }
+    0% { transform: translateX(0%); }
+    100% { transform: translateX(100%); }
 }
 
 @-webkit-keyframes slide-right-out {
-    0% { left: 0%; }
-    100% { left: 100%; }
+    0% { -webkit-transform: translateX(0%); }
+    100% { -webkit-transform: translateX(100%); }
 }
 
 /** Keyframes Top to Bottom **/

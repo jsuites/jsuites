@@ -157,7 +157,7 @@ jSuites.slider = (function(el, options) {
     }
 
     obj.getData = function() {
-        return jSuites.files(container).get();
+        return jSuites.getFiles(container);
     }
 
     // Append data
@@ -285,15 +285,6 @@ jSuites.slider = (function(el, options) {
         e.stopPropagation();
     });
 
-    if (! jSuites.slider.hasEvents) {
-        document.addEventListener('keydown', function(e) {
-            if (e.which == 27) {
-                obj.close();
-            }
-        });
-
-        jSuites.slider.hasEvents = true;
-    }
 
     el.slider = obj;
 

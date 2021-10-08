@@ -4,96 +4,16 @@ jSuites.files = (function(element) {
     }
 
     var obj = {};
-
-    // DOM references
-    var D = [];
-
-    // Files container
-    obj.data = [];
-
-    /**
-     * Get list of files and properties
-     */
+    obj.files = [];
     obj.get = function() {
-        return obj.data;
+        return obj.files;
     }
-
-    /**
-     * Update the properties of files
-     */
-    obj.getNames = function(options) {
-        if (options && options.folder) {
-            var folder = options.folder;
-        } else {
-            var folder = '/media';
-        }
-
-        // Get attachments
-        var data = {};
-        for (var i = 0; i < D.length; i++) {
-            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
-                var name = D[i].src.split('/');
-                data[D[i].src] = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
-            }
-        }
-
-        return data;
-    }
-
-    /**
-     * Update the properties of files
-     */
-    obj.updateNames = function(options) {
-        if (options && options.folder) {
-            var folder = options.folder;
-        } else {
-            var folder = '/media';
-        }
-
-        // Get attachments
-        for (var i = 0; i < D.length; i++) {
-            if (D[i] && D[i].src.substr(0,5) == 'blob:') {
-                var name = D[i].src.split('/');
-                D[i].src = folder + '/' + name[name.length - 1] + '.' + D[i].getAttribute('data-extension');
-            }
-        }
-    }
-
-    /**
-     * Remove files
-     */
-    obj.remove = function() {
-        // Get attachments
-        var files = element.querySelectorAll('.jfile');
-
-        if (files.length > 0) {
-            // Read all files
-            for (var i = 0; i < files.length; i++) {
-                var file = {};
-
-                var src = files[i].getAttribute('src');
-
-                if (files[i].classList.contains('jremove')) {
-                    files[i].remove();
-                }
-            }
-        }
-    }
-
-    /**
-     * Set list of files and properties for upload
-     */
     obj.set = function() {
-        // Reset references
-        D = [];
-        // Reset container
-        obj.data = [];
-
         // Get attachments
         var files = element.querySelectorAll('.jfile');
 
         if (files.length > 0) {
-            // Read all files
+            var data = [];
             for (var i = 0; i < files.length; i++) {
                 var file = {};
 
@@ -102,8 +22,8 @@ jSuites.files = (function(element) {
                 if (files[i].classList.contains('jremove')) {
                     file.remove = 1;
                 } else {
-                    if (src.substr(0,5) == 'data:') {
-                        file.content = src.substr(5);
+                    if (src.substr(0,4) == 'data') {
+                        file.content = src.substr(src.indexOf(',') + 1);
                         file.extension = files[i].getAttribute('data-extension');
                     } else {
                         file.file = src;
@@ -111,9 +31,8 @@ jSuites.files = (function(element) {
                         if (! file.extension) {
                             file.extension =  src.substr(src.lastIndexOf('.') + 1);
                         }
-
-                        if (files[i].content) {
-                            file.content = files[i].content;
+                        if (obj.files[file.file]) {
+                            file.content = obj.files[file.file];
                         }
                     }
 
@@ -134,15 +53,10 @@ jSuites.files = (function(element) {
                         file.cover = files[i].getAttribute('data-cover');
                     }
                 }
-
-                // DOM reference
-                D.push(files[i]);
-
-                // Push file
-                obj.data.push(file);
+                data[i] = file;
             }
 
-            return obj.data;
+            return data;
         }
     }
 

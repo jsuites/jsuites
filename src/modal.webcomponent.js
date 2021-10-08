@@ -16,11 +16,11 @@ class JsuitesModal extends HTMLElement {
         }
         var width = o.getAttribute('width');
         if (width) {
-            options.width = parseInt(width) + 'px';
+            options.width = width;
         }
         var height = o.getAttribute('height');
         if (height) {
-            options.height = parseInt(height) + 'px';
+            options.height = height;
         }
         var closed = o.getAttribute('closed');
         if (closed) {

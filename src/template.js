@@ -11,23 +11,17 @@ jSuites.template = (function(el, options) {
         numberOfPages: 0,
         template: null,
         render: null,
+        onload: null,
+        onchange: null,
         noRecordsFound: 'No records found',
-        containerClass: null,
         // Searchable
         search: null,
         searchInput: true,
-        searchPlaceHolder: '',
+        // Search happens in the back end
         searchValue: '',
-        // Remote search
         remoteData: null,
         // Pagination page number of items
         pagination: null,
-        onload: null,
-        onupdate: null,
-        onchange: null,
-        onsearch: null,
-        onclick: null,
-        oncreateitem: null,
     }
 
     // Loop through our object
@@ -50,25 +44,21 @@ jSuites.template = (function(el, options) {
         // Search container
         var searchContainer = document.createElement('div');
         searchContainer.className = 'jtemplate-results';
-        obj.searchInput = document.createElement('input');
-        obj.searchInput.value = obj.options.searchValue;
-        obj.searchInput.onkeyup = function(e) {
+        var searchInput = document.createElement('input');
+        searchInput.value = obj.options.searchValue;
+        searchInput.onkeyup = function(e) {
             // Clear current trigger
             if (searchTimer) {
                 clearTimeout(searchTimer);
             }
             // Prepare search
             searchTimer = setTimeout(function() {
-                obj.search(obj.searchInput.value.toLowerCase());
+                obj.search(searchInput.value.toLowerCase());
                 searchTimer = null;
             }, 300)
         }
-        searchContainer.appendChild(obj.searchInput);
+        searchContainer.appendChild(searchInput);
         el.appendChild(searchContainer);
-
-        if (obj.options.searchPlaceHolder) {
-            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
-        }
     }
 
     // Pagination container
@@ -80,10 +70,7 @@ jSuites.template = (function(el, options) {
 
     // Content
     var container = document.createElement('div');
-    if (obj.options.containerClass) {
-        container.className = obj.options.containerClass;
-    }
-    container.classList.add ('jtemplate-content');
+    container.className = 'jtemplate-content';
     el.appendChild(container);
 
     // Data container
@@ -144,73 +131,6 @@ jSuites.template = (function(el, options) {
         }
     }
 
-    var parse = function(element) {
-        // Attributes
-        var attr = {};
-
-        if (element.attributes && element.attributes.length) {
-            for (var i = 0; i < element.attributes.length; i++) {
-                attr[element.attributes[i].name] = element.attributes[i].value;
-            }
-        }
-
-        // Keys
-        var k = Object.keys(attr);
-
-        if (k.length) {
-            for (var i = 0; i < k.length; i++) {
-                // Parse events
-                if (k[i].substring(0,2) == 'on') {
-                    // Get event
-                    var event = k[i].toLowerCase();
-                    var value = attr[k[i]];
-
-                    // Get action
-                    element.removeAttribute(event);
-                    if (! element.events) {
-                        element.events = []
-                    }
-
-                    // Keep method to the event
-                    element[k[i].substring(2)] = value;
-                    element[event] = function(e) {
-                        Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
-                    }
-                }
-            }
-        }
-
-        // Check the children
-        if (element.children.length) {
-            for (var i = 0; i < element.children.length; i++) {
-                parse(element.children[i]);
-            }
-        }
-    }
-
-    /**
-     * Append data to the template and add to the DOMContainer
-     * @param data
-     * @param contentDOMContainer
-     */
-    obj.setContent = function(a, b) {
-        // Get template
-        var c = obj.options.template[Object.keys(obj.options.template)[0]](a, obj);
-        // Process events
-        if ((c instanceof Element || c instanceof HTMLDocument)) {
-            b.appendChild(c);
-        } else {
-            b.innerHTML = c;
-        }
-
-        parse(b);
-
-        // Oncreate a new item
-        if (typeof(obj.options.oncreateitem) == 'function') {
-            obj.options.oncreateitem(el, obj, b.children[0], a);
-        }
-    }
-
     obj.addItem = function(data, beginOfDataSet) {
         // Append itens
         var content = document.createElement('div');
@@ -220,15 +140,10 @@ jSuites.template = (function(el, options) {
         } else {
             obj.options.data.push(data);
         }
-        // If is empty remove indication
-        if (container.classList.contains('jtemplate-empty')) {
-            container.classList.remove('jtemplate-empty');
-            container.innerHTML = '';
-        }
         // Get content
-        obj.setContent(data, content);
+        content.innerHTML = obj.options.template[Object.keys(options.template)[0]](data);
         // Add animation
-        jSuites.animation.fadeIn(content.children[0]);
+        content.children[0].classList.add('fade-in');
         // Add and do the animation
         if (beginOfDataSet) {
             container.prepend(content.children[0]);
@@ -249,13 +164,8 @@ jSuites.template = (function(el, options) {
                 obj.options.data.splice(index, 1);
             }
             // Remove element from DOM
-            jSuites.animation.fadeOut(element, function() {
+            jSuites.fadeOut(element, function() {
                 element.parentNode.removeChild(element);
-
-                if (! container.innerHTML) {
-                    container.classList.add('jtemplate-empty');
-                    container.innerHTML = obj.options.noRecordsFound;
-                }
             });
         } else {
             console.error('Element not found');
@@ -298,8 +208,8 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                obj.setContent(data[i], content)
-                content.children[0].dataReference = data[i];
+                content.innerHTML = obj.options.template[Object.keys(obj.options.template)[0]](data[i]);
+                content.children[0].dataReference = data[i]; 
                 container.appendChild(content.children[0]);
             }
         }
@@ -347,11 +257,6 @@ jSuites.template = (function(el, options) {
         // Data container
         var data = searchResults ? searchResults : obj.options.data;
 
-        // Data filtering
-        if (typeof(obj.options.filter) == 'function') {
-            data = obj.options.filter(data);
-        }
-
         // Reset pagination
         obj.updatePagination();
 
@@ -378,8 +283,7 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                // Get content
-                obj.setContent(data[i], content);
+                content.innerHTML = obj.options.template[Object.keys(obj.options.template)[0]](data[i]);
                 content.children[0].dataReference = data[i]; 
                 container.appendChild(content.children[0]);
             }
@@ -408,16 +312,9 @@ jSuites.template = (function(el, options) {
             // Load data
             obj.renderTemplate();
 
-            // On Update
-            if (typeof(obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj, pageNumber);
-            }
-
-            if (forceLoad) {
-                // Onload
-                if (typeof(obj.options.onload) == 'function') {
-                    obj.options.onload(el, obj, pageNumber);
-                }
+            // Onload
+            if (forceLoad && typeof(obj.options.onload) == 'function') {
+                obj.options.onload(el, obj);
             }
         }
 
@@ -501,16 +398,16 @@ jSuites.template = (function(el, options) {
                 return false;
             }
 
-            searchResults = obj.options.data.filter(function(item) {
-                return test(item, query);
-            });
+            if (typeof(obj.options.filter) == 'function') {
+                searchResults = obj.options.filter(obj.options.data, query);
+            } else {
+                searchResults = obj.options.data.filter(function(item) {
+                    return test(item, query);
+                });
+            }
         }
 
         obj.render();
-
-        if (typeof(obj.options.onsearch) == 'function') {
-            obj.options.onsearch(el, obj, query);
-        }
     }
 
     obj.refresh = function() {
@@ -532,12 +429,6 @@ jSuites.template = (function(el, options) {
                 obj.render(parseInt(index)-1);
             }
             e.preventDefault();
-        }
-    });
-
-    el.addEventListener('click', function(e) {
-        if (typeof(obj.options.onclick) == 'function') {
-            obj.options.onclick(el, obj, e);
         }
     });
 

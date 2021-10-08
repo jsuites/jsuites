@@ -4,11 +4,7 @@ jSuites.image = (function(el, options) {
 
     // Default configuration
     var defaults = {
-        input: false,
         minWidth: false,
-        maxWidth: null,
-        maxHeight: null,
-        maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
         singleFile: true,
         remoteParser: null,
@@ -30,13 +26,23 @@ jSuites.image = (function(el, options) {
     // Upload icon
     el.classList.add('jupload');
 
-    if (obj.options.input == true) {
-        el.classList.add('input');
-    }
-
     // Add image
     obj.addImage = function(file) {
-        return jSuites.image.create(file);
+        if (! file.date) {
+            file.date = '';
+        }
+        var img = document.createElement('img');
+        img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
+        img.setAttribute('data-name', file.name);
+        img.setAttribute('data-size', file.size);
+        img.setAttribute('data-small', file.small ? file.small : '');
+        img.setAttribute('data-cover', file.cover ? 1 : 0);
+        img.setAttribute('data-extension', file.extension);
+        img.setAttribute('src', file.file);
+        img.className = 'jfile';
+        img.style.width = '100%';
+
+        return img;
     }
 
     // Add image
@@ -71,26 +77,18 @@ jSuites.image = (function(el, options) {
                     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
                     var data = {
-                        file: obj.getDataURL(canvas, file.type),
+                        file: canvas.toDataURL(),
                         extension: file.name.substr(file.name.lastIndexOf('.') + 1),
                         name: file.name,
                         size: file.size,
                         lastmodified: file.lastModified,
                     }
-
-                    // Content
-                    if (this.src.substr(0,5) == 'data:') {
-                        var content = this.src.split(',');
-                        data.content = content[1];
-                    }
-
-                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage, data);
+                        obj.options.onchange(newImage);
                     }
                 };
 
@@ -133,49 +131,22 @@ jSuites.image = (function(el, options) {
                         file: window.URL.createObjectURL(blob),
                         extension: extension
                     }
-
-                    // Content to be uploaded
-                    data.content = canvas.toDataURL();
-                    data.content = data.content.split(',');
-                    data.content = data.content[1];
-
-                    // Add image
                     var newImage = obj.addImage(data);
                     el.appendChild(newImage);
 
+                    // Keep base64 ready to go
+                    var content = canvas.toDataURL();
+                    jSuites.files[data.file] = content.substr(content.indexOf(',') + 1);
+
                     // Onchange
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange(newImage, data);
+                        obj.options.onchange(newImage);
                     }
                 });
             };
 
             img.src = src;
         }
-    }
-
-    obj.getCanvas = function(img) {
-        var canvas = document.createElement('canvas');
-        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
-        var r2 = (obj.options.maxHeight || img.height) / img.height;
-        var r = Math.min(r1, r2, 1);
-        canvas.width = img.width * r;
-        canvas.height = img.height * r;
-        return canvas;
-    }
-
-    obj.getDataURL = function(canvas, type) {
-        var compression = 0.92;
-        var lastContentLength = null;
-        var content = canvas.toDataURL(type, compression);
-        while (obj.options.maxJpegSizeBytes && type === 'image/jpeg' &&
-               content.length > obj.options.maxJpegSizeBytes && content.length !== lastContentLength) {
-            // Apply the compression
-            compression *= 0.9;
-            lastContentLength = content.length;
-            content = canvas.toDataURL(type, compression);
-        }
-        return content;
     }
 
     var attachmentInput = document.createElement('input');
@@ -187,7 +158,7 @@ jSuites.image = (function(el, options) {
         }
     }
 
-    el.addEventListener("click", function(e) {
+    el.addEventListener("dblclick", function(e) {
         jSuites.click(attachmentInput);
     });
 
@@ -247,25 +218,3 @@ jSuites.image = (function(el, options) {
 
     return obj;
 });
-
-jSuites.image.create = function(file) {
-    if (! file.date) {
-        file.date = '';
-    }
-    var img = document.createElement('img');
-    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
-    img.setAttribute('data-name', file.name);
-    img.setAttribute('data-size', file.size);
-    img.setAttribute('data-small', file.small ? file.small : '');
-    img.setAttribute('data-cover', file.cover ? 1 : 0);
-    img.setAttribute('data-extension', file.extension);
-    img.setAttribute('src', file.file);
-    img.className = 'jfile';
-    img.style.width = '100%';
-
-    if (file.content) {
-        img.content = file.content;
-    }
-
-    return img;
-}

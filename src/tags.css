@@ -11,13 +11,6 @@
     border: 1px solid #ccc;
 } 
 
-.jtags.jtags-empty:not(.jtags-focus)::before {
-    position: absolute;
-    margin: 5px;
-    color: #ccc;
-    content:attr(data-placeholder);
-}
-
 .jtags > div {
     padding: 3px;
     padding-left: 10px;

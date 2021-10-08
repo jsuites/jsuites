@@ -1,162 +1,67 @@
-.jtoolbar-container {
-    border-radius: 2px;
-    margin-bottom: 5px;
-    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    display: inline-flex !important;
-}
+/** Toolbar **/
 
-.jtoolbar {
-    cursor: pointer;
-    white-space: nowrap;
-    display: flex;
-    padding:4px;
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.jtoolbar-mobile {
-    display: flex;
+.japp .jtoolbar
+{
     position:fixed;
     bottom: 0;
     margin: 0;
     left: 0;
     width: 100%;
     background: #f7f7f8;
-    z-index: 1;
+    z-index: 500;
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     box-shadow: 0 -1px 2px rgba(0,0,0,.1);
-    border-radius: 0px;
+    padding:4px;
 }
 
-.jtoolbar > div {
-    display: inline-flex;
-    align-items: center;
+.japp .jtoolbar > div
+{
+    -webkit-box-sizing: border-box;
     box-sizing: border-box;
     vertical-align:middle;
-    justify-content: space-evenly;
-}
 
-.jtoolbar-mobile > div {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
     display: flex;
+
+    -webkit-flex-flow: row wrap;
+    justify-content: space-evenly;
+    align-items:center;
     width: 100%;
+    cursor:pointer;
 }
 
-.jtoolbar .jtoolbar-item {
-    position: relative;
-    text-align: center;
-    margin: auto;
-    padding: 2px;
-    padding-left:4px;
-    padding-right:4px;
-}
-
-.jtoolbar-mobile .jtoolbar-item {
+.japp .jtoolbar > div > div
+{
+    text-align:center;
     flex:1;
-} 
-
-.jtoolbar .jtoolbar-divisor {
-    width: 2px;
-    height: 24px;
-    padding: 0px;
-    margin-left: 4px;
-    margin-right: 4px;
-    background-color: #f2f2f2;
+    margin:auto;
 }
 
-
-.jtoolbar-mobile a
+.japp .jtoolbar a
 {
     text-decoration:none;
     display:inline-block;
 }
 
-.jtoolbar-mobile i {
-    display: inline-flex !important;
+.japp .jtoolbar i
+{
     color:#929292;
 }
 
-.jtoolbar-mobile span {
+.japp .jtoolbar span
+{
     font-size:0.7em;
     display:block;
     color:#929292;
 }
 
-.jtoolbar-mobile .jtoolbar-selected a, .jtoolbar-mobile .jtoolbar-selected i, .jtoolbar-mobile .jtoolbar-selected span {
-    color:var(--active-color) !important;
-    background-color:transparent;
-}
-
-.jtoolbar-item {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-}
-
-.jtoolbar-item i {
-    display: block;
-    color:#333;
-}
-
-.jtoolbar-item:hover {
-    background-color:#f2f2f2;
-}
-
-
-.jtoolbar .jpicker {
-    padding-left:0px;
-    padding-right:0px;
-}
-
-.jtoolbar .jpicker-header {
-    height: 24px;
-    line-height: 24px;
-    padding: 0px;
-    padding-right: 20px;
-    padding-left: 4px;
-    background-position: top 50% right 0px;
-}
-
-.jtoolbar .jpicker-content div {
-    padding: 6px;
-}
-
-.jtoolbar-active {
-    background-color:#eee;
-}
-
-.jtoolbar .fa {
-    width: 24px;
-    height: 24px;
-    display: block;
-    line-height: 24px;
-}
-
-.jtoolbar .jtoolbar-arrow {
-    background-repeat: no-repeat;
-    background-position: center;
-    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
-    width: 16px;
-    height: 24px;
-}
-
-.jtoolbar-floating {
-    position: absolute;
-    display: none;
-    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
-    border-radius: 4px;
-    background-color: #fff;
-    padding: 4px;
-    z-index: 50;
-    text-align: left;
-}
-
-.jtoolbar-floating > div {
-    display: block;
-}
-
-.jtoolbar-arrow-selected .jtoolbar-floating {
-    display: block;
+.japp .jtoolbar .selected a,
+.japp .jtoolbar .selected i,
+.japp .jtoolbar .selected span
+{
+    color:var(--active-color);
 }

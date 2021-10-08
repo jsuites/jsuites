@@ -1,4 +1,4 @@
-jSuites.form = (function(el, options) {
+jSuites.tracker = (function(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -33,7 +33,14 @@ jSuites.form = (function(el, options) {
             method: 'GET',
             dataType: 'json',
             success: function(data) {
-                jSuites.form.setElements(el, data);
+                var elements = el.querySelectorAll("input, select, textarea");
+ 
+                for (var i = 0; i < elements.length; i++) {
+                    var name = elements[i].getAttribute('name');
+                    if (data[name]) {
+                        elements[i].value = data[name];
+                    }
+                }
 
                 if (typeof(obj.options.onload) == 'function') {
                     obj.options.onload(el, data);
@@ -48,7 +55,7 @@ jSuites.form = (function(el, options) {
         if (test) {
             jSuites.alert(test);
         } else {
-            var data = jSuites.form.getElements(el, true);
+            var data = obj.getElements(true);
 
             if (typeof(obj.options.onbeforesave) == 'function') {
                 var data = obj.options.onbeforesave(el, data);
@@ -164,7 +171,7 @@ jSuites.form = (function(el, options) {
 
     // Return the form hash
     obj.setHash = function() {
-        return obj.getHash(jSuites.form.getElements(el));
+        return obj.getHash(obj.getElements());
     }
 
     // Get the form hash
@@ -206,6 +213,24 @@ jSuites.form = (function(el, options) {
         obj.options.ignore = ignoreFlag ? true : false;
     }
 
+    // Get form elements
+    obj.getElements = function(asArray) {
+        var data = {};
+        var elements = el.querySelectorAll("input, select, textarea");
+
+        for (var i = 0; i < elements.length; i++) {
+            var element = elements[i];
+            var name = element.name;
+            var value = element.value;
+
+            if (name) {
+                data[name] = value;
+            }
+        }
+
+        return asArray == true ? data : JSON.stringify(data);
+    }
+
     // Start tracking in one second
     setTimeout(function() {
         obj.options.currentHash = obj.setHash();
@@ -243,36 +268,3 @@ jSuites.form = (function(el, options) {
 
     return obj;
 });
-
-// Get form elements
-jSuites.form.getElements = function(el, asArray) {
-    var data = {};
-    var elements = el.querySelectorAll("input, select, textarea");
-
-    for (var i = 0; i < elements.length; i++) {
-        var element = elements[i];
-        var name = element.name;
-        var value = element.value;
-
-        if (name) {
-            data[name] = value;
-        }
-    }
-
-    return asArray == true ? data : JSON.stringify(data);
-}
-
-//Get form elements
-jSuites.form.setElements = function(el, data) {
-    var elements = el.querySelectorAll("input, select, textarea");
-
-    for (var i = 0; i < elements.length; i++) {
-        var name = elements[i].getAttribute('name');
-        if (data[name]) {
-            elements[i].value = data[name];
-        }
-    }
-}
-
-// Legacy
-jSuites.tracker = jSuites.form;

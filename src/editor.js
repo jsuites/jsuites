@@ -2,24 +2,6 @@ jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};
 
-    // If element is textarea, then replace by div editor
-    if (el.tagName == 'TEXTAREA' || el.tagName == 'INPUT') {
-        // Current element
-        var element = el;
-        element.style.display = 'none';
-        // New Element
-        el = document.createElement('div');
-        // Value
-        if (! options.value) {
-            options.value = element.value;
-        }
-        // Event to populate the textarea
-        options.onblur = function(a,b,c) {
-            element.value = b.getData()
-        }
-        element.insertBefore(el);
-    }
-
     // Default configuration
     var defaults = {
         // Initial HTML content
@@ -28,34 +10,34 @@ jSuites.editor = (function(el, options) {
         snippet: null,
         // Add toolbar
         toolbar: null,
+        // Max height
+        maxHeight: null,
         // Website parser is to read websites and images from cross domain
         remoteParser: null,
-        // Placeholder
-        placeholder: null,
+        // Key from youtube to read properties from URL
+        youtubeKey: null,
+        // User list
+        userSearch: null,
         // Parse URL
         parseURL: false,
-        filterPaste: true,
         // Accept drop files
-        dropZone: false,
+        dropZone: true,
         dropAsAttachment: false,
-        acceptImages: false,
+        acceptImages: true,
         acceptFiles: false,
-        maxFileSize: 5000000,
-        allowImageResize: true,
-        // Style
+        maxFileSize: 5000000, 
+        // Border
         border: true,
         padding: true,
-        maxHeight: null,
-        height: null,
         focus: false,
         // Events
         onclick: null,
         onfocus: null,
         onblur: null,
         onload: null,
+        onenter: null,
         onkeyup: null,
         onkeydown: null,
-        onchange: null,
     };
 
     // Loop through our object
@@ -75,23 +57,12 @@ jSuites.editor = (function(el, options) {
     // Make sure element is empty
     el.innerHTML = '';
 
-    if (typeof(obj.options.onclick) == 'function') {
-        el.onclick = function(e) {
-            obj.options.onclick(el, obj, e);
-        }
-    }
-
     // Prepare container
     el.classList.add('jeditor-container');
 
     // Padding
     if (obj.options.padding == true) {
         el.classList.add('jeditor-padding');
-    }
-
-    // Placeholder
-    if (obj.options.placeholder) {
-        el.setAttribute('data-placeholder', obj.options.placeholder);
     }
 
     // Border
@@ -101,7 +72,7 @@ jSuites.editor = (function(el, options) {
 
     // Snippet
     var snippet = document.createElement('div');
-    snippet.className = 'jsnippet';
+    snippet.className = 'snippet';
     snippet.setAttribute('contenteditable', false);
 
     // Toolbar
@@ -115,15 +86,9 @@ jSuites.editor = (function(el, options) {
     editor.className = 'jeditor';
 
     // Max height
-    if (obj.options.maxHeight || obj.options.height) {
+    if (obj.options.maxHeight) {
         editor.style.overflowY = 'auto';
-
-        if (obj.options.maxHeight) {
-            editor.style.maxHeight = obj.options.maxHeight;
-        }
-        if (obj.options.height) {
-            editor.style.height = obj.options.height;
-        }
+        editor.style.maxHeight = obj.options.maxHeight;
     }
 
     // Set editor initial value
@@ -135,30 +100,6 @@ jSuites.editor = (function(el, options) {
 
     if (! value) {
         var value = '<br>';
-    }
-
-    /**
-     * Onchange event controllers
-     */
-    var change = function(e) {
-        if (typeof(obj.options.onchange) == 'function') { 
-            obj.options.onchange(el, obj, e);
-        }
-
-        // Update value
-        obj.options.value = obj.getData();
-
-        // Lemonade JS
-        if (el.value != obj.options.value) {
-            el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
-                    target: el,
-                    value: el.value
-                });
-            }
-        }
     }
 
     /**
@@ -211,7 +152,7 @@ jSuites.editor = (function(el, options) {
 
         if (data.image) {
             var div = document.createElement('div');
-            div.className = 'jsnippet-image';
+            div.className = 'snippet-image';
             div.setAttribute('data-k', 'image');
             snippet.appendChild(div);
 
@@ -221,25 +162,25 @@ jSuites.editor = (function(el, options) {
         }
 
         var div = document.createElement('div');
-        div.className = 'jsnippet-title';
+        div.className = 'snippet-title';
         div.setAttribute('data-k', 'title');
         div.innerHTML = data.title;
         snippet.appendChild(div);
 
         var div = document.createElement('div');
-        div.className = 'jsnippet-description';
+        div.className = 'snippet-description';
         div.setAttribute('data-k', 'description');
         div.innerHTML = data.description;
         snippet.appendChild(div);
 
         var div = document.createElement('div');
-        div.className = 'jsnippet-host';
+        div.className = 'snippet-host';
         div.setAttribute('data-k', 'host');
         div.innerHTML = data.host;
         snippet.appendChild(div);
 
         var div = document.createElement('div');
-        div.className = 'jsnippet-url';
+        div.className = 'snippet-url';
         div.setAttribute('data-k', 'url');
         div.innerHTML = data.url;
         snippet.appendChild(div);
@@ -250,7 +191,7 @@ jSuites.editor = (function(el, options) {
     var verifyEditor = function() {
         clearTimeout(editorTimer);
         editorTimer = setTimeout(function() {
-            var snippet = editor.querySelector('.jsnippet');
+            var snippet = editor.querySelector('.snippet');
             var thumbsContainer = el.querySelector('.jeditor-thumbs-container');
 
             if (! snippet && ! thumbsContainer) {
@@ -273,7 +214,12 @@ jSuites.editor = (function(el, options) {
                         }
                     } else {
                         var id = jSuites.editor.youtubeParser(url[0]);
-                        obj.parseWebsite(url[0], id);
+
+                        if (id) {
+                            obj.getYoutube(id);
+                        } else {
+                            obj.getWebsite(url[0]);
+                        }
                     }
                 }
             }
@@ -284,47 +230,82 @@ jSuites.editor = (function(el, options) {
         verifyEditor();
     }
 
-    obj.parseWebsite = function(url, youtubeId) {
+    /**
+     * Get metadata from a youtube video
+     */
+    obj.getYoutube = function(id) {
+        if (! obj.options.youtubeKey) {
+            console.error('The youtubeKey is not defined');
+        } else {
+            jSuites.ajax({
+                url: 'https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&key=' + obj.options.youtubeKey + '&id=' + id,
+                method: 'GET',
+                dataType: 'json',
+                success: function(result) {
+                    // Only valid elements to be appended
+                    if (result.items && result.items[0]) {
+                        var p = {
+                            title: '',
+                            description: '',
+                            image: '',
+                            host: 'www.youtube.com',
+                            url: 'https://www.youtube.com?watch=' + id,
+                        }
+                        if (result.items[0].snippet.title) {
+                            p.title = result.items[0].snippet.title;
+                        }
+                        if (result.items[0].snippet.description) {
+                            p.description = result.items[0].snippet.description;
+
+                            if (p.description.length > 150) {
+                                p.description = p.description.substr(0, 150) + '...';
+                            }
+                        }
+                        if (result.items[0].snippet.thumbnails.medium.url) {
+                            p.image = result.items[0].snippet.thumbnails.medium.url;
+                        }
+
+                        appendElement(p);
+                    }
+                }
+            });
+        }
+    }
+
+    /**
+     * Get meta information from a website
+     */
+    obj.getWebsite = function(url) {
         if (! obj.options.remoteParser) {
             console.log('The remoteParser is not defined');
         } else {
-            // Youtube definitions
-            if (youtubeId) {
-                var url = 'https://www.youtube.com/watch?v=' + youtubeId;
-            }
-
-            var p = {
-                title: '',
-                description: '',
-                image: '',
-                host: url.split('/')[2],
-                url: url,
-            }
-
             jSuites.ajax({
                 url: obj.options.remoteParser + encodeURI(url.trim()),
                 method: 'GET',
                 dataType: 'json',
                 success: function(result) {
-                    // Get title
+                    var p = {
+                        title: '',
+                        description: '',
+                        image: '',
+                        host: url,
+                        url: url,
+                    }
+
                     if (result.title) {
                         p.title = result.title;
                     }
-                    // Description
                     if (result.description) {
                         p.description = result.description;
                     }
-                    // Image
                     if (result.image) {
                         p.image = result.image;
                     } else if (result['og:image']) {
                         p.image = result['og:image'];
                     }
-                    // Host
                     if (result.host) {
                         p.host = result.host;
                     }
-                    // Url
                     if (result.url) {
                         p.url = result.url;
                     }
@@ -341,10 +322,6 @@ jSuites.editor = (function(el, options) {
     obj.setData = function(html) {
         editor.innerHTML = html;
         jSuites.editor.setCursor(editor, true);
-    }
-
-    obj.getText = function() {
-        return editor.innerText;
     }
 
     /**
@@ -434,15 +411,9 @@ jSuites.editor = (function(el, options) {
                 newImage.className = 'jfile pdf';
 
                 insertNodeAtCaret(newImage);
-
-                // Image content
-                newImage.content = data.result.substr(data.result.indexOf(',') + 1);
+                jSuites.files[newImage.src] = data.result.substr(data.result.indexOf(',') + 1);
             });
         }
-    }
-
-    obj.getFiles = function() {
-        return jSuites.files(editor).get();
     }
 
     obj.addImage = function(src, name, size, date) {
@@ -488,10 +459,7 @@ jSuites.editor = (function(el, options) {
                     var content = canvas.toDataURL();
                     insertNodeAtCaret(newImage);
 
-                    // Image content
-                    newImage.content = content.substr(content.indexOf(',') + 1);
-
-                    change();
+                    jSuites.files[newImage.src] = content.substr(content.indexOf(',') + 1);
                 });
             };
 
@@ -621,9 +589,9 @@ jSuites.editor = (function(el, options) {
                 editorAction = true;
             }
         } else { 
-            if (e.target.classList.contains('jsnippet')) {
+            if (e.target.classList.contains('snippet')) {
                 close(e.target);
-            } else if (e.target.parentNode.classList.contains('jsnippet')) {
+            } else if (e.target.parentNode.classList.contains('snippet')) {
                 close(e.target.parentNode);
             }
 
@@ -632,7 +600,7 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.tagName == 'IMG' && obj.options.allowImageResize == true) {
+        if (e.target.tagName == 'IMG') {
             if (e.target.getAttribute('tabindex')) {
                 var rect = e.target.getBoundingClientRect();
                 if (e.clientY - rect.top < 5) {
@@ -677,7 +645,7 @@ jSuites.editor = (function(el, options) {
             if (! newHeight) {
                 if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
                     if (! e.shiftKey) {
-                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y) + 'px';
+                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y);
                     }
                 }
             }
@@ -690,7 +658,7 @@ jSuites.editor = (function(el, options) {
         }
 
         if (typeof(obj.options.onkeyup) == 'function') { 
-            obj.options.onkeyup(el, obj, e);
+            obj.options.onkeyup(e, el);
         }
     }
 
@@ -701,61 +669,62 @@ jSuites.editor = (function(el, options) {
             verifyEditor();
         }
 
+        // Closable
+        if (typeof(obj.options.onenter) == 'function' && e.which == 13) {
+            var data = obj.getData();
+            obj.options.onenter(obj, el, data, e);
+        }
+
         if (typeof(obj.options.onkeydown) == 'function') { 
-            obj.options.onkeydown(el, obj, e);
+            obj.options.onkeydown(e, el);
         }
     }
 
     var editorPaste = function(e) {
-        if (obj.options.filterPaste == true) {
-            if (e.clipboardData || e.originalEvent.clipboardData) {
-                var html = (e.originalEvent || e).clipboardData.getData('text/html');
-                var text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                var file = (e.originalEvent || e).clipboardData.files
-            } else if (window.clipboardData) {
-                var html = window.clipboardData.getData('Html');
-                var text = window.clipboardData.getData('Text');
-                var file = window.clipboardData.files
-            }
-
-            if (file.length) {
-                // Paste a image from the clipboard
-                obj.addFile(file);
-            } else {
-                // Paste text
-                text = text.split('\r\n');
-                var str = '';
-                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
-                    for (var i = 0; i < text.length; i++) {
-                        var tmp = document.createElement('div');
-                        if (text[i]) {
-                            tmp.innerText = text[i];
-                        } else {
-                            tmp.innerHTML = '<br/>';
-                        }
-                        e.target.appendChild(tmp);
-                    }
-                } else {
-                    var content = document.createElement('div');
-                    for (var i = 0; i < text.length; i++) {
-                        if (text[i]) {
-                            var div = document.createElement('div');
-                            div.innerText = text[i];
-                            content.appendChild(div);
-                        }
-                    }
-                    // Insert text
-                    document.execCommand('insertHtml', false, content.innerHTML);
-                }
-
-                // Extra images from the paste
-                if (obj.options.acceptImages == true) {
-                    extractImageFromHtml(html);
-                }
-            }
-
-            e.preventDefault();
+        if (e.clipboardData || e.originalEvent.clipboardData) {
+            var html = (e.originalEvent || e).clipboardData.getData('text/html');
+            var text = (e.originalEvent || e).clipboardData.getData('text/plain');
+            var file = (e.originalEvent || e).clipboardData.files
+        } else if (window.clipboardData) {
+            var html = window.clipboardData.getData('Html');
+            var text = window.clipboardData.getData('Text');
+            var file = window.clipboardData.files
         }
+
+        if (file.length) {
+            // Paste a image from the clipboard
+            obj.addFile(file);
+        } else {
+            // Paste text
+            text = text.split('\r\n');
+            var str = '';
+            if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
+                for (var i = 0; i < text.length; i++) {
+                    var tmp = document.createElement('div');
+                    if (text[i]) {
+                        tmp.innerHTML = text[i];
+                    } else {
+                        tmp.innerHTML = '<br/>';
+                    }
+                    e.target.appendChild(tmp);
+                }
+            } else {
+                for (var i = 0; i < text.length; i++) {
+                    if (text[i]) {
+                        str += '<div>' + text[i] + "</div>\r\n";
+                    }
+                }
+                // Insert text
+                document.execCommand('insertHtml', false, str);
+            }
+
+            // Extra images from the paste
+            if (obj.options.acceptImages == true) {
+                extractImageFromHtml(html);
+            }
+        }
+
+        e.preventDefault();
     }
 
     var editorDragStart = function(e) {
@@ -818,20 +787,12 @@ jSuites.editor = (function(el, options) {
         }
     }
 
-    var editorBlur = function(e) {
-        // Blur
-        if (typeof(obj.options.onblur) == 'function') {
-            obj.options.onblur(el, obj, e);
-        }
-
-        change(e);
+    var editorBlur = function() {
+        obj.options.onblur(obj, el, obj.getData());
     }
 
-    var editorFocus = function(e) {
-        // Focus
-        if (typeof(obj.options.onfocus) == 'function') {
-            obj.options.onfocus(el, obj, e);
-        }
+    var editorFocus = function() {
+        obj.options.onfocus(obj, el, obj.getData());
     }
 
     editor.addEventListener('mouseup', editorMouseUp);
@@ -844,12 +805,20 @@ jSuites.editor = (function(el, options) {
     editor.addEventListener('dragover', editorDragOver);
     editor.addEventListener('drop', editorDrop);
     editor.addEventListener('paste', editorPaste);
-    editor.addEventListener('focus', editorFocus);
-    editor.addEventListener('blur', editorBlur);
+
+    // Blur
+    if (typeof(obj.options.onblur) == 'function') {
+        editor.addEventListener('blur', editorBlur);
+    }
+
+    // Focus
+    if (typeof(obj.options.onfocus) == 'function') {
+        editor.addEventListener('focus', editorFocus);
+    }
 
     // Onload
     if (typeof(obj.options.onload) == 'function') {
-        obj.options.onload(el, obj, editor);
+        obj.options.onload(el, editor);
     }
 
     // Set value to the editor
@@ -870,12 +839,35 @@ jSuites.editor = (function(el, options) {
 
     // Add toolbar
     if (obj.options.toolbar) {
-        // Create toolbar
-        jSuites.toolbar(toolbar, {
-            container: true,
-            items: obj.options.toolbar
-        });
-        // Append to the DOM
+        for (var i = 0; i < obj.options.toolbar.length; i++) {
+            if (obj.options.toolbar[i].icon) {
+                var item = document.createElement('div');
+                item.style.userSelect = 'none';
+                var itemIcon = document.createElement('i');
+                itemIcon.className = 'material-icons';
+                itemIcon.innerHTML = obj.options.toolbar[i].icon;
+                itemIcon.onclick = (function (a) {
+                    var b = a;
+                    return function () {
+                        obj.options.toolbar[b].onclick(el, obj, this)
+                    };
+                })(i);
+                item.appendChild(itemIcon);
+                toolbar.appendChild(item);
+            } else {
+                if (obj.options.toolbar[i].type == 'divisor') {
+                    var item = document.createElement('div');
+                    item.className = 'jeditor-toolbar-divisor';
+                    toolbar.appendChild(item);
+                } else if (obj.options.toolbar[i].type == 'button') {
+                    var item = document.createElement('div');
+                    item.classList.add('jeditor-toolbar-button');
+                    item.innerHTML = obj.options.toolbar[i].value;
+                    toolbar.appendChild(item);
+                }
+            }
+        }
+
         el.appendChild(toolbar);
     }
 
@@ -883,9 +875,6 @@ jSuites.editor = (function(el, options) {
     if (obj.options.focus) {
         jSuites.editor.setCursor(editor, obj.options.focus == 'initial' ? true : false);
     }
-
-    // Change method
-    el.change = obj.setData;
 
     el.editor = obj;
 
@@ -937,13 +926,13 @@ jSuites.editor.youtubeParser = function(url) {
 jSuites.editor.getDefaultToolbar = function() { 
     return [
         {
-            content: 'undo',
+            icon:'undo',
             onclick: function() {
                 document.execCommand('undo');
             }
         },
         {
-            content: 'redo',
+            icon:'redo',
             onclick: function() {
                 document.execCommand('redo');
             }
@@ -952,7 +941,7 @@ jSuites.editor.getDefaultToolbar = function() {
             type:'divisor'
         },
         {
-            content: 'format_bold',
+            icon:'format_bold',
             onclick: function(a,b,c) {
                 document.execCommand('bold');
 
@@ -964,7 +953,7 @@ jSuites.editor.getDefaultToolbar = function() {
             }
         },
         {
-            content: 'format_italic',
+            icon:'format_italic',
             onclick: function(a,b,c) {
                 document.execCommand('italic');
 
@@ -976,7 +965,7 @@ jSuites.editor.getDefaultToolbar = function() {
             }
         },
         {
-            content: 'format_underline',
+            icon:'format_underline',
             onclick: function(a,b,c) {
                 document.execCommand('underline');
 
@@ -991,7 +980,7 @@ jSuites.editor.getDefaultToolbar = function() {
             type:'divisor'
         },
         {
-            content: 'format_list_bulleted',
+            icon:'format_list_bulleted',
             onclick: function(a,b,c) {
                 document.execCommand('insertUnorderedList');
 
@@ -1003,7 +992,7 @@ jSuites.editor.getDefaultToolbar = function() {
             }
         },
         {
-            content: 'format_list_numbered',
+            icon:'format_list_numbered',
             onclick: function(a,b,c) {
                 document.execCommand('insertOrderedList');
 
@@ -1015,7 +1004,7 @@ jSuites.editor.getDefaultToolbar = function() {
             }
         },
         {
-            content: 'format_indent_increase',
+            icon:'format_indent_increase',
             onclick: function(a,b,c) {
                 document.execCommand('indent', true, null);
 
@@ -1027,30 +1016,18 @@ jSuites.editor.getDefaultToolbar = function() {
             }
         },
         {
-            content: 'format_indent_decrease',
-            onclick: function() {
+            icon:'format_indent_decrease',
+            onclick: function(a,b,c) {
                 document.execCommand('outdent');
 
                 if (document.queryCommandState("outdent")) {
-                    this.classList.add('selected');
+                    c.classList.add('selected');
                 } else {
-                    this.classList.remove('selected');
-                }
-            }
-        }/*,
-        {
-            icon: ['format_align_left', 'format_align_right', 'format_align_center'],
-            onclick: function() {
-                document.execCommand('justifyCenter');
-
-                if (document.queryCommandState("justifyCenter")) {
-                    this.classList.add('selected');
-                } else {
-                    this.classList.remove('selected');
+                    c.classList.remove('selected');
                 }
             }
         }
-        {
+        /*{
             type:'select',
             items: ['Verdana','Arial','Courier New'],
             onchange: function() {

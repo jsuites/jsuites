@@ -1,21 +1,4 @@
-jSuites.ajax = (function(options, complete) {
-    if (Array.isArray(options)) {
-        // Create multiple request controller 
-        var multiple = {
-            instance: [],
-            complete: complete,
-        }
-
-        if (options.length > 0) {
-            for (var i = 0; i < options.length; i++) {
-                options[i].multiple = multiple;
-                multiple.instance.push(jSuites.ajax(options[i]));
-            }
-        }
-
-        return multiple;
-    }
-
+jSuites.ajax = (function(options) {
     if (! options.data) {
         options.data = {};
     }
@@ -24,49 +7,28 @@ jSuites.ajax = (function(options, complete) {
         options.method = options.type;
     }
 
-    // Default method
-    if (! options.method) {
-        options.method = 'GET';
-    }
-
-    // Default type
-    if (! options.dataType) {
-        options.dataType = 'json';
-    }
-
     if (options.data) {
-        // Parse object to variables format
-        var parseData = function(value, key) {
-            var vars = [];
-            var keys = Object.keys(value);
-            if (keys.length) {
-                for (var i = 0; i < keys.length; i++) {
-                    if (key) {
-                        var k = key + '[' + keys[i] + ']';
-                    } else {
-                        var k = keys[i];
-                    }
+        var data = [];
+        var keys = Object.keys(options.data);
 
-                    if (typeof(value[keys[i]]) == 'object') {
-                        var r = parseData(value[keys[i]], k);
-                        var o = Object.keys(r);
-                        for (var j = 0; j < o.length; j++) {
-                            vars[o[j]] = r[o[j]];
+        if (keys.length) {
+            for (var i = 0; i < keys.length; i++) {
+                if (typeof(options.data[keys[i]]) == 'object') {
+                    var o = options.data[keys[i]];
+                    for (var j = 0; j < o.length; j++) {
+                        if (typeof(o[j]) == 'string') {
+                            data.push(keys[i] + '[' + j + ']=' + encodeURIComponent(o[j]));
+                        } else {
+                            var prop = Object.keys(o[j]);
+                            for (var z = 0; z < prop.length; z++) {
+                                data.push(keys[i] + '[' + j + '][' + prop[z] + ']=' + encodeURIComponent(o[j][prop[z]]));
+                            }
                         }
-                    } else {
-                        vars[k] = value[keys[i]];
                     }
+                } else {
+                    data.push(keys[i] + '=' + encodeURIComponent(options.data[keys[i]]));
                 }
             }
-
-            return vars;
-        }
-
-        var data = [];
-        var d = parseData(options.data);
-        var k = Object.keys(d);
-        for (var i = 0; i < k.length; i++) {
-            data.push(k[i] + '=' + encodeURIComponent(d[k[i]]));
         }
 
         if (options.method == 'GET' && data.length > 0) {
@@ -117,7 +79,7 @@ jSuites.ajax = (function(options, complete) {
                     }
                 } catch(err) {
                     if (options.error && typeof(options.error) == 'function') {
-                        options.error(err, result);
+                        options.error(result);
                     }
                 }
             } else {
@@ -133,69 +95,33 @@ jSuites.ajax = (function(options, complete) {
             }
         }
 
-        // Global queue
-        if (jSuites.ajax.queue && jSuites.ajax.queue.length > 0) {
-            jSuites.ajax.send(jSuites.ajax.queue.shift());
-        }
-
         // Global complete method
-        if (jSuites.ajax.requests && jSuites.ajax.requests.length) {
+        if (obj.ajax.requests && obj.ajax.requests.length) {
             // Get index of this request in the container
-            var index = jSuites.ajax.requests.indexOf(httpRequest);
+            var index = obj.ajax.requests.indexOf(httpRequest)
             // Remove from the ajax requests container
-            jSuites.ajax.requests.splice(index, 1);
+            obj.ajax.requests.splice(index, 1);
             // Last one?
-            if (! jSuites.ajax.requests.length) {
-                // Object event
+            if (! obj.ajax.requests.length) {
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
                 }
-                // Global event
-                if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
-                    jSuites.ajax.oncomplete[options.group]();
-                    jSuites.ajax.oncomplete[options.group] = null;
-                }
-            }
-            // Controllers
-            if (options.multiple && options.multiple.instance) {
-                // Get index of this request in the container
-                var index = options.multiple.instance.indexOf(httpRequest);
-                // Remove from the ajax requests container
-                options.multiple.instance.splice(index, 1);
-                // If this is the last one call method complete
-                if (! options.multiple.instance.length) {
-                    if (options.multiple.complete && typeof(options.multiple.complete) == 'function') {
-                        options.multiple.complete(result);
-                    }
-                }
             }
         }
     }
 
-    // Data
-    httpRequest.data = data;
-
-    // Queue
-    if (options.queue == true && jSuites.ajax.requests.length > 0) {
-        jSuites.ajax.queue.push(httpRequest);
-    } else {
-        jSuites.ajax.send(httpRequest)
-    }
-
-    return httpRequest;
-});
-
-jSuites.ajax.send = function(httpRequest) {
-    if (httpRequest.data) {
-        httpRequest.send(httpRequest.data.join('&'));
+    if (data) {
+        httpRequest.send(data.join('&'));
     } else {
         httpRequest.send();
     }
 
-    jSuites.ajax.requests.push(httpRequest);
-}
+    obj.ajax.requests.push(httpRequest);
 
-jSuites.ajax.exists = function(url, __callback) {
+    return httpRequest;
+});
+
+obj.ajax.exists = function(url, __callback) {
     var http = new XMLHttpRequest();
     http.open('HEAD', url, false);
     http.send();
@@ -204,6 +130,6 @@ jSuites.ajax.exists = function(url, __callback) {
     }
 }
 
-jSuites.ajax.oncomplete = {};
-jSuites.ajax.requests = [];
-jSuites.ajax.queue = [];
+obj.ajax.requests = [];
+
+obj.ajax.queue = [];

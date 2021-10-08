@@ -32,41 +32,34 @@ jSuites.contextmenu = (function(el, options) {
             // Create items
             obj.create(items);
         }
-
         // Coordinates
-        if ((obj.options.items && obj.options.items.length > 0) || el.children.length) {
-            if (e.target) {
-                var x = e.clientX;
-                var y = e.clientY;
+        if (e.target) {
+            var x = e.clientX;
+            var y = e.clientY;
+        } else {
+            var x = e.x;
+            var y = e.y;
+        }
+
+        el.classList.add('jcontextmenu-focus');
+        el.focus();
+
+        const rect = el.getBoundingClientRect();
+
+        if (window.innerHeight < y + rect.height) {
+            el.style.top = (y - rect.height) + 'px';
+        } else {
+            el.style.top = y + 'px';
+        }
+
+        if (window.innerWidth < x + rect.width) {
+            if (x - rect.width > 0) {
+                el.style.left = (x - rect.width) + 'px';
             } else {
-                var x = e.x;
-                var y = e.y;
+                el.style.left = '10px';
             }
-
-            el.classList.add('jcontextmenu-focus');
-            el.focus();
-
-            var rect = el.getBoundingClientRect();
-
-            if (window.innerHeight < y + rect.height) {
-                var h = y - rect.height;
-                if (h < 0) {
-                    h = 0;
-                }
-                el.style.top = h + 'px';
-            } else {
-                el.style.top = y + 'px';
-            }
-
-            if (window.innerWidth < x + rect.width) {
-                if (x - rect.width > 0) {
-                    el.style.left = (x - rect.width) + 'px';
-                } else {
-                    el.style.left = '10px';
-                }
-            } else {
-                el.style.left = x + 'px';
-            }
+        } else {
+            el.style.left = x + 'px';
         }
     }
 
@@ -89,112 +82,54 @@ jSuites.contextmenu = (function(el, options) {
 
         // Append items
         for (var i = 0; i < items.length; i++) {
-            var itemContainer = createItemElement(items[i]);
+            if (items[i].type && items[i].type == 'line') {
+                var itemContainer = document.createElement('hr');
+            } else {
+                var itemContainer = document.createElement('div');
+                var itemText = document.createElement('a');
+                itemText.innerHTML = items[i].title;
+
+                if (items[i].disabled) {
+                    itemContainer.className = 'jcontextmenu-disabled';
+                } else if (items[i].onclick) {
+                    itemContainer.method = items[i].onclick;
+                    itemContainer.addEventListener("mouseup", function() {
+                        // Execute method
+                        this.method(this);
+                    });
+                }
+                itemContainer.appendChild(itemText);
+
+                if (items[i].shortcut) {
+                    var itemShortCut = document.createElement('span');
+                    itemShortCut.innerHTML = items[i].shortcut;
+                    itemContainer.appendChild(itemShortCut);
+                }
+            }
+
             el.appendChild(itemContainer);
         }
-    }
-    
-    /**
-     * Private function for create a new Item element
-     * @param {type} item
-     * @returns {jsuitesL#15.jSuites.contextmenu.createItemElement.itemContainer}
-     */
-    function createItemElement(item) {
-        if (item.type && (item.type == 'line' || item.type == 'divisor')) {
-            var itemContainer = document.createElement('hr');
-        } else {
-            var itemContainer = document.createElement('div');
-            var itemText = document.createElement('a');
-            itemText.innerHTML = item.title;
-
-            if (item.tooltip) {
-                itemContainer.setAttribute('title', item.tooltip);
-            }
-
-            if (item.icon) {
-                itemContainer.setAttribute('data-icon', item.icon);
-            }
-
-            if (item.id) {
-                itemContainer.id = item.id;
-            }
-
-            if (item.disabled) {
-                itemContainer.className = 'jcontextmenu-disabled';
-            } else if (item.onclick) {
-                itemContainer.method = item.onclick;
-                itemContainer.addEventListener("mousedown", function(e) {
-                    e.preventDefault();
-                });
-                itemContainer.addEventListener("mouseup", function() {
-                    // Execute method
-                    this.method(this);
-                });
-            }
-            itemContainer.appendChild(itemText);
-
-            if (item.submenu) {
-                var itemIconSubmenu = document.createElement('span');
-                itemIconSubmenu.innerHTML = "&#9658;";
-                itemContainer.appendChild(itemIconSubmenu);
-                itemContainer.classList.add('jcontexthassubmenu');
-                var el_submenu = document.createElement('div');
-                // Class definition
-                el_submenu.classList.add('jcontextmenu');
-                // Focusable
-                el_submenu.setAttribute('tabindex', '900');
-                
-                // Append items
-                var submenu = item.submenu;
-                for (var i = 0; i < submenu.length; i++) {
-                    var itemContainerSubMenu = createItemElement(submenu[i]);
-                    el_submenu.appendChild(itemContainerSubMenu);
-                }
-
-                itemContainer.appendChild(el_submenu);
-            } else if (item.shortcut) {
-                var itemShortCut = document.createElement('span');
-                itemShortCut.innerHTML = item.shortcut;
-                itemContainer.appendChild(itemShortCut);
-            }
-        }
-        return itemContainer;
     }
 
     if (typeof(obj.options.onclick) == 'function') {
         el.addEventListener('click', function(e) {
-            obj.options.onclick(obj, e);
+            obj.options.onclick(obj);
         });
     }
+
+    el.addEventListener('blur', function(e) {
+        setTimeout(function() {
+            obj.close();
+        }, 120);
+    });
+
+    window.addEventListener("mousewheel", function() {
+        obj.close();
+    });
 
     // Create items
     if (obj.options.items) {
         obj.create(obj.options.items);
-    }
-
-    el.addEventListener('blur', function(e) {
-        obj.close();
-    });
-
-    if (! jSuites.contextmenu.hasEvents) {
-        window.addEventListener("mousewheel", function() {
-            obj.close();
-        });
-
-        document.addEventListener("contextmenu", function(e) {
-            var id = jSuites.contextmenu.getElement(e.target);
-            if (id) {
-                var element = document.querySelector('#' + id);
-                if (! element) {
-                    console.error('JSUITES: Contextmenu id not found');
-                } else {
-                    element.contextmenu.open(e);
-                    e.preventDefault();
-                }
-            }
-        });
-
-        jSuites.contextmenu.hasEvents = true;
     }
 
     el.contextmenu = obj;
@@ -219,3 +154,16 @@ jSuites.contextmenu.getElement = function(element) {
 
     return foundId;
 }
+
+document.addEventListener("contextmenu", function(e) {
+    var id = jSuites.contextmenu.getElement(e.target);
+    if (id) {
+        var element = document.querySelector('#' + id);
+        if (! element) {
+            console.error('JSUITES: Contextmenu id not found');
+        } else {
+            element.contextmenu.open(e);
+            e.preventDefault();
+        }
+    }
+});

@@ -5,7 +5,7 @@
     top: 0;
     width: 100%;
     min-height:100%;
-    z-index:10;
+    z-index:10000;
 
     background-color:rgba(0,0,0,0.5);
     -webkit-transition-duration: .1s;
@@ -66,7 +66,7 @@
     padding:4px;
     border-left:1px solid #ccc;
     text-align:center;
-    flex: 1;
+    width:100%;
 }
 .jdialog .jdialog-footer > div:first-child
 {
