@@ -1,7 +1,7 @@
 jSuites.crop = (function(el, options) {
     // Already created, update options
-    if (el.crop) {
-        return el.crop.setOptions(options, true);
+    if (el.classList.contains('jcrop')) {
+        return el.crop.setOptions(options);
     }
 
     // New instance
@@ -51,11 +51,23 @@ jSuites.crop = (function(el, options) {
         var h = obj.options.area[1] / this.naturalHeight;
 
         // Proportion
-        var p = Math.min(h, w);
+        var p = this.naturalHeight > this.naturalWidth ? h : w;
 
         // Image size
         this.width = this.naturalWidth * p;
         this.height = this.naturalHeight * p;
+
+        // Do adjustment
+        canvas.width = obj.options.area[0];
+        canvas.height = obj.options.area[1];
+
+        if (this.width > canvas.width) {
+            canvas.width = this.width;
+        }
+
+        if (this.height > canvas.height) {
+            canvas.height = this.height;
+        }
 
         drawImage();
 
@@ -65,6 +77,8 @@ jSuites.crop = (function(el, options) {
         // Reset selection on desktop only
         if (jSuites.getWindowWidth() > 800) {
             obj.resetCropSelection();
+        } else {
+            crop.classList.add('mobile');
         }
 
         // Onchange
@@ -132,7 +146,7 @@ jSuites.crop = (function(el, options) {
     /**
      * Set options
      */
-    obj.setOptions = function(options, reset) {
+    obj.setOptions = function(options) {
         // Default configuration
         var defaults = {
             area: [ 800, 600 ],
@@ -144,8 +158,8 @@ jSuites.crop = (function(el, options) {
             allowResize: true,
             text: {
                 extensionNotAllowed: 'The extension is not allowed',
-            },
-            eventListeners: {}
+                imageTooSmall: 'The resolution is too low, try a image with a better resolution. width > 800px',
+            }
         };
 
         // Loop through our object
@@ -153,9 +167,7 @@ jSuites.crop = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
+                obj.options[property] = defaults[property];
             }
         }
 
@@ -173,18 +185,13 @@ jSuites.crop = (function(el, options) {
         el.style.width = obj.options.area[0] + 'px';
         el.style.height = obj.options.area[1] + 'px';
 
-        canvas.width = obj.options.area[0];
-        canvas.height = obj.options.area[1];
-
         // Reset all
         obj.reset();
 
         // Initial image
-        if (typeof obj.options.value === 'string') {
+        if (obj.options.value) {
             obj.image.src = obj.options.value;
         }
-
-        return obj;
     }
 
     /**
@@ -226,23 +233,8 @@ jSuites.crop = (function(el, options) {
             greyScale: 0,
             saturation: 0,
         }
-        // Reset file input
-        attachmentInput.value = '';
         // Stop edition
         el.classList.remove('jcrop_edition')
-    }
-
-    var callListeningFunction = function(type) {
-        if (typeof obj.options.eventListeners[type] === 'function') {
-            var types = {
-                zoom: properties.zoom.scale,
-                rotate: properties.rotate,
-                brightness: properties.brightness,
-                contrast: properties.contrast,
-            };
-
-            obj.options.eventListeners[type](types[type]);
-        }
     }
 
     // Apply the contrast on the image data
@@ -269,8 +261,6 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.contrast = val;
         }
-
-        callListeningFunction('contrast');
 
         refreshFilters();
     }
@@ -299,8 +289,6 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.brightness = val;
         }
-
-        callListeningFunction('brightness');
 
         refreshFilters();
     }
@@ -512,9 +500,6 @@ jSuites.crop = (function(el, options) {
         if (value) {
             properties.zoom.scale = value;
         }
-
-        callListeningFunction('zoom');
-
         refreshResizers();
     }
 
@@ -533,8 +518,6 @@ jSuites.crop = (function(el, options) {
         if (! Number.isNaN(parseFloat(val))) {
             properties.rotate = val;
         }
-
-        callListeningFunction('rotate');
 
         refreshResizers();
     }
@@ -860,11 +843,11 @@ jSuites.crop = (function(el, options) {
             // Update scale
             if (e.deltaY > 0) {
                 if (properties.zoom.scale > 0.1) {
-                    properties.zoom.scale *= 0.97;
+                    properties.zoom.scale *= 0.9;
                 }
             } else {
                 if (properties.zoom.scale < 5) {
-                    properties.zoom.scale *= 1.03;
+                    properties.zoom.scale *= 1.1;
                 }
             }
             properties.zoom.scale = parseFloat(properties.zoom.scale.toFixed(2));
@@ -895,9 +878,6 @@ jSuites.crop = (function(el, options) {
             jSuites.click(attachmentInput);
         }
     });
-
-    // Initial options
-    obj.setOptions(options);
 
     // Onchange
     if (typeof(obj.options.onload) == 'function') {
@@ -937,6 +917,9 @@ jSuites.crop = (function(el, options) {
         }
         properties.zoom.fingerDistance = dist2;
     }
+
+    // Initial options
+    obj.setOptions(options);
 
     el.crop = obj;
 

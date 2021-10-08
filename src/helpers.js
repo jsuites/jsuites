@@ -12,7 +12,7 @@ jSuites.focus = function(el) {
 }
 
 jSuites.isNumeric = (function (num) {
-    return !isNaN(num) && num !== null && num !== '';
+    return !isNaN(num) && num != null && num != '';
 });
 
 jSuites.guid = function() {
@@ -22,14 +22,6 @@ jSuites.guid = function() {
     });
 }
 
-jSuites.getNode = function() {
-    var node = document.getSelection().anchorNode;
-    if (node) {
-        return (node.nodeType == 3 ? node.parentNode : node);
-    } else {
-        return null;
-    }
-}
 /**
  * Generate hash from a string
  */
@@ -68,7 +60,7 @@ jSuites.randomColor = function(h) {
 
     // Return hex
     if (h == true) {
-        return '#' + jSuites.two(rgb[0].toString(16)) + jSuites.two(rgb[1].toString(16)) + jSuites.two(rgb[2].toString(16));
+        return '#' + jSuites.two(color[0].toString(16)) + jSuites.two(color[1].toString(16)) + jSuites.two(color[2].toString(16));
     }
 
     return rgb;

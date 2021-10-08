@@ -176,6 +176,7 @@ japp.jwarning .page {
 }
 
 .japp .pages {
+    position: relative;
     display: flex;
     flex-wrap: nowrap;
     align-items: flex-start;
@@ -323,7 +324,7 @@ japp.jwarning .page {
 
 .japp .options .jdropdown .jdropdown-header {
     border: 0px;
-    padding: 0px !important;
+    padding: 0px;
     border-bottom: 1px solid #e6e6e8;
     text-transform: uppercase;
     outline: none;

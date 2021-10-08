@@ -32,10 +32,6 @@
     display:none;
 }
 
-.jtemplate-empty:empty {
-    display:none;
-}
-
 .jtemplate-results {
     margin-top:15px;
     margin-bottom:15px;

@@ -1,7 +1,5 @@
 .jtimeline {
-    overflow: hidden;
     min-height:calc(100vh - 90px);
-    min-width: 300px;
 }
 
 .jtimeline-item {
@@ -39,15 +37,17 @@
 
 .jtimeline-navigation div {
     display:inline-block;
+    background-color:#eee;
+    padding:8px;
     padding-right:12px;
     padding-left:12px;
     margin-left:4px;
-    text-align: center;
-    cursor: pointer;
 }
 
 .jtimeline-navigation i {
-    font-size: 1.5rem !important;
+    width:32px;
+    height:32px;
+    font-size:32px;
     line-height:32px;
     display:inline-block;
 }
@@ -104,7 +104,10 @@
 
 .jtimeline-title {
     font-size:1.4em;
-    max-width:calc(100% - 30px);
+    white-space: nowrap; 
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width:calc(100% - 60px);
 }
 
 .jtimeline-controls {
@@ -162,18 +165,4 @@
     text-align:center;
     padding:20px;
     font-size:0.7em;
-}
-
-.jtimeline-action {
-    cursor: pointer;
-}
-
-@media only screen and (min-width: 992px) {
-    .jtimeline-header {
-        position: relative !important;
-    }
-    
-    .jtimeline-container {
-        padding: 0px !important;
-    }
 }

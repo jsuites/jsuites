@@ -46,10 +46,9 @@
 @media only screen and (max-width: 800px) {
     .jcrop.jcrop_edition .jcrop-area {
         background: none;
-        width: 100% !important;
-        height: 100% !important;
-        top: 0 !important;
-        left: 0 !important;
-        z-index: -1 !important;
+        width: 100vw !important;
+        height: 100vw !important;
+        top: 0px;
+        left: 0px;
     }
 }

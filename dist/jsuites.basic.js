@@ -1,5 +1,5 @@
 /**
- * (c) jSuites Javascript Web Components
+ * (c) jSuites Javascript Web Components (v3.9.3)
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
@@ -17,147 +17,11 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.13';
-
-    var find = function(DOMElement, component) {
-        if (DOMElement[component.type] && DOMElement[component.type] == component) {
-            return true;
-        }
-        if (DOMElement.parentNode) {
-            return find(DOMElement.parentNode, component);
-        }
-        return false;
-    }
-
-    var isOpened = function(e) {
-        if (jSuites.current.length > 0) {
-            for (var i = 0; i < jSuites.current.length; i++) {
-                if (jSuites.current[i] && ! find(e.target, jSuites.current[i])) {
-                    jSuites.current[i].close();
-                }
-            }
-        }
-    }
 
     obj.init = function() {
-        document.addEventListener("click", isOpened);
-
-        obj.version = version;
     }
-
-    obj.setExtensions = function(o) {
-        if (typeof(o) == 'object') {
-            var k = Object.keys(o);
-            for (var i = 0; i < k.length; i++) {
-                obj[k[i]] = o[k[i]];
-            }
-        }
-    }
-
-    obj.tracking = function(component, state) {
-        if (state == true) {
-            jSuites.current = jSuites.current.filter(function(v) {
-                return v !== null;
-            });
-
-            // Start after all events
-            setTimeout(function() {
-                jSuites.current.push(component);
-            }, 0);
-
-        } else {
-            var index = jSuites.current.indexOf(component);
-            if (index >= 0) {
-                jSuites.current[index] = null;
-            }
-        }
-    }
-
-    /**
-     * Get or set a property from a JSON from a string.
-     */
-    obj.path = function(str, val) {
-        str = str.split('.');
-        if (str.length) {
-            var o = this;
-            var p = null;
-            while (str.length > 1) {
-                // Get the property
-                p = str.shift();
-                // Check if the property exists
-                if (o.hasOwnProperty(p)) {
-                    o = o[p];
-                } else {
-                    // Property does not exists
-                    if (val === undefined) {
-                        return undefined;
-                    } else {
-                        // Create the property
-                        o[p] = {};
-                        // Next property
-                        o = o[p];
-                    }
-                }
-            }
-            // Get the property
-            p = str.shift();
-            // Set or get the value
-            if (val !== undefined) {
-                o[p] = val;
-                // Success
-                return true;
-            } else {
-                // Return the value
-                if (o) {
-                    return o[p];
-                }
-            }
-        }
-        // Something went wrong
-        return false;
-    }
-
-    // Update dictionary
-    obj.setDictionary = function(d) {
-        obj.dictionary = d;
-
-        // Translations
-        var t = null;
-        for (var i = 0; i < jSuites.calendar.weekdays.length; i++) {
-            t =  jSuites.translate(jSuites.calendar.weekdays[i]);
-            if (jSuites.calendar.weekdays[i]) {
-                jSuites.calendar.weekdays[i] = t;
-                jSuites.calendar.weekdaysShort[i] = t.substr(0,3);
-            }
-        }
-        for (var i = 0; i < jSuites.calendar.months.length; i++) {
-            t = jSuites.translate(jSuites.calendar.months[i]);
-            if (t) {
-                jSuites.calendar.months[i] = t;
-                jSuites.calendar.monthsShort[i] = t.substr(0,3);
-            }
-        }
-    }
-
-    // Dictionary
-    obj.dictionary = {};
-
-    // Translate
-    obj.translate = function(t) {
-        return obj.dictionary[t] || t;
-    }
-
-    // Array of opened components
-    obj.current = [];
 
     return obj;
-}();
-
-/**
- * Global jsuites event
- */
-if (typeof(document) !== "undefined") {
-    jSuites.init();
 }
 
 jSuites.ajax = (function(options, complete) {
@@ -249,10 +113,6 @@ jSuites.ajax = (function(options, complete) {
     } else {
         if (options.dataType == 'json') {
             httpRequest.setRequestHeader('Content-Type', 'text/json');
-        } else if (options.dataType == 'blob') {
-            httpRequest.responseType = "blob";
-        } else if (options.dataType == 'html') {
-            httpRequest.setRequestHeader('Content-Type', 'text/html');
         }
     }
 
@@ -287,11 +147,7 @@ jSuites.ajax = (function(options, complete) {
                     }
                 }
             } else {
-                if (options.dataType == 'blob') {
-                    var result = httpRequest.response;
-                } else {
-                    var result = httpRequest.responseText;
-                }
+                var result = httpRequest.responseText;
 
                 if (options.success && typeof(options.success) == 'function') {
                     options.success(result);
@@ -299,7 +155,7 @@ jSuites.ajax = (function(options, complete) {
             }
         } else {
             if (options.error && typeof(options.error) == 'function') {
-                options.error(httpRequest.responseText, httpRequest.status);
+                options.error(httpRequest.responseText);
             }
         }
 
@@ -314,23 +170,19 @@ jSuites.ajax = (function(options, complete) {
             var index = jSuites.ajax.requests.indexOf(httpRequest);
             // Remove from the ajax requests container
             jSuites.ajax.requests.splice(index, 1);
-            // Deprected: Last one?
+            // Last one?
             if (! jSuites.ajax.requests.length) {
                 // Object event
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
                 }
-            }
-            // Group requests
-            if (options.group) {
+                // Global event
                 if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
-                    if (! jSuites.ajax.pending(options.group)) {
-                        jSuites.ajax.oncomplete[options.group]();
-                        jSuites.ajax.oncomplete[options.group] = null;
-                    }
+                    jSuites.ajax.oncomplete[options.group]();
+                    jSuites.ajax.oncomplete[options.group] = null;
                 }
             }
-            // Multiple requests controller
+            // Controllers
             if (options.multiple && options.multiple.instance) {
                 // Get index of this request in the container
                 var index = options.multiple.instance.indexOf(httpRequest);
@@ -346,8 +198,6 @@ jSuites.ajax = (function(options, complete) {
         }
     }
 
-    // Keep the options
-    httpRequest.options = options;
     // Data
     httpRequest.data = data;
 
@@ -378,19 +228,6 @@ jSuites.ajax.exists = function(url, __callback) {
     if (http.status) {
         __callback(http.status);
     }
-}
-
-jSuites.ajax.pending = function(group) {
-    var n = 0;
-    var o = jSuites.ajax.requests;
-    if (o && o.length) {
-        for (var i = 0; i < o.length; i++) {
-            if (! group || group == o[i].options.group) {
-                n++
-            }
-        }
-    }
-    return n;
 }
 
 jSuites.ajax.oncomplete = {};
@@ -502,134 +339,262 @@ jSuites.animation.fadeOut = function(element, done) {
 }
 
 jSuites.calendar = (function(el, options) {
-    // Already created, update options
-    if (el.calendar) {
-        return el.calendar.setOptions(options, true);
+    var obj = {};
+    obj.options = {};
+
+    // Global container
+    if (! jSuites.calendar.current) {
+        jSuites.calendar.current = null;
     }
 
-    // New instance
-    var obj = { type:'calendar' };
-    obj.options = {};
+    // Default configuration
+    var defaults = {
+        // Render type: [ default | year-month-picker ]
+        type: 'default',
+        // Restrictions
+        validRange: null,
+        // Starting weekday - 0 for sunday, 6 for saturday
+        startingDay: null, 
+        // Date format
+        format: 'DD/MM/YYYY',
+        // Allow keyboard date entry
+        readonly: true,
+        // Today is default
+        today: false,
+        // Show timepicker
+        time: false,
+        // Show the reset button
+        resetButton: true,
+        // Placeholder
+        placeholder: '',
+        // Translations can be done here
+        months: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        monthsFull: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
+        weekdays: ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'],
+        weekdays_short: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
+        textDone: 'Done',
+        textReset: 'Reset',
+        textUpdate: 'Update',
+        // Value
+        value: null,
+        // Fullscreen (this is automatic set for screensize < 800)
+        fullscreen: false,
+        // Create the calendar closed as default
+        opened: false,
+        // Events
+        onopen: null,
+        onclose: null,
+        onchange: null,
+        onupdate: null,
+        // Internal mode controller
+        mode: null,
+        position: null,
+    };
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Value
+    if (! obj.options.value) {
+        if (el.tagName == 'INPUT' && el.value) {
+            obj.options.value = el.value;
+        }
+    }
 
     // Date
     obj.date = null;
 
-    /**
-     * Update options
-     */
-    obj.setOptions = function(options, reset) {
-        // Default configuration
-        var defaults = {
-            // Render type: [ default | year-month-picker ]
-            type: 'default',
-            // Restrictions
-            validRange: null,
-            // Starting weekday - 0 for sunday, 6 for saturday
-            startingDay: null, 
-            // Date format
-            format: 'DD/MM/YYYY',
-            // Allow keyboard date entry
-            readonly: true,
-            // Today is default
-            today: false,
-            // Show timepicker
-            time: false,
-            // Show the reset button
-            resetButton: true,
-            // Placeholder
-            placeholder: '',
-            // Translations can be done here
-            months: jSuites.calendar.monthsShort,
-            monthsFull: jSuites.calendar.months,
-            weekdays: jSuites.calendar.weekdays,
-            weekdays_short: jSuites.calendar.weekdays,
-            textDone: jSuites.translate('Done'),
-            textReset: jSuites.translate('Reset'),
-            textUpdate: jSuites.translate('Update'),
-            // Value
-            value: null,
-            // Fullscreen (this is automatic set for screensize < 800)
-            fullscreen: false,
-            // Create the calendar closed as default
-            opened: false,
-            // Events
-            onopen: null,
-            onclose: null,
-            onchange: null,
-            onupdate: null,
-            // Internal mode controller
-            mode: null,
-            position: null,
-            // Data type
-            dataType: null,
-        }
+    if (obj.options.value) {
+        obj.date = jSuites.calendar.toArray(obj.options.value);
+    } else {
+        if (obj.options.today) {
+            var date = new Date();
+            var y = date.getFullYear();
+            var m = date.getMonth() + 1;
+            var d = date.getDate();
+            var h = date.getHours();
+            var i = date.getMinutes();
 
-        for (var i = 0; i < defaults.weekdays_short.length; i++) {
-            defaults.weekdays_short[i] = defaults.weekdays_short[i].substr(0,1);
+            obj.date = [ y, m, d, h, i, 0 ];
         }
+    }
 
-        // Loop through our object
-        for (var property in defaults) {
-            if (options && options.hasOwnProperty(property)) {
-                obj.options[property] = options[property];
-            } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
-            }
+    // Calendar elements
+    var calendarReset = document.createElement('div');
+    calendarReset.className = 'jcalendar-reset';
+    calendarReset.innerHTML = obj.options.textReset;
+
+    var calendarConfirm = document.createElement('div');
+    calendarConfirm.className = 'jcalendar-confirm';
+    calendarConfirm.innerHTML = obj.options.textDone;
+
+    var calendarControls = document.createElement('div');
+    calendarControls.className = 'jcalendar-controls'
+    calendarControls.style.borderBottom = '1px solid #ddd';
+
+    if (obj.options.resetButton) {
+        calendarControls.appendChild(calendarReset);
+    }
+    calendarControls.appendChild(calendarConfirm);
+
+    var calendarContainer = document.createElement('div');
+    calendarContainer.className = 'jcalendar-container';
+
+    var calendarContent = document.createElement('div');
+    calendarContent.className = 'jcalendar-content';
+    calendarContainer.appendChild(calendarContent);
+
+    // Main element
+    if (el.tagName == 'DIV') {
+        var calendar = el;
+        calendar.classList.add('jcalendar-inline');
+    } else {
+        // Add controls to the screen
+        calendarContent.appendChild(calendarControls);
+
+        var calendar = document.createElement('div');
+        calendar.className = 'jcalendar';
+    }
+    calendar.appendChild(calendarContainer);
+
+    // Table container
+    var calendarTableContainer = document.createElement('div');
+    calendarTableContainer.className = 'jcalendar-table';
+    calendarContent.appendChild(calendarTableContainer);
+    
+    // Previous button
+    var calendarHeaderPrev = document.createElement('td');
+    calendarHeaderPrev.setAttribute('colspan', '2');
+    calendarHeaderPrev.className = 'jcalendar-prev';
+
+    // Header with year and month
+    var calendarLabelYear = document.createElement('span');
+    calendarLabelYear.className = 'jcalendar-year';
+
+    var calendarLabelMonth = document.createElement('span');
+    calendarLabelMonth.className = 'jcalendar-month';
+
+    var calendarHeaderTitle = document.createElement('td');
+    calendarHeaderTitle.className = 'jcalendar-header';
+    calendarHeaderTitle.setAttribute('colspan', '3');
+    calendarHeaderTitle.appendChild(calendarLabelMonth);
+    calendarHeaderTitle.appendChild(calendarLabelYear);
+
+    var calendarHeaderNext = document.createElement('td');
+    calendarHeaderNext.setAttribute('colspan', '2');
+    calendarHeaderNext.className = 'jcalendar-next';
+
+    var calendarHeaderRow = document.createElement('tr');
+    calendarHeaderRow.appendChild(calendarHeaderPrev);
+    calendarHeaderRow.appendChild(calendarHeaderTitle);
+    calendarHeaderRow.appendChild(calendarHeaderNext);
+
+    var calendarHeader = document.createElement('thead');
+    calendarHeader.appendChild(calendarHeaderRow);
+
+    var calendarBody = document.createElement('tbody');
+    var calendarFooter = document.createElement('tfoot');
+
+    // Calendar table
+    var calendarTable = document.createElement('table');
+    calendarTable.setAttribute('cellpadding', '0');
+    calendarTable.setAttribute('cellspacing', '0');
+    calendarTable.appendChild(calendarHeader);
+    calendarTable.appendChild(calendarBody);
+    calendarTable.appendChild(calendarFooter);
+    calendarTableContainer.appendChild(calendarTable);
+
+    var calendarSelectHour = document.createElement('select');
+    calendarSelectHour.className = 'jcalendar-select';
+    calendarSelectHour.onchange = function() {
+        obj.date[3] = this.value; 
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
         }
+    }
 
-        // Reset button
-        if (obj.options.resetButton == false) {
-            calendarReset.style.display = 'none';
+    for (var i = 0; i < 24; i++) {
+        var element = document.createElement('option');
+        element.value = i;
+        element.innerHTML = jSuites.two(i);
+        calendarSelectHour.appendChild(element);
+    }
+
+    var calendarSelectMin = document.createElement('select');
+    calendarSelectMin.className = 'jcalendar-select';
+    calendarSelectMin.onchange = function() {
+        obj.date[4] = this.value;
+
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
+        }
+    }
+
+    for (var i = 0; i < 60; i++) {
+        var element = document.createElement('option');
+        element.value = i;
+        element.innerHTML = jSuites.two(i);
+        calendarSelectMin.appendChild(element);
+    }
+
+    // Footer controls
+    var calendarControlsFooter = document.createElement('div');
+    calendarControlsFooter.className = 'jcalendar-controls';
+
+    var calendarControlsTime = document.createElement('div');
+    calendarControlsTime.className = 'jcalendar-time';
+    calendarControlsTime.style.maxWidth = '140px';
+    calendarControlsTime.appendChild(calendarSelectHour);
+    calendarControlsTime.appendChild(calendarSelectMin);
+
+    var calendarControlsUpdateButton = document.createElement('input');
+    calendarControlsUpdateButton.setAttribute('type', 'button');
+    calendarControlsUpdateButton.className = 'jcalendar-update';
+    calendarControlsUpdateButton.value = obj.options.textUpdate;
+
+    var calendarControlsUpdate = document.createElement('div');
+    calendarControlsUpdate.style.flexGrow = '10';
+    calendarControlsUpdate.appendChild(calendarControlsUpdateButton);
+    calendarControlsFooter.appendChild(calendarControlsTime);
+    
+    // Only show the update button for input elements
+    if (el.tagName == 'INPUT') {
+        calendarControlsFooter.appendChild(calendarControlsUpdate);
+    }
+
+    calendarContent.appendChild(calendarControlsFooter);
+
+    var calendarBackdrop = document.createElement('div');
+    calendarBackdrop.className = 'jcalendar-backdrop';
+    calendar.appendChild(calendarBackdrop);
+
+    // Update actions button
+    var updateActions = function() {
+        var currentDay = calendar.querySelector('.jcalendar-selected');
+
+        if (currentDay && currentDay.classList.contains('jcalendar-disabled')) {
+            calendarControlsUpdateButton.setAttribute('disabled', 'disabled');
+            calendarSelectHour.setAttribute('disabled', 'disabled');
+            calendarSelectMin.setAttribute('disabled', 'disabled');
         } else {
-            calendarReset.style.display = '';
+            calendarControlsUpdateButton.removeAttribute('disabled');
+            calendarSelectHour.removeAttribute('disabled');
+            calendarSelectMin.removeAttribute('disabled');
         }
 
-        // Readonly
-        if (obj.options.readonly) {
-            el.setAttribute('readonly', 'readonly');
-        } else {
-            el.removeAttribute('readonly');
+        // Event
+        if (typeof(obj.options.onupdate) == 'function') {
+            obj.options.onupdate(el, obj.getValue());
         }
-
-        // Placeholder
-        if (obj.options.placeholder) {
-            el.setAttribute('placeholder', obj.options.placeholder);
-        } else {
-            el.removeAttribute('placeholder');
-        }
-
-        if (jSuites.isNumeric(obj.options.value) && obj.options.value > 0) {
-            obj.options.value = jSuites.calendar.numToDate(obj.options.value);
-            // Data type numberic
-            obj.options.dataType = 'numeric';
-        }
-
-        // Texts
-        calendarReset.innerHTML = obj.options.textReset;
-        calendarConfirm.innerHTML = obj.options.textDone;
-        calendarControlsUpdateButton.innerHTML = obj.options.textUpdate;
-
-        // Define mask
-        el.setAttribute('data-mask', obj.options.format.toLowerCase());
-
-        // Value
-        if (! obj.options.value && obj.options.today) {
-            var value = jSuites.calendar.now();
-        } else {
-            var value = obj.options.value;
-        }
-
-        // Set internal date
-        if (value) {
-            // Force the update
-            obj.options.value = null;
-            // New value
-            obj.setValue(value);
-        }
-
-        return obj;
     }
 
     /**
@@ -638,13 +603,8 @@ jSuites.calendar = (function(el, options) {
     obj.open = function (value) {
         if (! calendar.classList.contains('jcalendar-focus')) {
             if (! calendar.classList.contains('jcalendar-inline')) {
-                // Current
-                jSuites.calendar.current = obj;
-                // Start tracking
-                jSuites.tracking(obj, true);
-                // Create the days
                 obj.getDays();
-                // Render months
+                // Get content
                 if (obj.options.type == 'year-month-picker') {
                     obj.getMonths();
                 }
@@ -654,17 +614,21 @@ jSuites.calendar = (function(el, options) {
                     calendarSelectMin.value = obj.date[4];
                 }
 
+                if (jSuites.calendar.current) {
+                    jSuites.calendar.current.close();
+                }
+                // Current
+                jSuites.calendar.current = obj;
                 // Show calendar
                 calendar.classList.add('jcalendar-focus');
 
                 // Get the position of the corner helper
                 if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen) {
+                    // Full
                     calendar.classList.add('jcalendar-fullsize');
                     // Animation
                     jSuites.animation.slideBottom(calendarContent, 1);
                 } else {
-                    calendar.classList.remove('jcalendar-fullsize');
-
                     var rect = el.getBoundingClientRect();
                     var rectContent = calendarContent.getBoundingClientRect();
 
@@ -678,20 +642,9 @@ jSuites.calendar = (function(el, options) {
                         calendarContainer.style.left = rect.left + 'px';
                     } else {
                         if (window.innerHeight < rect.bottom + rectContent.height) {
-                            var d = -1 * (rect.height + rectContent.height + 2);
-                            if (d + rect.top < 0) {
-                                d = -1 * (rect.top + rect.height);
-                            }
-                            calendarContainer.style.top = d + 'px';
+                            calendarContainer.style.bottom = (1 * rect.height + rectContent.height + 2) + 'px';
                         } else {
                             calendarContainer.style.top = 2 + 'px'; 
-                        }
-
-                        if (window.innerWidth < rect.left + rectContent.width) {
-                            var d = window.innerWidth - (rect.left + rectContent.width + 20);
-                            calendarContainer.style.left = d + 'px';
-                        } else {
-                            calendarContainer.style.left = '0px'; 
                         }
                     }
                 }
@@ -705,7 +658,10 @@ jSuites.calendar = (function(el, options) {
     }
 
     obj.close = function (ignoreEvents, update) {
-        if (calendar.classList.contains('jcalendar-focus')) {
+        if (jSuites.calendar.current) {
+            // Current
+            jSuites.calendar.current = null;
+
             if (update !== false) {
                 var element = calendar.querySelector('.jcalendar-selected');
 
@@ -724,12 +680,9 @@ jSuites.calendar = (function(el, options) {
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
+
             // Hide
             calendar.classList.remove('jcalendar-focus');
-            // Stop tracking
-            jSuites.tracking(obj, false);
-            // Current
-            jSuites.calendar.current = null;
         }
 
         return obj.options.value;
@@ -807,25 +760,20 @@ jSuites.calendar = (function(el, options) {
 
         if (oldValue != newValue) {
             // Set label
-            if (! newValue) {
-                obj.date = null;
-                var val = '';
-            } else {
-                var value = obj.setLabel(newValue, obj.options);
-                var date = newValue.split(' ');
-                if (! date[1]) {
-                    date[1] = '00:00:00';
-                }
-                var time = date[1].split(':')
-                var date = date[0].split('-');
-                var y = parseInt(date[0]);
-                var m = parseInt(date[1]);
-                var d = parseInt(date[2]);
-                var h = parseInt(time[0]);
-                var i = parseInt(time[1]);
-                obj.date = [ y, m, d, h, i, 0 ];
-                var val = obj.setLabel(newValue, obj.options);
+            var value = obj.setLabel(newValue, obj.options);
+            var date = newValue.split(' ');
+            if (! date[1]) {
+                date[1] = '00:00:00';
             }
+            var time = date[1].split(':')
+            var date = date[0].split('-');
+            var y = parseInt(date[0]);
+            var m = parseInt(date[1]);
+            var d = parseInt(date[2]);
+            var h = parseInt(time[0]);
+            var i = parseInt(time[1]);
+            obj.date = [ y, m, d, h, i, 0 ];
+            var val = obj.setLabel(newValue, obj.options);
 
             // New value
             obj.options.value = newValue;
@@ -899,7 +847,6 @@ jSuites.calendar = (function(el, options) {
     obj.reset = function() {
         // Close calendar
         obj.setValue('');
-        obj.date = null;
         obj.close(false, false);
     }
 
@@ -1059,14 +1006,20 @@ jSuites.calendar = (function(el, options) {
 
         // Current date
         var date = new Date();
-        var currentYear = parseInt(date.getFullYear());
-        var currentMonth = parseInt(date.getMonth()) + 1;
-        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : currentYear;
-        var selectedMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : currentMonth;
+        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
+        var selectedMonth = obj.date && jSuites.isNumeric(obj.date[1]) ? obj.date[1] : parseInt(date.getMonth()) + 1;
+
+        if (! value) {
+            value = parseInt(date.getFullYear()) + '-' + jSuites.two(parseInt(date.getMonth()) + 1);
+        }
+        value = value.substr(0, 10).split('-');
 
         // Update title
         calendarLabelYear.innerHTML = obj.date[0];
-        calendarLabelMonth.innerHTML = months[selectedMonth-1];
+        calendarLabelMonth.innerHTML = '';
+
+        var currentYear = parseInt(date.getFullYear());
+        var currentMonth = parseInt(date.getMonth());
 
         // Table
         var table = document.createElement('table');
@@ -1109,11 +1062,11 @@ jSuites.calendar = (function(el, options) {
                 }
             }
 
-            if (i+1 == selectedMonth) {
+            if (selectedYear == value[0] && i+1 == value[1]) {
                 cell.classList.add('jcalendar-selected');
             }
 
-            if (currentYear == selectedYear && i+1 == currentMonth) {
+            if (currentYear == selectedYear && currentMonth == i) {
                 cell.style.fontWeight = 'bold';
             }
 
@@ -1131,47 +1084,25 @@ jSuites.calendar = (function(el, options) {
         // Mode
         obj.options.mode = 'years';
 
-        // Current date
-        var date = new Date();
-        var currentYear = date.getFullYear();
-        var selectedYear = obj.date && jSuites.isNumeric(obj.date[0]) ? obj.date[0] : parseInt(date.getFullYear());
-
         // Array of years
         var y = [];
-        for (var i = 0; i < 25; i++) {
+        for (i = 0; i < 25; i++) {
             y[i] = parseInt(obj.date[0]) + (i - 12);
         }
 
         // Assembling the year tables
-        var table = document.createElement('table');
-        table.setAttribute('width', '100%');
+        var html = '<td colspan="7"><table width="100%"><tr align="center">';
 
-        for (var i = 0; i < 25; i++) {
-            if (! (i % 5)) {
-                // Reset cells container
-                var row = document.createElement('tr');
-                row.setAttribute('align', 'center');
-                table.appendChild(row);
+        for (i = 0; i < 25; i++) {
+            if ((i > 0) && (!(i % 5))) {
+                html += '</tr><tr align="center">';
             }
-
-            // Create cell
-            var cell = document.createElement('td');
-            cell.classList.add('jcalendar-set-year');
-            cell.innerText = y[i];
-
-            if (selectedYear == y[i]) {
-                cell.classList.add('jcalendar-selected');
-            }
-
-            if (currentYear == y[i]) {
-                cell.style.fontWeight = 'bold';
-            }
-
-            row.appendChild(cell);
+            html += '<td class="jcalendar-set-year">'+ y[i] +'</td>';
         }
 
-        calendarBody.innerHTML = '<tr><td colspan="7"></td></tr>';
-        calendarBody.firstChild.firstChild.appendChild(table);
+        html += '</tr></table></td>';
+
+        calendarBody.innerHTML = html;
 
         // Update
         updateActions();
@@ -1186,45 +1117,64 @@ jSuites.calendar = (function(el, options) {
     }
 
     var mouseUpControls = function(e) {
-        var element = jSuites.findElement(e.target, 'jcalendar-container');
-        if (element) {
-            var action = e.target.className;
+        var action = e.target.className;
 
-            // Object id
-            if (action == 'jcalendar-prev') {
-                obj.prev();
-            } else if (action == 'jcalendar-next') {
-                obj.next();
-            } else if (action == 'jcalendar-month') {
+        // Object id
+        if (action == 'jcalendar-prev') {
+            obj.prev();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-next') {
+            obj.next();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-month') {
+            obj.getMonths();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-year') {
+            obj.getYears();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-set-year') {
+            obj.date[0] = e.target.innerText;
+            if (obj.options.type == 'year-month-picker') {
                 obj.getMonths();
-            } else if (action == 'jcalendar-year') {
-                obj.getYears();
-            } else if (action == 'jcalendar-set-year') {
-                obj.date[0] = e.target.innerText;
-                if (obj.options.type == 'year-month-picker') {
-                    obj.getMonths();
-                } else {
-                    obj.getDays();
-                }
-            } else if (e.target.classList.contains('jcalendar-set-month')) {
-                var month = parseInt(e.target.getAttribute('data-value'));
-                if (obj.options.type == 'year-month-picker') {
-                    obj.update(e.target, month);
-                } else {
-                    obj.date[1] = month;
-                    obj.getDays();
-                }
-            } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update' || action == 'jcalendar-close') {
-                obj.close();
-            } else if (action == 'jcalendar-backdrop') {
-                obj.close(false, false);
-            } else if (action == 'jcalendar-reset') {
-                obj.reset();
-            } else if (e.target.classList.contains('jcalendar-set-day') && e.target.innerText) {
-                obj.update(e.target);
+            } else {
+                obj.getDays();
             }
-        } else {
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (e.target.classList.contains('jcalendar-set-month')) {
+            if (obj.options.type == 'year-month-picker') {
+                obj.update(e.target, parseInt(e.target.getAttribute('data-value')));
+            } else {
+                obj.getDays();
+            }
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update') {
             obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-close') {
+            obj.close();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-backdrop') {
+            obj.close(false, false);
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (action == 'jcalendar-reset') {
+            obj.reset();
+            e.stopPropagation();
+            e.preventDefault();
+        } else if (e.target.classList.contains('jcalendar-set-day')) {
+            if (e.target.innerText) {
+                obj.update(e.target);
+                e.stopPropagation();
+                e.preventDefault();
+            }
         }
     }
 
@@ -1232,295 +1182,112 @@ jSuites.calendar = (function(el, options) {
         if (e.target.value && e.target.value.length > 3) {
             var test = jSuites.calendar.extractDateFromString(e.target.value, obj.options.format);
             if (test) {
-                obj.setValue(test);
+                if (e.target.getAttribute('data-completed') == 'true') {
+                    obj.setValue(test);
+                }
             }
         }
     }
 
-    // Update actions button
-    var updateActions = function() {
-        var currentDay = calendar.querySelector('.jcalendar-selected');
+    // Handle events
+    el.addEventListener("keyup", keyUpControls);
 
-        if (currentDay && currentDay.classList.contains('jcalendar-disabled')) {
-            calendarControlsUpdateButton.setAttribute('disabled', 'disabled');
-            calendarSelectHour.setAttribute('disabled', 'disabled');
-            calendarSelectMin.setAttribute('disabled', 'disabled');
-        } else {
-            calendarControlsUpdateButton.removeAttribute('disabled');
-            calendarSelectHour.removeAttribute('disabled');
-            calendarSelectMin.removeAttribute('disabled');
-        }
+    // Add global events
+    calendar.addEventListener("swipeleft", function(e) {
+        jSuites.animation.slideLeft(calendarTable, 0, function() {
+            obj.next();
+            jSuites.animation.slideRight(calendarTable, 1);
+        });
+        e.preventDefault();
+        e.stopPropagation();
+    });
 
-        // Event
-        if (typeof(obj.options.onupdate) == 'function') {
-            obj.options.onupdate(el, obj.getValue());
-        }
+    calendar.addEventListener("swiperight", function(e) {
+        jSuites.animation.slideRight(calendarTable, 0, function() {
+            obj.prev();
+            jSuites.animation.slideLeft(calendarTable, 1);
+        });
+        e.preventDefault();
+        e.stopPropagation();
+    });
+
+    if ('ontouchend' in document.documentElement === true) {
+        calendar.addEventListener("touchend", mouseUpControls);
+
+        el.addEventListener("touchend", function(e) {
+            obj.open();
+        });
+    } else {
+        calendar.addEventListener("mouseup", mouseUpControls);
+
+        el.addEventListener("mouseup", function(e) {
+            obj.open();
+        });
     }
 
-    var calendar = null;
-    var calendarReset = null;
-    var calendarConfirm = null;
-    var calendarContainer = null;
-    var calendarContent = null;
-    var calendarLabelYear = null;
-    var calendarLabelMonth = null;
-    var calendarTable = null;
-    var calendarBody = null;
-
-    var calendarControls = null;
-    var calendarControlsTime = null;
-    var calendarControlsUpdate = null;
-    var calendarControlsUpdateButton = null;
-    var calendarSelectHour = null;
-    var calendarSelectMin = null;
-
-    var init = function() {
-        // Get value from initial element if that is an input
-        if (el.tagName == 'INPUT' && el.value) {
-            options.value = el.value;
-        }
-
-        // Calendar DOM elements
-        calendarReset = document.createElement('div');
-        calendarReset.className = 'jcalendar-reset';
-
-        calendarConfirm = document.createElement('div');
-        calendarConfirm.className = 'jcalendar-confirm';
-
-        calendarControls = document.createElement('div');
-        calendarControls.className = 'jcalendar-controls'
-        calendarControls.style.borderBottom = '1px solid #ddd';
-        calendarControls.appendChild(calendarReset);
-        calendarControls.appendChild(calendarConfirm);
-
-        calendarContainer = document.createElement('div');
-        calendarContainer.className = 'jcalendar-container';
-
-        calendarContent = document.createElement('div');
-        calendarContent.className = 'jcalendar-content';
-        calendarContainer.appendChild(calendarContent);
-
-        // Main element
-        if (el.tagName == 'DIV') {
-            calendar = el;
-            calendar.classList.add('jcalendar-inline');
+    if (! jSuites.calendar.hasEvents) {
+        if ('ontouchstart' in document.documentElement === true) {
+            document.addEventListener("touchstart", jSuites.calendar.isOpen);
         } else {
-            // Add controls to the screen
-            calendarContent.appendChild(calendarControls);
-
-            calendar = document.createElement('div');
-            calendar.className = 'jcalendar';
+            document.addEventListener("mousedown", jSuites.calendar.isOpen);
         }
-        calendar.classList.add('jcalendar-container');
-        calendar.appendChild(calendarContainer);
 
-        // Table container
-        var calendarTableContainer = document.createElement('div');
-        calendarTableContainer.className = 'jcalendar-table';
-        calendarContent.appendChild(calendarTableContainer);
-
-        // Previous button
-        var calendarHeaderPrev = document.createElement('td');
-        calendarHeaderPrev.setAttribute('colspan', '2');
-        calendarHeaderPrev.className = 'jcalendar-prev';
-
-        // Header with year and month
-        calendarLabelYear = document.createElement('span');
-        calendarLabelYear.className = 'jcalendar-year';
-        calendarLabelMonth = document.createElement('span');
-        calendarLabelMonth.className = 'jcalendar-month';
-
-        var calendarHeaderTitle = document.createElement('td');
-        calendarHeaderTitle.className = 'jcalendar-header';
-        calendarHeaderTitle.setAttribute('colspan', '3');
-        calendarHeaderTitle.appendChild(calendarLabelMonth);
-        calendarHeaderTitle.appendChild(calendarLabelYear);
-
-        var calendarHeaderNext = document.createElement('td');
-        calendarHeaderNext.setAttribute('colspan', '2');
-        calendarHeaderNext.className = 'jcalendar-next';
-
-        var calendarHeader = document.createElement('thead');
-        var calendarHeaderRow = document.createElement('tr');
-        calendarHeaderRow.appendChild(calendarHeaderPrev);
-        calendarHeaderRow.appendChild(calendarHeaderTitle);
-        calendarHeaderRow.appendChild(calendarHeaderNext);
-        calendarHeader.appendChild(calendarHeaderRow);
-
-        calendarTable = document.createElement('table');
-        calendarBody = document.createElement('tbody');
-        calendarTable.setAttribute('cellpadding', '0');
-        calendarTable.setAttribute('cellspacing', '0');
-        calendarTable.appendChild(calendarHeader);
-        calendarTable.appendChild(calendarBody);
-        calendarTableContainer.appendChild(calendarTable);
-
-        calendarSelectHour = document.createElement('select');
-        calendarSelectHour.className = 'jcalendar-select';
-        calendarSelectHour.onchange = function() {
-            obj.date[3] = this.value; 
-
-            // Event
-            if (typeof(obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue());
+        document.addEventListener("keydown", function(e) {
+            if (e.which == 13) {
+                // ENTER
+                if (jSuites.calendar.current) {
+                    jSuites.calendar.current.close(false, true);
+                }
+            } else if (e.which == 27) {
+                // ESC
+                if (jSuites.calendar.current) {
+                    jSuites.calendar.current.close(false, false);
+                }
             }
-        }
-
-        for (var i = 0; i < 24; i++) {
-            var element = document.createElement('option');
-            element.value = i;
-            element.innerHTML = jSuites.two(i);
-            calendarSelectHour.appendChild(element);
-        }
-
-        calendarSelectMin = document.createElement('select');
-        calendarSelectMin.className = 'jcalendar-select';
-        calendarSelectMin.onchange = function() {
-            obj.date[4] = this.value;
-
-            // Event
-            if (typeof(obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue());
-            }
-        }
-
-        for (var i = 0; i < 60; i++) {
-            var element = document.createElement('option');
-            element.value = i;
-            element.innerHTML = jSuites.two(i);
-            calendarSelectMin.appendChild(element);
-        }
-
-        // Footer controls
-        var calendarControlsFooter = document.createElement('div');
-        calendarControlsFooter.className = 'jcalendar-controls';
-
-        calendarControlsTime = document.createElement('div');
-        calendarControlsTime.className = 'jcalendar-time';
-        calendarControlsTime.style.maxWidth = '140px';
-        calendarControlsTime.appendChild(calendarSelectHour);
-        calendarControlsTime.appendChild(calendarSelectMin);
-
-        calendarControlsUpdateButton = document.createElement('button');
-        calendarControlsUpdateButton.setAttribute('type', 'button');
-        calendarControlsUpdateButton.className = 'jcalendar-update';
-
-        calendarControlsUpdate = document.createElement('div');
-        calendarControlsUpdate.style.flexGrow = '10';
-        calendarControlsUpdate.appendChild(calendarControlsUpdateButton);
-        calendarControlsFooter.appendChild(calendarControlsTime);
-
-        // Only show the update button for input elements
-        if (el.tagName == 'INPUT') {
-            calendarControlsFooter.appendChild(calendarControlsUpdate);
-        }
-
-        calendarContent.appendChild(calendarControlsFooter);
-
-        var calendarBackdrop = document.createElement('div');
-        calendarBackdrop.className = 'jcalendar-backdrop';
-        calendar.appendChild(calendarBackdrop);
-
-        // Handle events
-        el.addEventListener("keyup", keyUpControls);
-
-        // Add global events
-        calendar.addEventListener("swipeleft", function(e) {
-            jSuites.animation.slideLeft(calendarTable, 0, function() {
-                obj.next();
-                jSuites.animation.slideRight(calendarTable, 1);
-            });
-            e.preventDefault();
-            e.stopPropagation();
         });
 
-        calendar.addEventListener("swiperight", function(e) {
-            jSuites.animation.slideRight(calendarTable, 0, function() {
-                obj.prev();
-                jSuites.animation.slideLeft(calendarTable, 1);
-            });
-            e.preventDefault();
-            e.stopPropagation();
-        });
-
-        el.onmouseup = function() {
-            obj.open();
-        }
-
-        if ('ontouchend' in document.documentElement === true) {
-            calendar.addEventListener("touchend", mouseUpControls);
-        } else {
-            calendar.addEventListener("mouseup", mouseUpControls);
-        }
-
-        // Global controls
-        if (! jSuites.calendar.hasEvents) {
-            // Execute only one time
-            jSuites.calendar.hasEvents = true;
-            // Enter and Esc
-            document.addEventListener("keydown", jSuites.calendar.keydown);
-        }
-
-        // Set configuration
-        obj.setOptions(options);
-
-        // Append element to the DOM
-        if (el.tagName == 'INPUT') {
-            el.parentNode.insertBefore(calendar, el.nextSibling);
-            // Add properties
-            el.setAttribute('autocomplete', 'off');
-            // Element
-            el.classList.add('jcalendar-input');
-            // Value
-            el.value = obj.setLabel(obj.getValue(), obj.options);
-        } else {
-            // Get days
-            obj.getDays();
-            // Hour
-            if (obj.options.time) {
-                calendarSelectHour.value = obj.date[3];
-                calendarSelectMin.value = obj.date[4];
-            }
-        }
-
-        // Default opened
-        if (obj.options.opened == true) {
-            obj.open();
-        }
-
-        // Change method
-        el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
-
-        // Keep object available from the node
-        el.calendar = calendar.calendar = obj;
+        jSuites.calendar.hasEvents = true;
     }
 
-    init();
+    // Append element to the DOM
+    if (el.tagName == 'INPUT') {
+        el.parentNode.insertBefore(calendar, el.nextSibling);
+        // Add properties
+        el.setAttribute('autocomplete', 'off');
+        el.setAttribute('data-mask', obj.options.format.toLowerCase());
+
+        if (obj.options.readonly) {
+            el.setAttribute('readonly', 'readonly');
+        }
+        if (obj.options.placeholder) {
+            el.setAttribute('placeholder', obj.options.placeholder);
+        }
+        // Element
+        el.classList.add('jcalendar-input');
+        // Value
+        el.value = obj.setLabel(obj.getValue(), obj.options);
+    } else {
+        // Get days
+        obj.getDays();
+        // Hour
+        if (obj.options.time) {
+            calendarSelectHour.value = obj.date[3];
+            calendarSelectMin.value = obj.date[4];
+        }
+    }
+
+    // Change method
+    el.change = obj.setValue;
+
+    // Keep object available from the node
+    el.calendar = obj;
+
+    if (obj.options.opened == true) {
+        obj.open();
+    }
 
     return obj;
 });
-
-jSuites.calendar.keydown = function(e) {
-    var calendar = null;
-    if (calendar = jSuites.calendar.current) { 
-        if (e.which == 13) {
-            // ENTER
-            calendar.close(false, true);
-        } else if (e.which == 27) {
-            // ESC
-            calendar.close(false, false);
-        }
-    }
-}
 
 jSuites.calendar.prettify = function(d, texts) {
     if (! texts) {
@@ -1568,33 +1335,22 @@ jSuites.calendar.prettifyAll = function() {
         if (elements[i].getAttribute('data-date')) {
             elements[i].innerHTML = jSuites.calendar.prettify(elements[i].getAttribute('data-date'));
         } else {
-            if (elements[i].innerHTML) {
-                elements[i].setAttribute('data-date', elements[i].innerHTML);
-                elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
-            }
+            elements[i].setAttribute('data-date', elements[i].innerHTML);
+            elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
         }
     }
 }
 
 jSuites.calendar.now = function(date, dateOnly) {
-    if (Array.isArray(date)) {
-        var y = date[0];
-        var m = date[1];
-        var d = date[2];
-        var h = date[3];
-        var i = date[4];
-        var s = date[5];
-    } else {
-        if (! date) {
-            var date = new Date();
-        }
-        var y = date.getFullYear();
-        var m = date.getMonth() + 1;
-        var d = date.getDate();
-        var h = date.getHours();
-        var i = date.getMinutes();
-        var s = date.getSeconds();
+    if (! date) {
+        var date = new Date();
     }
+    var y = date.getFullYear();
+    var m = date.getMonth() + 1;
+    var d = date.getDate();
+    var h = date.getHours();
+    var i = date.getMinutes();
+    var s = date.getSeconds();
 
     if (dateOnly == true) {
         return jSuites.two(y) + '-' + jSuites.two(m) + '-' + jSuites.two(d);
@@ -1650,13 +1406,9 @@ jSuites.calendar.extractDateFromString = function(date, format) {
 
     // Get day
     var d = v2.search("DD");
-    if (d >= 0) {
-        d = v1.substr(d,2);
-        if (parseInt(d) != d  || d > 31) {
-            test = 0;
-        }
-    } else {
-        d = '01';
+    d = v1.substr(d,2);
+    if (parseInt(d) != d  || d > 31) {
+        test = 0;
     }
 
     // Get hour
@@ -1700,27 +1452,6 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     return '';
 }
 
-/**
- * Date to number
- */
-jSuites.calendar.dateToNum = function(a, b) {
-    a = new Date(a);
-    if (! b) {
-        b = '1899-12-30 ' + a.getHours() + ':' + a.getMinutes() + ':' + a.getSeconds();
-    }
-    b = new Date(b);
-    var v = a.getTime() - b.getTime();
-    return Math.round(v / 86400000);
-}
-
-/**
- * Number to date
- */
-jSuites.calendar.numToDate = function(value) {
-    var d = new Date(Math.round((value - 25569)*86400*1000));
-    return d.getFullYear() + "-" + jSuites.two(d.getMonth()+1) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
-}
-
 // Helper to convert date into string
 jSuites.calendar.getDateString = function(value, options) {
     if (! options) {
@@ -1728,184 +1459,161 @@ jSuites.calendar.getDateString = function(value, options) {
     }
 
     // Labels
-    if (options && typeof(options) == 'object') {
-        var format = options.format;
-    } else {
+    if (typeof(options) == 'string') {
         var format = options;
+    } else {
+        var format = options.format;
     }
 
+    // Labels
+    if (options && options.weekdays) {
+        var weekdays = options.weekdays;
+    } else {
+        var weekdays = [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ];
+    }
+
+    // Labels
+    if (options && options.months) {
+        var months = options.months;
+    } else {
+        var months = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ];
+    }
+
+    // Labels
+    if (options && options.months) {
+        var monthsFull = options.monthsFull;
+    } else {
+        var monthsFull = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    }
+
+    // Default date format
     if (! format) {
-        format = 'YYYY-MM-DD';
+        format = 'DD/MM/YYYY';
     }
 
-    // Convert to number of hours
-    if (typeof(value) == 'number' && format.indexOf('[h]') >= 0) {
-        var result = parseFloat(24 * Number(value));
-        if (format.indexOf('mm') >= 0) {
-            var h = (''+result).split('.');
-            if (h[1]) {
-                var d = 60 * parseFloat('0.' + h[1])
-                d = parseFloat(d.toFixed(2));
-            } else {
-                var d = 0;
-            }
-            result = parseInt(h[0]) + ':' + jSuites.two(d);
-        }
-        return result;
-    }
-
-    // Date instance
-    if (value instanceof Date) {
-        value = jSuites.calendar.now(value);
-    } else if (value && jSuites.isNumeric(value)) {
-        value = jSuites.calendar.numToDate(value);
-    }
-
-    // Tokens
-    var tokens = [ 'DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.' ];
-
-    // Expression to extract all tokens from the string
-    var e = new RegExp(tokens.join('|'), 'gi');
-    // Extract
-    var t = format.match(e);
-
-    // Compatibility with excel
-    for (var i = 0; i < t.length; i++) {
-        if (t[i].toUpperCase() == 'MM') {
-            // Not a month, correct to minutes
-            if (t[i-1] && t[i-1].toUpperCase().indexOf('H') >= 0) {
-                t[i] = 'mi';
-            } else if (t[i-2] && t[i-2].toUpperCase().indexOf('H') >= 0) {
-                t[i] = 'mi';
-            } else if (t[i+1] && t[i+1].toUpperCase().indexOf('S') >= 0) {
-                t[i] = 'mi';
-            } else if (t[i+2] && t[i+2].toUpperCase().indexOf('S') >= 0) {
-                t[i] = 'mi';
-            }
-        }
-    }
-
-    // Object
-    var o = {
-        tokens: t
-    }
-
-    // Value
     if (value) {
         var d = ''+value;
         var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
         d = d.split(splitStr);
- 
-        var h = 0;
-        var m = 0;
-        var s = 0;
+
+        var h = '';
+        var m = '';
+        var s = '';
 
         if (d[1]) {
             h = d[1].split(':');
-            m = h[1] ? h[1] : 0;
-            s = h[2] ? h[2] : 0;
-            h = h[0] ? h[0] : 0;
+            m = h[1] ? h[1] : '00';
+            s = h[2] ? h[2] : '00';
+            h = h[0] ? h[0] : '00';
+        } else {
+            h = '00';
+            m = '00';
+            s = '00';
         }
 
         d = d[0].split('-');
 
         if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] < 32) {
+            var calendar = new Date(d[0], d[1]-1, d[2]);
 
-            // Data
-            o.data = [ d[0], d[1], d[2], h, m, s ];
+            d[1] = (d[1].length < 2 ? '0' : '') + d[1];
+            d[2] = (d[2].length < 2 ? '0' : '') + d[2];
+            h = (h.length < 2 ? '0' : '') + h;
+            m = (m.length < 2 ? '0' : '') + m;
+            s = (s.length < 2 ? '0' : '') + s;
 
-            // Value
-            o.value = [];
+            // New value
+            value = format;
+            // Legacy
+            value = value.replace('MMM', 'MON');
 
-            // Calendar instance
-            var calendar = new Date(o.data[0], o.data[1]-1, o.data[2], o.data[3], o.data[4], o.data[5]);
+            // Extract tokens
+            var tokens = [ 'YYYY', 'YYY', 'YY', 'Y', 'MM', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON'];
+            var pieces = [];
+            var tmp = value;
 
-            // Get method
-            var get = function(i) {
-                // Token
-                var t = this.tokens[i];
-                // Case token
-                var s = t.toUpperCase();
-                var v = null;
-
-                if (s === 'YYYY') {
-                    v = this.data[0];
-                } else if (s === 'YYY') {
-                    v = this.data[0].substring(1,4);
-                } else if (s === 'YY') {
-                    v = this.data[0].substring(2,4);
-                } else if (s === 'Y') {
-                    v = this.data[0].substring(3,4);
-                } else if (t === 'MON') {
-                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3).toUpperCase();
-                } else if (t === 'mon') {
-                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3).toLowerCase();
-                } else if (t === 'MONTH') {
-                    v = jSuites.calendar.months[calendar.getMonth()].toUpperCase();
-                } else if (t === 'month') {
-                    v = jSuites.calendar.months[calendar.getMonth()].toLowerCase();
-                } else if (s === 'MMMMM') {
-                    v = jSuites.calendar.months[calendar.getMonth()].substr(0, 1);
-                } else if (s === 'MMMM' || t === 'Month') {
-                    v = jSuites.calendar.months[calendar.getMonth()];
-                } else if (s === 'MMM' || t == 'Mon') {
-                    v = jSuites.calendar.months[calendar.getMonth()].substr(0,3);
-                } else if (s === 'MM') {
-                    v = jSuites.two(this.data[1]);
-                } else if (s === 'M') {
-                    v = calendar.getMonth()+1;
-                } else if (t === 'DAY') {
-                    v = jSuites.calendar.weekdays[calendar.getDay()].toUpperCase();
-                } else if (t === 'day') {
-                    v = jSuites.calendar.weekdays[calendar.getDay()].toLowerCase();
-                } else if (s === 'DDDD' || t == 'Day') {
-                    v = jSuites.calendar.weekdays[calendar.getDay()];
-                } else if (s === 'DDD') {
-                    v = jSuites.calendar.weekdays[calendar.getDay()].substr(0,3);
-                } else if (s === 'DD') {
-                    v = jSuites.two(this.data[2]);
-                } else if (s === 'D') {
-                    v = this.data[2];
-                } else if (s === 'Q') {
-                    v = Math.floor((calendar.getMonth() + 3) / 3);
-                } else if (s === 'HH24' || s === 'HH') {
-                    v = jSuites.two(this.data[3]);
-                } else if (s === 'HH12') {
-                    if (this.data[3] > 12) {
-                        v = jSuites.two(this.data[3] - 12);
-                    } else {
-                        v = jSuites.two(this.data[3]);
+            while (tmp) {
+                var t = 0;
+                for (var i = 0; i < tokens.length; i++) {
+                    if (t == 0 && tmp.toUpperCase().indexOf(tokens[i]) === 0) {
+                        t = tokens[i].length;
                     }
-                } else if (s === 'H') {
-                    v = this.data[3];
-                } else if (s === 'MI') {
-                    v = jSuites.two(this.data[4]);
-                } else if (s === 'SS') {
-                    v = jSuites.two(this.data[5]);
-                } else if (s === 'MS') {
-                    v = calendar.getMilliseconds();
-                } else if (s === 'AM/PM') {
-                    if (this.data[3] >= 12) {
-                        v = 'PM';
-                    } else {
-                        v = 'AM';
-                    }
-                } else if (s === 'WD') {
-                    v = jSuites.calendar.weekdays[calendar.getDay()];
                 }
-
-                if (v === null) {
-                    this.value[i] = this.tokens[i];
+                if (t == 0) {
+                    pieces.push(tmp.substr(0, 1));
+                    tmp = tmp.substr(1);
                 } else {
-                    this.value[i] = v;
+                    pieces.push(tmp.substr(0, t));
+                    tmp = tmp.substr(t);
                 }
             }
 
-            for (var i = 0; i < o.tokens.length; i++) {
-                get.call(o, i);
+            // Replace tokens per values
+            var replace = function(k, v, c) {
+                if (c == true) {
+                    for (var i = 0; i < pieces.length; i++) {
+                        if (pieces[i].toUpperCase() == k) {
+                            pieces[i] = v;
+                        }
+                    }
+                } else {
+                    for (var i = 0; i < pieces.length; i++) {
+                        if (pieces[i] == k) {
+                            pieces[i] = v;
+                        }
+                    }
+                }
             }
+
+            replace('YYYY', d[0], true);
+            replace('YYY', d[0].substring(1,4), true);
+            replace('YY', d[0].substring(2,4), true);
+            replace('Y', d[0].substring(3,4), true);
+
+            replace('MM', d[1], true);
+            replace('DD', d[2], true);
+            replace('Q', Math.floor((calendar.getMonth() + 3) / 3), true);
+
+            if (h) {
+                replace('HH24', h);
+            }
+
+            if (h > 12) {
+                replace('HH12', h - 12, true);
+                replace('HH', h - 12, true);
+                replace('AM', 'pm', true);
+                replace('PM', 'pm', true);
+            } else {
+                replace('HH12', h, true);
+                replace('HH', h, true);
+                replace('AM', 'am', true);
+                replace('PM', 'am', true);
+            }
+
+            replace('MI', m, true);
+            replace('SS', s, true);
+            replace('MS', calendar.getMilliseconds(), true);
+
+            // Textual tokens
+            replace('MONTH', monthsFull[calendar.getMonth()].toUpperCase());
+            replace('Month', monthsFull[calendar.getMonth()]);
+            replace('month', monthsFull[calendar.getMonth()].toLowerCase());
+            replace('MON', months[calendar.getMonth()].toUpperCase());
+            replace('MMM', months[calendar.getMonth()].toUpperCase());
+            replace('Mon', months[calendar.getMonth()]);
+            replace('mon', months[calendar.getMonth()].toLowerCase());
+
+            replace('DAY', weekdays[calendar.getDay()].toUpperCase());
+            replace('Day', weekdays[calendar.getDay()]);
+            replace('day', weekdays[calendar.getDay()].toLowerCase());
+            replace('DY', weekdays[calendar.getDay()].substr(0,3).toUpperCase());
+            replace('Dy', weekdays[calendar.getDay()].substr(0,3));
+            replace('dy', weekdays[calendar.getDay()].substr(0,3).toLowerCase());
+            replace('D', weekdays[calendar.getDay()]);
+            replace('WD', weekdays[calendar.getDay()]);
+
             // Put pieces together
-            value = o.value.join('');
+            value = pieces.join('');
         } else {
             value = '';
         }
@@ -1914,21 +1622,23 @@ jSuites.calendar.getDateString = function(value, options) {
     return value;
 }
 
-// Jsuites calendar labels
-jSuites.calendar.weekdays = [ 'Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday' ];
-jSuites.calendar.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-jSuites.calendar.weekdaysShort = [ 'Sun','Mon','Tue','Wed','Thu','Fri','Sat' ];
-jSuites.calendar.monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+jSuites.calendar.isOpen = function(e) {
+    if (jSuites.calendar.current) {
+        if (e.target.className && e.target.className.indexOf('jcalendar') == -1) {
+            jSuites.calendar.current.close(false, false);
+        }
+    }
+}
 
 
 jSuites.color = (function(el, options) {
     // Already created, update options
-    if (el.color) {
-        return el.color.setOptions(options, true);
+    if (el.classList.contains('jcolor')) {
+        return el.color.setOptions(options);
     }
 
     // New instance
-    var obj = { type: 'color' };
+    var obj = {};
     obj.options = {};
 
     var container = null;
@@ -1936,13 +1646,11 @@ jSuites.color = (function(el, options) {
     var content = null;
     var resetButton = null;
     var closeButton = null;
-    var tabs = null;
-    var jsuitesTabs = null;
 
     /**
      * Update options
      */
-    obj.setOptions = function(options, reset) {
+    obj.setOptions = function(options) {
         /**
          * @typedef {Object} defaults
          * @property {(string|Array)} value - Initial value of the compontent
@@ -1966,16 +1674,6 @@ jSuites.color = (function(el, options) {
             doneLabel: 'Done',
             resetLabel: 'Reset',
             fullscreen: false,
-            opened: false,
-        }
-
-        if (! options) {
-            options = {};
-        }
-
-        if (options && ! options.palette) {
-            // Default pallete
-            options.palette = jSuites.palette();
         }
 
         // Loop through our object
@@ -1983,9 +1681,7 @@ jSuites.color = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
+                obj.options[property] = defaults[property];
             }
         }
 
@@ -1997,13 +1693,13 @@ jSuites.color = (function(el, options) {
             closeButton.innerHTML = obj.options.doneLabel;
         }
 
-        // Update the pallete
-        if (obj.options.palette && jsuitesTabs) {
-            jsuitesTabs.updateContent(0, table());
+        if (! obj.options.palette) {
+            // Default pallete
+            obj.options.palette = jSuites.palette();
         }
 
         // Value
-        if (typeof obj.options.value === 'string') {
+        if (obj.options.value) {
             el.value = obj.options.value;
         }
 
@@ -2015,18 +1711,21 @@ jSuites.color = (function(el, options) {
                 el.removeAttribute('placeholder');
             }
         }
-
-        return obj;
     }
 
     /**
      * Open color pallete
      */
     obj.open = function() {
-        if (! container.classList.contains('jcolor-focus')) {
-            // Start tracking
-            jSuites.tracking(obj, true);
+        if (jSuites.color.current) {
+            if (jSuites.color.current != obj) {
+                jSuites.color.current.close();
+            }
+        }
 
+        if (! jSuites.color.current) {
+            // Persist element
+            jSuites.color.current = obj;
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
@@ -2062,20 +1761,10 @@ jSuites.color = (function(el, options) {
                 }
             }
 
+            container.focus();
+
             if (typeof(obj.options.onopen) == 'function') {
                 obj.options.onopen(el);
-            }
-
-            jsuitesTabs.setBorder(jsuitesTabs.getActive());
-
-            // Update sliders
-            if (obj.options.value) {
-                var rgb = HexToRgb(obj.options.value);
-
-                rgbInputs.forEach(function(rgbInput, index) {
-                    rgbInput.value = rgb[index];
-                    rgbInput.dispatchEvent(new Event('input'));
-                });
             }
         }
     }
@@ -2084,18 +1773,17 @@ jSuites.color = (function(el, options) {
      * Close color pallete
      */
     obj.close = function(ignoreEvents) {
-        if (container.classList.contains('jcolor-focus')) {
-            // Remove focus
-            container.classList.remove('jcolor-focus');
-            // Make sure backdrop is hidden
-            backdrop.style.display = '';
-            // Call related events
+        if (jSuites.color.current) {
+            el.focus();
+            jSuites.color.current = null;
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
             }
-            // Stop  the object
-            jSuites.tracking(obj, false);
+            container.classList.remove('jcolor-focus');
         }
+
+        // Make sure backdrop is hidden
+        backdrop.style.display = '';
 
         return obj.options.value;
     }
@@ -2110,7 +1798,6 @@ jSuites.color = (function(el, options) {
 
         if (color != obj.options.value) {
             obj.options.value = color;
-            slidersResult = color;
 
             // Remove current selecded mark
             var selected = container.querySelector('.jcolor-selected');
@@ -2141,10 +1828,10 @@ jSuites.color = (function(el, options) {
                     });
                 }
             }
+        }
 
-            if (obj.options.closeOnChange == true) {
-                obj.close();
-            }
+        if (obj.options.closeOnChange == true) {
+            obj.close();
         }
     }
 
@@ -2157,276 +1844,6 @@ jSuites.color = (function(el, options) {
 
     var backdropClickControl = false;
 
-    // Converts a number in decimal to hexadecimal
-    var decToHex = function(num) {
-        var hex = num.toString(16);
-        return hex.length === 1 ? "0" + hex : hex;
-    }
-
-    // Converts a color in rgb to hexadecimal
-    var rgbToHex = function(r, g, b) {
-        return "#" + decToHex(r) + decToHex(g) + decToHex(b);
-    }
-
-    // Converts a number in hexadecimal to decimal
-    var hexToDec = function(hex) {
-        return parseInt('0x' + hex);
-    }
-
-    // Converts a color in hexadecimal to rgb
-    var HexToRgb = function(hex) {
-        return [hexToDec(hex.substr(1, 2)), hexToDec(hex.substr(3, 2)), hexToDec(hex.substr(5, 2))]
-    }
-
-    var table = function() {
-        // Content of the first tab
-        var tableContainer = document.createElement('div');
-        tableContainer.className = 'jcolor-grid';
-
-        // Cells
-        obj.values = [];
-
-        // Table pallete
-        var t = document.createElement('table');
-        t.setAttribute('cellpadding', '7');
-        t.setAttribute('cellspacing', '0');
-
-        for (var j = 0; j < obj.options.palette.length; j++) {
-            var tr = document.createElement('tr');
-            for (var i = 0; i < obj.options.palette[j].length; i++) {
-                var td = document.createElement('td');
-                var color = obj.options.palette[j][i];
-                if (color.length < 7 && color.substr(0,1) !== '#') {
-                    color = '#' + color;
-                }
-                td.style.backgroundColor = color;
-                td.setAttribute('data-value', color);
-                td.innerHTML = '';
-                tr.appendChild(td);
-
-                // Selected color
-                if (obj.options.value == color) {
-                    td.classList.add('jcolor-selected');
-                }
-
-                // Possible values
-                obj.values[color] = td;
-            }
-            t.appendChild(tr);
-        }
-
-        // Append to the table
-        tableContainer.appendChild(t);
-
-        // Select color
-        tableContainer.addEventListener("mousedown", function(e) {
-            if (e.target.tagName == 'TD') {
-                var value = e.target.getAttribute('data-value');
-                if (value) {
-                    obj.setValue(value);
-                }
-            }
-        });
-
-        return tableContainer;
-    }
-
-    // Canvas where the image will be rendered
-    var canvas = document.createElement('canvas');
-    canvas.width = 200;
-    canvas.height = 160;
-    var context = canvas.getContext("2d");
-
-    var resizeCanvas = function() {
-        // Specifications necessary to correctly obtain colors later in certain positions
-        var m = tabs.firstChild.getBoundingClientRect();
-        canvas.width = m.width - 14;
-        gradient()
-    }
-
-    var gradient = function() {
-        var g = context.createLinearGradient(0, 0, canvas.width, 0);
-        // Create color gradient
-        g.addColorStop(0,    "rgb(255,0,0)");
-        g.addColorStop(0.15, "rgb(255,0,255)");
-        g.addColorStop(0.33, "rgb(0,0,255)");
-        g.addColorStop(0.49, "rgb(0,255,255)");
-        g.addColorStop(0.67, "rgb(0,255,0)");
-        g.addColorStop(0.84, "rgb(255,255,0)");
-        g.addColorStop(1,    "rgb(255,0,0)");
-        context.fillStyle = g;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-        g = context.createLinearGradient(0, 0, 0, canvas.height);
-        g.addColorStop(0,   "rgba(255,255,255,1)");
-        g.addColorStop(0.5, "rgba(255,255,255,0)");
-        g.addColorStop(0.5, "rgba(0,0,0,0)");
-        g.addColorStop(1,   "rgba(0,0,0,1)");
-        context.fillStyle = g;
-        context.fillRect(0, 0, canvas.width, canvas.height);
-    }
-
-    var hsl = function() {
-        var element = document.createElement('div');
-        element.className = "jcolor-hsl";
-
-        var point = document.createElement('div');
-        point.className = 'jcolor-point';
-
-        var div = document.createElement('div');
-        div.appendChild(canvas);
-        div.appendChild(point);
-        element.appendChild(div);
-
-        // Moves the marquee point to the specified position
-        var update = function(buttons, x, y) {
-            if (buttons === 1) {
-                var rect = element.getBoundingClientRect();
-                var left = x - rect.left;
-                var top = y - rect.top;
-                if (left < 0) {
-                    left = 0;
-                }
-                if (top < 0) {
-                    top = 0;
-                }
-                if (left > rect.width) {
-                    left = rect.width;
-                }
-                if (top > rect.height) {
-                    top = rect.height;
-                }
-                point.style.left = left + 'px';
-                point.style.top = top + 'px';
-                var pixel = context.getImageData(left, top, 1, 1).data;
-                slidersResult = rgbToHex(pixel[0], pixel[1], pixel[2]);
-            }
-        }
-
-        // Applies the point's motion function to the div that contains it
-        element.addEventListener('mousedown', function(e) {
-            update(e.buttons, e.clientX, e.clientY);
-        });
-
-        element.addEventListener('mousemove', function(e) {
-            update(e.buttons, e.clientX, e.clientY);
-        });
-
-        element.addEventListener('touchmove', function(e) {
-            update(1, e.changedTouches[0].clientX, e.changedTouches[0].clientY);
-        });
-
-        return element;
-    }
-
-    var slidersResult = '';
-
-    var rgbInputs = [];
-
-    var changeInputColors = function() {
-        if (slidersResult !== '') {
-            for (var j = 0; j < rgbInputs.length; j++) {
-                var currentColor = HexToRgb(slidersResult);
-
-                currentColor[j] = 0;
-
-                var newGradient = 'linear-gradient(90deg, rgb(';
-                newGradient += currentColor.join(', ');
-                newGradient += '), rgb(';
-
-                currentColor[j] = 255;
-
-                newGradient += currentColor.join(', ');
-                newGradient += '))';
-
-                rgbInputs[j].style.backgroundImage = newGradient;
-            }
-        }
-    }
-
-    var sliders = function() {
-        // Content of the third tab
-        var slidersElement = document.createElement('div');
-        slidersElement.className = 'jcolor-sliders';
-
-        var slidersBody = document.createElement('div');
-
-        // Creates a range-type input with the specified name
-        var createSliderInput = function(name) {
-            var inputContainer = document.createElement('div');
-            inputContainer.className = 'jcolor-sliders-input-container';
-
-            var label = document.createElement('label');
-            label.innerText = name;
-
-            var subContainer = document.createElement('div');
-            subContainer.className = 'jcolor-sliders-input-subcontainer';
-
-            var input = document.createElement('input');
-            input.type = 'range';
-            input.min = 0;
-            input.max = 255;
-            input.value = 0;
-
-            inputContainer.appendChild(label);
-            subContainer.appendChild(input);
-
-            var value = document.createElement('div');
-            value.innerText = input.value;
-
-            input.addEventListener('input', function() {
-                value.innerText = input.value;
-            });
-
-            subContainer.appendChild(value);
-            inputContainer.appendChild(subContainer);
-
-            slidersBody.appendChild(inputContainer);
-
-            return input;
-        }
-
-        // Creates red, green and blue inputs
-        rgbInputs = [
-            createSliderInput('Red'),
-            createSliderInput('Green'),
-            createSliderInput('Blue'),
-        ];
-
-        slidersElement.appendChild(slidersBody);
-
-        // Element that prints the current color
-        var slidersResultColor = document.createElement('div');
-        slidersResultColor.className = 'jcolor-sliders-final-color';
-
-        var resultElement = document.createElement('div');
-        resultElement.style.visibility = 'hidden';
-        resultElement.innerText = 'a';
-        slidersResultColor.appendChild(resultElement)
-
-        // Update the element that prints the current color
-        var updateResult = function() {
-            var resultColor = rgbToHex(parseInt(rgbInputs[0].value), parseInt(rgbInputs[1].value), parseInt(rgbInputs[2].value));
-
-            resultElement.innerText = resultColor;
-            resultElement.style.color = resultColor;
-            resultElement.style.removeProperty('visibility');
-
-            slidersResult = resultColor;
-        }
-
-        // Apply the update function to color inputs
-        rgbInputs.forEach(function(rgbInput) {
-            rgbInput.addEventListener('input', function() {
-                updateResult();
-                changeInputColors();
-            });
-        });
-
-        slidersElement.appendChild(slidersResultColor);
-
-        return slidersElement;
-    }
-
     var init = function() {
         // Initial options
         obj.setOptions(options);
@@ -2434,7 +1851,6 @@ jSuites.color = (function(el, options) {
         // Add a proper input tag when the element is an input
         if (el.tagName == 'INPUT') {
             el.classList.add('jcolor-input');
-            el.readOnly = true;
         }
 
         // Table container
@@ -2459,7 +1875,7 @@ jSuites.color = (function(el, options) {
         resetButton  = document.createElement('div');
         resetButton.className = 'jcolor-reset';
         resetButton.innerHTML = obj.options.resetLabel;
-        resetButton.onclick = function(e) {
+        resetButton.onclick = function() {
             obj.setValue('');
             obj.close();
         }
@@ -2469,54 +1885,48 @@ jSuites.color = (function(el, options) {
         closeButton  = document.createElement('div');
         closeButton.className = 'jcolor-close';
         closeButton.innerHTML = obj.options.doneLabel;
-        closeButton.onclick = function(e) {
-            if (jsuitesTabs.getActive() > 0) {
-                obj.setValue(slidersResult);
-            }
+        closeButton.onclick = function() {
             obj.close();
         }
         controls.appendChild(closeButton);
 
-        // Element that will be used to create the tabs
-        tabs = document.createElement('div');
-        content.appendChild(tabs);
+        // Cells
+        obj.values = [];
 
-        // Starts the jSuites tabs component
-        jsuitesTabs = jSuites.tabs(tabs, {
-            animation: true,
-            data: [
-                {
-                    title: 'Grid',
-                    contentElement: table(),
-                },
-                {
-                    title: 'Spectrum',
-                    contentElement: hsl(),
-                },
-                {
-                    title: 'Sliders',
-                    contentElement: sliders(),
+        // Table pallete
+        var table = document.createElement('table');
+        table.setAttribute('cellpadding', '7');
+        table.setAttribute('cellspacing', '0');
+
+        for (var j = 0; j < obj.options.palette.length; j++) {
+            var tr = document.createElement('tr');
+            for (var i = 0; i < obj.options.palette[j].length; i++) {
+                var td = document.createElement('td');
+                var color = obj.options.palette[j][i];
+                if (color.length < 7 && color.substr(0,1) !== '#') {
+                    color = '#' + color;
                 }
-            ],
-            onchange: function(element, instance, index) {
-                if (index === 1) {
-                    resizeCanvas();
-                } else {
-                    var color = slidersResult !== '' ? slidersResult : obj.getValue();
+                td.style.backgroundColor = color;
+                td.setAttribute('data-value', color);
+                td.innerHTML = '';
+                tr.appendChild(td);
 
-                    if (index === 2 && color) {
-                        var rgb = HexToRgb(color);
-
-                        rgbInputs.forEach(function(rgbInput, index) {
-                            rgbInput.value = rgb[index];
-                            rgbInput.dispatchEvent(new Event('input'));
-                        });
-                    }
+                // Selected color
+                if (obj.options.value == color) {
+                    td.classList.add('jcolor-selected');
                 }
-            },
-            palette: 'modern',
-        });
 
+                // Possible values
+                obj.values[color] = td;
+            }
+            table.appendChild(tr);
+        }
+
+        // Possible to focus the container
+        container.setAttribute('tabindex', '900');
+
+        // Append to the table
+        content.appendChild(table);
         container.appendChild(content);
 
         // Insert picker after the element
@@ -2527,52 +1937,68 @@ jSuites.color = (function(el, options) {
         }
 
         /**
+         * Focus
+         */
+        el.addEventListener("focus", function(e) {
+            if (! jSuites.color.current) {
+                obj.open();
+            }
+        });
+        
+        /**
          * If element is focus open the picker
          */
         el.addEventListener("mouseup", function(e) {
-            obj.open();
+            if (! jSuites.color.current) {
+                obj.open();
+            }
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         backdrop.addEventListener("mousedown", function(e) {
             backdropClickControl = true;
+            e.preventDefault();
+            e.stopPropagation();
         });
 
         backdrop.addEventListener("mouseup", function(e) {
-            if (backdropClickControl) {
+            if (backdropClickControl && jSuites.color.current) {
                 obj.close();
                 backdropClickControl = false;
             }
+            e.preventDefault();
+            e.stopPropagation();
         });
 
-        // If the picker is open on the spectrum tab, it changes the canvas size when the window size is changed
-        window.addEventListener('resize', function() {
-            if (container.classList.contains('jcolor-focus') && jsuitesTabs.getActive() == 1) {
-                resizeCanvas();
+        // Select color
+        container.addEventListener("mouseup", function(e) {
+            if (e.target.tagName == 'TD') {
+                jSuites.color.current.setValue(e.target.getAttribute('data-value'));
+                e.preventDefault();
+                e.stopPropagation();
             }
         });
 
-        // Default opened
-        if (obj.options.opened == true) {
-            obj.open();
+        // Close controller
+        if (! jSuites.color.hasEvents) {
+            document.addEventListener("mousedown", function(e) {
+                if (jSuites.color.current) {
+                    var element = jSuites.findElement(e.target, 'jcolor');
+                    if (! element) {
+                        jSuites.color.current.close();
+                    }
+                }
+            });
+
+            jSuites.color.hasEvents = true;
         }
 
         // Change
         el.change = obj.setValue;
 
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
-
         // Keep object available from the node
         el.color = obj;
-
-        // Container shortcut
-        container.color = obj;
     }
 
     init();
@@ -2805,399 +2231,155 @@ jSuites.contextmenu.getElement = function(element) {
 }
 
 jSuites.dropdown = (function(el, options) {
-    // Already created, update options
-    if (el.dropdown) {
-        return el.dropdown.setOptions(options, true);
-    }
-
-    // New instance
-    var obj = { type: 'dropdown' };
+    var obj = {};
     obj.options = {};
 
-    // Success
-    var success = function(data, val) {
-        // Set data
-        if (data && data.length) {
-            // Sort
-            if (obj.options.sortResults !== false) {
-                if(typeof obj.options.sortResults == "function") {
-                    data.sort(obj.options.sortResults);
-                } else {
-                    data.sort(sortData);
-                }
-            }
+    // If the element is a SELECT tag, create a configuration object
+    if (el.tagName == 'SELECT') {
+        var ret = jSuites.dropdown.extractFromDom(el, options);
+        el = ret.el;
+        options = ret.options;
+    }
 
-            obj.setData(data);
+    // Default configuration
+    var defaults = {
+        url: null,
+        data: [],
+        multiple: false,
+        autocomplete: false,
+        remoteSearch: false,
+        lazyLoading: false,
+        type: null,
+        width: null,
+        maxWidth: null,
+        opened: false,
+        value: null,
+        placeholder: '',
+        newOptions: false,
+        position: false,
+        onchange: null,
+        onload: null,
+        onopen: null,
+        onclose: null,
+        onfocus: null,
+        onblur: null,
+        oninsert: null,
+    };
 
-            // Onload method
-            if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data, val);
-            }
-        }
-
-        // Set value
-        if (val) {
-            applyValue(val);
-        }
-
-        // Component value
-        if (val === undefined || val === null) {
-            obj.options.value = '';
-        }
-        el.value = obj.options.value;
-
-        // Open dropdown
-        if (obj.options.opened == true) {
-            obj.open();
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
         }
     }
 
-    
-    // Default sort
-    var sortData = function(itemA, itemB) {
-        var testA, testB;
-        if(typeof itemA == "string") {
-            testA = itemA;
-        } else {
-            if(itemA.text) {
-                testA = itemA.text;
-            } else if(itemA.name) {
-                testA = itemA.name;
-            }
-        }
-        
-        if(typeof itemB == "string") {
-            testB = itemB;
-        } else {
-            if(itemB.text) {
-                testB = itemB.text;
-            } else if(itemB.name) {
-                testB = itemB.name;
-            }
-        }
-        
-        if(typeof testA == "string" || typeof testB == "string") {
-            if(typeof testA != "string") { testA = ""+testA; }
-            if(typeof testB != "string") { testB = ""+testB; }
-            return testA.localeCompare(testB);
-        } else {
-            return testA - testB;
-        }
+    // Global container
+    if (! jSuites.dropdown.current) {
+        jSuites.dropdown.current = null;
     }
 
-    /**
-     * Reset the options for the dropdown
-     */
-    var resetValue = function() {
-        // Reset value container
-        obj.value = {};
-        // Remove selected
-        for (var i = 0; i < obj.items.length; i++) {
-            if (obj.items[i].selected == true) {
-                if (obj.items[i].element) {
-                    obj.items[i].element.classList.remove('jdropdown-selected')
-                }
-                obj.items[i].selected = null;
-            }
-        }
-        // Reset options
-        obj.options.value = '';
+    // Force autocomplete search
+    if (obj.options.remoteSearch == true) {
+        obj.options.autocomplete = true;
     }
 
-    /**
-     * Apply values to the dropdown
-     */
-    var applyValue = function(values) {
-        // Reset the current values
-        resetValue();
+    // Containers
+    obj.items = [];
+    obj.groups = [];
+    obj.value = [];
 
-        // Read values
-        if (values !== null) {
-            if (! values) {
-                if (typeof(obj.value['']) !== 'undefined') {
-                    obj.value[''] = '';
-                }
+    // Search options
+    obj.search = '';
+    obj.results = null;
+    obj.numOfItems = 0;
+
+    // Create dropdown
+    el.classList.add('jdropdown');
+ 
+    if (obj.options.type == 'searchbar') {
+        el.classList.add('jdropdown-searchbar');
+    } else if (obj.options.type == 'list') {
+        el.classList.add('jdropdown-list');
+    } else if (obj.options.type == 'picker') {
+        el.classList.add('jdropdown-picker');
+    } else {
+        if (jSuites.getWindowWidth() < 800) {
+            if (obj.options.autocomplete) {
+                el.classList.add('jdropdown-searchbar');
+                obj.options.type = 'searchbar';
             } else {
-                if (! Array.isArray(values)) {
-                    values = ('' + values).split(';');
-                }
-                for (var i = 0; i < values.length; i++) {
-                    obj.value[values[i]] = '';
-                }
+                el.classList.add('jdropdown-picker');
+                obj.options.type = 'picker';
             }
-        }
-
-        // Update the DOM
-        for (var i = 0; i < obj.items.length; i++) {
-            if (typeof(obj.value[Value(i)]) !== 'undefined') {
-                if (obj.items[i].element) {
-                    obj.items[i].element.classList.add('jdropdown-selected')
-                }
-                obj.items[i].selected = true;
-
-                // Keep label
-                obj.value[Value(i)] = Text(i);
+        } else {
+            if (obj.options.width) {
+                el.style.width = obj.options.width;
+                el.style.minWidth = obj.options.width;
             }
+            el.classList.add('jdropdown-default');
+            obj.options.type = 'default';
         }
-
-        // Global value
-        obj.options.value = Object.keys(obj.value).join(';');
-
-        // Update labels
-        obj.header.value = obj.getText();
     }
 
-    // Get the value of one item
-    var Value = function(k, v) {
-        // Legacy purposes
-        if (! obj.options.format) {
-            var property = 'value';
-        } else {
-            var property = 'id';
-        }
+    // Header container
+    var containerHeader = document.createElement('div');
+    containerHeader.className = 'jdropdown-container-header';
 
-        if (obj.items[k]) {
-            if (v !== undefined) {
-                return obj.items[k].data[property] = v;
-            } else {
-                return obj.items[k].data[property];
-            }
-        }
-
-        return '';
-    }
-
-    // Get the label of one item
-    var Text = function(k, v) {
-        // Legacy purposes
-        if (! obj.options.format) {
-            var property = 'text';
-        } else {
-            var property = 'name';
-        }
-
-        if (obj.items[k]) {
-            if (v !== undefined) {
-                return obj.items[k].data[property] = v;
-            } else {
-                return obj.items[k].data[property];
-            }
-        }
-
-        return '';
-    }
-
-    var getValue = function() {
-        return Object.keys(obj.value);
-    }
-
-    var getText = function() {
-        var data = [];
-        var k = Object.keys(obj.value);
-        for (var i = 0; i < k.length; i++) {
-            data.push(obj.value[k[i]]);
-        }
-        return data;
-    }
-
-    obj.setOptions = function(options, reset) {
-        if (! options) {
-            options = {};
-        }
-
-        // Default configuration
-        var defaults = {
-            url: null,
-            data: [],
-            format: 0,
-            multiple: false,
-            autocomplete: false,
-            remoteSearch: false,
-            lazyLoading: false,
-            type: null,
-            width: null,
-            maxWidth: null,
-            opened: false,
-            value: null,
-            placeholder: '',
-            newOptions: false,
-            position: false,
-            onchange: null,
-            onload: null,
-            onopen: null,
-            onclose: null,
-            onfocus: null,
-            onblur: null,
-            oninsert: null,
-            onbeforeinsert: null,
-            sortResults: false,
-            autofocus: false,
-        }
-
-        // Loop through our object
-        for (var property in defaults) {
-            if (options && options.hasOwnProperty(property)) {
-                obj.options[property] = options[property];
-            } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
-            }
-        }
-
-        // Force autocomplete search
-        if (obj.options.remoteSearch == true || obj.options.type === 'searchbar') {
-            obj.options.autocomplete = true;
-        }
-
-        // New options
-        if (obj.options.newOptions == true) {
-            obj.header.classList.add('jdropdown-add');
-        } else {
-            obj.header.classList.remove('jdropdown-add');
-        }
-
-        // Autocomplete
-        if (obj.options.autocomplete == true) {
-            obj.header.removeAttribute('readonly');
-        } else {
-            obj.header.setAttribute('readonly', 'readonly');
-        }
-
-        // Place holder
-        if (obj.options.placeholder) {
-            obj.header.setAttribute('placeholder', obj.options.placeholder);
-        } else {
-            obj.header.removeAttribute('placeholder');
-        }
-
-        // Remove specific dropdown typing to add again
-        el.classList.remove('jdropdown-searchbar');
-        el.classList.remove('jdropdown-picker');
-        el.classList.remove('jdropdown-list');
-
-        if (obj.options.type == 'searchbar') {
-            el.classList.add('jdropdown-searchbar');
-        } else if (obj.options.type == 'list') {
-            el.classList.add('jdropdown-list');
-        } else if (obj.options.type == 'picker') {
-            el.classList.add('jdropdown-picker');
-        } else {
-            if (jSuites.getWindowWidth() < 800) {
-                if (obj.options.autocomplete) {
-                    el.classList.add('jdropdown-searchbar');
-                    obj.options.type = 'searchbar';
-                } else {
-                    el.classList.add('jdropdown-picker');
-                    obj.options.type = 'picker';
-                }
-            } else {
-                if (obj.options.width) {
-                    el.style.width = obj.options.width;
-                    el.style.minWidth = obj.options.width;
-                } else {
-                    el.style.removeProperty('width');
-                    el.style.removeProperty('min-width');
-                }
-
-                el.classList.add('jdropdown-default');
-                obj.options.type = 'default';
-            }
-        }
-
-        // Close button
-        if (obj.options.type == 'searchbar') {
-            containerHeader.appendChild(closeButton);
-        } else {
-            container.insertBefore(closeButton, container.firstChild);
-        }
-
-        // Load the content
-        if (obj.options.url && ! options.data) {
-            jSuites.ajax({
-                url: obj.options.url,
-                method: 'GET',
-                dataType: 'json',
-                success: function(data) {
-                    if (data) {
-                        success(data, obj.options.value);
-                    }
-                }
-            });
-        } else {
-            success(obj.options.data, obj.options.value);
-        }
-
-        // Return the instance
-        return obj;
-    }
-
-    // Helpers
-    var containerHeader = null;
-    var container = null;
-    var content = null;
-    var closeButton = null;
-    var resetButton = null;
-    var backdrop = null;
-
-    var keyTimer = null;
-
-    /**
-     * Init dropdown
-     */
-    var init = function() {
-        // Do not accept null
-        if (! options) {
-            options = {};
-        }
-
-        // If the element is a SELECT tag, create a configuration object
-        if (el.tagName == 'SELECT') {
-            var ret = jSuites.dropdown.extractFromDom(el, options);
-            el = ret.el;
-            options = ret.options;
-        }
-
-        // Place holder
-        if (! options.placeholder && el.getAttribute('placeholder')) {
-            options.placeholder = el.getAttribute('placeholder');
-        }
-
-        // Value container
-        obj.value = {};
-        // Containers
-        obj.items = [];
-        obj.groups = [];
-        // Search options
-        obj.search = '';
-        obj.results = null;
-
-        // Create dropdown
-        el.classList.add('jdropdown');
-
-        // Header container
-        containerHeader = document.createElement('div');
-        containerHeader.className = 'jdropdown-container-header';
-
-        // Header
-        obj.header = document.createElement('input');
-        obj.header.className = 'jdropdown-header';
-        obj.header.type = 'text';
-        obj.header.setAttribute('autocomplete', 'off');
+    // Header
+    obj.header = document.createElement('input');
+    obj.header.className = 'jdropdown-header';
+    obj.header.setAttribute('autocomplete', 'off');
+    if (typeof(obj.options.onfocus) == 'function') {
         obj.header.onfocus = function() {
-            if (typeof(obj.options.onfocus) == 'function') {
-                obj.options.onfocus(el);
-            }
+            obj.options.onfocus(el);
         }
-
+    }
+    if (typeof(obj.options.onblur) == 'function') {
         obj.header.onblur = function() {
-            if (typeof(obj.options.onblur) == 'function') {
-                obj.options.onblur(el);
-            }
+            obj.options.onblur(el);
         }
+    }
+    
+    if (obj.options.newOptions == true) {
+        obj.header.classList.add('jdropdown-add');
+    }
 
-        obj.header.onkeyup = function(e) {
-            if (obj.options.autocomplete == true && ! keyTimer) {
+    // Container
+    var container = document.createElement('div');
+    container.className = 'jdropdown-container';
+
+    // Dropdown content
+    var content = document.createElement('div');
+    content.className = 'jdropdown-content';
+
+    // Close button
+    var closeButton  = document.createElement('div');
+    closeButton.className = 'jdropdown-close';
+    closeButton.innerHTML = 'Done';
+
+    // Reset button
+    var resetButton  = document.createElement('div');
+    resetButton.className = 'jdropdown-reset';
+    resetButton.innerHTML = 'x';
+    resetButton.onclick = function() {
+        obj.reset();
+        obj.close();
+    }
+
+    // Create backdrop
+    var backdrop  = document.createElement('div');
+    backdrop.className = 'jdropdown-backdrop';
+
+    // Autocomplete
+    if (obj.options.autocomplete == true) {
+        el.setAttribute('data-autocomplete', true);
+
+        // Handler
+        var keyTimer = null;
+        obj.header.addEventListener('keyup', function(e) {
+            if (! keyTimer) {
                 if (obj.search != obj.header.value.trim()) {
                     keyTimer = setTimeout(function() {
                         obj.find(obj.header.value.trim());
@@ -3208,105 +2390,96 @@ jSuites.dropdown = (function(el, options) {
                 if (! el.classList.contains('jdropdown-focus')) {
                     obj.open();
                 }
-            } else {
-                if (! obj.options.autocomplete) {
-                    obj.next(e.key);
-                }
             }
-        }
+        });
+    } else {
+        obj.header.setAttribute('readonly', 'readonly');
+    }
 
-        // Global controls
-        if (! jSuites.dropdown.hasEvents) {
-            // Execute only one time
-            jSuites.dropdown.hasEvents = true;
-            // Enter and Esc
-            document.addEventListener("keydown", jSuites.dropdown.keydown);
-        }
+    // Place holder
+    if (! obj.options.placeholder && el.getAttribute('placeholder')) {
+        obj.options.placeholder = el.getAttribute('placeholder');
+    }
 
-        // Container
-        container = document.createElement('div');
-        container.className = 'jdropdown-container';
+    if (obj.options.placeholder) {
+        obj.header.setAttribute('placeholder', obj.options.placeholder);
+    }
 
-        // Dropdown content
-        content = document.createElement('div');
-        content.className = 'jdropdown-content';
+    // Append elements
+    containerHeader.appendChild(obj.header);
+    if (obj.options.type == 'searchbar') {
+        containerHeader.appendChild(closeButton);
+    } else {
+        container.appendChild(closeButton);
+    }
+    if (! obj.options.type || obj.options.type == 'default') {
+        //containerHeader.appendChild(resetButton);
+    }
+    container.appendChild(content);
+    el.appendChild(containerHeader);
+    el.appendChild(container);
+    el.appendChild(backdrop);
 
-        // Close button
-        closeButton = document.createElement('div');
-        closeButton.className = 'jdropdown-close';
-        closeButton.innerHTML = 'Done';
-
-        // Reset button
-        resetButton = document.createElement('div');
-        resetButton.className = 'jdropdown-reset';
-        resetButton.innerHTML = 'x';
-        resetButton.onclick = function() {
-            obj.reset();
-            obj.close();
-        }
-
-        // Create backdrop
-        backdrop = document.createElement('div');
-        backdrop.className = 'jdropdown-backdrop';
-
-        // Append elements
-        containerHeader.appendChild(obj.header);
-
-        container.appendChild(content);
-        el.appendChild(containerHeader);
-        el.appendChild(container);
-        el.appendChild(backdrop);
-
-        // Set the otiptions
-        obj.setOptions(options);
-
-        if ('ontouchsend' in document.documentElement === true) {
-            el.addEventListener('touchsend', jSuites.dropdown.mouseup);
-        } else {
-            el.addEventListener('mouseup', jSuites.dropdown.mouseup);
-        }
-
-        // Lazyloading
-        if (obj.options.lazyLoading == true) {
-            jSuites.lazyLoading(content, {
-                loadUp: obj.loadUp,
-                loadDown: obj.loadDown,
-            });
-        }
-
-        content.onwheel = function(e) {
-            e.stopPropagation();
-        }
-
-        // Change method
-        el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue(obj.options.multiple ? true : false);
-            } else {
-                obj.setValue(val);
-            }
-        }
-
-        // Keep object available from the node
-        el.dropdown = obj;
+    var filter = function(a) {
+        return a.filter(function(v) {
+            return v;
+        });
     }
 
     /**
-     * Get the current remote source of data URL
+     * Init dropdown
      */
+    obj.init = function() {
+        if (obj.options.url && ! obj.options.data.length) {
+            jSuites.ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    if (data) {
+                        // Set data
+                        obj.setData(data);
+                        // Set value
+                        if (obj.options.value != null) {
+                            obj.setValue(obj.options.value, true);
+                        }
+                        // Onload method
+                        if (typeof(obj.options.onload) == 'function') {
+                            obj.options.onload(el, obj, data);
+                        }
+                    }
+                }
+            });
+        } else {
+            var data = [];
+            if (obj.options.data.length) {
+                for (var j = 0; j < obj.options.data.length; j++) {
+                    data.push(obj.options.data[j]); 
+                }
+            }
+            // Set data
+            obj.setData(data);
+            // Set value
+            if (obj.options.value != null) {
+                obj.setValue(obj.options.value, true);
+            }
+            // Onload
+            if (typeof(obj.options.onload) == 'function') {
+                obj.options.onload(el, obj, obj.options.data);
+            }
+        }
+
+        // Open dropdown
+        if (obj.options.opened == true) {
+            obj.open();
+        }
+    }
+
     obj.getUrl = function() {
         return obj.options.url;
     }
 
-    /**
-     * Set the new data from a remote source
-     * @param {string} url - url from the remote source
-     * @param {function} callback - callback when the data is loaded
-     */
-    obj.setUrl = function(url, callback) {
+    obj.setUrl = function(url) {
         obj.options.url = url;
 
         jSuites.ajax({
@@ -3315,78 +2488,31 @@ jSuites.dropdown = (function(el, options) {
             dataType: 'json',
             success: function(data) {
                 obj.setData(data);
-                // Callback
-                if (typeof(callback) == 'function') {
-                    callback(obj);
-                }
             }
         });
     }
 
     /**
-     * Set ID for one item
-     */
-    obj.setId = function(item, v) {
-        // Legacy purposes
-        if (! obj.options.format) {
-            var property = 'value';
-        } else {
-            var property = 'id';
-        }
-
-        if (typeof(item) == 'object') {
-            item[property] = v;
-        } else {
-            obj.items[item].data[property] = v;
-        }
-    }
-
-    /**
      * Add a new item
-     * @param {string} title - title of the new item
-     * @param {string} id - value/id of the new item
      */
-    obj.add = function(title, id) {
+    obj.add = function(title) {
         if (! title) {
             var current = obj.options.autocomplete == true ? obj.header.value : '';
-            var title = prompt(jSuites.translate('Add A New Option'), current);
+            var title = prompt('Text', current);
             if (! title) {
                 return false;
             }
         }
 
-        // Id
-        if (! id) {
-           id = jSuites.guid();
-        }
-
         // Create new item
-        if (! obj.options.format) {
-            var item = {
-                value: id,
-                text: title,
-            }
-        } else {
-            var item = {
-                id: id,
-                name: title,
-            }
-        }
-
-        // Callback
-        if (typeof(obj.options.onbeforeinsert) == 'function') {
-            var ret = obj.options.onbeforeinsert(obj, item);
-            if (ret === false) {
-                return false;
-            } else if (ret) {
-                item = ret;
-            }
-        }
+        var item = {
+            value: jSuites.guid(),
+            text: title,
+        };
 
         // Add item to the main list
         obj.options.data.push(item);
 
-        // Create DOM
         var newItem = obj.createItem(item);
 
         // Append DOM to the list
@@ -3394,17 +2520,12 @@ jSuites.dropdown = (function(el, options) {
 
         // Callback
         if (typeof(obj.options.oninsert) == 'function') {
-            obj.options.oninsert(obj, item, newItem);
+            obj.options.oninsert(obj, newItem, item)
         }
 
         // Show content
         if (content.style.display == 'none') {
             content.style.display = '';
-        }
-
-        // Search?
-        if (obj.results) {
-            obj.results.push(newItem);
         }
 
         return item;
@@ -3414,52 +2535,29 @@ jSuites.dropdown = (function(el, options) {
      * Create a new item
      */
     obj.createItem = function(data, group, groupName) {
-        // Keep the correct source of data
-        if (! obj.options.format) {
-            if (! data.value && data.id !== undefined) {
-                data.value = data.id;
-                //delete data.id;
-            }
-            if (! data.text && data.name !== undefined) {
-                data.text = data.name;
-                //delete data.name;
-            }
-        } else {
-            if (! data.id && data.value !== undefined) {
-                data.id = data.value;
-                //delete data.value;
-            }
-            if (! data.name && data.text !== undefined) {
-                data.name = data.text
-                //delete data.text;
-            }
+        if (typeof(data.text) == 'undefined' && data.name) {
+            data.text = data.name;
         }
-
+        if (typeof(data.value) == 'undefined' && data.id) {
+            data.value = data.id;
+        }
         // Create item
         var item = {};
         item.element = document.createElement('div');
         item.element.className = 'jdropdown-item';
         item.element.indexValue = obj.items.length;
-        item.data = data;
-
-        // Groupd DOM
-        if (group) {
-            item.group = group; 
-        }
+        item.value = data.value;
+        item.text = data.text;
 
         // Id
         if (data.id) {
             item.element.setAttribute('id', data.id);
         }
 
-        // Disabled
-        if (data.disabled == true) {
-            item.element.setAttribute('data-disabled', true);
-        }
-
-        // Tooltip
-        if (data.tooltip) {
-            item.element.setAttribute('title', data.tooltip);
+        // Group reference
+        if (group) {
+            item.group = group;
+            item.groupName = groupName;
         }
 
         // Image
@@ -3471,17 +2569,6 @@ jSuites.dropdown = (function(el, options) {
                image.classList.add('jdropdown-image-small');
             }
             item.element.appendChild(image);
-        } else if (data.icon) {
-            var icon = document.createElement('span');
-            icon.className = "jdropdown-icon material-icons";
-            icon.innerText = data.icon;
-            if (! data.title) {
-               icon.classList.add('jdropdown-icon-small');
-            }
-            if (data.color) {
-                icon.style.color = data.color;
-            }
-            item.element.appendChild(icon);
         } else if (data.color) {
             var color = document.createElement('div');
             color.className = 'jdropdown-color';
@@ -3490,15 +2577,13 @@ jSuites.dropdown = (function(el, options) {
         }
 
         // Set content
-        if (! obj.options.format) {
-            var text = data.text;
-        } else {
-            var text = data.name;
-        }
-
         var node = document.createElement('div');
         node.className = 'jdropdown-description';
-        node.innerHTML = text || '&nbsp;'; 
+        if (data.text) {
+            node.innerText = data.text;
+        } else {
+            node.innerHTML = '&nbsp;'; 
+        }
 
         // Title
         if (data.title) {
@@ -3506,17 +2591,13 @@ jSuites.dropdown = (function(el, options) {
             title.className = 'jdropdown-title';
             title.innerText = data.title;
             node.appendChild(title);
-        }
 
-        // Set content
-        if (! obj.options.format) {
-            var val = data.value;
-        } else {
-            var val = data.id;
+            // Keep text reference
+            item.title = data.title;
         }
 
         // Value
-        if (obj.value[val]) {
+        if (obj.value && obj.value[data.value]) {
             item.element.classList.add('jdropdown-selected');
             item.selected = true;
         }
@@ -3533,6 +2614,9 @@ jSuites.dropdown = (function(el, options) {
     obj.appendData = function(data) {
         // Create elements
         if (data.length) {
+            // Reset counter
+            obj.numOfItems = 0;
+
             // Helpers
             var items = [];
             var groups = [];
@@ -3549,9 +2633,6 @@ jSuites.dropdown = (function(el, options) {
                     items.push(i);
                 }
             }
-
-            // Number of items counter
-            var counter = 0;
 
             // Groups
             var groupNames = Object.keys(groups);
@@ -3576,9 +2657,9 @@ jSuites.dropdown = (function(el, options) {
                     for (var j = 0; j < groups[groupNames[i]].length; j++) {
                         var item = obj.createItem(data[groups[groupNames[i]][j]], group, groupNames[i]);
 
-                        if (obj.options.lazyLoading == false || counter < 200) {
+                        if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
                             groupContent.appendChild(item.element);
-                            counter++;
+                            obj.numOfItems++;
                         }
                     }
                     // Group itens
@@ -3597,9 +2678,9 @@ jSuites.dropdown = (function(el, options) {
             if (items.length) {
                 for (var i = 0; i < items.length; i++) {
                     var item = obj.createItem(data[items[i]]);
-                    if (obj.options.lazyLoading == false || counter < 200) {
+                    if (obj.options.lazyLoading == false || obj.numOfItems < 200) {
                         content.appendChild(item.element);
-                        counter++;
+                        obj.numOfItems++;
                     }
                 }
             }
@@ -3613,63 +2694,52 @@ jSuites.dropdown = (function(el, options) {
                 // Compatibility
                 if (typeof(data[i]) != 'object') {
                     // Correct format
-                    if (! obj.options.format) {
-                        data[i] = {
-                            value: data[i],
-                            text: data[i]
-                        }
-                    } else {
-                        data[i] = {
-                            id: data[i],
-                            name: data[i]
-                        }
+                    data[i] = {
+                        value: data[i],
+                        text: data[i]
                     }
                 }
             }
-
-            // Reset current value
-            resetValue();
 
             // Make sure the content container is blank
             content.innerHTML = '';
 
             // Reset
-            obj.header.value = '';
+            obj.reset();
 
-            // Reset items and values
+            // Reset items
             obj.items = [];
 
             // Append data
             obj.appendData(data);
-
-            // Update data
-            obj.options.data = data;
         }
-    }
 
-    obj.getData = function() {
-        return obj.options.data;
+        // Update data
+        obj.options.data = data;
     }
 
     /**
      * Get position of the item
      */
-    obj.getPosition = function(val) {
+    obj.getPosition = function(value) {
         for (var i = 0; i < obj.items.length; i++) {
-            if (Value(i) == val) {
+            if (obj.items[i].value == value) {
                 return i;
             }
         }
-        return false;
+
+        return 0;
     }
 
     /**
      * Get dropdown current text
      */
     obj.getText = function(asArray) {
-        // Get value
-        var v = getText();
-        // Return value
+        var v = [];
+        var k = Object.keys(obj.value);
+        for (var i = 0; i < k.length; i++) {
+            v.push(obj.value[k[i]]);
+        }
         if (asArray) {
             return v;
         } else {
@@ -3681,55 +2751,87 @@ jSuites.dropdown = (function(el, options) {
      * Get dropdown current value
      */
     obj.getValue = function(asArray) {
-        // Get value
-        var v = getValue();
-        // Return value
         if (asArray) {
-            return v;
+            return Object.keys(obj.value);
         } else {
-            return v.join(';');
+            return Object.keys(obj.value).join(';');
         }
     }
 
-    /**
-     * Change event
-     */
-    var change = function(oldValue) {
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, oldValue, obj.options.value);
-        }
+    obj.setValue = function(value, ignoreEvents) {
+        var setValue = function(item, value) {
+            if (obj.items[item].value == value) {
+                if (obj.items[item].element) {
+                    obj.items[item].element.classList.add('jdropdown-selected');
+                }
+                obj.items[item].selected = true;
 
-        // Lemonade JS
-        if (el.value != obj.options.value) {
-            el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
-                    target: el,
-                    value: el.value
-                });
+                // Push to the values container
+                obj.value[value] = obj.items[item].text;
             }
         }
-    }
 
-    /**
-     * Set value
-     */
-    obj.setValue = function(newValue) {
-        // Current value
+        // Old value
         var oldValue = obj.getValue();
-        // New value
-        if (Array.isArray(newValue)) {
-            newValue = newValue.join(';')
+
+        // Remove selected
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items[i].selected == true) {
+                if (obj.items[i].element) {
+                    obj.items[i].element.classList.remove('jdropdown-selected')
+                }
+                obj.items[i].selected = null;
+            }
+        } 
+
+        // Reset
+        obj.value = [];
+
+        // Set values
+        if (value !== null) {
+            if (! Array.isArray(value)) {
+                for (var i = 0; i < obj.items.length; i++) {
+                    setValue(i, value);
+                }
+            } else {
+                for (var i = 0; i < obj.items.length; i++) {
+                    for (var j = 0; j < value.length; j++) {
+                        setValue(i, value[j]);
+                    }
+                }
+            }
         }
 
-        if (oldValue !== newValue) {
-            // Set value
-            applyValue(newValue);
+        // New value
+        var newValue = obj.getValue();
 
-            // Change
-            change(oldValue);
+        if (oldValue != newValue) {
+            if (! el.classList.contains('jdropdown-focus')) {
+                // Label
+                obj.header.value = obj.getText();
+            }
+
+            // Value
+            obj.options.value = obj.getValue();
+
+            // Events
+            if (ignoreEvents !== true) {
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, null, oldValue, obj.options.value);
+                }
+            }
+
+            // Lemonade JS
+            if (el.value != obj.options.value) {
+                el.value = obj.options.value;
+                if (typeof(el.onchange) == 'function') {
+                    el.onchange({
+                        type: 'change',
+                        target: el,
+                        value: el.value
+                    });
+                }
+            }
         }
     }
 
@@ -3737,76 +2839,56 @@ jSuites.dropdown = (function(el, options) {
         obj.setValue(null);
     } 
 
-    obj.selectIndex = function(index, force) {
+    obj.selectIndex = function(index) {
         // Make sure is a number
         var index = parseInt(index);
 
         // Only select those existing elements
-        if (obj.items && obj.items[index] && (force === true || obj.items[index].data.disabled !== true)) {
+        if (obj.items && obj.items[index]) {
+            // Current selection
+            var oldValue = obj.getValue();
+
             // Reset cursor to a new position
             obj.setCursor(index, false);
 
             // Behaviour
             if (! obj.options.multiple) {
                 // Update value
-                if (obj.items[index].selected) {
-                    obj.setValue(null);
+                if (! obj.value[obj.items[index].value]) {
+                    obj.setValue(obj.items[index].value);
                 } else {
-                    obj.setValue(Value(index));
+                    obj.setValue(null);
                 }
-
-                // Close component
                 obj.close();
             } else {
-                // Old value
-                var oldValue = obj.options.value;
-
+                var value = Object.keys(obj.value);
                 // Toggle option
                 if (obj.items[index].selected) {
                     obj.items[index].element.classList.remove('jdropdown-selected');
                     obj.items[index].selected = false;
-
-                    delete obj.value[Value(index)];
+                    // Remove from selected list
+                    var i = value.indexOf(''+obj.items[index].value);
+                    if (i != -1) {
+                        value.splice(i, 1);
+                    }
                 } else {
                     // Select element
                     obj.items[index].element.classList.add('jdropdown-selected');
                     obj.items[index].selected = true;
-
-                    // Set value
-                    obj.value[Value(index)] = Text(index);
+                    // Add to the selected list
+                    value.push(obj.items[index].value);
                 }
-
-                // Global value
-                obj.options.value = Object.keys(obj.value).join(';');
 
                 // Update labels for multiple dropdown
-                if (obj.options.autocomplete == false) {
-                    obj.header.value = getText().join('; ');
-                }
-
-                // Events
-                change(oldValue);
+                obj.setValue(value);
             }
         }
     }
 
     obj.selectItem = function(item) {
-        obj.selectIndex(item.indexValue);
-    }
-
-    var exists = function(k, result) {
-        for (var j = 0; j < result.length; j++) {
-            if (! obj.options.format) {
-                if (result[j].value == k) {
-                    return true;
-                }
-            } else {
-                if (result[j].id == k) {
-                    return true;
-                }
-            }
+        if (jSuites.dropdown.current) {
+            obj.selectIndex(item.indexValue);
         }
-        return false;
     }
 
     obj.find = function(str) {
@@ -3817,50 +2899,23 @@ jSuites.dropdown = (function(el, options) {
         // Search term
         obj.search = str;
 
-        // Reset index
-        obj.setCursor();
-
-        // Remove nodes from all groups
-        if (obj.groups.length) {
-            for (var i = 0; i < obj.groups.length; i++) {
-                obj.groups[i].lastChild.innerHTML = '';
-            }
-        }
-
-        // Remove all nodes
-        content.innerHTML = '';
+        // Results
+        obj.numOfItems = 0;
 
         // Remove current items in the remote search
         if (obj.options.remoteSearch == true) {
-            // Reset results
+            obj.currentIndex = null;
             obj.results = null;
-            // URL
-            var url = obj.options.url + (obj.options.url.indexOf('?') > 0 ? '&' : '?') + 'q=' + str;
-            // Remote search
             jSuites.ajax({
-                url: url,
+                url: obj.options.url + '?q=' + str,
                 method: 'GET',
                 dataType: 'json',
                 success: function(result) {
                     // Reset items
                     obj.items = [];
-
-                    // Add the current selected items to the results in case they are not there
-                    var current = Object.keys(obj.value);
-                    if (current.length) {
-                        for (var i = 0; i < current.length; i++) {
-                            if (! exists(current[i], result)) {
-                                if (! obj.options.format) {
-                                    result.unshift({ value: current[i], text: obj.value[current[i]] });
-                                } else {
-                                    result.unshift({ id: current[i], name: obj.value[current[i]] });
-                                }
-                            }
-                        }
-                    }
-                    // Append data
+                    content.innerHTML = '';
                     obj.appendData(result);
-                    // Show or hide results
+
                     if (! result.length) {
                         content.style.display = 'none';
                     } else {
@@ -3873,74 +2928,72 @@ jSuites.dropdown = (function(el, options) {
             str = new RegExp(str, 'gi');
 
             // Reset search
-            var results = [];
+            obj.results = [];
 
             // Append options
             for (var i = 0; i < obj.items.length; i++) {
                 // Item label
-                var label = Text(i);
+                var label = obj.items[i].text;
                 // Item title
-                var title = obj.items[i].data.title || '';
+                var title = obj.items[i].title || '';
                 // Group name
-                var groupName = obj.items[i].data.group || '';
-                // Synonym
-                var synonym = obj.items[i].data.synonym || '';
-                if (synonym) {
-                    synonym = synonym.join(' ');
-                }
+                var groupName = obj.items[i].groupName || '';
 
-                if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
-                    results.push(obj.items[i]);
-                }
-            }
+                if (str == null || obj.value[obj.items[i].value] != undefined || label.match(str) || title.match(str) || groupName.match(str)) {
+                    obj.results.push(obj.items[i]);
 
-            if (! results.length) {
-                content.style.display = 'none';
-
-                // Results
-                obj.results = null;
-            } else {
-                content.style.display = '';
-
-                // Results
-                obj.results = results;
-
-                // Show 200 items at once
-                var number = results.length || 0;
-
-                // Lazyloading
-                if (obj.options.lazyLoading == true && number > 200) {
-                    number = 200;
-                }
-
-                for (var i = 0; i < number; i++) {
-                    if (obj.results[i].group) {
-                        if (! obj.results[i].group.parentNode) {
-                            content.appendChild(obj.results[i].group);
+                    if (obj.items[i].group && obj.items[i].group.children[1].children[0]) {
+                        // Remove all nodes
+                        while (obj.items[i].group.children[1].children[0]) {
+                            obj.items[i].group.children[1].removeChild(obj.items[i].group.children[1].children[0]);
                         }
-                        obj.results[i].group.lastChild.appendChild(obj.results[i].element);
-                    } else {
-                        content.appendChild(obj.results[i].element);
                     }
                 }
             }
-        }
 
-        // Auto focus
-        if (obj.options.autofocus == true) {
-            obj.first();
+            // Remove all nodes
+            while (content.children[0]) {
+                content.removeChild(content.children[0]);
+            }
+
+            // Show 200 items at once
+            var number = obj.results.length || 0;
+
+            // Lazyloading
+            if (obj.options.lazyLoading == true && number > 200) {
+                number = 200;
+            }
+
+            for (var i = 0; i < number; i++) {
+                if (obj.results[i].group) {
+                    if (! obj.results[i].group.parentNode) {
+                        content.appendChild(obj.results[i].group);
+                    }
+                    obj.results[i].group.children[1].appendChild(obj.results[i].element);
+                } else {
+                    content.appendChild(obj.results[i].element);
+                }
+                obj.numOfItems++;
+            }
+
+            if (! obj.results.length) {
+                content.style.display = 'none';
+            } else {
+                content.style.display = '';
+            }
         }
     }
 
     obj.open = function() {
+        if (jSuites.dropdown.current != el) {
+            if (jSuites.dropdown.current) {
+                jSuites.dropdown.current.dropdown.close();
+            }
+            jSuites.dropdown.current = el;
+        }
+
         // Focus
         if (! el.classList.contains('jdropdown-focus')) {
-            // Current dropdown
-            jSuites.dropdown.current = obj;
-
-            // Start tracking
-            jSuites.tracking(obj, true);
-
             // Add focus
             el.classList.add('jdropdown-focus');
 
@@ -3958,10 +3011,10 @@ jSuites.dropdown = (function(el, options) {
             }
 
             // Set cursor for the first or first selected element
-            var k = getValue();
+            var k = Object.keys(obj.value);
             if (k[0]) {
                 var cursor = obj.getPosition(k[0]);
-                if (cursor !== false) {
+                if (cursor) {
                     obj.setCursor(cursor);
                 }
             }
@@ -4012,11 +3065,13 @@ jSuites.dropdown = (function(el, options) {
     }
 
     obj.close = function(ignoreEvents) {
-        if (el.classList.contains('jdropdown-focus')) {
-            // Update labels
-            obj.header.value = obj.getText();
+        if (jSuites.dropdown.current) {
+            // Remove controller
+            jSuites.dropdown.current = null
             // Remove cursor
             obj.setCursor();
+            // Update labels
+            obj.header.value = obj.getText();
             // Events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el);
@@ -4027,10 +3082,6 @@ jSuites.dropdown = (function(el, options) {
             }
             // Remove focus
             el.classList.remove('jdropdown-focus');
-            // Start tracking
-            jSuites.tracking(obj, false);
-            // Current dropdown
-            jSuites.dropdown.current = null;
         }
 
         return obj.getValue();
@@ -4051,19 +3102,16 @@ jSuites.dropdown = (function(el, options) {
         if (index == undefined) {
             obj.currentIndex = null;
         } else {
-            index = parseInt(index);
+            parseInt(index);
 
-            // Cursor only for visible items
-            if (obj.items[index].element.parentNode) {
-                obj.items[index].element.classList.add('jdropdown-cursor');
-                obj.currentIndex = index;
+            obj.items[index].element.classList.add('jdropdown-cursor');
+            obj.currentIndex = index;
 
-                // Update scroll to the cursor element
-                if (setPosition !== false && obj.items[obj.currentIndex].element) {
-                    var container = content.scrollTop;
-                    var element = obj.items[obj.currentIndex].element;
-                    content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
-                }
+            // Update scroll to the cursor element
+            if (setPosition !== false && obj.items[obj.currentIndex].element) {
+                var container = content.scrollTop;
+                var element = obj.items[obj.currentIndex].element;
+                content.scrollTop = element.offsetTop - element.scrollTop + element.clientTop - 95;
             }
         }
     }
@@ -4084,247 +3132,91 @@ jSuites.dropdown = (function(el, options) {
     }
 
     /**
-     * First available item
+     * First visible item
      */
-    obj.first = function() {
-        if (obj.options.lazyLoading === true) {
-            obj.loadFirst();
+    obj.firstVisible = function() {
+        var newIndex = null;
+        for (var i = 0; i < obj.items.length; i++) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
+                newIndex = i;
+                break;
+            }
         }
 
-        var items = content.querySelectorAll('.jdropdown-item');
-        if (items.length) {
-            var newIndex = items[0].indexValue;
-            obj.setCursor(newIndex);
+        if (newIndex == null) {
+            return false;
         }
+
+        obj.setCursor(newIndex);
     }
 
     /**
-     * Last available item 
+     * Navigation
      */
-    obj.last = function() {
-        if (obj.options.lazyLoading === true) {
-            obj.loadLast();
+    obj.first = function() {
+        var newIndex = null;
+        for (var i = obj.currentIndex - 1; i >= 0; i--) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
+                newIndex = i;
+            }
         }
 
-        var items = content.querySelectorAll('.jdropdown-item');
-        if (items.length) {
-            var newIndex = items[items.length-1].indexValue;
-            obj.setCursor(newIndex);
+        if (newIndex == null) {
+            return false;
         }
+
+        obj.setCursor(newIndex);
     }
 
-    obj.next = function(letter) {
+    obj.last = function() {
         var newIndex = null;
-
-        if (letter) {
-            if (letter.length == 1) {
-                // Current index
-                var current = obj.currentIndex || -1;
-                // Letter
-                letter = letter.toLowerCase();
-
-                var e = null;
-                var l = null;
-                var items = content.querySelectorAll('.jdropdown-item');
-                if (items.length) {
-                    for (var i = 0; i < items.length; i++) {
-                        if (items[i].indexValue > current) {
-                            if (e = obj.items[items[i].indexValue]) {
-                                if (l = e.element.innerText[0]) {
-                                    l = l.toLowerCase();
-                                    if (letter == l) {
-                                        newIndex = items[i].indexValue;
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    obj.setCursor(newIndex);
-                }
-            }
-        } else {
-            if (obj.currentIndex == undefined || obj.currentIndex == null) {
-                obj.first();
-            } else {
-                var element = obj.items[obj.currentIndex].element;
-
-                var next = element.nextElementSibling;
-                if (next) {
-                    if (next.classList.contains('jdropdown-group')) {
-                        next = next.lastChild.firstChild;
-                    }
-                    newIndex = next.indexValue;
-                } else {
-                    if (element.parentNode.classList.contains('jdropdown-group-items')) {
-                        if (next = element.parentNode.parentNode.nextElementSibling) {
-                            if (next.classList.contains('jdropdown-group')) {
-                                next = next.lastChild.firstChild;
-                            } else if (next.classList.contains('jdropdown-item')) {
-                                newIndex = next.indexValue;
-                            } else {
-                                next = null;
-                            }
-                        }
-
-                        if (next) {
-                            newIndex = next.indexValue;
-                        }
-                    }
-                }
-
-                if (newIndex !== null) {
-                    obj.setCursor(newIndex);
-                }
+        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode && obj.items[i].element.style.display != 'none') {
+                newIndex = i;
             }
         }
+
+        if (newIndex == null) {
+            return false;
+        }
+
+        obj.setCursor(newIndex);
+    }
+
+    obj.next = function() {
+        var newIndex = null;
+        for (var i = obj.currentIndex + 1; i < obj.items.length; i++) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
+                newIndex = i;
+                break;
+            }
+        }
+
+        if (newIndex == null) {
+            return false;
+        }
+
+        obj.setCursor(newIndex);
     }
 
     obj.prev = function() {
         var newIndex = null;
-
-        if (obj.currentIndex === null) {
-            obj.first();
-        } else {
-            var element = obj.items[obj.currentIndex].element;
-
-            var prev = element.previousElementSibling;
-            if (prev) {
-                if (prev.classList.contains('jdropdown-group')) {
-                    prev = prev.lastChild.lastChild;
-                }
-                newIndex = prev.indexValue;
-            } else {
-                if (element.parentNode.classList.contains('jdropdown-group-items')) {
-                    if (prev = element.parentNode.parentNode.previousElementSibling) {
-                        if (prev.classList.contains('jdropdown-group')) {
-                            prev = prev.lastChild.lastChild;
-                        } else if (prev.classList.contains('jdropdown-item')) {
-                            newIndex = prev.indexValue;
-                        } else {
-                            prev = null
-                        }
-                    }
-
-                    if (prev) {
-                        newIndex = prev.indexValue;
-                    }
-                }
+        for (var i = obj.currentIndex - 1; i >= 0; i--) {
+            if (obj.items && obj.items[i] && obj.items[i].element.parentNode) {
+                newIndex = i;
+                break;
             }
         }
 
-        if (newIndex !== null) {
-            obj.setCursor(newIndex);
-        }
-    }
-
-    obj.loadFirst = function() {
-        // Search
-        if (obj.results) {
-            var results = obj.results;
-        } else {
-            var results = obj.items;
+        if (newIndex == null) {
+            return false;
         }
 
-        // Show 200 items at once
-        var number = results.length || 0;
-
-        // Lazyloading
-        if (obj.options.lazyLoading == true && number > 200) {
-            number = 200;
-        }
-
-        // Reset container
-        content.innerHTML = '';
-
-        // First 200 items
-        for (var i = 0; i < number; i++) {
-            if (results[i].group) {
-                if (! results[i].group.parentNode) {
-                    content.appendChild(results[i].group);
-                }
-                results[i].group.lastChild.appendChild(results[i].element);
-            } else {
-                content.appendChild(results[i].element);
-            }
-        }
-
-        // Scroll go to the begin
-        content.scrollTop = 0;
-    }
-
-    obj.loadLast = function() {
-        // Search
-        if (obj.results) {
-            var results = obj.results;
-        } else {
-            var results = obj.items;
-        }
-
-        // Show first page
-        var number = results.length;
-
-        // Max 200 items
-        if (number > 200) {
-            number = number - 200;
-
-            // Reset container
-            content.innerHTML = '';
-
-            // First 200 items
-            for (var i = number; i < results.length; i++) {
-                if (results[i].group) {
-                    if (! results[i].group.parentNode) {
-                        content.appendChild(results[i].group);
-                    }
-                    results[i].group.lastChild.appendChild(results[i].element);
-                } else {
-                    content.appendChild(results[i].element);
-                }
-            }
-
-            // Scroll go to the begin
-            content.scrollTop = content.scrollHeight;
-        }
+        obj.setCursor(newIndex);
     }
 
     obj.loadUp = function() {
-        var test = false;
-
-        // Search
-        if (obj.results) {
-            var results = obj.results;
-        } else {
-            var results = obj.items;
-        }
-
-        var items = content.querySelectorAll('.jdropdown-item');
-        var fistItem = items[0].indexValue;
-        fistItem = obj.items[fistItem];
-        var index = results.indexOf(fistItem) - 1;
-
-        if (index > 0) {
-            var number = 0;
-
-            while (index > 0 && results[index] && number < 200) {
-                if (results[index].group) {
-                    if (! results[index].group.parentNode) {
-                        content.insertBefore(results[index].group, content.firstChild);
-                    }
-                    results[index].group.lastChild.insertBefore(results[index].element, results[index].group.lastChild.firstChild);
-                } else {
-                    content.insertBefore(results[index].element, content.firstChild);
-                }
-
-                index--;
-                number++;
-            }
-
-            // New item added
-            test = true;
-        }
-
-        return test;
+        return false;
     }
 
     obj.loadDown = function() {
@@ -4337,25 +3229,24 @@ jSuites.dropdown = (function(el, options) {
             var results = obj.items;
         }
 
-        var items = content.querySelectorAll('.jdropdown-item');
-        var lastItem = items[items.length-1].indexValue;
-        lastItem = obj.items[lastItem];
-        var index = results.indexOf(lastItem) + 1;
+        if (results.length > obj.numOfItems) {
+            var numberOfItems = obj.numOfItems;
+            var number = results.length - numberOfItems;
+            if (number > 200) {
+                number = 200;
+            }
 
-        if (index < results.length) {
-            var number = 0;
-            while (index < results.length && results[index] && number < 200) {
-                if (results[index].group) {
-                    if (! results[index].group.parentNode) {
-                        content.appendChild(results[index].group);
+            for (var i = numberOfItems; i < numberOfItems + number; i++) {
+                if (results[i].group) {
+                    if (! results[i].group.parentNode) {
+                        content.appendChild(results[i].group);
                     }
-                    results[index].group.lastChild.appendChild(results[index].element);
+                    results[i].group.children[2].appendChild(results[i].element);
                 } else {
-                    content.appendChild(results[index].element);
+                    content.appendChild(results[i].element);
                 }
 
-                index++;
-                number++;
+                obj.numOfItems++;
             }
 
             // New item added
@@ -4365,72 +3256,38 @@ jSuites.dropdown = (function(el, options) {
         return test;
     }
 
-    init();
+    if (! jSuites.dropdown.hasEvents) {
+        if ('ontouchsend' in document.documentElement === true) {
+            document.addEventListener('touchsend', jSuites.dropdown.mouseup);
+        } else {
+            document.addEventListener('mouseup', jSuites.dropdown.mouseup);
+        }
+        document.addEventListener('keydown', jSuites.dropdown.onkeydown);
+
+        jSuites.dropdown.hasEvents = true;
+    }
+
+    // Lazyloading
+    if (obj.options.lazyLoading == true) {
+        jSuites.lazyLoading(content, {
+            loadUp: obj.loadUp,
+            loadDown: obj.loadDown,
+        });
+    }
+
+    // Start dropdown
+    obj.init();
+
+    // Change method
+    el.change = obj.setValue;
+
+    // Keep object available from the node
+    el.dropdown = obj;
 
     return obj;
 });
 
-jSuites.dropdown.keydown = function(e) {
-    var dropdown = null;
-    if (dropdown = jSuites.dropdown.current) {
-        if (e.which == 13 || e.which == 9) {  // enter or tab
-            if (dropdown.header.value && dropdown.currentIndex == null && dropdown.options.newOptions) {
-                // if they typed something in, but it matched nothing, and newOptions are allowed, start that flow
-                dropdown.add();
-            } else {
-                // Quick Select/Filter
-                if (dropdown.currentIndex == null && dropdown.options.autocomplete == true && dropdown.header.value != "") {
-                    dropdown.find(dropdown.header.value);
-                }
-                dropdown.selectIndex(dropdown.currentIndex);
-            }
-        } else if (e.which == 38) {  // up arrow
-            if (dropdown.currentIndex == null) {
-                dropdown.first();
-            } else if (dropdown.currentIndex > 0) {
-                dropdown.prev();
-            }
-            e.preventDefault();
-        } else if (e.which == 40) {  // down arrow
-            if (dropdown.currentIndex == null) {
-                dropdown.first();
-            } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
-                dropdown.next();
-            }
-            e.preventDefault();
-        } else if (e.which == 36) {
-            dropdown.first();
-            if (! e.target.classList.contains('jdropdown-header')) {
-                e.preventDefault();
-            }
-        } else if (e.which == 35) {
-            dropdown.last();
-            if (! e.target.classList.contains('jdropdown-header')) {
-                e.preventDefault();
-            }
-        } else if (e.which == 27) {
-            dropdown.close();
-        } else if (e.which == 33) {  // page up
-            if (dropdown.currentIndex == null) {
-                dropdown.first();
-            } else if (dropdown.currentIndex > 0) {
-                for (var i = 0; i < 7; i++) {
-                    dropdown.prev()
-                }
-            }
-            e.preventDefault();
-        } else if (e.which == 34) {  // page down
-            if (dropdown.currentIndex == null) {
-                dropdown.first();
-            } else if (dropdown.currentIndex + 1 < dropdown.items.length) {
-                for (var i = 0; i < 7; i++) {
-                    dropdown.next()
-                }
-            }
-            e.preventDefault();
-        }
-    }
-}
+jSuites.dropdown.hasEvents = false;
 
 jSuites.dropdown.mouseup = function(e) {
     var element = jSuites.findElement(e.target, 'jdropdown');
@@ -4491,6 +3348,53 @@ jSuites.dropdown.mouseup = function(e) {
             dropdown.selectItem(e.target.parentNode.parentNode);
         } else if (e.target.classList.contains('jdropdown-close') || e.target.classList.contains('jdropdown-backdrop')) {
             dropdown.close();
+        }
+
+        e.stopPropagation();
+        e.preventDefault();
+    } else {
+        if (jSuites.dropdown.current) {
+            jSuites.dropdown.current.dropdown.close();
+        }
+    }
+}
+
+// Keydown controls
+jSuites.dropdown.onkeydown = function(e) {
+    if (jSuites.dropdown.current) {
+        // Element
+        var element = jSuites.dropdown.current.dropdown;
+        // Index
+        var index = element.currentIndex;
+
+        if (! e.shiftKey) {
+            if (e.which == 13 || e.which == 27 || e.which == 35 || e.which == 36 || e.which == 38 || e.which == 40) {
+                // Move cursor
+                if (e.which == 13) {
+                    element.selectIndex(index);
+                } else if (e.which == 38) {
+                    if (index == null) {
+                        element.firstVisible();
+                    } else if (index > 0) {
+                        element.prev();
+                    }
+                } else if (e.which == 40) {
+                    if (index == null) {
+                        element.firstVisible();
+                    } else if (index + 1 < element.items.length) {
+                        element.next();
+                    }
+                } else if (e.which == 36) {
+                    element.first();
+                } else if (e.which == 35) {
+                    element.last();
+                } else if (e.which == 27) {
+                    element.close();
+                }
+
+                e.stopPropagation();
+                e.preventDefault();
+            }
         }
     }
 }
@@ -4562,6 +3466,24 @@ jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};
 
+    // If element is textarea, then replace by div editor
+    if (el.tagName == 'TEXTAREA' || el.tagName == 'INPUT') {
+        // Current element
+        var element = el;
+        element.style.display = 'none';
+        // New Element
+        el = document.createElement('div');
+        // Value
+        if (! options.value) {
+            options.value = element.value;
+        }
+        // Event to populate the textarea
+        options.onblur = function(a,b,c) {
+            element.value = b.getData()
+        }
+        element.insertBefore(el);
+    }
+
     // Default configuration
     var defaults = {
         // Initial HTML content
@@ -4579,7 +3501,7 @@ jSuites.editor = (function(el, options) {
         filterPaste: true,
         // Accept drop files
         dropZone: false,
-        dropAsSnippet: false,
+        dropAsAttachment: false,
         acceptImages: false,
         acceptFiles: false,
         maxFileSize: 5000000,
@@ -4613,13 +3535,9 @@ jSuites.editor = (function(el, options) {
     var imageResize = 0;
     var editorTimer = null;
     var editorAction = null;
-    var files = [];
 
     // Make sure element is empty
     el.innerHTML = '';
-
-    // Keep the reference for the container
-    obj.el = el;
 
     if (typeof(obj.options.onclick) == 'function') {
         el.onclick = function(e) {
@@ -4633,6 +3551,11 @@ jSuites.editor = (function(el, options) {
     // Padding
     if (obj.options.padding == true) {
         el.classList.add('jeditor-padding');
+    }
+
+    // Placeholder
+    if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
     }
 
     // Border
@@ -4655,11 +3578,6 @@ jSuites.editor = (function(el, options) {
     editor.setAttribute('spellcheck', false);
     editor.className = 'jeditor';
 
-    // Placeholder
-    if (obj.options.placeholder) {
-        editor.setAttribute('data-placeholder', obj.options.placeholder);
-    }
-
     // Max height
     if (obj.options.maxHeight || obj.options.height) {
         editor.style.overflowY = 'auto';
@@ -4680,7 +3598,7 @@ jSuites.editor = (function(el, options) {
     }
 
     if (! value) {
-        var value = '';
+        var value = '<br>';
     }
 
     /**
@@ -4747,70 +3665,49 @@ jSuites.editor = (function(el, options) {
         }
     }
 
-    var updateTotalImages = function() {
-        var o = null;
-        if (o = snippet.children[0]) {
-            // Make sure is a grid
-            if (! o.classList.contains('jslider-grid')) {
-                o.classList.add('jslider-grid');
-            }
-            // Quantify of images
-            var number = o.children.length;
-            // Set the configuration of the grid
-            o.setAttribute('data-number', number > 4 ? 4 : number);
-            // Total of images inside the grid
-            if (number > 4) {
-                o.setAttribute('data-total', number - 4);
-            } else {
-                o.removeAttribute('data-total');
-            }
-        }
-    }
-
     /**
-     * Append image to the snippet
-     */
-    var appendImage = function(image) {
-        if (! snippet.innerHTML) {
-            appendElement({});
-        }
-        snippet.children[0].appendChild(image);
-        updateTotalImages();
-    }
-
-    /**
-     * Append snippet
+     * Append snippet or thumbs in the editor
      * @Param object data
      */
     var appendElement = function(data) {
         // Reset snippet
         snippet.innerHTML = '';
 
-        // Attributes
-        var a = [ 'image', 'title', 'description', 'host', 'url' ];
-
-        for (var i = 0; i < a.length; i++) {
+        if (data.image) {
             var div = document.createElement('div');
-            div.className = 'jsnippet-' + a[i];
-            div.setAttribute('data-k', a[i]);
+            div.className = 'jsnippet-image';
+            div.setAttribute('data-k', 'image');
             snippet.appendChild(div);
-            if (data[a[i]]) {
-                if (a[i] == 'image') {
-                    if (! Array.isArray(data.image)) {
-                        data.image = [ data.image ];
-                    }
-                    for (var j = 0; j < data.image.length; j++) {
-                        var img = document.createElement('img');
-                        img.src = data.image[j];
-                        div.appendChild(img);
-                    }
-                } else {
-                    div.innerHTML = data[a[i]];
-                }
-            }
+
+            var image = document.createElement('img');
+            image.src = data.image;
+            div.appendChild(image);
         }
 
-        editor.appendChild(document.createElement('br'));
+        var div = document.createElement('div');
+        div.className = 'jsnippet-title';
+        div.setAttribute('data-k', 'title');
+        div.innerHTML = data.title;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-description';
+        div.setAttribute('data-k', 'description');
+        div.innerHTML = data.description;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-host';
+        div.setAttribute('data-k', 'host');
+        div.innerHTML = data.host;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-url';
+        div.setAttribute('data-k', 'url');
+        div.innerHTML = data.url;
+        snippet.appendChild(div);
+
         editor.appendChild(snippet);
     }
 
@@ -4818,16 +3715,26 @@ jSuites.editor = (function(el, options) {
         clearTimeout(editorTimer);
         editorTimer = setTimeout(function() {
             var snippet = editor.querySelector('.jsnippet');
-            if (! snippet) {
+            var thumbsContainer = el.querySelector('.jeditor-thumbs-container');
+
+            if (! snippet && ! thumbsContainer) {
                 var html = editor.innerHTML.replace(/\n/g, ' ');
                 var container = document.createElement('div');
                 container.innerHTML = html;
+                var thumbsContainer = container.querySelector('.jeditor-thumbs-container');
+                if (thumbsContainer) {
+                    thumbsContainer.remove();
+                }
                 var text = container.innerText; 
                 var url = jSuites.editor.detectUrl(text);
 
                 if (url) {
                     if (url[0].substr(-3) == 'jpg' || url[0].substr(-3) == 'png' || url[0].substr(-3) == 'gif') {
-                         obj.addImage(url[0], true);
+                        if (jSuites.editor.getDomain(url[0]) == window.location.hostname) {
+                            obj.importImage(url[0], '');
+                        } else {
+                            obj.importImage(obj.options.remoteParser + url[0], '');
+                        }
                     } else {
                         var id = jSuites.editor.youtubeParser(url[0]);
                         obj.parseWebsite(url[0], id);
@@ -4871,6 +3778,12 @@ jSuites.editor = (function(el, options) {
                     if (result.description) {
                         p.description = result.description;
                     }
+                    // Image
+                    if (result.image) {
+                        p.image = result.image;
+                    } else if (result['og:image']) {
+                        p.image = result['og:image'];
+                    }
                     // Host
                     if (result.host) {
                         p.host = result.host;
@@ -4879,14 +3792,8 @@ jSuites.editor = (function(el, options) {
                     if (result.url) {
                         p.url = result.url;
                     }
-                    // Append snippet
+
                     appendElement(p);
-                    // Add image
-                    if (result.image) {
-                        obj.addImage(result.image, true);
-                    } else if (result['og:image']) {
-                        obj.addImage(result['og:image'], true);
-                    }
                 }
             });
         }
@@ -4897,24 +3804,7 @@ jSuites.editor = (function(el, options) {
      */
     obj.setData = function(html) {
         editor.innerHTML = html;
-
-        if (obj.options.focus) {
-            jSuites.editor.setCursor(editor, true);
-        }
-
-        // Reset files container
-        files = [];
-    }
-
-    obj.getFiles = function() {
-        var f = editor.querySelectorAll('.jfile');
-        var d = [];
-        for (var i = 0; i < f.length; i++) {
-            if (files[f[i].src]) {
-                d.push(files[f[i].src]);
-            }
-        }
-        return d;
+        jSuites.editor.setCursor(editor, true);
     }
 
     obj.getText = function() {
@@ -4932,7 +3822,19 @@ jSuites.editor = (function(el, options) {
                 content : '',
             }
 
-            // Get snippet
+            // Get tag users
+            var tagged = editor.querySelectorAll('.post-tag');
+            if (tagged.length) {
+                data.users = [];
+                for (var i = 0; i < tagged.length; i++) {
+                    var userId = tagged[i].getAttribute('data-user');
+                    if (userId) {
+                        data.users.push(userId);
+                    }
+                }
+                data.users = data.users.join(',');
+            }
+
             if (snippet.innerHTML) {
                 var index = 0;
                 data.snippet = {};
@@ -4941,35 +3843,23 @@ jSuites.editor = (function(el, options) {
                     var key = snippet.children[i].getAttribute('data-k');
                     if (key) {
                         if (key == 'image') {
-                            if (! data.snippet.image) {
-                                data.snippet.image = [];
-                            }
-                            // Get all images
-                            for (var j = 0; j < snippet.children[i].children.length; j++) {
-                                data.snippet.image.push(snippet.children[i].children[j].getAttribute('src'))
-                            }
+                            data.snippet.image = snippet.children[i].children[0].getAttribute('src');
                         } else {
                             data.snippet[key] = snippet.children[i].innerHTML;
                         }
                     }
                 }
+
+                snippet.innerHTML = '';
+                snippet.remove();
             }
 
-            // Get files
-            var f = Object.keys(files);
-            if (f.length) {
-                data.files = [];
-                for (var i = 0; i < f.length; i++) {
-                    data.files.push(files[f[i]]);
-                }
-            }
-
-            // Get content
             var text = editor.innerHTML;
             text = text.replace(/<br>/g, "\n");
             text = text.replace(/<\/div>/g, "<\/div>\n");
             text = text.replace(/<(?:.|\n)*?>/gm, "");
             data.content = text.trim();
+            data = JSON.stringify(data);
         }
 
         return data;
@@ -4978,8 +3868,6 @@ jSuites.editor = (function(el, options) {
     // Reset
     obj.reset = function() {
         editor.innerHTML = '';
-        snippet.innerHTML = '';
-        files = [];
     }
 
     obj.addPdf = function(data) {
@@ -4997,25 +3885,31 @@ jSuites.editor = (function(el, options) {
             canvas.toBlob(function(blob) {
                 var newImage = document.createElement('img');
                 newImage.src = window.URL.createObjectURL(blob);
-                newImage.title = data.name;
+                newImage.setAttribute('data-extension', 'pdf');
+                if (data.name) {
+                    newImage.setAttribute('data-name', data.name);
+                }
+                if (data.size) {
+                    newImage.setAttribute('data-size', data.size);
+                }
+                if (data.date) {
+                    newImage.setAttribute('data-date', data.date);
+                }
                 newImage.className = 'jfile pdf';
 
-                files[newImage.src] = {
-                    file: newImage.src,
-                    extension: 'pdf',
-                    content: data.result,
-                }
-
                 insertNodeAtCaret(newImage);
+
+                // Image content
+                newImage.content = data.result.substr(data.result.indexOf(',') + 1);
             });
         }
     }
 
-    obj.addImage = function(src, asSnippet) {
-        if (! src) {
-            src = '';
-        }
+    obj.getFiles = function() {
+        return jSuites.files(editor).get();
+    }
 
+    obj.addImage = function(src, name, size, date) {
         if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
             console.error('remoteParser not defined in your initialization');
         } else {
@@ -5043,21 +3937,23 @@ jSuites.editor = (function(el, options) {
                 canvas.toBlob(function(blob) {
                     var newImage = document.createElement('img');
                     newImage.src = window.URL.createObjectURL(blob);
-                    newImage.classList.add('jfile');
                     newImage.setAttribute('tabindex', '900');
-                    files[newImage.src] = {
-                        file: newImage.src,
-                        extension: extension,
-                        content: canvas.toDataURL(),
+                    newImage.setAttribute('data-extension', extension);
+                    if (name) {
+                        newImage.setAttribute('data-name', name);
                     }
+                    if (size) {
+                        newImage.setAttribute('data-size', size);
+                    }
+                    if (date) {
+                        newImage.setAttribute('data-date', date);
+                    }
+                    newImage.className = 'jfile';
+                    var content = canvas.toDataURL();
+                    insertNodeAtCaret(newImage);
 
-                    if (obj.options.dropAsSnippet || asSnippet) {
-                        appendImage(newImage);
-                        // Just to understand the attachment is part of a snippet
-                        files[newImage.src].snippet = true;
-                    } else {
-                        insertNodeAtCaret(newImage);
-                    }
+                    // Image content
+                    newImage.content = content.substr(content.indexOf(',') + 1);
 
                     change();
                 });
@@ -5100,7 +3996,7 @@ jSuites.editor = (function(el, options) {
                                 obj.addPdf(data.target);
                             }
                         } else {
-                            obj.addImage(data.target.result);
+                            obj.addImage(data.target.result, data.target.name, data.total, data.target.lastModified);
                         }
                     }, false);
 
@@ -5147,10 +4043,6 @@ jSuites.editor = (function(el, options) {
 
     // Event handlers
     var editorMouseUp = function(e) {
-        if (editorAction && editorAction.e) {
-            editorAction.e.classList.remove('resizing');
-        }
-
         editorAction = false;
     }
 
@@ -5175,12 +4067,12 @@ jSuites.editor = (function(el, options) {
                     d: e.target.style.cursor,
                 }
 
-                if (! e.target.width) {
-                    e.target.width = rect.width + 'px';
+                if (! e.target.style.width) {
+                    e.target.style.width = rect.width + 'px';
                 }
 
-                if (! e.target.height) {
-                    e.target.height = rect.height + 'px';
+                if (! e.target.style.height) {
+                    e.target.style.height = rect.height + 'px';
                 }
 
                 var s = window.getSelection();
@@ -5189,8 +4081,6 @@ jSuites.editor = (function(el, options) {
                         s.removeRange(s.getRangeAt(i));
                     }
                 }
-
-                e.target.classList.add('resizing');
             } else {
                 editorAction = true;
             }
@@ -5206,7 +4096,7 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.tagName == 'IMG' && ! e.target.parentNode.classList.contains('jsnippet-image') && obj.options.allowImageResize == true) {
+        if (e.target.tagName == 'IMG' && obj.options.allowImageResize == true) {
             if (e.target.getAttribute('tabindex')) {
                 var rect = e.target.getBoundingClientRect();
                 if (e.clientY - rect.top < 5) {
@@ -5238,11 +4128,11 @@ jSuites.editor = (function(el, options) {
         // Move
         if (e.which == 1 && editorAction && editorAction.d) {
             if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' ||  editorAction.d == 'se-resize') {
-                editorAction.e.width = (editorAction.w + (e.clientX - editorAction.x));
+                editorAction.e.style.width = (editorAction.w + (e.clientX - editorAction.x)) + 'px';
 
                 if (e.shiftKey) {
                     var newHeight = (e.clientX - editorAction.x) * (editorAction.h / editorAction.w);
-                    editorAction.e.height = editorAction.h + newHeight;
+                    editorAction.e.style.height = editorAction.h + newHeight + 'px';
                 } else {
                     var newHeight =  null;
                 }
@@ -5251,7 +4141,7 @@ jSuites.editor = (function(el, options) {
             if (! newHeight) {
                 if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
                     if (! e.shiftKey) {
-                        editorAction.e.height = editorAction.h + (e.clientY - editorAction.y);
+                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y) + 'px';
                     }
                 }
             }
@@ -5278,96 +4168,7 @@ jSuites.editor = (function(el, options) {
         if (typeof(obj.options.onkeydown) == 'function') { 
             obj.options.onkeydown(el, obj, e);
         }
-
-        if (e.key == 'Delete') {
-            if (e.target.tagName == 'IMG' && e.target.parentNode.classList.contains('jsnippet-image')) {
-                e.target.remove();
-                updateTotalImages();
-            }
-        }
     }
-
-    // Elements to be removed
-    var remove = [HTMLUnknownElement,HTMLAudioElement,HTMLEmbedElement,HTMLIFrameElement,HTMLTextAreaElement,HTMLInputElement,HTMLScriptElement];
-
-    // Valid properties
-    var validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
-
-    // Valid CSS attributes
-    var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
-
-    var parse = function(element) {
-       // Remove attributes
-       if (element.attributes && element.attributes.length) {
-           var image = null;
-           var style = null;
-           // Process style attribute
-           var elementStyle = element.getAttribute('style');
-           if (elementStyle) {
-               style = [];
-               var t = elementStyle.split(';');
-               for (var j = 0; j < t.length; j++) {
-                   var v = t[j].trim().split(':');
-                   if (validStyle.indexOf(v[0].trim()) >= 0) {
-                       var k = v.shift();
-                       var v = v.join(':');
-                       style.push(k + ':' + v);
-                   }
-               }
-           }
-           // Process image
-           if (element.tagName.toUpperCase() == 'IMG') {
-               if (! obj.options.acceptImages || ! element.src) {
-                   element.parentNode.removeChild(element);
-               } else {
-                   // Check if is data
-                   element.setAttribute('tabindex', '900');
-                   // Check attributes for persistance
-                   obj.addImage(element.src);
-               }
-           }
-           // Remove attributes
-           var attr = [];
-           var numAttributes = element.attributes.length - 1;
-           if (numAttributes > 0) {
-               for (var i = numAttributes; i >= 0 ; i--) {
-                   attr.push(element.attributes[i].name);
-               }
-               attr.forEach(function(v) {
-                   if (validProperty.indexOf(v) == -1) {
-                       element.removeAttribute(v);
-                   }
-               });
-           }
-           element.style = '';
-           // Add valid style
-           if (style && style.length) {
-               element.setAttribute('style', style.join(';'));
-           }
-       }
-       // Parse children
-       if (element.children.length) {
-           for (var i = 0; i < element.children.length; i++) {
-               parse(element.children[i]);
-           }
-       }
-
-       if (remove.indexOf(element.constructor) >= 0) {
-           element.remove();
-       }
-    }
-
-    var filter = function(data) {
-        if (data) {
-            data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
-        }
-        var parser = new DOMParser();
-        var d = parser.parseFromString(data, "text/html");
-        parse(d);
-        var span = document.createElement('span');
-        span.innerHTML = d.firstChild.innerHTML;
-        return span;
-    } 
 
     var editorPaste = function(e) {
         if (obj.options.filterPaste == true) {
@@ -5385,24 +4186,35 @@ jSuites.editor = (function(el, options) {
                 // Paste a image from the clipboard
                 obj.addFile(file);
             } else {
-                if (! html) {
-                    html = text.split('\r\n');
-                    if (! e.target.innerText) {
-                        html.map(function(v) {
-                            var d = document.createElement('div');
-                            d.innerText = v;
-                            editor.appendChild(d);
-                        });
-                    } else {
-                        html = html.map(function(v) {
-                            return '<div>' + v + '</div>';
-                        });
-                        document.execCommand('insertHtml', false, html.join(''));
+                // Paste text
+                text = text.split('\r\n');
+                var str = '';
+                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
+                    for (var i = 0; i < text.length; i++) {
+                        var tmp = document.createElement('div');
+                        if (text[i]) {
+                            tmp.innerText = text[i];
+                        } else {
+                            tmp.innerHTML = '<br/>';
+                        }
+                        e.target.appendChild(tmp);
                     }
                 } else {
-                    var d = filter(html);
-                    // Paste to the editor
-                    insertNodeAtCaret(d);
+                    var content = document.createElement('div');
+                    for (var i = 0; i < text.length; i++) {
+                        if (text[i]) {
+                            var div = document.createElement('div');
+                            div.innerText = text[i];
+                            content.appendChild(div);
+                        }
+                    }
+                    // Insert text
+                    document.execCommand('insertHtml', false, content.innerHTML);
+                }
+
+                // Extra images from the paste
+                if (obj.options.acceptImages == true) {
+                    extractImageFromHtml(html);
                 }
             }
 
@@ -5421,7 +4233,6 @@ jSuites.editor = (function(el, options) {
             // Do nothing
         } else {
             el.classList.add('jeditor-dragging');
-            e.preventDefault();
         }
     }
 
@@ -5436,7 +4247,6 @@ jSuites.editor = (function(el, options) {
             editorTimer = setTimeout(function() {
                 el.classList.remove('jeditor-dragging');
             }, 100);
-            e.preventDefault();
         }
     }
 
@@ -5524,14 +4334,13 @@ jSuites.editor = (function(el, options) {
 
     // Add toolbar
     if (obj.options.toolbar) {
-        // Append to the DOM
-        el.appendChild(toolbar);
         // Create toolbar
         jSuites.toolbar(toolbar, {
             container: true,
-            responsive: true,
             items: obj.options.toolbar
         });
+        // Append to the DOM
+        el.appendChild(toolbar);
     }
 
     // Focus to the editor
@@ -5541,17 +4350,6 @@ jSuites.editor = (function(el, options) {
 
     // Change method
     el.change = obj.setData;
-
-    // Global generic value handler
-    el.val = function(val) {
-        if (val === undefined) {
-            // Data type
-            var o = el.getAttribute('data-html') === 'true' ? false : true;
-            return obj.getData(o);
-        } else {
-            obj.setData(val);
-        }
-    }
 
     el.editor = obj;
 
@@ -5806,7 +4604,7 @@ jSuites.focus = function(el) {
 }
 
 jSuites.isNumeric = (function (num) {
-    return !isNaN(num) && num !== null && num !== '';
+    return !isNaN(num) && num != null && num != '';
 });
 
 jSuites.guid = function() {
@@ -5816,14 +4614,6 @@ jSuites.guid = function() {
     });
 }
 
-jSuites.getNode = function() {
-    var node = document.getSelection().anchorNode;
-    if (node) {
-        return (node.nodeType == 3 ? node.parentNode : node);
-    } else {
-        return null;
-    }
-}
 /**
  * Generate hash from a string
  */
@@ -5862,7 +4652,7 @@ jSuites.randomColor = function(h) {
 
     // Return hex
     if (h == true) {
-        return '#' + jSuites.two(rgb[0].toString(16)) + jSuites.two(rgb[1].toString(16)) + jSuites.two(rgb[2].toString(16));
+        return '#' + jSuites.two(color[0].toString(16)) + jSuites.two(color[1].toString(16)) + jSuites.two(color[2].toString(16));
     }
 
     return rgb;
@@ -6217,24 +5007,23 @@ if (! jSuites.login) {
     jSuites.login.sha512 = jSuites.sha512;
 }
 
-jSuites.image = jSuites.upload = (function(el, options) {
+jSuites.image = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Default configuration
     var defaults = {
-        type: 'image',
-        extension: '*',
         input: false,
         minWidth: false,
         maxWidth: null,
         maxHeight: null,
         maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
-        multiple: false,
+        singleFile: true,
         remoteParser: null,
         text:{
             extensionNotAllowed:'The extension is not allowed',
+            imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
         }
     };
 
@@ -6247,14 +5036,6 @@ jSuites.image = jSuites.upload = (function(el, options) {
         }
     }
 
-    // Multiple
-    if (obj.options.multiple == true) {
-        el.setAttribute('data-multiple', true);
-    }
-
-    // Container
-    el.content = [];
-
     // Upload icon
     el.classList.add('jupload');
 
@@ -6262,69 +5043,72 @@ jSuites.image = jSuites.upload = (function(el, options) {
         el.classList.add('input');
     }
 
-    obj.add = function(data) {
-        // Reset container for single files
-        if (obj.options.multiple == false) {
-            el.content = [];
-            el.innerText = '';
+    // Add image
+    obj.addImage = function(file) {
+        return jSuites.image.create(file);
+    }
+
+    // Add image
+    obj.addImages = function(files) {
+        if (obj.options.singleFile == true) {
+            el.innerHTML = '';
         }
 
-        // Append to the element
-        if (obj.options.type == 'image') {
-            var img = document.createElement('img');
-            img.setAttribute('src', data.file);
-            img.setAttribute('tabindex', -1);
-            if (! el.getAttribute('name')) {
-                img.className = 'jfile';
-                img.content = data;
-            }
-            el.appendChild(img);
-        } else {
-            if (data.name) {
-                var name = data.name;
-            } else {
-                var name = data.file;
-            }
-            var div = document.createElement('div');
-            div.innerText = name || obj.options.type;
-            div.classList.add('jupload-item');
-            div.setAttribute('tabindex', -1);
-            el.appendChild(div);
-        }
-
-        if (data.content) {
-            data.file = jSuites.guid();
-        }
-
-        // Push content
-        el.content.push(data);
-
-        // Onchange
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, data);
+        for (var i = 0; i < files.length; i++) {
+            el.appendChild(obj.addImage(files[i]));
         }
     }
 
     obj.addFromFile = function(file) {
         var type = file.type.split('/');
-        if (type[0] == obj.options.type) {
-            var readFile = new FileReader();
-            readFile.addEventListener("load", function (v) {
-                var data = {
-                    file: v.srcElement.result,
-                    extension: file.name.substr(file.name.lastIndexOf('.') + 1),
-                    name: file.name,
-                    size: file.size,
-                    lastmodified: file.lastModified,
-                    content: v.srcElement.result,
-                }
+        if (type[0] == 'image') {
+            if (obj.options.singleFile == true) {
+                el.innerHTML = '';
+            }
 
-                obj.add(data);
+            var imageFile = new FileReader();
+            imageFile.addEventListener("load", function (v) {
+
+                var img = new Image();
+
+                img.onload = function onload() {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    var data = {
+                        file: obj.getDataURL(canvas, file.type),
+                        extension: file.name.substr(file.name.lastIndexOf('.') + 1),
+                        name: file.name,
+                        size: file.size,
+                        lastmodified: file.lastModified,
+                    }
+
+                    // Content
+                    if (this.src.substr(0,5) == 'data:') {
+                        var content = this.src.split(',');
+                        data.content = content[1];
+                    }
+
+                    // Add image
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
+
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage, data);
+                    }
+                };
+
+                img.src = v.srcElement.result;
             });
 
-            readFile.readAsDataURL(file);
+            imageFile.readAsDataURL(file);
         } else {
-            alert(obj.options.text.extensionNotAllowed);
+            alert(text.extentionNotAllowed);
         }
     }
 
@@ -6336,36 +5120,60 @@ jSuites.image = jSuites.upload = (function(el, options) {
             if (src.substr(0,4) == 'data') {
                 var extension = src.split(';')
                 extension = extension[0].split('/');
-                var type = extension[0].replace('data:','');
-                if (type == obj.options.type) {
-                    var data = {
-                        file: src,
-                        name: '',
-                        extension: extension[1],
-                        content: src,
-                    }
-                    obj.add(data);
-                } else {
-                    alert(obj.options.text.extensionNotAllowed);
-                }
+                extension = extension[1];
             } else {
                 var extension = src.substr(src.lastIndexOf('.') + 1);
                 // Work for cross browsers
                 src = obj.options.remoteParser + src;
-                // Get remove content
-                jSuites.ajax({
-                    url: src,
-                    type: 'GET',
-                    dataType: 'blob',
-                    success: function(data) {
-                        //add(extension[0].replace('data:',''), data);
-                    }
-                })
             }
+
+            var img = new Image();
+
+            img.onload = function onload() {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function(blob) {
+                    var data = {
+                        file: window.URL.createObjectURL(blob),
+                        extension: extension
+                    }
+
+                    // Content to be uploaded
+                    data.content = canvas.toDataURL();
+                    data.content = data.content.split(',');
+                    data.content = data.content[1];
+
+                    // Add image
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
+
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage, data);
+                    }
+                });
+            };
+
+            img.src = src;
         }
     }
 
-    var getDataURL = function(canvas, type) {
+    obj.getCanvas = function(img) {
+        var canvas = document.createElement('canvas');
+        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
+        var r2 = (obj.options.maxHeight || img.height) / img.height;
+        var r = Math.min(r1, r2, 1);
+        canvas.width = img.width * r;
+        canvas.height = img.height * r;
+        return canvas;
+    }
+
+    obj.getDataURL = function(canvas, type) {
         var compression = 0.92;
         var lastContentLength = null;
         var content = canvas.toDataURL(type, compression);
@@ -6379,36 +5187,17 @@ jSuites.image = jSuites.upload = (function(el, options) {
         return content;
     }
 
-    var mime = obj.options.type + '/' + obj.options.extension;
-    var input = document.createElement('input');
-    input.type = 'file';
-    input.setAttribute('accept', mime);
-    input.onchange = function() {
+    var attachmentInput = document.createElement('input');
+    attachmentInput.type = 'file';
+    attachmentInput.setAttribute('accept', 'image/*');
+    attachmentInput.onchange = function() {
         for (var i = 0; i < this.files.length; i++) {
             obj.addFromFile(this.files[i]);
         }
     }
 
-    // Allow multiple files
-    if (obj.options.multiple == true) {
-        input.setAttribute('multiple', true);
-    }
-
-    var current = null;
-
     el.addEventListener("click", function(e) {
-        current = null;
-        if (! el.children.length || e.target === el) {
-            jSuites.click(input);
-        } else {
-            if (e.target.parentNode == el) {
-                current = e.target;
-            }
-        }
-    });
-
-    el.addEventListener("dblclick", function(e) {
-        jSuites.click(input);
+        jSuites.click(attachmentInput);
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -6427,20 +5216,10 @@ jSuites.image = jSuites.upload = (function(el, options) {
         e.preventDefault();
     });
 
-    el.addEventListener('keydown', function(e) {
-        if (current && e.which == 46) {
-            var index = Array.prototype.indexOf.call(el.children, current);
-            if (index >= 0) {
-                el.content.splice(index, 1);
-                current.remove();
-                current = null;
-            }
-        }
-    });
-
     el.addEventListener('drop', function(e) {
         e.preventDefault();  
         e.stopPropagation();
+
 
         var html = (e.originalEvent || e).dataTransfer.getData('text/html');
         var file = (e.originalEvent || e).dataTransfer.files;
@@ -6450,8 +5229,8 @@ jSuites.image = jSuites.upload = (function(el, options) {
                 obj.addFromFile(e.dataTransfer.files[i]);
             }
         } else if (html) {
-            if (obj.options.multiple == false) {
-                el.innerText = '';
+            if (obj.options.singleFile == true) {
+                el.innerHTML = '';
             }
 
             // Create temp element
@@ -6473,45 +5252,32 @@ jSuites.image = jSuites.upload = (function(el, options) {
         return false;
     });
 
-    el.val = function(val) {
-        if (val === undefined) {
-            return el.content && el.content.length ? el.content : null;
-        } else {
-            // Reset
-            el.innerText = '';
-            el.content = [];
-
-            if (val) {
-                if (Array.isArray(val)) {
-                    for (var i = 0; i < val.length; i++) {
-                        if (typeof(val[i]) == 'string') {
-                            obj.add({ file: val[i] });
-                        } else {
-                            obj.add(val[i]);
-                        }
-                    }
-                } else if (typeof(val) == 'string') {
-                    obj.add({ file: val });
-                }
-            }
-        }
-    }
-
-    el.upload = el.image = obj;
+    el.image = obj;
 
     return obj;
 });
 
-jSuites.image.create = function(data) {
+jSuites.image.create = function(file) {
+    if (! file.date) {
+        file.date = '';
+    }
     var img = document.createElement('img');
-    img.setAttribute('src', data.file);
+    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
+    img.setAttribute('data-name', file.name);
+    img.setAttribute('data-size', file.size);
+    img.setAttribute('data-small', file.small ? file.small : '');
+    img.setAttribute('data-cover', file.cover ? 1 : 0);
+    img.setAttribute('data-extension', file.extension);
+    img.setAttribute('src', file.file);
     img.className = 'jfile';
-    img.setAttribute('tabindex', -1);
-    img.content = data;
+    img.style.width = '100%';
+
+    if (file.content) {
+        img.content = file.content;
+    }
 
     return img;
 }
-
 
 jSuites.lazyLoading = (function(el, options) {
     var obj = {}
@@ -6538,33 +5304,24 @@ jSuites.lazyLoading = (function(el, options) {
     // Controls
     var scrollControls = function(e) {
         if (timeControlLoading == null) {
-            var event = false;
             var scrollTop = el.scrollTop;
             if (el.scrollTop + (el.clientHeight * 2) >= el.scrollHeight) {
                 if (options.loadDown()) {
                     if (scrollTop == el.scrollTop) {
                         el.scrollTop = el.scrollTop - (el.clientHeight);
                     }
-                    event = true;
                 }
             } else if (el.scrollTop <= el.clientHeight) {
                 if (options.loadUp()) {
                     if (scrollTop == el.scrollTop) {
                         el.scrollTop = el.scrollTop + (el.clientHeight);
                     }
-                    event = true;
                 }
             }
 
             timeControlLoading = setTimeout(function() {
                 timeControlLoading = null;
             }, options.timer);
-
-            if (event) {
-                if (typeof(options.onupdate) == 'function') {
-                    options.onupdate();
-                }
-            }
         }
     }
 
@@ -6594,7 +5351,7 @@ jSuites.loading = (function() {
     }
 
     obj.hide = function() {
-        if (loading && loading.parentNode) {
+        if (loading) {
             document.body.removeChild(loading);
         }
     }
@@ -6603,1299 +5360,529 @@ jSuites.loading = (function() {
 })();
 
 jSuites.mask = (function() {
-    // Currency 
-    var tokens = {
-        // Currency tokens
-        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
-        // Percentage
-        percentage: [ '0{1}(.{1}0+)?%' ],
-        // Number
-        numeric: [ '0{1}(.{1}0+)?' ],
-        // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M' ],
-        // Other
-        general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
-    }
-
-    var getDate = function() {
-        if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-            var m = 0;
-            if (this.date[4]) {
-                m = parseFloat(this.date[4] / 60);
-            }
-            var v = parseInt(this.date[3]) + m;
-            v /= 24;
-        } else if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            v = jSuites.two(this.date[3]) + ':' + jSuites.two(this.date[4]) + ':' + jSuites.two(this.date[5]) 
-        } else {
-            if (this.date[0] && this.date[1] && ! this.date[2]) {
-                this.date[2] = 1;
-            }
-            v = jSuites.two(this.date[0]) + '-' + jSuites.two(this.date[1]) + '-' + jSuites.two(this.date[2]);
-
-            if (this.date[3] || this.date[4] || this.date[5]) {
-                v += ' ' + jSuites.two(this.date[3]) + ':' + jSuites.two(this.date[4]) + ':' + jSuites.two(this.date[5]);
-            }
-        }
-
-        return v;
-    }
-
-    var isBlank = function(v) {
-        return v === null || v === '' || v === undefined ? true : false;
-    }
-
-    var isFormula = function(value) {
-        return (''+value).chartAt(0) == '=';
-    }
-
-    var isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === 'numeric' ? true : false;
-    }
-    /**
-     * Get the decimal defined in the mask configuration
-     */
-    var getDecimal = function(v) {
-        if (v && Number(v) == v) {
-            return '.';
-        } else {
-            if (this.options.decimal) {
-                return this.options.decimal;
-            } else {
-                if (this.locale) {
-                    var t = Intl.NumberFormat(this.locale).format(1.1);
-                    return this.options.decimal = t[1];
-                } else {
-                    if (! v) {
-                        v  = this.mask;
-                    }
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var t = e.exec(v);
-                    if (t && t[1] && t[1].length == 1) {
-                        // Save decimal
-                        this.options.decimal = t[1];
-                        // Return decimal
-                        return t[1];
-                    } else {
-                        // Did not find any decimal last resort the default
-                        var e = new RegExp('#,##', 'ig');
-                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == '.') {
-                            this.options.decimal = '.';
-                        } else {
-                            this.options.decimal = ',';
-                        }
-                    }
-                }
-            }
-        }
-
-        if (this.options.decimal) {
-            return this.options.decimal;
-        } else {
-            return null;
-        }
-    }
-
-    var ParseValue = function(v, decimal) {
-        if (v == '') {
-            return '';
-        }
-
-        // Get decimal
-        if (! decimal) {
-            decimal = getDecimal.call(this);
-        }
-
-        // New value
-        v = (''+v).split(decimal);
-        v[0] = v[0].match(/[\-0-9]+/g, '');
-        if (v[0]) {
-            v[0] = v[0].join('');
-        }
-        if (v[0] || v[1]) {
-            if (v[1] !== undefined) {
-                v[1] = v[1].match(/[0-9]+/g, '');
-                if (v[1]) {
-                    v[1] = v[1].join('');
-                } else {
-                    v[1] = '';
-                }
-            }
-        } else {
-            return '';
-        }
-
-        return v;
-    }
-
-    var FormatValue = function(v) {
-        if (v == '') {
-            return '';
-        }
-        // Get decimal
-        var d = getDecimal.call(this);
-        // Convert value
-        var o = Object.create(this.options || {});
-        if (! o.minimumFractionDigits) {
-            o.minimumFractionDigits = 1;
-        }
-        // Parse value
-        v = ParseValue.call(this, v);
-        if (v == '') {
-            return '';
-        }
-        // Temporary value
-        if (v[0]) {
-            var t = parseFloat(v.join('.'));
-            if (o.style == 'percent') {
-                t /= 100;
-            }
-        } else {
-            var t = null;
-        }
-        var n = new Intl.NumberFormat(this.locale, o).format(t);
-        n = n.split(d);
-        var s = n[1].replace(/[0-9]*/g, '');
-        if (s) {
-            n[2] = s;
-        }
-        if (v[1] !== undefined) {
-            n[1] = d + v[1];
-        } else {
-            n[1] = '';
-        }
-
-        return n.join('');
-    }
-
-    var Format = function(e) {
-        var v = Value.call(e);
-        if (! v) {
-            return;
-        }
-
-        // Get decimal
-        var d = getDecimal.call(this);
-        var n = FormatValue.call(this, v);
-        var t = (n.length) - v.length;
-        var index = Caret.call(e) + t;
-        // Set value and update caret
-        Value.call(e, n, index, true);
-    }
-
-    var Extract = function(v) {
-        // Keep the raw value
-        var current = ParseValue.call(this, v);
-        if (current) {
-            return parseFloat(current.join('.'));
-        }
-        return null;
-    }
+    var obj = {};
+    var index = 0;
+    var values = []
+    var pieces = [];
 
     /**
-     * Caret getter and setter methods
-     */
-    var Caret = function(index, adjustNumeric) {
-        if (index === undefined) {
-            if (this.tagName == 'DIV') {
-                var pos = 0;
-                var s = window.getSelection();
-                if (s) {
-                    if (s.rangeCount !== 0) {
-                        var r = s.getRangeAt(0);
-                        var p = r.cloneRange();
-                        p.selectNodeContents(this);
-                        p.setEnd(r.endContainer, r.endOffset);
-                        pos = p.toString().length;
-                    }
-                }
-                return pos;
-            } else {
-                return this.selectionStart;
-            }
-        } else {
-            // Get the current value
-            var n = Value.call(this);
-
-            // Review the position
-            if (adjustNumeric) {
-                var p = null;
-                for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {  
-                        p = i;
-                    }
-                }
-
-                // If the string has no numbers
-                if (p === null) {
-                    p = n.indexOf(' ');
-                }
-
-                if (index >= p) {
-                    index = p + 1;
-                }
-            }
-
-            // Do not update caret
-            if (index > n.length) {
-                index = n.length;
-            }
-
-            if (index) {
-                // Set caret
-                if (this.tagName == 'DIV') {
-                    var s = window.getSelection();
-                    var r = document.createRange();
-                    r.setStart(this.childNodes[0], index);
-                    s.removeAllRanges();
-                    s.addRange(r);
-                } else {
-                    this.selectionStart = index;
-                    this.selectionEnd = index;
-                }
-            }
-        }
-    }
-
-    /**
-     * Value getter and setter method
-     */
-    var Value = function(v, updateCaret, adjustNumeric) {
-        if (this.tagName == 'DIV') {
-            if (v === undefined) {
-                return this.innerText;
-            } else {
-                if (this.innerText !== v) {
-                    this.innerText = v;
-
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
-                    }
-                }
-            }
-        } else {
-            if (v === undefined) {
-                return this.value;
-            } else {
-                if (this.value !== v) {
-                    this.value = v;
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
-                    }
-                }
-            }
-        }
-    }
-
-    // Labels
-    var weekDaysFull = jSuites.calendar.weekdays;
-    var weekDays = jSuites.calendar.weekdaysShort;
-    var monthsFull = jSuites.calendar.months;
-    var months = jSuites.calendar.monthsShort;
-
-    var parser = {
-        'YEAR': function(v, s) {
-            var y = ''+new Date().getFullYear();
-
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-            if (parseInt(v) >= 0 && parseInt(v) <= 10) {
-                if (this.values[this.index].length < s) {
-                    this.values[this.index] += v;
-                }
-            }
-            if (this.values[this.index].length == s) {
-                if (s == 2) {
-                    var y = y.substr(0,2) + this.values[this.index];
-                } else if (s == 3) {
-                    var y = y.substr(0,1) + this.values[this.index];
-                } else if (s == 4) {
-                    var y = this.values[this.index];
-                }
-                this.date[0] = y;
-                this.index++;
-            }
-        },
-        'YYYY': function(v) {
-            parser.YEAR.call(this, v, 4);
-        },
-        'YYY': function(v) {
-            parser.YEAR.call(this, v, 3);
-        },
-        'YY': function(v) {
-            parser.YEAR.call(this, v, 2);
-        },
-        'FIND': function(v, a) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < a.length; i++) {
-                if (a[i].toLowerCase().indexOf(value) == 0) {
-                    pos = i;
-                    count++;
-                }
-            }
-            if (count > 1) {
-                this.values[this.index] += v;
-            } else if (count == 1) {
-                this.values[this.index] = a[pos];
-                this.index++;
-
-                return pos;
-            }
-        },
-        'MMM': function(v) {
-            var ret = parser.FIND.call(this, v, months);
-            if (ret !== undefined) {
-                this.date[1] = ret + 1;
-            }
-        },
-        'MMMM': function(v) {
-            var ret = parser.FIND.call(this, v, monthsFull);
-            if (ret !== undefined) {
-                this.date[1] = ret + 1;
-            }
-        },
-        'MMMMM': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < monthsFull.length; i++) {
-                if (monthsFull[i][0].toLowerCase().indexOf(value) == 0) {
-                    this.values[this.index] = monthsFull[i][0];
-                    this.date[1] = i + 1;
-                    this.index++;
-                    break;
-                }
-            }
-        },
-        'MM': function(v) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 2) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                    this.date[1] = this.values[this.index] += v;
-                    this.index++;
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] += v;
-                    this.index++;
-                }
-            }
-        },
-        'M': function(v) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (v > 1) {
-                        this.date[1] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 12) {
-                    this.date[2] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'D': function(v) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (parseInt(v) > 3) {
-                        this.date[2] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 1 || this.values[this.index] == 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 32) {
-                    this.date[2] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'DD': function(v) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 3 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                }
-            }
-        },
-        'DDD': function(v) {
-            parser.FIND.call(this, v, weekDays);
-        },
-        'DDDD': function(v) {
-            parser.FIND.call(this, v, weekDaysFull);
-        },
-        'HH12': function(v, two) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
-                    if (two) {
-                        v = 0 + v;
-                    }
-                    this.date[3] = this.values[this.index] = v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                    this.date[3] = this.values[this.index] += v;
-                    this.index++;
-                } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
-                    this.date[3] = this.values[this.index] += v;
-                    this.index++;
-                }
-            }
-        },
-        'HH24': function(v, two) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] == null || this.values[this.index] == '') {
-                    if (parseInt(v) > 2 && parseInt(v) < 10) {
-                        if (two) {
-                            v = 0 + v;
-                        }
-                        this.date[3] = this.values[this.index] = v;
-                        this.index++;
-                    } else if (parseInt(v) < 10) {
-                        this.values[this.index] = v;
-                    }
-                } else {
-                    if (this.values[this.index] == 2 && parseInt(v) < 4) {
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] < 2 && parseInt(v) < 10) {
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    }
-                }
-            }
-        },
-        'HH': function(v) {
-            parser['HH24'].call(this, v, 1);
-        },
-        'H': function(v) {
-            parser['HH24'].call(this, v, 0);
-        },
-        '\\[H\\]': function(v) {
-            if (this.values[this.index] == undefined) {
-                this.values[this.index] = '';
-            }
-            if (v.match(/[0-9]/g)) {
-                this.date[3] = this.values[this.index] += v;
-            } else {
-                if (this.values[this.index].match(/[0-9]/g)) {
-                    this.date[3] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'N60': function(v, i) {
-            if (this.values[this.index] == null || this.values[this.index] == '') {
-                if (parseInt(v) > 5 && parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] += v;
-                    this.index++;
-                 }
-            }
-        },
-        'MI': function(v) {
-            parser.N60.call(this, v, 4);
-        },
-        'SS': function(v) {
-            parser.N60.call(this, v, 5);
-        },
-        'AM/PM': function(v) {
-            this.values[this.index] = '';
-            if (v) {
-                if (this.date[3] > 12) {
-                    this.values[this.index] = 'PM';
-                } else {
-                    this.values[this.index] = 'AM';
-                }
-            }
-            this.index++;
-        },
-        'WD': function(v) {
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-            if (parseInt(v) >= 0 && parseInt(v) < 7) {
-                this.values[this.index] = v;
-            }
-            if (this.value[this.index].length == 1) {
-                this.index++;
-            }
-        },
-        '0{1}(.{1}0+)?': function(v) {
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Negative number
-            var neg = false;
-            // Create if is blank
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            } else {
-                if (this.values[this.index] == '-') {
-                    neg = true;
-                }
-            }
-            var current = ParseValue.call(this, this.values[this.index], decimal);
-            if (current) {
-                this.values[this.index] = current.join(decimal);
-            }
-            // New entry
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] != '0' || v == decimal) {
-                    this.values[this.index] += v;
-                }
-            } else if (decimal && v == decimal) {
-                if (this.values[this.index].indexOf(decimal) == -1) {
-                    if (! this.values[this.index]) {
-                        this.values[this.index] = '0';
-                    }
-                    this.values[this.index] += v;
-                }
-            } else if (v == '-') {
-                // Negative signed
-                neg = true;
-            }
-
-            if (neg === true && this.values[this.index][0] !== '-') {
-                this.values[this.index] = '-' + this.values[this.index];
-            }
-        },
-        '0{1}(.{1}0+)?%': function(v) {
-            parser['0{1}(.{1}0+)?'].call(this, v);
-
-            if (this.values[this.index].match(/[\-0-9]/g)) {
-                if (this.values[this.index] && this.values[this.index].indexOf('%') == -1) {
-                    this.values[this.index] += '%';
-                }
-            } else {
-                this.values[this.index] = '';
-            }
-        },
-        '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            // Parse number
-            parser['0{1}(.{1}0+)?'].call(this, v);
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Get separator
-            var separator = this.tokens[this.index].substr(1,1);
-            // Negative
-            var negative = this.values[this.index][0] === '-' ? true : false;
-            // Current value
-            var current = ParseValue.call(this, this.values[this.index], decimal);
-
-            // Get main and decimal parts
-            if (current !== '') {
-                // Format number
-                var n = current[0].match(/[0-9]/g);
-                if (n) {
-                    // Format
-                    n = n.join('');
-                    var t = [];
-                    var s = 0;
-                    for (var j = n.length - 1; j >= 0 ; j--) {
-                        t.push(n[j]);
-                        s++;
-                        if (! (s % 3)) {
-                            t.push(separator);
-                        }
-                    }
-                    t = t.reverse();
-                    current[0] = t.join('');
-                    if (current[0].substr(0,1) == separator) {
-                        current[0] = current[0].substr(1);
-                    }
-                } else {
-                    current[0] = '';
-                }
-
-                // Value
-                this.values[this.index] = current.join(decimal);
-
-                // Negative
-                if (negative) {
-                    this.values[this.index] = '-' + this.values[this.index];
-                }
-            }
-        },
-        '0': function(v) {
-            if (v.match(/[0-9]/g)) {
-                this.values[this.index] = v;
-                this.index++;
-            }
-        },
-        '[0-9a-zA-Z$]+': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            var t = this.tokens[this.index];
-            var s = this.values[this.index];
-            var i = s.length;
-
-            if (t[i] == v) {
-                this.values[this.index] += v;
-
-                if (this.values[this.index] == t) {
-                    this.index++;
-                }
-            } else {
-                this.values[this.index] = t;
-                this.index++;
-
-                if (v.match(/[\-0-9]/g)) {
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'A': function(v) {
-            if (v.match(/[a-zA-Z]/gi)) {
-                this.values[this.index] = v;
-                this.index++;
-            }
-        },
-        '.': function(v) {
-            parser['[0-9a-zA-Z$]+'].call(this, v);
-        }
-    }
-
-    /**
-     * Get the tokens in the mask string
-     */
-    var getTokens = function(str) {
-        if (this.type == 'general') {
-            var t = [].concat(tokens.general);
-        } else {
-            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.numeric, tokens.general);
-        }
-        // Expression to extract all tokens from the string
-        var e = new RegExp(t.join('|'), 'gi');
-        // Extract
-        return str.match(e);
-    }
-
-    /**
-     * Get the method of one given token
-     */
-    var getMethod = function(str) {
-        if (! this.type) {
-            var types = Object.keys(tokens);
-        } else if (this.type == 'general') {
-            var types = [ 'general' ];
-        } else if (this.type == 'datetime') {
-            var types = [ 'numeric', 'datetime', 'general' ];
-        } else {
-            var types = [ 'currency', 'percentage', 'numeric', 'general' ];
-        }
-
-        // Found
-        for (var i = 0; i < types.length; i++) {
-            var type = types[i];
-            for (var j = 0; j < tokens[type].length; j++) {
-                var e = new RegExp(tokens[type][j], 'gi');
-                var r = str.match(e);
-                if (r) {
-                    return { type: type, method: tokens[type][j] }
-                }
-            }
-        }
-    }
-
-    /**
-     * Identify each method for each token
-     */
-    var getMethods = function(t) {
-        var result = [];
-        for (var i = 0; i < t.length; i++) {
-            var m = getMethod.call(this, t[i]);
-            if (m) {
-                result.push(m.method);
-            } else {
-                result.push(null);
-            }
-        }
-
-        // Compatibility with excel
-        for (var i = 0; i < result.length; i++) {
-            if (result[i] == 'MM') {
-                // Not a month, correct to minutes
-                if (result[i-1] && result[i-1].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i-2] && result[i-2].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+1] && result[i+1].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+2] && result[i+2].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Get the type for one given token
-     */
-    var getType = function(str) {
-        var m = getMethod.call(this, str);
-        if (m) {
-            var type = m.type;
-        }
-
-        if (type) {
-            var numeric = 0;
-            // Make sure the correct type
-            var t = getTokens.call(this, str);
-            for (var i = 0; i < t.length; i++) {
-                m = getMethod.call(this, t[i]);
-                if (m && isNumeric(m.type)) {
-                    numeric++;
-                }
-            }
-            if (numeric > 1) {
-                type = 'general';
-            }
-        }
-
-        return type;
-    }
-
-    /**
-     * Parse character per character using the detected tokens in the mask
-     */
-    var parse = function() {
-        // Parser method for this position
-        if (typeof(parser[this.methods[this.index]]) == 'function') {
-            parser[this.methods[this.index]].call(this, this.value[this.position]);
-            this.position++;
-        } else {
-            this.values[this.index] = this.tokens[this.index];
-            this.index++;
-        }
-    }
-
-    var isFormula = function(value) {
-        var v = (''+value)[0];
-        return v == '=' ? true : false;
-    }
-
-    var toPlainString = function(num) {
-        return (''+ +num).replace(/(-?)(\d*)\.?(\d*)e([+-]\d+)/,
-          function(a,b,c,d,e) {
-            return e < 0
-              ? b + '0.' + Array(1-e-c.length).join(0) + c + d
-              : b + c + d + Array(e-d.length+1).join(0);
-          });
-    }
-
-    /**
-     * Mask function
-     * @param {mixed|string} JS input or a string to be parsed
-     * @param {object|string} When the first param is a string, the second is the mask or object with the mask options
-     */
-    var obj = function(e, config, returnObject) {
-        // Options
-        var r = null;
-        var t = null;
-        var o = {
-            // Element
-            input: null,
-            // Current value
-            value: null,
-            // Mask options
-            options: {},
-            // New values for each token found
-            values: [],
-            // Token position
-            index: 0,
-            // Character position
-            position: 0,
-            // Date raw values
-            date: [0,0,0,0,0,0],
-            // Raw number for the numeric values
-            number: 0,
-        }
-
-        // This is a JavaScript Event
-        if (typeof(e) == 'object') {
-            // Element
-            o.input = e.target;
-            // Current value
-            o.value = Value.call(e.target);
-            // Current caret position
-            o.caret = Caret.call(e.target);
-            // Mask
-            if (t = e.target.getAttribute('data-mask')) {
-                o.mask = t;
-            }
-            // Type
-            if (t = e.target.getAttribute('data-type')) {
-                o.type = t;
-            }
-            // Options
-            if (e.target.mask) {
-                if (e.target.mask.options) {
-                    o.options = e.target.mask.options;
-                }
-                if (e.target.mask.locale) {
-                    o.locale = e.target.mask.locale;
-                }
-            } else {
-                // Locale
-                if (t = e.target.getAttribute('data-locale')) {
-                    o.locale = t;
-                    if (o.mask) {
-                        o.options.style = o.mask;
-                    }
-                }
-            }
-            // Extra configuration
-            if (e.target.attributes && e.target.attributes.length) {
-                for (var i = 0; i < e.target.attributes.length; i++) {
-                    var k = e.target.attributes[i].name;
-                    var v = e.target.attributes[i].value;
-                    if (k.substr(0,4) == 'data') {
-                        o.options[k.substr(5)] = v;
-                    }
-                }
-            }
-        } else {
-            // Options
-            if (typeof(config) == 'string') {
-                // Mask
-                o.mask = config;
-            } else {
-                // Mask
-                var k = Object.keys(config);
-                for (var i = 0; i < k.length; i++) {
-                    o[k[i]] = config[k[i]];
-                }
-            }
-
-            if (typeof(e) === 'number') {
-                // Get decimal
-                getDecimal.call(o, o.mask);
-                // Replace to the correct decimal
-                e = (''+e).replace('.', o.options.decimal);
-            }
-
-            // Current
-            o.value = e;
-
-            if (o.input) {
-                // Value
-                Value.call(o.input, e);
-                // Focus
-                jSuites.focus(o.input);
-                // Caret
-                o.caret = Caret.call(o.input);
-            }
-        }
-
-        // Mask detected start the process
-        if (! isFormula(o.value) && (o.mask || o.locale)) {
-            // Compatibility ixes
-            if (o.mask) {
-                // Legacy
-                o.mask = o.mask.replace('[-]', '');
-                // Excel mask TODO: Improve
-                if (o.mask.indexOf('##')) {
-                    var d = o.mask.split(';');
-                    if (d[0]) {
-                        d[0] = d[0].replace('*', '');
-                        d[0] = d[0].replace(/_/g, '');
-                        d[0] = d[0].replace(/-/g, '');
-                        d[0] = d[0].replace('(','');
-                        d[0] = d[0].replace(')','');
-                        d[0] = d[0].replace('##0.###','##0.000');
-                        d[0] = d[0].replace('##0.##','##0.00');
-                        d[0] = d[0].replace('##0.#','##0.0');
-                    }
-                    o.mask = d[0];
-                }
-                // Get type
-                if (! o.type) {
-                    o.type = getType.call(o, o.mask);
-                }
-                // Get tokens
-                o.tokens = getTokens.call(o, o.mask);
-            }
-            // On new input
-            if (typeof(e) !== 'object' || ! e.inputType || e.inputType == 'insertText' || e.inputType == 'insertFromPaste') {
-                // Start tranformation
-                if (o.locale) {
-                    if (o.input) {
-                        Format.call(o, o.input);
-                    } else {
-                        var newValue = FormatValue.call(o, o.value);
-                    }
-                } else {
-                    // Get tokens
-                    o.methods = getMethods.call(o, o.tokens);
-                    // Go through all tokes
-                    while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
-                        // Get the approate parser
-                        parse.call(o);
-                    }
-
-                    if (isNumeric(o.type)) {
-                        // Complement things in the end of the mask
-                        while (typeof(o.tokens[o.index]) !== 'undefined') {
-                            var t = getMethod.call(o, o.tokens[o.index]);
-                            if (t && t.type == 'general') {
-                                o.values[o.index] = o.tokens[o.index];
-                            }
-                            o.index++;
-                        }
-
-                        var adjustNumeric = true;
-                    } else {
-                        var adjustNumeric = false;
-                    }
-
-                    // New value
-                    var newValue = o.values.join('');
-
-                    // Reset value
-                    if (o.input) {
-                        t = newValue.length - o.value.length;
-                        if (t > 0) {
-                            var caret = o.caret + t;
-                        } else {
-                            var caret = o.caret;
-                        }
-                        Value.call(o.input, newValue, caret, adjustNumeric);
-                    }
-                }
-            }
-
-            // Update raw data
-            if (o.input) {
-                var label = null;
-                if (isNumeric(o.type)) {
-                    // Extract the number
-                    o.number = Extract.call(o, Value.call(o.input));
-                    // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage') {
-                        label = o.number / 100;
-                    } else {
-                        label = o.number;
-                    }
-                } else if (o.type == 'datetime') {
-                    label = getDate.call(o);
-
-                    if (o.date[0] && o.date[1] && o.date[2]) {
-                        o.input.setAttribute('data-completed', true);
-                    }
-                }
-
-                if (label) {
-                    o.input.setAttribute('data-value', label);
-                }
-            }
-
-            if (newValue !== undefined) {
-                if (returnObject) {
-                    return o;
-                } else {
-                    return newValue;
-                }
-            }
-        }
-    }
-
-    // Extract the tokens from a mask
-    obj.prepare = function(str, o) {
-        if (! o) {
-            o = {};
-        }
-        return getTokens.call(o, str);
-    }
-
-    /**
-     * Apply the mask to a element (legacy)
-     */
-    obj.apply = function(e) {
-        var v = Value.call(e.target);
-        if (e.key.length == 1) {
-            v += e.key;
-        }
-        Value.call(e.target, obj(v, e.target.getAttribute('data-mask')));
-    }
-
-    /**
-     * Legacy support
+     * Apply a mask over a value considering a custom decimal representation. Default: '.'
      */
     obj.run = function(value, mask, decimal) {
-        return obj(value, { mask, decimal });
-    }
-
-    /**
-     * Extract number from masked string
-     */
-    obj.extract = function(v, options, returnObject) {
-        if (isBlank(v)) {
-            return v;
-        }
-        if (typeof(options) != 'object') {
-            return value;
-        } else {
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Get decimal
-        getDecimal.call(options, options.mask);
-
-        var type = null;
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        }
-
-
-        if (type === 'datetime') {
-            if (v instanceof Date) {
-                var t = jSuites.calendar.getDateString(value, options.mask);
+        if (value.toString().length && mask.toString().length) {
+            // Default decimal separator
+            if (typeof(decimal) == 'undefined') {
+                decimal = '.';
             }
 
-            var o = obj(v, options, true);
-            var value = getDate.call(o);
-            if ((o.date[0] && o.date[1] && o.date[2]) && ! (o.date[3] || o.date[4] || o.date[5])) {
-                var t = jSuites.calendar.now(o.date);
-                value = jSuites.calendar.dateToNum(t);
-            }
-        } else {
-            var value = Extract.call(options, v);
-            // Percentage
-            if (type == 'percentage') {
-                value /= 100;
-            }
-            var o = options;
-        }
-
-        o.value = value;
-
-        if (returnObject) {
-            return o;
-        } else {
-            return value;
-        }
-    }
-
-    /**
-     * Render
-     */
-    obj.render = function(value, options, fullMask) {
-        if (isBlank(value)) {
-            return value;
-        }
-
-        if (typeof(options) != 'object') {
-            return value;
-        } else {
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        var type = null;
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        } else if (value instanceof Date) {
-            type = 'datetime';
-        }
-
-        // Fill with blanks
-        var fillWithBlanks = false;
-
-        if (type =='datetime' || options.type == 'calendar') {
-            var t = jSuites.calendar.getDateString(value, options.mask);
-            if (t) {
-                value = t;
+            if (jSuites.isNumeric(value)) {
+                var number = (''+value).split(decimal);
+                var value = number[0];
+                var valueDecimal = number[1];
+            } else {
+                value = '' + value;
             }
 
-            if (options.mask && fullMask) {
-                fillWithBlanks = true;
-            }
-        } else {
-            // Percentage
-            if (type == 'percentage') {
-                value *= 100;
-            }
-            // Number of decimal places
-            if (typeof(value) === 'number') {
-                var t = null;
-                if (options.mask && fullMask) {
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var d = options.mask.match(e);
-                    if (d && d[0]) {
-                        d = d[0].length - 2;
-                        t = value.toFixed(d);
-                    } else {
-                        t = (''+value);
+            // Helpers
+            index = 0;
+            values = [];
+            // Create mask token
+            obj.prepare(mask);
+            // Current value
+            var currentValue = value;
+            if (currentValue) {
+                // Checking current value
+                for (var i = 0; i < currentValue.length; i++) {
+                    if (currentValue[i] != null) {
+                        obj.process(currentValue[i]);
                     }
-                } else if (options.locale && fullMask) {
-                    var d = (''+value).split('.');
-                    if (! d[1]) {
-                        d[1] = '00';
-                    } else {
-                        if (d[1].length == 1) {
-                            d[1] += '0';
+                }
+            }
+            if (valueDecimal) {
+                obj.process(decimal);
+                var currentValue = valueDecimal;
+                if (currentValue) {
+                    // Checking current value
+                    for (var i = 0; i < currentValue.length; i++) {
+                        if (currentValue[i] != null) {
+                            obj.process(currentValue[i]);
                         }
                     }
-                    t = d.join('.');
-                } else {
-                    t = toPlainString(value);
-                }
-
-                if (t !== null) {
-                    value = t;
-                    // Get decimal
-                    getDecimal.call(options, options.mask);
-                    // Replace to the correct decimal
-                    if (options.options.decimal) {
-                        value = value.replace('.', options.options.decimal);
-                    }
-                }
-            } else {
-                if (options.mask && fullMask) {
-                    fillWithBlanks = true;
                 }
             }
+            // Formatted value
+            return values.join('');
+        } else {
+            return '';
         }
-
-        if (fillWithBlanks) {
-            var s = options.mask.length - value.length;
-            if (s > 0) {
-                for (var i = 0; i < s; i++) {
-                    value += ' ';
-                }
-            }
-        }
-
-        value = obj(value, options);
-
-        return value;
     }
 
-    obj.set = function(e, m) {
-        if (m) {
-            e.setAttribute('data-mask', m);
-            // Reset the value
-            var event = new Event('input', {
-                bubbles: true,
-                cancelable: true,
-            });
-            e.dispatchEvent(event);
+    obj.apply = function(e) {
+        if (e.target && ! e.target.getAttribute('readonly')) {
+            var mask = e.target.getAttribute('data-mask');
+            if (mask && e.key.length < 2) {
+                index = 0;
+                values = [];
+                // Create mask token
+                obj.prepare(mask);
+                // Current value
+                var currentValue = '';
+                // Process selection
+                if (e.target.tagName == 'DIV') {
+                    if (e.target.innerText) {
+                        var s = window.getSelection();
+                        if (s && s.anchorOffset != s.focusOffset) {
+                            var offset = s.anchorOffset > s.focusOffset ? s.focusOffset : s.anchorOffset;
+                            var currentValue = e.target.innerText.substring(0, offset);
+                        } else {
+                            var currentValue = e.target.innerText;
+                        }
+                    }
+                } else {
+                    if (e.target.selectionStart < e.target.selectionEnd) {
+                        var currentValue = e.target.value.substring(0, e.target.selectionStart); 
+                    } else {
+                        var currentValue = e.target.value;
+                    }
+                }
+
+                if (currentValue) {
+                    // Checking current value
+                    for (var i = 0; i < currentValue.length; i++) {
+                        if (currentValue[i] != null) {
+                            obj.process(currentValue[i]);
+                        }
+                    }
+                }
+
+                // Process input
+                var ret = obj.process(obj.fromKeyCode(e));
+
+                // Prevent default
+                e.preventDefault();
+
+                // New value 
+                var value = values.join('');
+
+                // Update value to the element
+                if (e.target.tagName == 'DIV') {
+                    if (value != e.target.innerText) {
+                        e.target.innerText = value;
+                        // Set focus
+                        jSuites.focus(e.target);
+                    }
+                } else {
+                    e.target.value = value;
+                }
+
+                // Completed attribute
+                if (pieces.length == values.length && pieces[pieces.length-1].length == values[values.length-1].length) {
+                    e.target.setAttribute('data-completed', 'true');
+                } else {
+                    e.target.setAttribute('data-completed', 'false');
+                }
+            }
         }
+    }
+
+    /**
+     * Process inputs and save to values
+     */
+    obj.process = function(input) {
+        do {
+            if (pieces[index] == 'mm') {
+                if (values[index] == null || values[index] == '') {
+                    if (parseInt(input) > 1 && parseInt(input) < 10) {
+                        values[index] = '0' + input;
+                        index++;
+                        return true;
+                    } else if (parseInt(input) < 10) {
+                        values[index] = input;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (values[index] == 1 && values[index] < 2 && parseInt(input) < 3) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] == 0 && values[index] < 10) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else {
+                        return false
+                    }
+                }
+            } else if (pieces[index] == 'dd') {
+                if (values[index] == null || values[index] == '') {
+                    if (parseInt(input) > 3 && parseInt(input) < 10) {
+                        values[index] = '0' + input;
+                        index++;
+                        return true;
+                    } else if (parseInt(input) < 10) {
+                        values[index] = input;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (values[index] == 3 && parseInt(input) < 2) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] < 3 && parseInt(input) < 10) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else {
+                        return false
+                    }
+                }
+            } else if (pieces[index] == 'hh24') {
+                if (values[index] == null || values[index] == '') {
+                    if (parseInt(input) > 2 && parseInt(input) < 10) {
+                        values[index] = '0' + input;
+                        index++;
+                        return true;
+                    } else if (parseInt(input) < 10) {
+                        values[index] = input;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (values[index] == 2 && parseInt(input) < 4) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] < 2 && parseInt(input) < 10) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else {
+                        return false
+                    }
+                }
+            } else if (pieces[index] == 'hh') {
+                if (values[index] == null || values[index] == '') {
+                    if (parseInt(input) > 1 && parseInt(input) < 10) {
+                        values[index] = '0' + input;
+                        index++;
+                        return true;
+                    } else if (parseInt(input) < 10) {
+                        values[index] = input;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (values[index] == 1 && parseInt(input) < 3) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else if (values[index] < 1 && parseInt(input) < 10) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                    } else {
+                        return false
+                    }
+                }
+            } else if (pieces[index] == 'mi' || pieces[index] == 'ss') {
+                if (values[index] == null || values[index] == '') {
+                    if (parseInt(input) > 5 && parseInt(input) < 10) {
+                        values[index] = '0' + input;
+                        index++;
+                        return true;
+                    } else if (parseInt(input) < 10) {
+                        values[index] = input;
+                        return true;
+                    } else {
+                        return false;
+                    }
+                } else {
+                    if (parseInt(input) < 10) {
+                        values[index] += input;
+                        index++;
+                        return true;
+                     } else {
+                        return false
+                    }
+                }
+            } else if (pieces[index] == 'yy' || pieces[index] == 'yyyy') {
+                if (parseInt(input) < 10) {
+                    if (values[index] == null || values[index] == '') {
+                        values[index] = input;
+                    } else {
+                        values[index] += input;
+                    }
+                    
+                    if (values[index].length == pieces[index].length) {
+                        index++;
+                    }
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (pieces[index] == '#' || pieces[index] == '#.##' || pieces[index] == '#,##' || pieces[index] == '# ##' || pieces[index] == "#'##") {
+                if (input.match(/[0-9]/g)) {
+                    if (pieces[index] == '#.##') {
+                        var separator = '.';
+                    } else if (pieces[index] == '#,##') {
+                        var separator = ',';
+                    } else if (pieces[index] == '# ##') {
+                        var separator = ' ';
+                    } else if (pieces[index] == "#'##") {
+                        var separator = "'";
+                    } else {
+                        var separator = '';
+                    }
+                    if (values[index] == null || values[index] == '') {
+                        values[index] = input;
+                    } else {
+                        values[index] += input;
+                        if (separator) {
+                            values[index] = values[index].match(/[0-9]/g).join('');
+                            var t = [];
+                            var s = 0;
+                            for (var j = values[index].length - 1; j >= 0 ; j--) {
+                                t.push(values[index][j]);
+                                s++;
+                                if (! (s % 3)) {
+                                    t.push(separator);
+                                }
+                            }
+                            t = t.reverse();
+                            values[index] = t.join('');
+                            if (values[index].substr(0,1) == separator) {
+                                values[index] = values[index].substr(1);
+                            } 
+                        }
+                    }
+                    return true;
+                } else {
+                    if (pieces[index] == '#.##' && input == '.') {
+                        // Do nothing
+                    } else if (pieces[index] == '#,##' && input == ',') {
+                        // Do nothing
+                    } else if (pieces[index] == '# ##' && input == ' ') {
+                        // Do nothing
+                    } else if (pieces[index] == "#'##" && input == "'") {
+                        // Do nothing
+                    } else {
+                        if (values[index]) {
+                            index++;
+                            if (pieces[index]) {
+                                if (pieces[index] == input) {
+                                    values[index] = input;
+                                    return true;
+                                } else {
+                                    if (pieces[index] == '0' && pieces[index+1] == input) {
+                                        index++;
+                                        values[index] = input;
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    return false;
+                }
+            } else if (pieces[index] == '0') {
+                if (input.match(/[0-9]/g)) {
+                    values[index] = input;
+                    index++;
+                    return true;
+                } else {
+                    return false;
+                }
+            } else if (pieces[index] == 'a') {
+                if (input.match(/[a-zA-Z]/g)) {
+                    values[index] = input;
+                    index++;
+                    return true;
+                } else {
+                    return false;
+                }
+            } else {
+                if (pieces[index] != null) {
+                    if (pieces[index] == '\\a') {
+                        var v = 'a';
+                    } else if (pieces[index] == '\\0') {
+                        var v = '0';
+                    } else if (pieces[index] == '[-]') {
+                        if (input == '-' || input == '+') {
+                            var v = input;
+                        } else {
+                            var v = ' ';
+                        }
+                    } else {
+                        var v = pieces[index];
+                    }
+                    values[index] = v;
+                    if (input == v) {
+                        index++;
+                        return true;
+                    }
+                }
+            }
+
+            index++;
+        } while (pieces[index]);
+    }
+
+    /**
+     * Create tokens for the mask
+     */
+    obj.prepare = function(mask) {
+        pieces = [];
+        for (var i = 0; i < mask.length; i++) {
+            if (mask[i].match(/[0-9]|[a-z]|\\/g)) {
+                if (mask[i] == 'y' && mask[i+1] == 'y' && mask[i+2] == 'y' && mask[i+3] == 'y') {
+                    pieces.push('yyyy');
+                    i += 3;
+                } else if (mask[i] == 'y' && mask[i+1] == 'y') {
+                    pieces.push('yy');
+                    i++;
+                } else if (mask[i] == 'm' && mask[i+1] == 'm' && mask[i+2] == 'm' && mask[i+3] == 'm') {
+                    pieces.push('mmmm');
+                    i += 3;
+                } else if (mask[i] == 'm' && mask[i+1] == 'm' && mask[i+2] == 'm') {
+                    pieces.push('mmm');
+                    i += 2;
+                } else if (mask[i] == 'm' && mask[i+1] == 'm') {
+                    pieces.push('mm');
+                    i++;
+                } else if (mask[i] == 'd' && mask[i+1] == 'd') {
+                    pieces.push('dd');
+                    i++;
+                } else if (mask[i] == 'h' && mask[i+1] == 'h' && mask[i+2] == '2' && mask[i+3] == '4') {
+                    pieces.push('hh24');
+                    i += 3;
+                } else if (mask[i] == 'h' && mask[i+1] == 'h') {
+                    pieces.push('hh');
+                    i++;
+                } else if (mask[i] == 'm' && mask[i+1] == 'i') {
+                    pieces.push('mi');
+                    i++;
+                } else if (mask[i] == 's' && mask[i+1] == 's') {
+                    pieces.push('ss');
+                    i++;
+                } else if (mask[i] == 'a' && mask[i+1] == 'm') {
+                    pieces.push('am');
+                    i++;
+                } else if (mask[i] == 'p' && mask[i+1] == 'm') {
+                    pieces.push('pm');
+                    i++;
+                } else if (mask[i] == '\\' && mask[i+1] == '0') {
+                    pieces.push('\\0');
+                    i++;
+                } else if (mask[i] == '\\' && mask[i+1] == 'a') {
+                    pieces.push('\\a');
+                    i++;
+                } else {
+                    pieces.push(mask[i]);
+                }
+            } else {
+                if (mask[i] == '#' && mask[i+1] == '.' && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push('#.##');
+                    i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == ',' && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push('#,##');
+                    i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == ' ' && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push('# ##');
+                    i += 3;
+                } else if (mask[i] == '#' && mask[i+1] == "'" && mask[i+2] == '#' && mask[i+3] == '#') {
+                    pieces.push("#'##");
+                    i += 3;
+                } else if (mask[i] == '[' && mask[i+1] == '-' && mask[i+2] == ']') {
+                    pieces.push('[-]');
+                    i += 2;
+                } else {
+                    pieces.push(mask[i]);
+                }
+            }
+        }
+    }
+
+    /** 
+     * Thanks for the collaboration
+     */
+    obj.fromKeyCode = function(e) {
+        var _to_ascii = {
+            '188': '44',
+            '109': '45',
+            '190': '46',
+            '191': '47',
+            '192': '96',
+            '220': '92',
+            '222': '39',
+            '221': '93',
+            '219': '91',
+            '173': '45',
+            '187': '61', //IE Key codes
+            '186': '59', //IE Key codes
+            '189': '45'  //IE Key codes
+        }
+
+        var shiftUps = {
+            "96": "~",
+            "49": "!",
+            "50": "@",
+            "51": "#",
+            "52": "$",
+            "53": "%",
+            "54": "^",
+            "55": "&",
+            "56": "*",
+            "57": "(",
+            "48": ")",
+            "45": "_",
+            "61": "+",
+            "91": "{",
+            "93": "}",
+            "92": "|",
+            "59": ":",
+            "39": "\"",
+            "44": "<",
+            "46": ">",
+            "47": "?"
+        };
+
+        var c = e.which;
+
+        if (_to_ascii.hasOwnProperty(c)) {
+            c = _to_ascii[c];
+        }
+
+        if (!e.shiftKey && (c >= 65 && c <= 90)) {
+            c = String.fromCharCode(c + 32);
+        } else if (e.shiftKey && shiftUps.hasOwnProperty(c)) {
+            c = shiftUps[c];
+        } else if (96 <= c && c <= 105) {
+            c = String.fromCharCode(c - 48);
+        } else {
+            c = String.fromCharCode(c);
+        }
+
+        return c;
     }
 
     if (typeof document !== 'undefined') {
-        document.addEventListener('input', function(e) {
-            if (e.target.getAttribute('data-mask') || e.target.mask) {
-                obj(e);
+        document.addEventListener('keydown', function(e) {
+            if (jSuites.mask) {
+                jSuites.mask.apply(e);
             }
         });
     }
 
     return obj;
 })();
+
 
 jSuites.notification = (function(options) {
     var obj = {};
@@ -8037,66 +6024,73 @@ jSuites.notification.isVisible = function() {
     return j && j.parentNode ? true : false;
 }
 
-// More palettes https://coolors.co/ or https://gka.github.io/palettes/#/10|s|003790,005647,ffffe0|ffffe0,ff005e,93003a|1|1
-
-jSuites.palette = function(o) {
-    // Material
-    var palette = {};
-
-    palette.material = [
-        [ "#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1" ],
-        [ "#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc" ],
-        [ "#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5" ],
-        [ "#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae" ],
-        [ "#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c" ],
-        [ "#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b" ],
-        [ "#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a" ],
-        [ "#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64" ],
-        [ "#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f" ],
-        [ "#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238" ],
-    ];
-
-    palette.fire = [
-        ["0b1a6d","840f38","b60718","de030b","ff0c0c","fd491c","fc7521","faa331","fbb535","ffc73a"],
-        ["071147","5f0b28","930513","be0309","ef0000","fa3403","fb670b","f9991b","faad1e","ffc123"],
-        ["03071e","370617","6a040f","9d0208","d00000","dc2f02","e85d04","f48c06","faa307","ffba08"],
-        ["020619","320615","61040d","8c0207","bc0000","c82a02","d05203","db7f06","e19405","efab00"],
-        ["020515","2d0513","58040c","7f0206","aa0000","b62602","b94903","c57205","ca8504","d89b00"],
-    ]
-
-    palette.baby = [
-        ["eddcd2","fff1e6","fde2e4","fad2e1","c5dedd","dbe7e4","f0efeb","d6e2e9","bcd4e6","99c1de"],
-        ["e1c4b3","ffd5b5","fab6ba","f5a8c4","aacecd","bfd5cf","dbd9d0","baceda","9dc0db","7eb1d5"],
-        ["daa990","ffb787","f88e95","f282a9","8fc4c3","a3c8be","cec9b3","9dbcce","82acd2","649dcb"],
-        ["d69070","ff9c5e","f66770","f05f8f","74bbb9","87bfae","c5b993","83aac3","699bca","4d89c2"],
-        ["c97d5d","f58443","eb4d57","e54a7b","66a9a7","78ae9c","b5a67e","7599b1","5c88b7","4978aa"],
-    ]
-
-    if (palette[o]) {
-        return palette[o];
-    } else {
-        return palette.material;
-    }
-}
-
 jSuites.picker = (function(el, options) {
-    // Already created, update options
-    if (el.picker) {
-        return el.picker.setOptions(options, true);
+    var obj = {};
+    obj.options = {};
+
+    // Default configuration
+    var defaults = {
+        value: null,
+        data: null,
+        render: null,
+        onchange: null,
+        width: null,
+        header: true,
+        right: false,
+        content: false,
+    };
+
+    // Loop through the initial configuration
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
     }
 
-    // New instance
-    var obj = { type: 'picker' };
-    obj.options = {};
+    // Legacy purpose only
+    if (options.options) {
+        obj.options.data = options.options;
+    }
+
+    // Default value
+    if (obj.options.value === null) {
+        obj.options.value = Object.keys(obj.options.data)[0];
+    }
 
     var dropdownHeader = null;
     var dropdownContent = null;
 
+    // Class
+    el.classList.add('jpicker');
+    el.setAttribute('tabindex', '900');
+
     /**
-     * Create the content options
+     * Create floating picker
      */
-    var createContent = function() {
-        dropdownContent.innerHTML = '';
+    obj.init = function() {
+        // Dropdown Header
+        dropdownHeader = document.createElement('div');
+        dropdownHeader.classList.add('jpicker-header');
+
+        if (obj.options.header === false) {
+            dropdownHeader.style.display = 'none';
+        }
+
+        // Width
+        if (obj.options.width) {
+            dropdownHeader.style.width = parseInt(obj.options.width) + 'px';
+        }
+
+        // Start value
+        dropdownHeader.innerHTML = obj.options.value && obj.options.data[obj.options.value] ? obj.options.data[obj.options.value] : '<div><br/></div>';
+
+        // Dropdown content
+        dropdownContent = document.createElement('div');
+        dropdownContent.classList.add('jpicker-content');
+        el.appendChild(dropdownHeader);
+        el.appendChild(dropdownContent);
 
         // Create items
         var keys = Object.keys(obj.options.data);
@@ -8105,105 +6099,39 @@ jSuites.picker = (function(el, options) {
         for (var i = 0; i < keys.length; i++) {
             // Item
             var dropdownItem = document.createElement('div');
-            dropdownItem.classList.add('jpicker-item');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
             dropdownItem.innerHTML = obj.getLabel(keys[i]);
+            // Onchange
+            dropdownItem.onclick = function() {
+                // Update label
+                obj.setValue(this.k);
+
+                // Call method
+                if (typeof(obj.options.onchange) == 'function') {
+                    obj.options.onchange(el, obj, this.v, this.k);
+                }
+            }
+
             // Append
             dropdownContent.appendChild(dropdownItem);
         }
-    }
 
-    /**
-     * Set or reset the options for the picker
-     */
-    obj.setOptions = function(options, reset) {
-        // Default configuration
-        var defaults = {
-            value: 0,
-            data: null,
-            render: null,
-            onchange: null,
-            onselect: null,
-            onopen: null,
-            onclose: null,
-            onload: null,
-            width: null,
-            header: true,
-            right: false,
-            content: false,
-            columns: null,
-            height: null,
-        }
-
-        // Legacy purpose only
-        if (options && options.options) {
-            options.data = options.options;
-        }
-
-        // Loop through the initial configuration
-        for (var property in defaults) {
-            if (options && options.hasOwnProperty(property)) {
-                obj.options[property] = options[property];
-            } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
-            }
-        }
-
-        // Start using the options
-        if (obj.options.header === false) {
-            dropdownHeader.style.display = 'none';
-        } else {
-            dropdownHeader.style.display = '';
-        }
-
-        // Width
-        if (obj.options.width) {
-            dropdownHeader.style.width = parseInt(obj.options.width) + 'px';
-        } else {
-            dropdownHeader.style.width = '';
-        }
-
-        // Height
-        if (obj.options.height) {
-            dropdownContent.style.maxHeight = obj.options.height + 'px';
-            dropdownContent.style.overflow = 'scroll';
-        } else {
-            dropdownContent.style.overflow = '';
-        }
-
-        if (obj.options.columns > 0) {
-            dropdownContent.classList.add('jpicker-columns');
-            dropdownContent.style.width =  obj.options.width ? obj.options.width : 36 * obj.options.columns + 'px';
-        }
-
-        if (isNaN(obj.options.value)) {
-            obj.options.value = '0';
-        }
-
-        // Create list from data
-        createContent();
-
-        // Set value
+        // Initial value
         obj.setValue(obj.options.value);
-
-        // Set options all returns the own instance
-        return obj;
-    }
-
-    obj.getValue = function() {
-        return obj.options.value;
     }
 
     obj.setValue = function(v) {
-        // Set label
-        obj.setLabel(v);
+        if (obj.options.content) {
+            var label = '<i class="material-icons">' + obj.options.content + '</i>';
+        } else {
+            var label = obj.getLabel(v);
+        }
+        dropdownHeader.innerHTML = label;
 
         // Update value
-        obj.options.value = String(v);
+        obj.options.value = label;
 
         // Lemonade JS
         if (el.value != obj.options.value) {
@@ -8216,150 +6144,71 @@ jSuites.picker = (function(el, options) {
                 });
             }
         }
-
-        if (dropdownContent.children[v].getAttribute('type') !== 'generic') {
-            obj.close();
-        }
     }
 
     obj.getLabel = function(v) {
-        var label = obj.options.data[v] || null;
+        var label = obj.options.data[v];
         if (typeof(obj.options.render) == 'function') {
             label = obj.options.render(label);
         }
         return label;
     }
 
-    obj.setLabel = function(v) {
-        if (obj.options.content) {
-            var label = '<i class="material-icons">' + obj.options.content + '</i>';
-        } else {
-            var label = obj.getLabel(v);
-        }
-
-        dropdownHeader.innerHTML = label;
-    }
-
     obj.open = function() {
+        // Open picker
+        el.classList.add('jpicker-focus');
+        el.focus();
+
+        var rectHeader = dropdownHeader.getBoundingClientRect();
+        var rectContent = dropdownContent.getBoundingClientRect();
+
+        if (window.innerHeight < rectHeader.bottom + rectContent.height) {
+            dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
+        } else {
+            dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
+        }
+
+        if (obj.options.right === true) {
+            dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
+        }
+    }
+
+    el.onclick = function() {
         if (! el.classList.contains('jpicker-focus')) {
-            // Start tracking the element
-            jSuites.tracking(obj, true);
-
-            // Open picker
-            el.classList.add('jpicker-focus');
-            el.focus();
-
-            var rectHeader = dropdownHeader.getBoundingClientRect();
-            var rectContent = dropdownContent.getBoundingClientRect();
-            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
-            } else {
-                dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
-            }
-
-            if (obj.options.right === true) {
-                dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
-            }
-
-            if (typeof obj.options.onopen == 'function') {
-                obj.options.onopen(el, obj);
-            }
+            obj.open();
+        } else {
+            el.classList.remove('jpicker-focus')
         }
     }
 
-    obj.close = function() {
-        if (el.classList.contains('jpicker-focus')) {
+    el.onblur = function() {
+        setTimeout(function() {
             el.classList.remove('jpicker-focus');
-
-            // Start tracking the element
-            jSuites.tracking(obj, false);
-
-            if (typeof obj.options.onclose == 'function') {
-                obj.options.onclose(el, obj);
-            }
-        }
+        }, 250);
     }
 
-    /**
-     * Create floating picker
-     */
-    var init = function() {
-        // Class
-        el.classList.add('jpicker');
-        el.setAttribute('tabindex', '900');
-        el.onmousedown = function(e) {
-            if (! el.classList.contains('jpicker-focus')) {
-                obj.open();
-            }
-        }
+    obj.init();
 
-        // Dropdown Header
-        dropdownHeader = document.createElement('div');
-        dropdownHeader.classList.add('jpicker-header');
+    // Change
+    el.change = obj.setValue;
 
-        // Dropdown content
-        dropdownContent = document.createElement('div');
-        dropdownContent.classList.add('jpicker-content');
-        dropdownContent.onclick = function(e) {
-            var item = jSuites.findElement(e.target, 'jpicker-item');
-            if (item) {
-                if (item.parentNode === dropdownContent) {
-                    // Update label
-                    obj.setValue(item.k);
-                    // Call method
-                    if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
-                    }
-                }
-            }
-        }
-
-        // Append content and header
-        el.appendChild(dropdownHeader);
-        el.appendChild(dropdownContent);
-
-        // Default value
-        el.value = options.value || 0;
-
-        // Set options
-        obj.setOptions(options);
-
-        if (typeof(obj.options.onload) == 'function') {
-            obj.options.onload(el, obj);
-        }
-
-        // Change
-        el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
-
-        // Reference
-        el.picker = obj;
-    }
-
-    init();
+    // Reference
+    el.picker = obj;
 
     return obj;
 });
 
 jSuites.rating = (function(el, options) {
     // Already created, update options
-    if (el.rating) {
-        return el.rating.setOptions(options, true);
+    if (el.classList.contains('jrating')) {
+        return el.rating.setOptions(options);
     }
 
     // New instance
     var obj = {};
     obj.options = {};
 
-    obj.setOptions = function(options, reset) {
+    obj.setOptions = function(options) {
         // Default configuration
         var defaults = {
             number: 5,
@@ -8373,9 +6222,7 @@ jSuites.rating = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
+                obj.options[property] = defaults[property];
             }
         }
 
@@ -8398,8 +6245,6 @@ jSuites.rating = (function(el, options) {
                 }
             }
         }
-
-        return obj;
     }
 
     // Set value
@@ -8474,15 +6319,6 @@ jSuites.rating = (function(el, options) {
 
         // Change
         el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
 
         // Reference
         el.rating = obj;
@@ -8618,17 +6454,6 @@ jSuites.sorting = (function(el, options) {
         }
     }
 
-    el.val = function() {
-        var id = null;
-        var data = [];
-        for (var i = 0; i < el.children.length; i++) {
-            if (id = el.children[i].getAttribute('data-id')) {
-                data.push(id);
-            }
-        }
-        return data;
-    }
-
     return el;
 });
 
@@ -8652,8 +6477,6 @@ jSuites.tabs = (function(el, options) {
         animation: false,
         hideHeaders: false,
         padding: null,
-        palette: null,
-        maxWidth: null,
     }
 
     // Loop through the initial configuration
@@ -8674,23 +6497,10 @@ jSuites.tabs = (function(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        if (obj.options.animation) {
-            var rect = obj.headers.children[index].getBoundingClientRect();
-
-            if (obj.options.palette == 'modern') {
-                border.style.width = rect.width - 4 + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-            } else {
-                border.style.width = rect.width + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 'px';
-            }
-
-            if (obj.options.position == 'bottom') {
-                border.style.top = '0px';
-            } else {
-                border.style.bottom = '0px';
-            }
-        }
+        var rect = obj.headers.children[index].getBoundingClientRect();
+        border.style.width = rect.width + 'px';
+        border.style.left = (obj.headers.children[index].offsetLeft) + 'px';
+        border.style.bottom = '0px';
     }
 
     var updateControls = function(x) {
@@ -8724,8 +6534,6 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.setBorder = setBorder;
-
     // Set value
     obj.open = function(index) {
         var previous = null;
@@ -8756,10 +6564,11 @@ jSuites.tabs = (function(el, options) {
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 3 && obj.options.allowCreate == false)) {
             obj.headers.parentNode.style.display = 'none';
         } else {
-            // Set border
-            setBorder(index);
-
             obj.headers.parentNode.style.display = '';
+            // Set border
+            if (obj.options.animation == true) {
+                setBorder(index);
+            }
 
             var x1 = obj.headers.children[index].offsetLeft;
             var x2 = x1 + obj.headers.children[index].offsetWidth;
@@ -8845,7 +6654,7 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.appendElement = function(title, cb) {
+    obj.appendElement = function(title) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -8868,11 +6677,6 @@ jSuites.tabs = (function(el, options) {
             // Open new tab
             obj.selectIndex(h);
 
-            // Callback
-            if (typeof(cb) == 'function') {
-                cb(div, h);
-            }
-
             // Return element
             return div;
         }
@@ -8885,21 +6689,6 @@ jSuites.tabs = (function(el, options) {
             }
         }
         return 0;
-    }
-
-    obj.updateContent = function(position, newContent) {
-        if (typeof newContent !== 'string') {
-            var contentItem = newContent;
-        } else {
-            var contentItem = document.createElement('div');
-            contentItem.innerHTML = newContent;
-        }
-
-        if (obj.content.children[position].classList.contains('jtabs-selected')) {
-            newContent.classList.add('jtabs-selected');
-        }
-
-        obj.content.replaceChild(newContent, obj.content.children[position]);
     }
 
     obj.updatePosition = function(f, t) {
@@ -8929,8 +6718,6 @@ jSuites.tabs = (function(el, options) {
         obj.updatePosition(f, t);
     }
 
-    obj.setBorder = setBorder;
-
     obj.init = function() {
         el.innerHTML = '';
 
@@ -8939,12 +6726,6 @@ jSuites.tabs = (function(el, options) {
         obj.content = document.createElement('div');
         obj.headers.classList.add('jtabs-headers');
         obj.content.classList.add('jtabs-content');
-
-        if (obj.options.palette) {
-            el.classList.add('jtabs-modern');
-        } else {
-            el.classList.remove('jtabs-modern');
-        }
 
         // Padding
         if (obj.options.padding) {
@@ -8955,9 +6736,6 @@ jSuites.tabs = (function(el, options) {
         var header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
-        if (obj.options.maxWidth) {
-            header.style.maxWidth = parseInt(obj.options.maxWidth) + 'px';
-        }
 
         // Controls
         var controls = document.createElement('div');
@@ -9143,8 +6921,7 @@ jSuites.tabs = (function(el, options) {
 });
 
 jSuites.toolbar = (function(el, options) {
-    // New instance
-    var obj = { type:'toolbar' };
+    var obj = {};
     obj.options = {};
 
     // Default configuration
@@ -9153,9 +6930,6 @@ jSuites.toolbar = (function(el, options) {
         container: false,
         badge: false,
         title: false,
-        responsive: false,
-        maxWidth: null,
-        bottom: true,
         items: [],
     }
 
@@ -9216,14 +6990,11 @@ jSuites.toolbar = (function(el, options) {
         el.innerHTML = '';
     }
 
-    obj.update = function(a, b) {
-        for (var i = 0; i < toolbarContent.children.length; i++) {
-            // Toolbar element
-            var toolbarItem = toolbarContent.children[i];
-            // State management
-            if (typeof(toolbarItem.updateState) == 'function') {
-                toolbarItem.updateState(el, obj, toolbarItem, a, b);
-            }
+    var toggleState = function() {
+        if (this.classList.contains('jtoolbar-active')) {
+            this.classList.remove('jtoolbar-active');
+        } else {
+            this.classList.add('jtoolbar-active');
         }
     }
 
@@ -9253,8 +7024,8 @@ jSuites.toolbar = (function(el, options) {
             }
 
             // Selected
-            if (items[i].updateState) {
-                toolbarItem.updateState = items[i].updateState;
+            if (items[i].state) {
+                toolbarItem.toggleState = toggleState;
             }
 
             if (items[i].active) {
@@ -9262,6 +7033,14 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
+                if (typeof(items[i].onchange) == 'function') {
+                    // Event for picker has different arguments
+                    items[i].onchange = (function(o) {
+                        return function(a,b,c,d) {
+                            o(el, obj, a, c, d);
+                        }
+                    })(items[i].onchange);
+                }
                 jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
@@ -9272,7 +7051,7 @@ jSuites.toolbar = (function(el, options) {
                 // Material icons
                 var toolbarIcon = document.createElement('i');
                 if (typeof(items[i].class) === 'undefined') {
-                    toolbarIcon.classList.add('material-icons');
+                toolbarIcon.classList.add('material-icons');
                 } else {
                     var c = items[i].class.split(' ');
                     for (var j = 0; j < c.length; j++) {
@@ -9319,73 +7098,30 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].onclick) {
-                toolbarItem.onclick = items[i].onclick.bind(items[i], el, obj, toolbarItem);
-            }
+                    toolbarItem.onclick = (function (a) {
+                        return function () {
+                            items[a].onclick(el, obj, this);
+                        };
+                    })(i);
+                }
 
             toolbarContent.appendChild(toolbarItem);
         }
-
-        // Fits to the page
-        setTimeout(function() {
-            obj.refresh();
-        }, 0);
     }
 
-    obj.open = function() {
-        toolbarArrow.classList.add('jtoolbar-arrow-selected');
+    obj.resize = function() {
+        el.style.width = el.parentNode.offsetWidth;
 
-        var rectElement = el.getBoundingClientRect();
-        var rect = toolbarFloating.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight || obj.options.bottom) {
-            toolbarFloating.style.bottom = '0';
-        } else {
-            toolbarFloating.style.removeProperty('bottom');
-        }
-
-        toolbarFloating.style.right = '0';
-
-        toolbarArrow.children[0].focus();
-        // Start tracking
-        jSuites.tracking(obj, true);
+        toolbarContent.appendChild(toolbarArrow);
     }
 
-    obj.close = function() {
-        toolbarArrow.classList.remove('jtoolbar-arrow-selected')
-        // End tracking
-        jSuites.tracking(obj, false);
+    el.classList.add('jtoolbar');
+
+    if (obj.options.container == true) {
+        el.classList.add('jtoolbar-container');
     }
 
-    obj.refresh = function() {
-        if (obj.options.responsive == true) {
-            // Width of the c
-            var rect = el.parentNode.getBoundingClientRect();
-            if (! obj.options.maxWidth) {
-                obj.options.maxWidth = rect.width;
-            }
-            // Available parent space
-            var available = parseInt(obj.options.maxWidth);
-            // Remove arrow
-            toolbarArrow.remove();
-            // Move all items to the toolbar
-            while (toolbarFloating.firstChild) {
-                toolbarContent.appendChild(toolbarFloating.firstChild);
-            }
-            // Toolbar is larger than the parent, move elements to the floating element
-            if (available < toolbarContent.offsetWidth) {
-                // Give space to the floating element
-                available -= 50;
-                // Move to the floating option
-                while (toolbarContent.lastChild && available < toolbarContent.offsetWidth) {
-                    toolbarFloating.insertBefore(toolbarContent.lastChild, toolbarFloating.firstChild);
-                }
-            }
-            // Show arrow
-            if (toolbarFloating.children.length > 0) {
-                toolbarContent.appendChild(toolbarArrow);
-            }
-        }
-    }
-
+    el.innerHTML = '';
     el.onclick = function(e) {
         var element = jSuites.findElement(e.target, 'jtoolbar-item');
         if (element) {
@@ -9393,32 +7129,22 @@ jSuites.toolbar = (function(el, options) {
         }
 
         if (e.target.classList.contains('jtoolbar-arrow')) {
-            obj.open();
+            e.target.classList.add('jtoolbar-arrow-selected');
+            e.target.children[0].focus();
         }
     }
 
-    window.addEventListener('resize', function() {
-        obj.refresh();
-    });
-
-    // Toolbar
-    el.classList.add('jtoolbar');
-    // Reset content
-    el.innerHTML = '';
-    // Container
-    if (obj.options.container == true) {
-        el.classList.add('jtoolbar-container');
-    }
-    // Content
     var toolbarContent = document.createElement('div');
     el.appendChild(toolbarContent);
-    // Special toolbar for mobile applications
+
     if (obj.options.app) {
         el.classList.add('jtoolbar-mobile');
+    } else {
+        // Not a mobile version
     }
-    // Create toolbar
+
     obj.create(obj.options.items);
-    // Shortcut
+
     el.toolbar = obj;
 
     return obj;

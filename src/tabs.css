@@ -21,6 +21,7 @@
     padding-right: 20px;
     margin-left: 1px;
     margin-right: 1px;
+    margin-bottom: 1px;
     background-color: #f1f1f1;
     cursor: pointer;
     white-space: nowrap;
@@ -111,9 +112,7 @@
 /** Modern skin **/
 
 .jtabs.jtabs-modern .jtabs-headers > div:not(.jtabs-border) {
-    padding: 4px;
-    padding-left: 10px;
-    padding-right: 10px;
+    padding: 10px;
     background-color: #fff;
 }
 
@@ -123,18 +122,4 @@
 
 .jtabs.jtabs-modern .jtabs-headers > .jtabs-selected .material-icons {
     color: #000;
-}
-
-.jtabs.jtabs-modern .jtabs-headers {
-    background: #EEEEEF !important;
-    padding: 2px;
-    border-radius: 4px;
-}
-
-.jtabs.jtabs-modern .jtabs-headers .jtabs-border {
-    border-color: #EEEEEF !important;
-}
-
-.jtabs.jtabs-modern .jtabs-border {
-    background-color: rgba(194, 197, 188, 0.884);
 }

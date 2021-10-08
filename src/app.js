@@ -9,11 +9,8 @@ jSuites.app = (function(el, options) {
         onchangepage: null,
         onbeforecreatepage: null,
         oncreatepage: null,
-        onerrorpage: null,
         onloadpage: null,
         toolbar: null,
-        route: null,
-        ident: null,
         detachHiddenPages: false
     }
 
@@ -30,17 +27,16 @@ jSuites.app = (function(el, options) {
     el.classList.add('japp');
 
     // Toolbar
-    var toolbar = document.createElement('div');
+        var toolbar = document.createElement('div');
 
     obj.setToolbar = function(o) {
         if (o) {
             obj.options.toolbar = o;
         }
-        // Force application
-        obj.options.toolbar.app = obj;
-        // Set toolbar
-        obj.toolbar = jSuites.toolbar(toolbar, obj.options.toolbar);
-        // Add to the DOM
+        obj.toolbar = jSuites.toolbar(toolbar, {
+            app: obj,
+            items: obj.options.toolbar,
+        });
         el.appendChild(toolbar);
     }
 
@@ -57,45 +53,13 @@ jSuites.app = (function(el, options) {
     }
 
     /**
-     * Page identification
-     */
-    var ident = function(route) {
-        route = route.split('?')[0];
-
-        if (typeof(obj.options.ident) == 'function') {
-            var ret = obj.options.ident(route);
-            if (typeof(ret) !== 'undefined') {
-                return ret;
-            }
-        }
-
-        return route;
-    }
-
-    /*
-     * Parse javascript from an element
-     */
-    var parseScript = function(element) {
-        // Get javascript
-        var script = element.getElementsByTagName('script');
-        // Run possible inline scripts
-        for (var i = 0; i < script.length; i++) {
-            // Get type
-            var type = script[i].getAttribute('type');
-            if (! type || type == 'text/javascript' || type == 'text/loader') {
-                eval(script[i].text);
-            }
-        }
-    }
-
-    /**
      * Pages
      */
     obj.pages = function() {
         /**
          * Create or access a page
          */
-        var component = function(route, o, callback, element) {
+        var component = function(route, o, callback) {
             var options = {};
 
             if (o) {
@@ -104,41 +68,30 @@ jSuites.app = (function(el, options) {
                 } else {
                     if (! callback && typeof(o) == 'function') {
                         callback = o;
-                    }
+                    } 
                 }
             }
 
-            if (typeof(obj.options.route) == 'function') {
-                route = obj.options.route(route, options);
-            }
-
-            if (route === false) {
-                console.error('JSUITES: Permission denied');
+            // If exists just open
+            if (component.container[route]) {
+                component.show(component.container[route], options, callback);
             } else {
-                // Query string does not make part in the route
-                options.ident = ident(route);
-                // Current Route
-                options.route = route;
-
-                // If exists just open
-                var page = component.container[options.ident];
-                if (page) {
-                    page.options.closed = 0;
-                    component.show(page, options, callback);
+                // Create a new page
+                if (! route) {
+                    console.error('JSUITES: Error, no route provided');
                 } else {
                     // Closed
                     options.closed = options.closed ? 1 : 0;
+                    // Keep Route
+                    options.route = route;
 
                     // New page url
                     if (! options.url) {
-                        options.url = obj.options.path + options.ident + '.html';
+                        options.url = obj.options.path + route + '.html';
                     }
 
                     // Create new page
-                    page = component.create(options, callback, element);
-
-                    // Container
-                    component.container[options.ident] = page;
+                    component.create(options, callback);
                 }
             }
         }
@@ -146,29 +99,19 @@ jSuites.app = (function(el, options) {
         /**
          * Create a new page
          */
-        component.create = function(o, callback, fromElement) {
+        component.create = function(o, callback) {
             // Create page
-            if (fromElement) {
-                var page = fromElement;
-            } else {
-                var page = document.createElement('div');
-            }
-
+            var page = document.createElement('div');
             page.classList.add('page');
+
+            // Container
+            component.container[o.route] = page;
 
             // Keep options
             page.options = o ? o : {};
 
-            // Create page overwrite
-            var ret = null;
-            if (typeof(obj.options.onbeforecreatepage) == 'function') {
-                ret = obj.options.onbeforecreatepage(obj, page);
-                if (ret === false) {
-                    return false;
-                }
-            }
 
-            var success = function(result) {
+            var updateDOM = function() {
                 // Remove to avoid id conflicts
                 if (component.current && obj.options.detachHiddenPages == true) {
                     while (component.element.children[0]) {
@@ -181,107 +124,90 @@ jSuites.app = (function(el, options) {
                 } else {
                     component.element.insertBefore(page, component.current.nextSibling);
                 }
+            }
 
-                // Open page
-                if (result) {
-                    page.innerHTML = result;
-                }
-
-                // Get javascript
-                try {
-                    parseScript(page);
-                } catch (e) {
-                    console.log(e);
-                }
-
-                // Create page overwrite
-                if (typeof(obj.options.oncreatepage) == 'function') {
-                    obj.options.oncreatepage(obj, page, result);
-                }
-
-                // Push to refresh controls
-                if (typeof(page.options.onpush) == 'function') {
-                    jSuites.refresh(page, page.options.onpush);
-                }
-
-                // Navbar
-                if (page.querySelector('.navbar')) {
-                    page.classList.add('with-navbar');
-                }
-
-                // Global onload callback
-                if (typeof(obj.options.onloadpage) == 'function') {
-                    obj.options.onloadpage(obj, page);
-                }
-
-                // Specific online callback
-                if (typeof(o.onload) == 'function') {
-                    o.onload(page);
-                }
-
+            if (obj.options.detachHiddenPages == false) {
                 // Always hidden when created
                 page.style.display = 'none';
+                // Update DOM
+                updateDOM();
+            }
 
-                // Show page
-                if (! page.options.closed) {
-                    component.show(page, o, callback);
+            // Create page overwrite
+            var ret = null;
+            if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                var ret = obj.options.onbeforecreatepage(obj, page);
+                if (ret === false) {
+                    return false;
                 }
             }
 
-            // URL
-            if (o.url.indexOf('?') == -1) {
-                var url = o.url + '?';
-            } else {
-                var url = o.url + '&';
+            // Url
+            var url = o.url;
+            if (url.indexOf('?') == '-1') {
+                url += '?ts=' + new Date().getTime();
             }
 
-            if (fromElement) {
-                success();
-            } else {
-                jSuites.ajax({
-                    url: url + 'ts=' + new Date().getTime(),
-                    method: 'GET',
-                    dataType: 'html',
-                    queue: true,
-                    success: success,
-                    error: function(a,b) {
-                        if (typeof(obj.options.onerrorpage) == 'function') {
-                            obj.options.onerrorpage(obj, page, a, b);
-                        }
-
-                        component.destroy(page);
+            jSuites.ajax({
+                url: url,
+                method: 'GET',
+                dataType: 'html',
+                queue: true,
+                success: function(result) {
+                    if (! page.parentNode) {
+                        // Update DOM
+                        updateDOM();
                     }
-                });
-            }
+
+                    // Create page overwrite
+                    var ret = null;
+                    if (typeof(obj.options.oncreatepage) == 'function') {
+                        ret = obj.options.oncreatepage(obj, page, result);
+                    }
+
+                    // Push to refresh controls
+                    if (typeof(page.options.onpush) == 'function') {
+                        jSuites.refresh(page, page.options.onpush);
+                    }
+
+                    // Ignore create page actions 
+                    if (ret !== false) {
+                        // Open page
+                        page.innerHTML = result;
+                        // Get javascript
+                        try {
+                            parseScript(page);
+                        } catch (e) {
+                            console.log(e);
+                        }
+                    }
+
+                    // Navbar
+                    if (page.querySelector('.navbar')) {
+                        page.classList.add('with-navbar');
+                    }
+
+                    // Global onload callback
+                    if (typeof(obj.options.onloadpage) == 'function') {
+                        obj.options.onloadpage(page);
+                    }
+
+                    // Specific online callback
+                    if (typeof(o.onload) == 'function') {
+                        o.onload(page);
+                    }
+
+                    // Show page
+                    if (! page.options.closed) {
+                        component.show(page, o, callback);
+                    }
+                }
+            });
 
             return page;
         }
 
         component.show = function(page, o, callback) {
-            if (o) {
-                if (o.onenter) {
-                    page.options.onenter = o.onenter;
-                }
-                if (o.onleave) {
-                    page.options.onleave = o.onleave;
-                }
-                if (o.route) {
-                    page.options.route = o.route;
-                }
-            }
-
-            // Add history
-            if (! o || ! o.ignoreHistory) {
-                // Route
-                if (o && o.route) {
-                    var route = o.route;
-                }  else {
-                    var route = page.options.route;
-                }
-                // Add history
-                window.history.pushState({ route: route }, page.options.title, route);
-            }
-
             var pageIsReady = function() {
                 if (component.current) {
                     component.current.style.display = 'none';
@@ -295,7 +221,7 @@ jSuites.app = (function(el, options) {
 
                 // New page
                 if (typeof(obj.options.onchangepage) == 'function') {
-                    obj.options.onchangepage(obj, page, component.current, o);
+                    obj.options.onchangepage(obj, component.current, page, o);
                 }
 
                 // Enter event
@@ -318,10 +244,10 @@ jSuites.app = (function(el, options) {
             }
 
             if (component.current) {
-                // Show page
-                page.style.display = '';
-
                 if (component.current != page) {
+                    // Show page
+                    page.style.display = '';
+
                     var a = Array.prototype.indexOf.call(component.element.children, component.current);
                     var b = Array.prototype.indexOf.call(component.element.children, page);
 
@@ -356,10 +282,6 @@ jSuites.app = (function(el, options) {
                             pageIsReady();
                         }
                     }
-                } else {
-                    component.current = null;
-
-                    pageIsReady();
                 }
             } else {
                 // Show
@@ -373,15 +295,20 @@ jSuites.app = (function(el, options) {
             if (page.options.toolbarItem) {
                 obj.toolbar.selectItem(page.options.toolbarItem);
             }
+
+            // Add history
+            if (! o || ! o.ignoreHistory) {
+                // Add history
+                window.history.pushState({ route: page.options.route }, page.options.title, page.options.route);
+            }
         }
 
         /**
          * Get a page by route
          */
         component.get = function(route) {
-            var key = ident(route);
-            if (component.container[key]) {
-                return component.container[key]; 
+            if (component.container[route]) {
+                return component.container[route]; 
             }
         }
 
@@ -398,61 +325,65 @@ jSuites.app = (function(el, options) {
         /**
          * Reset the page container
          */
-        component.destroy = function(page) {
-            if (page) {
-                if (page.parentNode) {
-                    page.remove();
-                }
-                delete component.container[page.options.ident];
-            } else {
-                // Reset container
-                component.reset();
-                // Destroy references
-                component.container = {};
-            }
+        component.destroy = function() {
+            // Reset container
+            component.reset();
+            // Destroy references
+            component.container = {};
         }
-
         /**
          * Page container controller
          */
         component.container = {};
 
-        component.init = function() {
-            /**
-             * Pages DOM container
-             */
-            var pagesContainer = el.querySelector('.pages');
-            if (pagesContainer) {
-                component.element = pagesContainer;
-            } else {
-                component.element = document.createElement('div');
-                component.element.className = 'pages';
-            }
+        /**
+         * Pages DOM container
+         */
+        var pagesContainer = el.querySelector('.pages');
+        if (pagesContainer) {
+            component.element = pagesContainer;
+        } else {
+            component.element = document.createElement('div');
+            component.element.className = 'pages';
+        }
 
-            // Prefetched content
-            var current = null;
+        // Prefetched content
+        if (el.innerHTML) {
+            // Create with the prefetched content
+            var page = document.createElement('div');
+            page.classList.add('page');
+            while (el.childNodes[0]) {
+                page.appendChild(el.childNodes[0]);
+            }
             if (el.innerHTML) {
-                // Create with the prefetched content
-                current = document.createElement('div');
-                while (el.childNodes[0]) {
-                    current.appendChild(el.childNodes[0]);
-                }
+                var div = document.createElement('div');
+                div.innerHTML = component.element.innerHTML;
+                page.appendChild(div);
             }
+            // Container
+            var route = window.location.pathname;
+            component.container[route] = page;
 
-            // Append page container to the application
-            el.appendChild(component.element);
+            // Keep options
+            page.options = {};
+            page.options.route = route;
 
-            // Go to the current page
-            if (current) {
-                component(window.location.pathname, null, null, current);
+            // Current page
+            component.current = page;
+
+            // Place the page to the right container
+            if (! component.current) {
+                component.element.appendChild(page);
+            } else {
+                component.element.insertBefore(page, component.current.nextSibling);
             }
         }
 
+        // Append page container to the application
+        el.appendChild(component.element);
+
         return component;
     }();
-
-    // Start page object
-    obj.pages.init();
 
     /**
      * Panel methods
@@ -555,6 +486,22 @@ jSuites.app = (function(el, options) {
     // Actionsheet
     obj.actionsheet = jSuites.actionsheet(el, obj);
 
+    /*
+     * Parse javascript from an element
+     */
+    var parseScript = function(element) {
+        // Get javascript
+        var script = element.getElementsByTagName('script');
+        // Run possible inline scripts
+        for (var i = 0; i < script.length; i++) {
+            // Get type
+            var type = script[i].getAttribute('type');
+            if (! type || type == 'text/javascript' || type == 'text/loader') {
+                eval(script[i].text);
+            }
+        }
+    }
+
     var controlSwipeLeft = function(e) {
         var element = jSuites.findElement(e.target, 'option');
 
@@ -580,9 +527,9 @@ jSuites.app = (function(el, options) {
         }
     }
 
-    var action = null;
+    var actionElement = null;
 
-    var clicked = function(e) {
+    var actionDown = function(e) {
         // Grouped options
         if (e.target.classList.contains('option-title')) {
             if (e.target.classList.contains('selected')) {
@@ -593,7 +540,7 @@ jSuites.app = (function(el, options) {
         }
 
         // Grouped buttons
-        if (e.target.parentNode && e.target.parentNode.classList && e.target.parentNode.classList.contains('jbuttons-group')) {
+        if (e.target.parentNode && e.target.parentNode.classList.contains('jbuttons-group')) {
             for (var j = 0; j < e.target.parentNode.children.length; j++) {
                 e.target.parentNode.children[j].classList.remove('selected');
             }
@@ -601,60 +548,33 @@ jSuites.app = (function(el, options) {
         }
 
         // App links
-        var tmp = jSuites.findElement(e.target, function(el) {
-            return el.tagName == 'A' && el.getAttribute('href') ? el : false;
+        actionElement = jSuites.findElement(e.target, function(e) {
+            return e.tagName == 'A' && e.getAttribute('href') ? e : false;
         });
 
-        if (tmp) {
-            var h = tmp.getAttribute('href');
-            if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link') || h.indexOf('#') >= 0) {
-                action = null;
+        if (actionElement) {
+            var link = actionElement.getAttribute('href');
+            if (link == '#back') {
+                window.history.back();
+            } else if (link == '#panel') {
+                obj.panel();
             } else {
-                var p = jSuites.getPosition(e);
-                action = {
-                    h: h,
-                    element: tmp,
-                    target: e.target,
-                    x: p[0],
-                    y: p[1],
-                };
-
-                // Cancel click operation in 400ms
-                setTimeout(function() {
-                    action = null;
-                }, 400);
+                var href = actionElement.getAttribute('href');
+                if (actionElement.classList.contains('link') || href.substr(0,2) == '//' || href.substr(0,4) == 'http') {
+                    actionElement = null;
+                } else {
+                    obj.pages(link);
+                }
             }
-        }
-    }
-
-    var actionDown = function(e) {
-        e = e || window.event;
-        if (e.buttons) {
-            var mouseButton = e.buttons;
-        } else if (e.button) {
-            var mouseButton = e.button;
-        } else {
-            var mouseButton = e.which;
-        }
-
-        if (mouseButton < 2) {
-            clicked(e);
         }
     }
 
     var actionUp = function(e) {
         obj.actionsheet.close();
-        // Action
-        if (action) {
-            var p = jSuites.getPosition(e);
-            // If mouse move cancel the click action
-            if (Math.abs(action.x - p[0]) < 5 && Math.abs(action.y - p[1]) < 5) {
-                // Go to the page
-                obj.pages(action.h);
-            }
-            // Prevent default
+
+        if (actionElement) {
             e.preventDefault();
-            action = null;
+            actionElement = null;
         }
     }
 
@@ -666,7 +586,9 @@ jSuites.app = (function(el, options) {
         document.addEventListener('touchend', actionUp);
     } else {
         document.addEventListener('mousedown', actionDown);
-        document.addEventListener('click', actionUp);
+        document.addEventListener('click', function(e) {
+            actionUp(e);
+        });
     }
 
     window.onpopstate = function(e) {

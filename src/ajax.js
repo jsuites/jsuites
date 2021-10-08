@@ -87,10 +87,6 @@ jSuites.ajax = (function(options, complete) {
     } else {
         if (options.dataType == 'json') {
             httpRequest.setRequestHeader('Content-Type', 'text/json');
-        } else if (options.dataType == 'blob') {
-            httpRequest.responseType = "blob";
-        } else if (options.dataType == 'html') {
-            httpRequest.setRequestHeader('Content-Type', 'text/html');
         }
     }
 
@@ -125,11 +121,7 @@ jSuites.ajax = (function(options, complete) {
                     }
                 }
             } else {
-                if (options.dataType == 'blob') {
-                    var result = httpRequest.response;
-                } else {
-                    var result = httpRequest.responseText;
-                }
+                var result = httpRequest.responseText;
 
                 if (options.success && typeof(options.success) == 'function') {
                     options.success(result);
@@ -137,7 +129,7 @@ jSuites.ajax = (function(options, complete) {
             }
         } else {
             if (options.error && typeof(options.error) == 'function') {
-                options.error(httpRequest.responseText, httpRequest.status);
+                options.error(httpRequest.responseText);
             }
         }
 
@@ -152,23 +144,19 @@ jSuites.ajax = (function(options, complete) {
             var index = jSuites.ajax.requests.indexOf(httpRequest);
             // Remove from the ajax requests container
             jSuites.ajax.requests.splice(index, 1);
-            // Deprected: Last one?
+            // Last one?
             if (! jSuites.ajax.requests.length) {
                 // Object event
                 if (options.complete && typeof(options.complete) == 'function') {
                     options.complete(result);
                 }
-            }
-            // Group requests
-            if (options.group) {
+                // Global event
                 if (jSuites.ajax.oncomplete && typeof(jSuites.ajax.oncomplete[options.group]) == 'function') {
-                    if (! jSuites.ajax.pending(options.group)) {
-                        jSuites.ajax.oncomplete[options.group]();
-                        jSuites.ajax.oncomplete[options.group] = null;
-                    }
+                    jSuites.ajax.oncomplete[options.group]();
+                    jSuites.ajax.oncomplete[options.group] = null;
                 }
             }
-            // Multiple requests controller
+            // Controllers
             if (options.multiple && options.multiple.instance) {
                 // Get index of this request in the container
                 var index = options.multiple.instance.indexOf(httpRequest);
@@ -184,8 +172,6 @@ jSuites.ajax = (function(options, complete) {
         }
     }
 
-    // Keep the options
-    httpRequest.options = options;
     // Data
     httpRequest.data = data;
 
@@ -216,19 +202,6 @@ jSuites.ajax.exists = function(url, __callback) {
     if (http.status) {
         __callback(http.status);
     }
-}
-
-jSuites.ajax.pending = function(group) {
-    var n = 0;
-    var o = jSuites.ajax.requests;
-    if (o && o.length) {
-        for (var i = 0; i < o.length; i++) {
-            if (! group || group == o[i].options.group) {
-                n++
-            }
-        }
-    }
-    return n;
 }
 
 jSuites.ajax.oncomplete = {};

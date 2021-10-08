@@ -18,8 +18,6 @@ jSuites.tabs = (function(el, options) {
         animation: false,
         hideHeaders: false,
         padding: null,
-        palette: null,
-        maxWidth: null,
     }
 
     // Loop through the initial configuration
@@ -40,23 +38,10 @@ jSuites.tabs = (function(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        if (obj.options.animation) {
-            var rect = obj.headers.children[index].getBoundingClientRect();
-
-            if (obj.options.palette == 'modern') {
-                border.style.width = rect.width - 4 + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-            } else {
-                border.style.width = rect.width + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 'px';
-            }
-
-            if (obj.options.position == 'bottom') {
-                border.style.top = '0px';
-            } else {
-                border.style.bottom = '0px';
-            }
-        }
+        var rect = obj.headers.children[index].getBoundingClientRect();
+        border.style.width = rect.width + 'px';
+        border.style.left = (obj.headers.children[index].offsetLeft) + 'px';
+        border.style.bottom = '0px';
     }
 
     var updateControls = function(x) {
@@ -90,8 +75,6 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.setBorder = setBorder;
-
     // Set value
     obj.open = function(index) {
         var previous = null;
@@ -122,10 +105,11 @@ jSuites.tabs = (function(el, options) {
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 3 && obj.options.allowCreate == false)) {
             obj.headers.parentNode.style.display = 'none';
         } else {
-            // Set border
-            setBorder(index);
-
             obj.headers.parentNode.style.display = '';
+            // Set border
+            if (obj.options.animation == true) {
+                setBorder(index);
+            }
 
             var x1 = obj.headers.children[index].offsetLeft;
             var x2 = x1 + obj.headers.children[index].offsetWidth;
@@ -211,7 +195,7 @@ jSuites.tabs = (function(el, options) {
         }
     }
 
-    obj.appendElement = function(title, cb) {
+    obj.appendElement = function(title) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -234,11 +218,6 @@ jSuites.tabs = (function(el, options) {
             // Open new tab
             obj.selectIndex(h);
 
-            // Callback
-            if (typeof(cb) == 'function') {
-                cb(div, h);
-            }
-
             // Return element
             return div;
         }
@@ -251,21 +230,6 @@ jSuites.tabs = (function(el, options) {
             }
         }
         return 0;
-    }
-
-    obj.updateContent = function(position, newContent) {
-        if (typeof newContent !== 'string') {
-            var contentItem = newContent;
-        } else {
-            var contentItem = document.createElement('div');
-            contentItem.innerHTML = newContent;
-        }
-
-        if (obj.content.children[position].classList.contains('jtabs-selected')) {
-            newContent.classList.add('jtabs-selected');
-        }
-
-        obj.content.replaceChild(newContent, obj.content.children[position]);
     }
 
     obj.updatePosition = function(f, t) {
@@ -295,8 +259,6 @@ jSuites.tabs = (function(el, options) {
         obj.updatePosition(f, t);
     }
 
-    obj.setBorder = setBorder;
-
     obj.init = function() {
         el.innerHTML = '';
 
@@ -305,12 +267,6 @@ jSuites.tabs = (function(el, options) {
         obj.content = document.createElement('div');
         obj.headers.classList.add('jtabs-headers');
         obj.content.classList.add('jtabs-content');
-
-        if (obj.options.palette) {
-            el.classList.add('jtabs-modern');
-        } else {
-            el.classList.remove('jtabs-modern');
-        }
 
         // Padding
         if (obj.options.padding) {
@@ -321,9 +277,6 @@ jSuites.tabs = (function(el, options) {
         var header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
-        if (obj.options.maxWidth) {
-            header.style.maxWidth = parseInt(obj.options.maxWidth) + 'px';
-        }
 
         // Controls
         var controls = document.createElement('div');

@@ -1,14 +1,14 @@
 jSuites.rating = (function(el, options) {
     // Already created, update options
-    if (el.rating) {
-        return el.rating.setOptions(options, true);
+    if (el.classList.contains('jrating')) {
+        return el.rating.setOptions(options);
     }
 
     // New instance
     var obj = {};
     obj.options = {};
 
-    obj.setOptions = function(options, reset) {
+    obj.setOptions = function(options) {
         // Default configuration
         var defaults = {
             number: 5,
@@ -22,9 +22,7 @@ jSuites.rating = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
+                obj.options[property] = defaults[property];
             }
         }
 
@@ -47,8 +45,6 @@ jSuites.rating = (function(el, options) {
                 }
             }
         }
-
-        return obj;
     }
 
     // Set value
@@ -123,15 +119,6 @@ jSuites.rating = (function(el, options) {
 
         // Change
         el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
 
         // Reference
         el.rating = obj;

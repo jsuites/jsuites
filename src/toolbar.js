@@ -1,6 +1,5 @@
 jSuites.toolbar = (function(el, options) {
-    // New instance
-    var obj = { type:'toolbar' };
+    var obj = {};
     obj.options = {};
 
     // Default configuration
@@ -9,9 +8,6 @@ jSuites.toolbar = (function(el, options) {
         container: false,
         badge: false,
         title: false,
-        responsive: false,
-        maxWidth: null,
-        bottom: true,
         items: [],
     }
 
@@ -72,14 +68,11 @@ jSuites.toolbar = (function(el, options) {
         el.innerHTML = '';
     }
 
-    obj.update = function(a, b) {
-        for (var i = 0; i < toolbarContent.children.length; i++) {
-            // Toolbar element
-            var toolbarItem = toolbarContent.children[i];
-            // State management
-            if (typeof(toolbarItem.updateState) == 'function') {
-                toolbarItem.updateState(el, obj, toolbarItem, a, b);
-            }
+    var toggleState = function() {
+        if (this.classList.contains('jtoolbar-active')) {
+            this.classList.remove('jtoolbar-active');
+        } else {
+            this.classList.add('jtoolbar-active');
         }
     }
 
@@ -109,8 +102,8 @@ jSuites.toolbar = (function(el, options) {
             }
 
             // Selected
-            if (items[i].updateState) {
-                toolbarItem.updateState = items[i].updateState;
+            if (items[i].state) {
+                toolbarItem.toggleState = toggleState;
             }
 
             if (items[i].active) {
@@ -118,6 +111,14 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
+                if (typeof(items[i].onchange) == 'function') {
+                    // Event for picker has different arguments
+                    items[i].onchange = (function(o) {
+                        return function(a,b,c,d) {
+                            o(el, obj, a, c, d);
+                        }
+                    })(items[i].onchange);
+                }
                 jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
@@ -128,7 +129,7 @@ jSuites.toolbar = (function(el, options) {
                 // Material icons
                 var toolbarIcon = document.createElement('i');
                 if (typeof(items[i].class) === 'undefined') {
-                    toolbarIcon.classList.add('material-icons');
+                toolbarIcon.classList.add('material-icons');
                 } else {
                     var c = items[i].class.split(' ');
                     for (var j = 0; j < c.length; j++) {
@@ -175,73 +176,30 @@ jSuites.toolbar = (function(el, options) {
             }
 
             if (items[i].onclick) {
-                toolbarItem.onclick = items[i].onclick.bind(items[i], el, obj, toolbarItem);
-            }
+                    toolbarItem.onclick = (function (a) {
+                        return function () {
+                            items[a].onclick(el, obj, this);
+                        };
+                    })(i);
+                }
 
             toolbarContent.appendChild(toolbarItem);
         }
-
-        // Fits to the page
-        setTimeout(function() {
-            obj.refresh();
-        }, 0);
     }
 
-    obj.open = function() {
-        toolbarArrow.classList.add('jtoolbar-arrow-selected');
+    obj.resize = function() {
+        el.style.width = el.parentNode.offsetWidth;
 
-        var rectElement = el.getBoundingClientRect();
-        var rect = toolbarFloating.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight || obj.options.bottom) {
-            toolbarFloating.style.bottom = '0';
-        } else {
-            toolbarFloating.style.removeProperty('bottom');
-        }
-
-        toolbarFloating.style.right = '0';
-
-        toolbarArrow.children[0].focus();
-        // Start tracking
-        jSuites.tracking(obj, true);
+        toolbarContent.appendChild(toolbarArrow);
     }
 
-    obj.close = function() {
-        toolbarArrow.classList.remove('jtoolbar-arrow-selected')
-        // End tracking
-        jSuites.tracking(obj, false);
+    el.classList.add('jtoolbar');
+
+    if (obj.options.container == true) {
+        el.classList.add('jtoolbar-container');
     }
 
-    obj.refresh = function() {
-        if (obj.options.responsive == true) {
-            // Width of the c
-            var rect = el.parentNode.getBoundingClientRect();
-            if (! obj.options.maxWidth) {
-                obj.options.maxWidth = rect.width;
-            }
-            // Available parent space
-            var available = parseInt(obj.options.maxWidth);
-            // Remove arrow
-            toolbarArrow.remove();
-            // Move all items to the toolbar
-            while (toolbarFloating.firstChild) {
-                toolbarContent.appendChild(toolbarFloating.firstChild);
-            }
-            // Toolbar is larger than the parent, move elements to the floating element
-            if (available < toolbarContent.offsetWidth) {
-                // Give space to the floating element
-                available -= 50;
-                // Move to the floating option
-                while (toolbarContent.lastChild && available < toolbarContent.offsetWidth) {
-                    toolbarFloating.insertBefore(toolbarContent.lastChild, toolbarFloating.firstChild);
-                }
-            }
-            // Show arrow
-            if (toolbarFloating.children.length > 0) {
-                toolbarContent.appendChild(toolbarArrow);
-            }
-        }
-    }
-
+    el.innerHTML = '';
     el.onclick = function(e) {
         var element = jSuites.findElement(e.target, 'jtoolbar-item');
         if (element) {
@@ -249,32 +207,22 @@ jSuites.toolbar = (function(el, options) {
         }
 
         if (e.target.classList.contains('jtoolbar-arrow')) {
-            obj.open();
+            e.target.classList.add('jtoolbar-arrow-selected');
+            e.target.children[0].focus();
         }
     }
 
-    window.addEventListener('resize', function() {
-        obj.refresh();
-    });
-
-    // Toolbar
-    el.classList.add('jtoolbar');
-    // Reset content
-    el.innerHTML = '';
-    // Container
-    if (obj.options.container == true) {
-        el.classList.add('jtoolbar-container');
-    }
-    // Content
     var toolbarContent = document.createElement('div');
     el.appendChild(toolbarContent);
-    // Special toolbar for mobile applications
+
     if (obj.options.app) {
         el.classList.add('jtoolbar-mobile');
+    } else {
+        // Not a mobile version
     }
-    // Create toolbar
+
     obj.create(obj.options.items);
-    // Shortcut
+
     el.toolbar = obj;
 
     return obj;

@@ -1,18 +1,149 @@
 jSuites.template = (function(el, options) {
-    // Update configuration
-    if (el.classList.contains('jtemplate')) {
-        return el.template.setOptions(options);
-    }
-
     var obj = {};
     obj.options = {};
 
-    // Search controls
-    var pageNumber = 0;
-    var searchTimer = null;
+    // Default configuration
+    var defaults = {
+        url: null,
+        data: null,
+        filter: null,
+        pageNumber: 0,
+        numberOfPages: 0,
+        template: null,
+        render: null,
+        noRecordsFound: 'No records found',
+        containerClass: null,
+        // Searchable
+        search: null,
+        searchInput: true,
+        searchPlaceHolder: '',
+        searchValue: '',
+        // Remote search
+        remoteData: null,
+        // Pagination page number of items
+        pagination: null,
+        onload: null,
+        onupdate: null,
+        onchange: null,
+        onsearch: null,
+        onclick: null,
+        oncreateitem: null,
+    }
+
+    // Loop through our object
+    for (var property in defaults) {
+        if (options && options.hasOwnProperty(property)) {
+            obj.options[property] = options[property];
+        } else {
+            obj.options[property] = defaults[property];
+        }
+    }
+
+    // Reset content
+    el.innerHTML = '';
+
+    // Input search
+    if (obj.options.search && obj.options.searchInput == true) {
+        // Timer
+        var searchTimer = null;
+
+        // Search container
+        var searchContainer = document.createElement('div');
+        searchContainer.className = 'jtemplate-results';
+        obj.searchInput = document.createElement('input');
+        obj.searchInput.value = obj.options.searchValue;
+        obj.searchInput.onkeyup = function(e) {
+            // Clear current trigger
+            if (searchTimer) {
+                clearTimeout(searchTimer);
+            }
+            // Prepare search
+            searchTimer = setTimeout(function() {
+                obj.search(obj.searchInput.value.toLowerCase());
+                searchTimer = null;
+            }, 300)
+        }
+        searchContainer.appendChild(obj.searchInput);
+        el.appendChild(searchContainer);
+
+        if (obj.options.searchPlaceHolder) {
+            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
+        }
+    }
+
+    // Pagination container
+    if (obj.options.pagination) {
+        var pagination = document.createElement('div');
+        pagination.className = 'jtemplate-pagination';
+        el.appendChild(pagination);
+    }
+
+    // Content
+    var container = document.createElement('div');
+    if (obj.options.containerClass) {
+        container.className = obj.options.containerClass;
+    }
+    container.classList.add ('jtemplate-content');
+    el.appendChild(container);
+
+    // Data container
     var searchResults = null;
 
-    // Parse events inside the template
+    obj.updatePagination = function() {
+        // Reset pagination container
+        if (pagination) {
+            pagination.innerHTML = '';
+        }
+
+        // Create pagination
+        if (obj.options.pagination > 0 && obj.options.numberOfPages > 1) {
+            // Number of pages
+            var numberOfPages = obj.options.numberOfPages;
+
+            // Controllers
+            if (obj.options.pageNumber < 6) {
+                var startNumber = 1;
+                var finalNumber = numberOfPages < 10 ? numberOfPages : 10;
+            } else if (numberOfPages - obj.options.pageNumber < 5) {
+                var startNumber = numberOfPages - 9;
+                var finalNumber = numberOfPages;
+                if (startNumber < 1) {
+                    startNumber = 1;
+                }
+            } else {
+                var startNumber = obj.options.pageNumber - 4;
+                var finalNumber = obj.options.pageNumber + 5;
+            }
+
+            // First
+            if (startNumber > 1) {
+                var paginationItem = document.createElement('div');
+                paginationItem.innerHTML = '<';
+                paginationItem.title = 1;
+                pagination.appendChild(paginationItem);
+            }
+
+            // Get page links
+            for (var i = startNumber; i <= finalNumber; i++) {
+                var paginationItem = document.createElement('div');
+                paginationItem.innerHTML = i;
+                pagination.appendChild(paginationItem);
+
+                if (obj.options.pageNumber == i - 1) {
+                    paginationItem.style.fontWeight = 'bold';
+                }
+            }
+
+            // Last
+            if (finalNumber < numberOfPages) {
+                var paginationItem = document.createElement('div');
+                paginationItem.innerHTML = '>';
+                paginationItem.title = numberOfPages - 1;
+                pagination.appendChild(paginationItem);
+            }
+        }
+    }
+
     var parse = function(element) {
         // Attributes
         var attr = {};
@@ -42,14 +173,8 @@ jSuites.template = (function(el, options) {
 
                     // Keep method to the event
                     element[k[i].substring(2)] = value;
-                    if (obj.options.version == 2) {
-                        element[event] = function(e) {
-                            Function('template', 'e', element[e.type]).call(element, obj.options.template, e);
-                        }
-                    } else {
-                        element[event] = function(e) {
-                            Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
-                        }
+                    element[event] = function(e) {
+                        Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
                     }
                 }
             }
@@ -62,87 +187,6 @@ jSuites.template = (function(el, options) {
             }
         }
     }
-
-    /**
-     * Set the options
-     */
-    obj.setOptions = function() {
-        // Default configuration
-        var defaults = {
-            version: null,
-            url: null,
-            data: null,
-            total: null,
-            filter: null,
-            template: null,
-            render: null,
-            noRecordsFound: 'No records found',
-            containerClass: null,
-            // Searchable
-            search: null,
-            searchInput: true,
-            searchPlaceHolder: '',
-            searchValue: '',
-            // Remote search
-            remoteData: false,
-            // Pagination page number of items
-            pagination: null,
-            // Events
-            onload: null,
-            onupdate: null,
-            onchange: null,
-            onsearch: null,
-            onclick: null,
-            oncreateitem: null,
-        }
-
-        // Loop through our object
-        for (var property in defaults) {
-            if (options && options.hasOwnProperty(property)) {
-                obj.options[property] = options[property];
-            } else if (typeof(obj.options[property]) === 'undefined') {
-                obj.options[property] = defaults[property];
-            }
-        }
-
-        // Pagination container
-        if (obj.options.pagination) {
-            el.insertBefore(pagination, el.firstChild);
-        } else {
-            if (pagination && pagination.parentNode) {
-                el.removeChild(pagination);
-            }
-        }
-
-
-        // Input search
-        if (obj.options.search && obj.options.searchInput == true) {
-            el.insertBefore(searchContainer, el.firstChild);
-            // Input value
-            obj.searchInput.value = obj.options.searchValue;
-        } else {
-            if (searchContainer && searchContainer.parentNode) {
-                el.removeChild(searchContainer);
-            }
-        }
-
-        // Search placeholder
-        if (obj.options.searchPlaceHolder) {
-            obj.searchInput.setAttribute('placeholder', obj.options.searchPlaceHolder);
-        } else {
-            obj.searchInput.removeAttribute('placeholder');
-        }
-
-        // Class for the container
-        if (obj.options.containerClass) {
-            container.classList.add(obj.options.containerClass);
-        }
-    }
-    
-    /**
-     * Contains the cache of local data loaded
-     */
-    obj.cache = [];
 
     /**
      * Append data to the template and add to the DOMContainer
@@ -160,16 +204,13 @@ jSuites.template = (function(el, options) {
         }
 
         parse(b);
-    
+
         // Oncreate a new item
         if (typeof(obj.options.oncreateitem) == 'function') {
             obj.options.oncreateitem(el, obj, b.children[0], a);
         }
     }
 
-    /**
-     * Add a new option in the data
-     */
     obj.addItem = function(data, beginOfDataSet) {
         // Append itens
         var content = document.createElement('div');
@@ -200,9 +241,6 @@ jSuites.template = (function(el, options) {
         }
     }
 
-    /**
-     * Remove the item from the data
-     */
     obj.removeItem = function(element) {
         if (Array.prototype.indexOf.call(container.children, element) > -1) {
             // Remove data from array
@@ -223,14 +261,10 @@ jSuites.template = (function(el, options) {
             console.error('Element not found');
         }
     }
-    /**
-     * Reset the data of the element
-     */
+
     obj.setData = function(data) {
         if (data) {
-            // Current page number
-            pageNumber = 0;
-            // Reset search
+            obj.options.pageNumber = 1;
             obj.options.searchValue = '';
             // Set data
             obj.options.data = data;
@@ -247,25 +281,18 @@ jSuites.template = (function(el, options) {
         }
     }
 
-    /**
-     * Get the current page number
-     */
-    obj.getPage = function() {
-        return pageNumber;
-    }
-
-    /**
-     * Append data to the component 
-     */
-    obj.appendData = function(data, p) {
-        if (p) {
-            pageNumber = p;
+    obj.appendData = function(data, pageNumber) {
+        if (pageNumber) {
+            obj.options.pageNumber = pageNumber;
         }
 
         var execute = function(data) {
             // Concat data
             obj.options.data.concat(data);
-
+            // Number of pages
+            if (obj.options.pagination > 0) {
+                obj.options.numberOfPages = Math.ceil(obj.options.data.length / obj.options.pagination);
+            }
             var startNumber = 0;
             var finalNumber = data.length;
             // Append itens
@@ -275,7 +302,6 @@ jSuites.template = (function(el, options) {
                 content.children[0].dataReference = data[i];
                 container.appendChild(content.children[0]);
             }
-            
         }
 
         if (obj.options.url && obj.options.remoteData == true) {
@@ -290,8 +316,8 @@ jSuites.template = (function(el, options) {
                     ajaxData.q = obj.options.searchValue;
                 }
                 // Page number
-                if (pageNumber) {
-                    ajaxData.p = pageNumber;
+                if (obj.options.pageNumber) {
+                    ajaxData.p = obj.options.pageNumber;
                 }
                 // Number items per page
                 if (obj.options.pagination) {
@@ -326,8 +352,8 @@ jSuites.template = (function(el, options) {
             data = obj.options.filter(data);
         }
 
-        // Reset pagination container
-        pagination.innerHTML = '';
+        // Reset pagination
+        obj.updatePagination();
 
         if (! data.length) {
             container.innerHTML = obj.options.noRecordsFound;
@@ -338,8 +364,8 @@ jSuites.template = (function(el, options) {
 
             // Create pagination
             if (obj.options.pagination && data.length > obj.options.pagination) {
-                var startNumber = (obj.options.pagination * pageNumber);
-                var finalNumber = (obj.options.pagination * pageNumber) + obj.options.pagination;
+                var startNumber = (obj.options.pagination * obj.options.pageNumber);
+                var finalNumber = (obj.options.pagination * obj.options.pageNumber) + obj.options.pagination;
 
                 if (data.length < finalNumber) {
                     var finalNumber = data.length;
@@ -352,77 +378,22 @@ jSuites.template = (function(el, options) {
             // Append itens
             var content = document.createElement('div');
             for (var i = startNumber; i < finalNumber; i++) {
-                // Check if cache obj contains the element
-                if (! data[i].element) {
-                    obj.setContent(data[i], content);
-                    content.children[0].dataReference = data[i];
-                    data[i].element = content.children[0];
-                    // append element into cache
-                    obj.cache.push(data[i]);
-                    container.appendChild(content.children[0]);
-                } else {
-                    container.appendChild(data[i].element);
-                }
-            }
-
-            if (obj.options.total) {
-                var numberOfPages = Math.ceil(obj.options.total / obj.options.pagination);
-            } else {
-                var numberOfPages = Math.ceil(data.length / obj.options.pagination);
-            }
-
-            // Update pagination
-            if (obj.options.pagination > 0 && numberOfPages > 1) {
-                // Controllers
-                if (pageNumber < 6) {
-                    var startNumber = 0;
-                    var finalNumber = numberOfPages < 10 ? numberOfPages : 10;
-                } else if (numberOfPages - pageNumber < 5) {
-                    var startNumber = numberOfPages - 9;
-                    var finalNumber = numberOfPages;
-                    if (startNumber < 0) {
-                        startNumber = 0;
-                    }
-                } else {
-                    var startNumber = pageNumber - 4;
-                    var finalNumber = pageNumber + 5;
-                }
-
-                // First
-                if (startNumber > 0) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = '<';
-                    paginationItem.title = 0;
-                    pagination.appendChild(paginationItem);
-                }
-
-                // Get page links
-                for (var i = startNumber; i < finalNumber; i++) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = (i + 1);
-                    pagination.appendChild(paginationItem);
-
-                    if (pageNumber == i) {
-                        paginationItem.style.fontWeight = 'bold';
-                        paginationItem.style.textDecoration = 'underline';
-                    }
-                }
-
-                // Last
-                if (finalNumber < numberOfPages) {
-                    var paginationItem = document.createElement('div');
-                    paginationItem.innerHTML = '>';
-                    paginationItem.title = numberOfPages - 1;
-                    pagination.appendChild(paginationItem);
-                }
+                // Get content
+                obj.setContent(data[i], content);
+                content.children[0].dataReference = data[i]; 
+                container.appendChild(content.children[0]);
             }
         }
     }
 
-    obj.render = function(p, forceLoad) {
+    obj.render = function(pageNumber, forceLoad) {
         // Update page number
-        if (p !== undefined) {
-            pageNumber = p;
+        if (pageNumber != undefined) {
+            obj.options.pageNumber = pageNumber;
+        } else {
+            if (! obj.options.pageNumber && obj.options.pagination > 0) {
+                obj.options.pageNumber = 0;
+            }
         }
 
         // Render data into template
@@ -431,7 +402,7 @@ jSuites.template = (function(el, options) {
             if (typeof(obj.options.render) == 'function') {
                 container.innerHTML = obj.options.render(obj);
             } else {
-               container.innerHTML = '';
+                container.innerHTML = '';
             }
 
             // Load data
@@ -462,8 +433,8 @@ jSuites.template = (function(el, options) {
                     ajaxData.q = obj.options.searchValue;
                 }
                 // Page number
-                if (pageNumber) {
-                    ajaxData.p = pageNumber;
+                if (obj.options.pageNumber) {
+                    ajaxData.p = obj.options.pageNumber;
                 }
                 // Number items per page
                 if (obj.options.pagination) {
@@ -479,10 +450,13 @@ jSuites.template = (function(el, options) {
                 success: function(data) {
                     // Search and keep data in the client side
                     if (data.hasOwnProperty("total")) {
-                        obj.options.total = data.total;
+                        obj.options.numberOfPages = Math.ceil(data.total / obj.options.pagination);
                         obj.options.data = data.data;
                     } else {
-                        obj.options.total = null;
+                        // Number of pages
+                        if (obj.options.pagination > 0) {
+                            obj.options.numberOfPages = Math.ceil(data.length / obj.options.pagination);
+                        }
                         obj.options.data = data;
                     }
 
@@ -494,6 +468,14 @@ jSuites.template = (function(el, options) {
             if (! obj.options.data) {
                 console.log('TEMPLATE: no data or external url defined');
             } else {
+                // Number of pages
+                if (obj.options.pagination > 0) {
+                    if (searchResults) {
+                        obj.options.numberOfPages = Math.ceil(searchResults.length / obj.options.pagination);
+                    } else {
+                        obj.options.numberOfPages = Math.ceil(obj.options.data.length / obj.options.pagination);
+                    }
+                }
                 // Load data for the user
                 execute();
             }
@@ -501,9 +483,7 @@ jSuites.template = (function(el, options) {
     }
 
     obj.search = function(query) {
-        // Page number
-        pageNumber = 0;
-        // Search query
+        obj.options.pageNumber = 0;
         obj.options.searchValue = query ? query : '';
 
         // Filter data
@@ -526,7 +506,7 @@ jSuites.template = (function(el, options) {
             });
         }
 
-        obj.render(0);
+        obj.render();
 
         if (typeof(obj.options.onsearch) == 'function') {
             obj.options.onsearch(el, obj, query);
@@ -534,18 +514,13 @@ jSuites.template = (function(el, options) {
     }
 
     obj.refresh = function() {
-        obj.cache = [];
         obj.render();
     }
 
     obj.reload = function() {
-        obj.cache = [];
         obj.render(0, true);
     }
 
-    /**
-     * Events
-     */
     el.addEventListener('mousedown', function(e) {
         if (e.target.parentNode.classList.contains('jtemplate-pagination')) {
             var index = e.target.innerText;
@@ -560,45 +535,12 @@ jSuites.template = (function(el, options) {
         }
     });
 
-    el.addEventListener('mouseup', function(e) {
+    el.addEventListener('click', function(e) {
         if (typeof(obj.options.onclick) == 'function') {
             obj.options.onclick(el, obj, e);
         }
     });
 
-    // Reset content
-    el.innerHTML = '';
-
-    // Container
-    var container = document.createElement('div');
-    container.classList.add ('jtemplate-content');
-    el.appendChild(container);
-
-    // Pagination container
-    var pagination = document.createElement('div');
-    pagination.className = 'jtemplate-pagination';
-
-    // Search DOM elements
-    var searchContainer = document.createElement('div');
-    searchContainer.className = 'jtemplate-results';
-    obj.searchInput = document.createElement('input');
-    obj.searchInput.onkeyup = function(e) {
-        // Clear current trigger
-        if (searchTimer) {
-            clearTimeout(searchTimer);
-        }
-        // Prepare search
-        searchTimer = setTimeout(function() {
-            obj.search(obj.searchInput.value.toLowerCase());
-            searchTimer = null;
-        }, 300)
-    }
-    searchContainer.appendChild(obj.searchInput);
-
-    // Set the options
-    obj.setOptions(options);
-
-    // Keep the reference in the DOM container
     el.template = obj;
 
     // Render data

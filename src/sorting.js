@@ -122,16 +122,5 @@ jSuites.sorting = (function(el, options) {
         }
     }
 
-    el.val = function() {
-        var id = null;
-        var data = [];
-        for (var i = 0; i < el.children.length; i++) {
-            if (id = el.children[i].getAttribute('data-id')) {
-                data.push(id);
-            }
-        }
-        return data;
-    }
-
     return el;
 });

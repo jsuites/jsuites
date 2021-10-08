@@ -29,11 +29,6 @@
     display:none;
 }
 
-.jdropdown[disabled] {
-    opacity: 0.5;
-    pointer-events: none;
-}
-
 .jdropdown-focus {
     position:relative;
 }
@@ -144,19 +139,6 @@
     height:24px;
 }
 
-.jdropdown-icon
-{
-    margin-right:10px;
-    font-size: 30px;
-    margin-left: -5px;
-}
-
-.jdropdown-icon-small
-{
-    font-size: 24px;
-    margin-left: 0px;
-}
-
 .jdropdown-title
 {
     font-size: 0.7em;
@@ -236,7 +218,7 @@
 }
 
 .jdropdown-default .jdropdown-group-name {
-    padding-left: 8px;
+    padding: 8px;
     font-weight: bold;
     text-align: left;
 }
@@ -550,9 +532,4 @@
     width: 12px;
     height: 12px;
     margin-right: 6px;
-}
-
-.jdropdown-item[data-disabled] {
-    opacity: 0.5;
-    pointer-events: none;
 }

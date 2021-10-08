@@ -34,7 +34,7 @@
     display: flex;
     align-items: center;
     font-weight: bold;
-    font-size: 0.9em;
+    font-size: 1em;
 }
 
 .jmenu nav h2::before {
@@ -103,13 +103,6 @@
 
 .jmenu a:hover, .jmenu a.selected {
     text-decoration: underline;
-    font-weight: bold;
-}
-
-.jmenu .title {
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
-    padding-bottom: 5px;
 }
 
 @media only screen and (max-device-width : 800px) {

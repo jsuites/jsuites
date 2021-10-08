@@ -1,22 +1,19 @@
 jSuites.tags = (function(el, options) {
     // Redefine configuration
-    if (el.tags) {
-        return el.tags.setOptions(options, true);
+    if (el.classList.contains('jtags')) {
+        return el.tags.setOptions(options);
     }
 
-    var obj = { type:'tags' };
+    var obj = {};
     obj.options = {};
 
-    // Limit
-    var limit = function() {
-        return obj.options.limit && el.children.length >= obj.options.limit ? true : false;
-    }
-
     // Search helpers
-    var search = null;
     var searchContainer = null;
+    var searchTerms = null;
+    var searchIndex = 0;
+    var searchTimer = 0;
 
-    obj.setOptions = function(options, reset) {
+    obj.setOptions = function(options) {
         /**
          * @typedef {Object} defaults
          * @property {(string|Array)} value - Initial value of the compontent
@@ -31,14 +28,13 @@ jSuites.tags = (function(el, options) {
          * @property {requestCallback} onload - Method to be execute when the element is loaded
          */
         var defaults = {
-            value: '',
+            value: null,
             limit: null,
-            limitMessage: null,
+            limitMessage: 'The limit of entries is: ',
             search: null,
             placeholder: null,
             validation: null,
             onbeforechange: null,
-            onlimit: null,
             onchange: null,
             onfocus: null,
             onblur: null,
@@ -51,9 +47,7 @@ jSuites.tags = (function(el, options) {
             if (options && options.hasOwnProperty(property)) {
                 obj.options[property] = options[property];
             } else {
-                if (typeof(obj.options[property]) == 'undefined' || reset === true) {
-                    obj.options[property] = defaults[property];
-                }
+                obj.options[property] = defaults[property];
             }
         }
 
@@ -65,35 +59,10 @@ jSuites.tags = (function(el, options) {
         }
         el.placeholder = obj.options.placeholder;
 
-        // Update value
-        obj.setValue(obj.options.value);
-
-        // Validate items
-        filter();
-
-        // Create search box
-        if (obj.options.search) {
-            if (! searchContainer) {
-                searchContainer = document.createElement('div');
-                el.parentNode.insertBefore(searchContainer, el.nextSibling);
-
-                // Create container
-                search = jSuites.search(searchContainer, {
-                    data: obj.options.search,
-                    onselect: function(a,b,c) {
-                        obj.selectIndex(b,c);
-                    }
-                });
-            }
-        } else {
-            if (searchContainer) {
-                search = null;
-                searchContainer.remove();
-                searchContainer = null;
-            }
+        // Make sure element is empty
+        if (obj.options.value && obj.options.value != el.value) {
+            obj.setValue(obj.options.value);
         }
-
-        return obj;
     }
 
     /**
@@ -102,78 +71,72 @@ jSuites.tags = (function(el, options) {
      */
     obj.add = function(value, focus) {
         if (typeof(obj.options.onbeforechange) == 'function') {
-            var ret = obj.options.onbeforechange(el, obj, obj.options.value, value);
-            if (ret === false) {
-                return false;
-            } else { 
-                if (ret != null) {
-                    value = ret;
-                }
+            var v = obj.options.onbeforechange(el, obj, value);
+            if (v != null) {
+                value = v;
             }
         }
 
-        // Make sure search is closed
-        if (search) {
-            search.close();
+        // Close search
+        if (searchContainer) {
+            searchContainer.style.display = '';
         }
 
-        if (limit()) {
-            if (typeof(obj.options.onlimit) == 'function') {
-                obj.options.onlimit(obj, obj.options.limit);
-            } else if (obj.options.limitMessage) {
-                alert(obj.options.limitMessage + ' ' + obj.options.limit);
-            }
+        if (obj.options.limit > 0 && el.children.length >= obj.options.limit) {
+            alert(obj.options.limitMessage + ' ' + obj.options.limit);
         } else {
             // Get node
-            var node = jSuites.getNode();
+            var node = getSelectionStart();
 
-            if (node && node.parentNode && node.parentNode.classList.contains('jtags') &&
-                node.nextSibling && (! (node.nextSibling.innerText && node.nextSibling.innerText.trim()))) {
-                div = node.nextSibling;
-            } else {
-                // Remove not used last item
-                if (el.lastChild) {
-                    if (! el.lastChild.innerText.trim()) {
-                        el.removeChild(el.lastChild);
-                    }
-                }
-
-                // Mix argument string or array
-                if (! value || typeof(value) == 'string') {
-                    var div = createElement(value, value, node);
+            // Mix argument string or array
+            if (! value || typeof(value) == 'string') {
+                var div = document.createElement('div');
+                div.innerHTML = value ? value : '<br>';
+                div.setAttribute('data-value', value);
+                if (node && node.parentNode.classList.contains('jtags')) {
+                    el.insertBefore(div, node.nextSibling);
                 } else {
-                    for (var i = 0; i <= value.length; i++) {
-                        if (! limit()) {
-                            if (! value[i] || typeof(value[i]) == 'string') {
-                                var t = value[i] || '';
-                                var v = null;
-                            } else {
-                                var t = value[i].text;
-                                var v = value[i].value;
-                            }
-
-                            // Add element
-                            var div = createElement(t, v);
-                        }
+                    el.appendChild(div);
+                }
+            } else {
+                if (node && node.parentNode.classList.contains('jtags')) {
+                    if (! node.innerText.replace("\n", "")) {
+                        el.removeChild(node);
                     }
                 }
 
-                // Change
-                change();
+                for (var i = 0; i <= value.length; i++) {
+                    if (! obj.options.limit || el.children.length < obj.options.limit) {
+                        var div = document.createElement('div');
+                        if (! value[i] || typeof(value[i]) == 'string') {
+                            var t = value[i] || '';
+                            var v = t;
+                            if (! t) {
+                                t = '<br>';
+                            }
+                        } else {
+                            var t = value[i].text;
+                            var v = value[i].value;
+                        }
+                        div.innerHTML = t;
+                        div.setAttribute('data-value', v);
+                        el.appendChild(div);
+                    }
+                }
             }
 
             // Place caret
             if (focus) {
-                setFocus(div);
+                setTimeout(function() {
+                    jSuites.focus(div);
+                }, 0);
             }
-        }
-    }
 
-    obj.setLimit = function(limit) {
-        obj.options.limit = limit;
-        var n = el.children.length - limit;
-        while (el.children.length > limit) {
-            el.removeChild(el.lastChild);
+            // Filter
+            filter();
+
+            // Change
+            change();
         }
     }
 
@@ -181,11 +144,8 @@ jSuites.tags = (function(el, options) {
     obj.remove = function(node) {
         // Remove node
         node.parentNode.removeChild(node);
-        // Make sure element is not blank
         if (! el.children.length) {
-            obj.add('', true);
-        } else {
-            change();
+            obj.add('');
         }
     }
 
@@ -248,19 +208,17 @@ jSuites.tags = (function(el, options) {
         if (! mixed) {
             obj.reset();
         } else {
-            if (el.value != mixed) {
-                if (Array.isArray(mixed)) {
-                    obj.add(mixed);
-                } else {
-                    // Remove whitespaces
-                    var text = (''+mixed).trim();
-                    // Tags
-                    var data = extractTags(text);
-                    // Reset
-                    el.innerHTML = '';
-                    // Add tags to the element
-                    obj.add(data);
-                }
+            if (Array.isArray(mixed)) {
+                obj.add(mixed);
+            } else {
+                // Remove whitespaces
+                var text = (''+mixed).trim();
+                // Tags
+                var data = extractTags(text);
+                // Reset
+                el.innerHTML = '';
+                // Add tags to the element
+                obj.add(data);
             }
         }
     }
@@ -272,7 +230,7 @@ jSuites.tags = (function(el, options) {
         // Empty class
         el.classList.add('jtags-empty');
         // Empty element
-        el.innerHTML = '<div></div>';
+        el.innerHTML = '<div><br></div>';
         // Execute changes
         change();
     }
@@ -295,22 +253,25 @@ jSuites.tags = (function(el, options) {
      * Add one element from the suggestions to the element
      * @param {object} item - Node element in the suggestions container
      */ 
-    obj.selectIndex = function(text, value) {
-        var node = jSuites.getNode();
-        if (node) {
-            // Append text to the caret
-            node.innerText = text;
-            // Set node id
-            if (value) {
-                node.setAttribute('data-value', value);
-            }
-            // Remove any error
-            node.classList.remove('jtags_error');
-            if (! limit()) {
-                // Add new item
-                obj.add('', true);
-            }
+    obj.selectIndex = function(item) {
+        // Reset terms
+        searchTerms = '';
+        var node = getSelectionStart();
+        // Append text to the caret
+        node.innerText = item.getAttribute('data-text');
+        // Set node id
+        if (item.getAttribute('data-value')) {
+            node.setAttribute('data-value', item.getAttribute('data-value'));
         }
+        // Close container
+        if (searchContainer) {
+            searchContainer.style.display = '';
+            searchContainer.innerHTML = '';
+        }
+        // Remove any error
+        node.classList.remove('jtags_error');
+        // Add new item
+        obj.add('', true);
     }
 
     /**
@@ -318,8 +279,159 @@ jSuites.tags = (function(el, options) {
      * @param {object} node - Target node for any suggestions
      */
     obj.search = function(node) {
+        // Create and append search container to the DOM
+        if (! searchContainer) {
+            var div = document.createElement('div');
+            div.style.position = 'relative';
+            el.parentNode.insertBefore(div, el.nextSibling);
+
+            // Create container
+            searchContainer = document.createElement('div');
+            searchContainer.classList.add('jtags_search');
+            div.appendChild(searchContainer);
+
+            var click = function(e) {
+                if (e.target.classList.contains('jtags_search_item')) {
+                    var element = e.target;
+                } else {
+                    var element = e.target.parentNode;
+                }
+
+                obj.selectIndex(element);
+            }
+
+            // Bind events
+            if ('touchstart' in document.documentElement === true) {
+                searchContainer.addEventListener('touchstart', click);
+            } else {
+                searchContainer.addEventListener('mousedown', click);
+            }
+        }
+
         // Search for
         var terms = node.innerText;
+
+        // Search
+        if (terms != searchTerms) {
+            // Terms
+            searchTerms = terms;
+            // Reset index
+            searchIndex = 0;
+
+            // If the search option is an array, perform a search on that array
+            if (Array.isArray(obj.options.search)) {
+                var data = [];
+
+                var i = 0;
+                while (i < obj.options.search.length && data.length <= 10) {
+                    if (obj.options.search[i].includes(searchTerms)) {
+                        data.push(obj.options.search[i]);
+                    }
+
+                    i++;
+                }
+
+                // Reset container
+                searchContainer.innerHTML = '';
+
+                // Print results
+                if (! data.length) {
+                    // Hide container
+                    searchContainer.style.display = '';
+                } else {
+                    // Show container
+                    searchContainer.style.display = 'block';
+
+                    // Show items
+                    var len = data.length < 11 ? data.length : 10;
+                    for (var i = 0; i < len; i++) {
+                        var text;
+                        var value
+
+                        if (typeof data[i] === "string") {
+                            text = data[i];
+                            value = data[i];
+                        } else {
+                            text = data[1].text;
+                            value = data[1].value;
+                        }
+
+                        var div = document.createElement('div');
+                        div.setAttribute('data-value', value);
+                        div.setAttribute('data-text', text);
+                        div.className = 'jtags_search_item';
+
+                        if (i == 0) {
+                            div.classList.add('selected');
+                        }
+
+                        var item = document.createElement('div');
+                        item.innerHTML = text;
+                        div.appendChild(item);
+                        // Append item to the container
+                        searchContainer.appendChild(div);
+                    }
+                }
+
+            // If the search option is a string, make a request using that string as a url
+            } else {
+                // Get remove results
+                jSuites.ajax({
+                    url: obj.options.search + searchTerms,
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        // Reset container
+                        searchContainer.innerHTML = '';
+
+                        // Print results
+                        if (! data.length) {
+                            // Show container
+                            searchContainer.style.display = '';
+                        } else {
+                            // Show container
+                            searchContainer.style.display = 'block';
+
+                            // Show items
+                            var len = data.length < 11 ? data.length : 10;
+                            for (var i = 0; i < len; i++) {
+                                // Legacy
+                                var text = data[i].text;
+                                if (! text && data[i].name) {
+                                    text = data[i].name;
+                                }
+                                var value = data[i].value;
+                                if (! value && data[i].id) {
+                                    value = data[i].id;
+                                }
+
+                                var div = document.createElement('div');
+                                div.setAttribute('data-value', value);
+                                div.setAttribute('data-text', text);
+                                div.className = 'jtags_search_item';
+
+                                if (i == 0) {
+                                    div.classList.add('selected');
+                                }
+                                var img = document.createElement('img');
+                                if (data[i].image) {
+                                    img.src = data[i].image;
+                                } else {
+                                    img.style.display = 'none';
+                                }
+                                div.appendChild(img);
+
+                                var item = document.createElement('div');
+                                item.innerHTML = text;
+                                div.appendChild(item);
+                                // Append item to the container
+                                searchContainer.appendChild(div);
+                            }
+                        }
+                    }
+                });
+            }
+        }
     }
 
     // Destroy tags element
@@ -331,66 +443,29 @@ jSuites.tags = (function(el, options) {
         el.removeEventListener('paste', tagsPaste);
         el.removeEventListener('focus', tagsFocus);
         el.removeEventListener('blur', tagsBlur);
-
         // Remove element
         el.parentNode.removeChild(el);
     }
 
-    var setFocus = function(node) {
-        if (el.children.length > 1) {
-            var range = document.createRange();
-            var sel = window.getSelection();
-            if (! node) {
-                var node = el.childNodes[el.childNodes.length-1];
-            }
-            range.setStart(node, node.length)
-            range.collapse(true)
-            sel.removeAllRanges()
-            sel.addRange(range)
-            el.scrollLeft = el.scrollWidth;
-        }
-    }
-
-    var createElement = function(label, value, node) {
-        var div = document.createElement('div');
-        div.innerHTML = label ? label : '';
-        if (value) {
-            div.setAttribute('data-value', value);
-        }
-
-        if (node && node.parentNode.classList.contains('jtags')) {
-            el.insertBefore(div, node.nextSibling);
-        } else {
-            el.appendChild(div);
-        }
-
-        return div;
-    }
-
     var change = function() {
         // Value
-        var value = obj.getValue();
+        obj.options.value = obj.getValue();
 
-        if (value != obj.options.value) {
-            obj.options.value = value;
-            if (typeof(obj.options.onchange) == 'function') {
-                obj.options.onchange(el, obj, obj.options.value);
-            }
-
-            // Lemonade JS
-            if (el.value != obj.options.value) {
-                el.value = obj.options.value;
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
-                        target: el,
-                        value: el.value
-                    });
-                }
-            }
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, obj.options.value);
         }
 
-        filter();
+        // Lemonade JS
+        if (el.value != obj.options.value) {
+            el.value = obj.options.value;
+            if (typeof(el.onchange) == 'function') {
+                el.onchange({
+                    type: 'change',
+                    target: el,
+                    value: el.value
+                });
+            }
+        }
     }
 
     /**
@@ -415,22 +490,20 @@ jSuites.tags = (function(el, options) {
                     } else {
                         el.children[i].classList.remove('jtags_error');
                     }
-                } else {
-                    el.children[i].classList.remove('jtags_error');
                 }
             }
         }
-
-        isEmpty();
     }
 
-    var isEmpty = function() {
-        // Can't be empty
-        if (! el.innerText.trim()) {
-            el.innerHTML = '<div></div>';
-            el.classList.add('jtags-empty');
+    /**
+     * Selection
+     */
+    var getSelectionStart = function() {
+        var node = document.getSelection().anchorNode;
+        if (node) {
+            return (node.nodeType == 3 ? node.parentNode : node);
         } else {
-            el.classList.remove('jtags-empty');
+            return null;
         }
     }
 
@@ -480,30 +553,52 @@ jSuites.tags = (function(el, options) {
         // Anchoroffset
         anchorOffset = window.getSelection().anchorOffset;
 
-        // Verify if is empty
-        isEmpty();
-
+        // If starts blank create the first element
+        if (! el.children.length) {
+            var div = document.createElement('div');
+            div.innerHTML = '<div><br/></div>';
+            el.appendChild(div);
+        }
         // Comma
         if (e.key === 'Tab'  || e.key === ';' || e.key === ',') {
             var n = window.getSelection().anchorOffset;
             if (n > 1) {
-                if (limit()) {
-                    if (typeof(obj.options.onlimit) == 'function') {
-                        obj.options.onlimit(obj, obj.options.limit)
-                    }
-                } else {
+                if (! obj.options.limit || el.children.length < obj.options.limit) {
                     obj.add('', true);
                 }
             }
             e.preventDefault();
         } else if (e.key == 'Enter') {
-            if (! search || ! search.isOpened()) {
+            // Enter
+            if (searchContainer && searchContainer.style.display != '') {
+                obj.selectIndex(searchContainer.children[searchIndex]);
+            } else {
                 var n = window.getSelection().anchorOffset;
                 if (n > 1) {
-                    if (! limit()) {
+                    if (! obj.options.limit || el.children.length < obj.options.limit) {
                         obj.add('', true);
                     }
                 }
+            }
+            e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+            // Up
+            if (searchContainer && searchContainer.style.display != '') {
+                searchContainer.children[searchIndex].classList.remove('selected');
+                if (searchIndex > 0) {
+                    searchIndex--;
+                }
+                searchContainer.children[searchIndex].classList.add('selected');
+                e.preventDefault();
+            }
+        } else if (e.key === 'ArrowDown') {
+            // Down
+            if (searchContainer && searchContainer.style.display != '') {
+                searchContainer.children[searchIndex].classList.remove('selected');
+                if (searchIndex < 9) {
+                    searchIndex++;
+                }
+                searchContainer.children[searchIndex].classList.add('selected');
                 e.preventDefault();
             }
         } else if (e.key == 'Backspace') {
@@ -512,12 +607,12 @@ jSuites.tags = (function(el, options) {
                 e.preventDefault();
             }
         }
-
-        // Search events
-        if (search) {
-            search.keydown(e);
-        }
     }
+
+    var getFocusedNode = function () {
+        var node = document.getSelection().anchorNode;
+        return (node.nodeType == 3 ? node.parentNode : node);
+     }
 
     /**
      * Processing event keyup on the element
@@ -532,10 +627,36 @@ jSuites.tags = (function(el, options) {
             }
         } else if (e.which == 13 || e.which == 38 || e.which == 40) {
             e.preventDefault();
-        } else {
-            if (search) {
-                search.keyup(e);
+        } else if (e.which == 8) {
+            // Back space - add a new element just in case is blank
+            if (! el.innerHTML) {
+                obj.add('', true);
             }
+            e.preventDefault();
+        } else if (e.which == 46) {
+            // Verify content and don't let blank element
+            if (! el.children.length) {
+                var div = document.createElement('div');
+                div.innerHTML = '<div><br/></div>';
+                el.appendChild(div);
+            }
+            e.preventDefault();
+        } else {
+            if (searchTimer) {
+                clearTimeout(searchTimer);
+            }
+
+            searchTimer = setTimeout(function() {
+                // Current node
+                var node = getFocusedNode();
+                if (node) {
+                    // Search
+                    if (obj.options.search) {
+                        obj.search(node);
+                    }
+                }
+                searchTimer = null;
+            }, 300);
         }
 
         filter();
@@ -547,16 +668,15 @@ jSuites.tags = (function(el, options) {
      */
     var tagsPaste =  function(e) {
         if (e.clipboardData || e.originalEvent.clipboardData) {
+            var html = (e.originalEvent || e).clipboardData.getData('text/html');
             var text = (e.originalEvent || e).clipboardData.getData('text/plain');
         } else if (window.clipboardData) {
+            var html = window.clipboardData.getData('Html');
             var text = window.clipboardData.getData('Text');
         }
 
-        var data = extractTags(text);
-        if (data.length > 1) {
-            obj.add(data, true);
-            e.preventDefault();
-        }
+        obj.setValue(text);
+        e.preventDefault();
     }
 
     /**
@@ -573,52 +693,72 @@ jSuites.tags = (function(el, options) {
             }
         }
 
-        // Set focus in the last item
-        if (e.target == el) {
-            setFocus();
+        if (searchContainer) {
+            searchContainer.style.display = '';
         }
     }
 
-    var tagsFocus = function() {
-        if (! el.classList.contains('jtags-focus')) {
-            if (! el.children.length || obj.getValue(el.children.length - 1)) {
-                if (! limit()) {
-                    createElement('');
-                }
+    /**
+     * Processing event focus on the element
+     * @param e {object}
+     */
+    var tagsFocus = function(e) {
+        if (! el.children.length || obj.getValue(el.children.length - 1)) {
+            if (! obj.options.limit || el.children.length < obj.options.limit) {
+                var div = document.createElement('div');
+                div.innerHTML = '<br>';
+                el.appendChild(div);
             }
-
-            if (typeof(obj.options.onfocus) == 'function') {
-                obj.options.onfocus(el, obj, obj.getValue());
-            }
-
-            el.classList.add('jtags-focus');
         }
+
+        if (typeof(obj.options.onfocus) == 'function') {
+            obj.options.onfocus(el, obj, obj.getValue());
+        }
+
+        el.classList.add('jtags-focus');
     }
 
-    var tagsBlur = function() {
-        if (el.classList.contains('jtags-focus')) {
-            if (search) {
-                search.close();
+    /**
+     * Processing event blur on the element
+     * @param e {object}
+     */
+    var tagsBlur = function(e) {
+        if (searchContainer) {
+            setTimeout(function() {
+                searchContainer.style.display = '';
+            }, 200);
+        }
+
+        for (var i = 0; i < el.children.length - 1; i++) {
+            // Create label design
+            if (! obj.getValue(i)) {
+                el.removeChild(el.children[i]);
             }
+        }
 
-            for (var i = 0; i < el.children.length - 1; i++) {
-                // Create label design
-                if (! obj.getValue(i)) {
-                    el.removeChild(el.children[i]);
-                }
-            }
+        if (typeof(obj.options.onblur) == 'function') {
+            obj.options.onblur(el, obj, obj.getValue());
+        }
 
-            change();
+        change();
 
-            el.classList.remove('jtags-focus');
+        // Focus CSS
+        el.classList.remove('jtags-focus');
 
-            if (typeof(obj.options.onblur) == 'function') {
-                obj.options.onblur(el, obj, obj.getValue());
-            }
+        // Empty CSS
+        if (el.children[0].innerText.trim()) {
+            el.classList.remove('jtags-empty');
+        } else {
+            el.classList.add('jtags-empty');
         }
     }
 
     var init = function() {
+        // Initial options
+        obj.setOptions(options);
+        // Force initial value
+        obj.setValue(obj.options.value);
+
         // Bind events
         if ('touchend' in document.documentElement === true) {
             el.addEventListener('touchend', tagsMouseUp);
@@ -632,14 +772,10 @@ jSuites.tags = (function(el, options) {
         el.addEventListener('focus', tagsFocus);
         el.addEventListener('blur', tagsBlur);
 
-        // Editable
-        el.setAttribute('contenteditable', true);
-
         // Prepare container
         el.classList.add('jtags');
-
-        // Initial options
-        obj.setOptions(options);
+        el.setAttribute('contenteditable', true);
+        el.setAttribute('spellcheck', false);
 
         if (typeof(obj.options.onload) == 'function') {
             obj.options.onload(el, obj);
@@ -647,15 +783,6 @@ jSuites.tags = (function(el, options) {
 
         // Change methods
         el.change = obj.setValue;
-
-        // Global generic value handler
-        el.val = function(val) {
-            if (val === undefined) {
-                return obj.getValue();
-            } else {
-                obj.setValue(val);
-            }
-        }
 
         el.tags = obj;
     }

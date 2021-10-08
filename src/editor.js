@@ -2,6 +2,24 @@ jSuites.editor = (function(el, options) {
     var obj = {};
     obj.options = {};
 
+    // If element is textarea, then replace by div editor
+    if (el.tagName == 'TEXTAREA' || el.tagName == 'INPUT') {
+        // Current element
+        var element = el;
+        element.style.display = 'none';
+        // New Element
+        el = document.createElement('div');
+        // Value
+        if (! options.value) {
+            options.value = element.value;
+        }
+        // Event to populate the textarea
+        options.onblur = function(a,b,c) {
+            element.value = b.getData()
+        }
+        element.insertBefore(el);
+    }
+
     // Default configuration
     var defaults = {
         // Initial HTML content
@@ -19,7 +37,7 @@ jSuites.editor = (function(el, options) {
         filterPaste: true,
         // Accept drop files
         dropZone: false,
-        dropAsSnippet: false,
+        dropAsAttachment: false,
         acceptImages: false,
         acceptFiles: false,
         maxFileSize: 5000000,
@@ -53,13 +71,9 @@ jSuites.editor = (function(el, options) {
     var imageResize = 0;
     var editorTimer = null;
     var editorAction = null;
-    var files = [];
 
     // Make sure element is empty
     el.innerHTML = '';
-
-    // Keep the reference for the container
-    obj.el = el;
 
     if (typeof(obj.options.onclick) == 'function') {
         el.onclick = function(e) {
@@ -73,6 +87,11 @@ jSuites.editor = (function(el, options) {
     // Padding
     if (obj.options.padding == true) {
         el.classList.add('jeditor-padding');
+    }
+
+    // Placeholder
+    if (obj.options.placeholder) {
+        el.setAttribute('data-placeholder', obj.options.placeholder);
     }
 
     // Border
@@ -95,11 +114,6 @@ jSuites.editor = (function(el, options) {
     editor.setAttribute('spellcheck', false);
     editor.className = 'jeditor';
 
-    // Placeholder
-    if (obj.options.placeholder) {
-        editor.setAttribute('data-placeholder', obj.options.placeholder);
-    }
-
     // Max height
     if (obj.options.maxHeight || obj.options.height) {
         editor.style.overflowY = 'auto';
@@ -120,7 +134,7 @@ jSuites.editor = (function(el, options) {
     }
 
     if (! value) {
-        var value = '';
+        var value = '<br>';
     }
 
     /**
@@ -187,70 +201,49 @@ jSuites.editor = (function(el, options) {
         }
     }
 
-    var updateTotalImages = function() {
-        var o = null;
-        if (o = snippet.children[0]) {
-            // Make sure is a grid
-            if (! o.classList.contains('jslider-grid')) {
-                o.classList.add('jslider-grid');
-            }
-            // Quantify of images
-            var number = o.children.length;
-            // Set the configuration of the grid
-            o.setAttribute('data-number', number > 4 ? 4 : number);
-            // Total of images inside the grid
-            if (number > 4) {
-                o.setAttribute('data-total', number - 4);
-            } else {
-                o.removeAttribute('data-total');
-            }
-        }
-    }
-
     /**
-     * Append image to the snippet
-     */
-    var appendImage = function(image) {
-        if (! snippet.innerHTML) {
-            appendElement({});
-        }
-        snippet.children[0].appendChild(image);
-        updateTotalImages();
-    }
-
-    /**
-     * Append snippet
+     * Append snippet or thumbs in the editor
      * @Param object data
      */
     var appendElement = function(data) {
         // Reset snippet
         snippet.innerHTML = '';
 
-        // Attributes
-        var a = [ 'image', 'title', 'description', 'host', 'url' ];
-
-        for (var i = 0; i < a.length; i++) {
+        if (data.image) {
             var div = document.createElement('div');
-            div.className = 'jsnippet-' + a[i];
-            div.setAttribute('data-k', a[i]);
+            div.className = 'jsnippet-image';
+            div.setAttribute('data-k', 'image');
             snippet.appendChild(div);
-            if (data[a[i]]) {
-                if (a[i] == 'image') {
-                    if (! Array.isArray(data.image)) {
-                        data.image = [ data.image ];
-                    }
-                    for (var j = 0; j < data.image.length; j++) {
-                        var img = document.createElement('img');
-                        img.src = data.image[j];
-                        div.appendChild(img);
-                    }
-                } else {
-                    div.innerHTML = data[a[i]];
-                }
-            }
+
+            var image = document.createElement('img');
+            image.src = data.image;
+            div.appendChild(image);
         }
 
-        editor.appendChild(document.createElement('br'));
+        var div = document.createElement('div');
+        div.className = 'jsnippet-title';
+        div.setAttribute('data-k', 'title');
+        div.innerHTML = data.title;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-description';
+        div.setAttribute('data-k', 'description');
+        div.innerHTML = data.description;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-host';
+        div.setAttribute('data-k', 'host');
+        div.innerHTML = data.host;
+        snippet.appendChild(div);
+
+        var div = document.createElement('div');
+        div.className = 'jsnippet-url';
+        div.setAttribute('data-k', 'url');
+        div.innerHTML = data.url;
+        snippet.appendChild(div);
+
         editor.appendChild(snippet);
     }
 
@@ -258,16 +251,26 @@ jSuites.editor = (function(el, options) {
         clearTimeout(editorTimer);
         editorTimer = setTimeout(function() {
             var snippet = editor.querySelector('.jsnippet');
-            if (! snippet) {
+            var thumbsContainer = el.querySelector('.jeditor-thumbs-container');
+
+            if (! snippet && ! thumbsContainer) {
                 var html = editor.innerHTML.replace(/\n/g, ' ');
                 var container = document.createElement('div');
                 container.innerHTML = html;
+                var thumbsContainer = container.querySelector('.jeditor-thumbs-container');
+                if (thumbsContainer) {
+                    thumbsContainer.remove();
+                }
                 var text = container.innerText; 
                 var url = jSuites.editor.detectUrl(text);
 
                 if (url) {
                     if (url[0].substr(-3) == 'jpg' || url[0].substr(-3) == 'png' || url[0].substr(-3) == 'gif') {
-                         obj.addImage(url[0], true);
+                        if (jSuites.editor.getDomain(url[0]) == window.location.hostname) {
+                            obj.importImage(url[0], '');
+                        } else {
+                            obj.importImage(obj.options.remoteParser + url[0], '');
+                        }
                     } else {
                         var id = jSuites.editor.youtubeParser(url[0]);
                         obj.parseWebsite(url[0], id);
@@ -311,6 +314,12 @@ jSuites.editor = (function(el, options) {
                     if (result.description) {
                         p.description = result.description;
                     }
+                    // Image
+                    if (result.image) {
+                        p.image = result.image;
+                    } else if (result['og:image']) {
+                        p.image = result['og:image'];
+                    }
                     // Host
                     if (result.host) {
                         p.host = result.host;
@@ -319,14 +328,8 @@ jSuites.editor = (function(el, options) {
                     if (result.url) {
                         p.url = result.url;
                     }
-                    // Append snippet
+
                     appendElement(p);
-                    // Add image
-                    if (result.image) {
-                        obj.addImage(result.image, true);
-                    } else if (result['og:image']) {
-                        obj.addImage(result['og:image'], true);
-                    }
                 }
             });
         }
@@ -337,24 +340,7 @@ jSuites.editor = (function(el, options) {
      */
     obj.setData = function(html) {
         editor.innerHTML = html;
-
-        if (obj.options.focus) {
-            jSuites.editor.setCursor(editor, true);
-        }
-
-        // Reset files container
-        files = [];
-    }
-
-    obj.getFiles = function() {
-        var f = editor.querySelectorAll('.jfile');
-        var d = [];
-        for (var i = 0; i < f.length; i++) {
-            if (files[f[i].src]) {
-                d.push(files[f[i].src]);
-            }
-        }
-        return d;
+        jSuites.editor.setCursor(editor, true);
     }
 
     obj.getText = function() {
@@ -372,7 +358,19 @@ jSuites.editor = (function(el, options) {
                 content : '',
             }
 
-            // Get snippet
+            // Get tag users
+            var tagged = editor.querySelectorAll('.post-tag');
+            if (tagged.length) {
+                data.users = [];
+                for (var i = 0; i < tagged.length; i++) {
+                    var userId = tagged[i].getAttribute('data-user');
+                    if (userId) {
+                        data.users.push(userId);
+                    }
+                }
+                data.users = data.users.join(',');
+            }
+
             if (snippet.innerHTML) {
                 var index = 0;
                 data.snippet = {};
@@ -381,35 +379,23 @@ jSuites.editor = (function(el, options) {
                     var key = snippet.children[i].getAttribute('data-k');
                     if (key) {
                         if (key == 'image') {
-                            if (! data.snippet.image) {
-                                data.snippet.image = [];
-                            }
-                            // Get all images
-                            for (var j = 0; j < snippet.children[i].children.length; j++) {
-                                data.snippet.image.push(snippet.children[i].children[j].getAttribute('src'))
-                            }
+                            data.snippet.image = snippet.children[i].children[0].getAttribute('src');
                         } else {
                             data.snippet[key] = snippet.children[i].innerHTML;
                         }
                     }
                 }
+
+                snippet.innerHTML = '';
+                snippet.remove();
             }
 
-            // Get files
-            var f = Object.keys(files);
-            if (f.length) {
-                data.files = [];
-                for (var i = 0; i < f.length; i++) {
-                    data.files.push(files[f[i]]);
-                }
-            }
-
-            // Get content
             var text = editor.innerHTML;
             text = text.replace(/<br>/g, "\n");
             text = text.replace(/<\/div>/g, "<\/div>\n");
             text = text.replace(/<(?:.|\n)*?>/gm, "");
             data.content = text.trim();
+            data = JSON.stringify(data);
         }
 
         return data;
@@ -418,8 +404,6 @@ jSuites.editor = (function(el, options) {
     // Reset
     obj.reset = function() {
         editor.innerHTML = '';
-        snippet.innerHTML = '';
-        files = [];
     }
 
     obj.addPdf = function(data) {
@@ -437,25 +421,31 @@ jSuites.editor = (function(el, options) {
             canvas.toBlob(function(blob) {
                 var newImage = document.createElement('img');
                 newImage.src = window.URL.createObjectURL(blob);
-                newImage.title = data.name;
+                newImage.setAttribute('data-extension', 'pdf');
+                if (data.name) {
+                    newImage.setAttribute('data-name', data.name);
+                }
+                if (data.size) {
+                    newImage.setAttribute('data-size', data.size);
+                }
+                if (data.date) {
+                    newImage.setAttribute('data-date', data.date);
+                }
                 newImage.className = 'jfile pdf';
 
-                files[newImage.src] = {
-                    file: newImage.src,
-                    extension: 'pdf',
-                    content: data.result,
-                }
-
                 insertNodeAtCaret(newImage);
+
+                // Image content
+                newImage.content = data.result.substr(data.result.indexOf(',') + 1);
             });
         }
     }
 
-    obj.addImage = function(src, asSnippet) {
-        if (! src) {
-            src = '';
-        }
+    obj.getFiles = function() {
+        return jSuites.files(editor).get();
+    }
 
+    obj.addImage = function(src, name, size, date) {
         if (src.substr(0,4) != 'data' && ! obj.options.remoteParser) {
             console.error('remoteParser not defined in your initialization');
         } else {
@@ -483,21 +473,23 @@ jSuites.editor = (function(el, options) {
                 canvas.toBlob(function(blob) {
                     var newImage = document.createElement('img');
                     newImage.src = window.URL.createObjectURL(blob);
-                    newImage.classList.add('jfile');
                     newImage.setAttribute('tabindex', '900');
-                    files[newImage.src] = {
-                        file: newImage.src,
-                        extension: extension,
-                        content: canvas.toDataURL(),
+                    newImage.setAttribute('data-extension', extension);
+                    if (name) {
+                        newImage.setAttribute('data-name', name);
                     }
+                    if (size) {
+                        newImage.setAttribute('data-size', size);
+                    }
+                    if (date) {
+                        newImage.setAttribute('data-date', date);
+                    }
+                    newImage.className = 'jfile';
+                    var content = canvas.toDataURL();
+                    insertNodeAtCaret(newImage);
 
-                    if (obj.options.dropAsSnippet || asSnippet) {
-                        appendImage(newImage);
-                        // Just to understand the attachment is part of a snippet
-                        files[newImage.src].snippet = true;
-                    } else {
-                        insertNodeAtCaret(newImage);
-                    }
+                    // Image content
+                    newImage.content = content.substr(content.indexOf(',') + 1);
 
                     change();
                 });
@@ -540,7 +532,7 @@ jSuites.editor = (function(el, options) {
                                 obj.addPdf(data.target);
                             }
                         } else {
-                            obj.addImage(data.target.result);
+                            obj.addImage(data.target.result, data.target.name, data.total, data.target.lastModified);
                         }
                     }, false);
 
@@ -587,10 +579,6 @@ jSuites.editor = (function(el, options) {
 
     // Event handlers
     var editorMouseUp = function(e) {
-        if (editorAction && editorAction.e) {
-            editorAction.e.classList.remove('resizing');
-        }
-
         editorAction = false;
     }
 
@@ -615,12 +603,12 @@ jSuites.editor = (function(el, options) {
                     d: e.target.style.cursor,
                 }
 
-                if (! e.target.width) {
-                    e.target.width = rect.width + 'px';
+                if (! e.target.style.width) {
+                    e.target.style.width = rect.width + 'px';
                 }
 
-                if (! e.target.height) {
-                    e.target.height = rect.height + 'px';
+                if (! e.target.style.height) {
+                    e.target.style.height = rect.height + 'px';
                 }
 
                 var s = window.getSelection();
@@ -629,8 +617,6 @@ jSuites.editor = (function(el, options) {
                         s.removeRange(s.getRangeAt(i));
                     }
                 }
-
-                e.target.classList.add('resizing');
             } else {
                 editorAction = true;
             }
@@ -646,7 +632,7 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorMouseMove = function(e) {
-        if (e.target.tagName == 'IMG' && ! e.target.parentNode.classList.contains('jsnippet-image') && obj.options.allowImageResize == true) {
+        if (e.target.tagName == 'IMG' && obj.options.allowImageResize == true) {
             if (e.target.getAttribute('tabindex')) {
                 var rect = e.target.getBoundingClientRect();
                 if (e.clientY - rect.top < 5) {
@@ -678,11 +664,11 @@ jSuites.editor = (function(el, options) {
         // Move
         if (e.which == 1 && editorAction && editorAction.d) {
             if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' ||  editorAction.d == 'se-resize') {
-                editorAction.e.width = (editorAction.w + (e.clientX - editorAction.x));
+                editorAction.e.style.width = (editorAction.w + (e.clientX - editorAction.x)) + 'px';
 
                 if (e.shiftKey) {
                     var newHeight = (e.clientX - editorAction.x) * (editorAction.h / editorAction.w);
-                    editorAction.e.height = editorAction.h + newHeight;
+                    editorAction.e.style.height = editorAction.h + newHeight + 'px';
                 } else {
                     var newHeight =  null;
                 }
@@ -691,7 +677,7 @@ jSuites.editor = (function(el, options) {
             if (! newHeight) {
                 if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
                     if (! e.shiftKey) {
-                        editorAction.e.height = editorAction.h + (e.clientY - editorAction.y);
+                        editorAction.e.style.height = editorAction.h + (e.clientY - editorAction.y) + 'px';
                     }
                 }
             }
@@ -718,96 +704,7 @@ jSuites.editor = (function(el, options) {
         if (typeof(obj.options.onkeydown) == 'function') { 
             obj.options.onkeydown(el, obj, e);
         }
-
-        if (e.key == 'Delete') {
-            if (e.target.tagName == 'IMG' && e.target.parentNode.classList.contains('jsnippet-image')) {
-                e.target.remove();
-                updateTotalImages();
-            }
-        }
     }
-
-    // Elements to be removed
-    var remove = [HTMLUnknownElement,HTMLAudioElement,HTMLEmbedElement,HTMLIFrameElement,HTMLTextAreaElement,HTMLInputElement,HTMLScriptElement];
-
-    // Valid properties
-    var validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
-
-    // Valid CSS attributes
-    var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
-
-    var parse = function(element) {
-       // Remove attributes
-       if (element.attributes && element.attributes.length) {
-           var image = null;
-           var style = null;
-           // Process style attribute
-           var elementStyle = element.getAttribute('style');
-           if (elementStyle) {
-               style = [];
-               var t = elementStyle.split(';');
-               for (var j = 0; j < t.length; j++) {
-                   var v = t[j].trim().split(':');
-                   if (validStyle.indexOf(v[0].trim()) >= 0) {
-                       var k = v.shift();
-                       var v = v.join(':');
-                       style.push(k + ':' + v);
-                   }
-               }
-           }
-           // Process image
-           if (element.tagName.toUpperCase() == 'IMG') {
-               if (! obj.options.acceptImages || ! element.src) {
-                   element.parentNode.removeChild(element);
-               } else {
-                   // Check if is data
-                   element.setAttribute('tabindex', '900');
-                   // Check attributes for persistance
-                   obj.addImage(element.src);
-               }
-           }
-           // Remove attributes
-           var attr = [];
-           var numAttributes = element.attributes.length - 1;
-           if (numAttributes > 0) {
-               for (var i = numAttributes; i >= 0 ; i--) {
-                   attr.push(element.attributes[i].name);
-               }
-               attr.forEach(function(v) {
-                   if (validProperty.indexOf(v) == -1) {
-                       element.removeAttribute(v);
-                   }
-               });
-           }
-           element.style = '';
-           // Add valid style
-           if (style && style.length) {
-               element.setAttribute('style', style.join(';'));
-           }
-       }
-       // Parse children
-       if (element.children.length) {
-           for (var i = 0; i < element.children.length; i++) {
-               parse(element.children[i]);
-           }
-       }
-
-       if (remove.indexOf(element.constructor) >= 0) {
-           element.remove();
-       }
-    }
-
-    var filter = function(data) {
-        if (data) {
-            data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
-        }
-        var parser = new DOMParser();
-        var d = parser.parseFromString(data, "text/html");
-        parse(d);
-        var span = document.createElement('span');
-        span.innerHTML = d.firstChild.innerHTML;
-        return span;
-    } 
 
     var editorPaste = function(e) {
         if (obj.options.filterPaste == true) {
@@ -825,24 +722,35 @@ jSuites.editor = (function(el, options) {
                 // Paste a image from the clipboard
                 obj.addFile(file);
             } else {
-                if (! html) {
-                    html = text.split('\r\n');
-                    if (! e.target.innerText) {
-                        html.map(function(v) {
-                            var d = document.createElement('div');
-                            d.innerText = v;
-                            editor.appendChild(d);
-                        });
-                    } else {
-                        html = html.map(function(v) {
-                            return '<div>' + v + '</div>';
-                        });
-                        document.execCommand('insertHtml', false, html.join(''));
+                // Paste text
+                text = text.split('\r\n');
+                var str = '';
+                if (e.target.nodeName == 'DIV' && e.target.classList.contains('jeditor')) {
+                    for (var i = 0; i < text.length; i++) {
+                        var tmp = document.createElement('div');
+                        if (text[i]) {
+                            tmp.innerText = text[i];
+                        } else {
+                            tmp.innerHTML = '<br/>';
+                        }
+                        e.target.appendChild(tmp);
                     }
                 } else {
-                    var d = filter(html);
-                    // Paste to the editor
-                    insertNodeAtCaret(d);
+                    var content = document.createElement('div');
+                    for (var i = 0; i < text.length; i++) {
+                        if (text[i]) {
+                            var div = document.createElement('div');
+                            div.innerText = text[i];
+                            content.appendChild(div);
+                        }
+                    }
+                    // Insert text
+                    document.execCommand('insertHtml', false, content.innerHTML);
+                }
+
+                // Extra images from the paste
+                if (obj.options.acceptImages == true) {
+                    extractImageFromHtml(html);
                 }
             }
 
@@ -861,7 +769,6 @@ jSuites.editor = (function(el, options) {
             // Do nothing
         } else {
             el.classList.add('jeditor-dragging');
-            e.preventDefault();
         }
     }
 
@@ -876,7 +783,6 @@ jSuites.editor = (function(el, options) {
             editorTimer = setTimeout(function() {
                 el.classList.remove('jeditor-dragging');
             }, 100);
-            e.preventDefault();
         }
     }
 
@@ -964,14 +870,13 @@ jSuites.editor = (function(el, options) {
 
     // Add toolbar
     if (obj.options.toolbar) {
-        // Append to the DOM
-        el.appendChild(toolbar);
         // Create toolbar
         jSuites.toolbar(toolbar, {
             container: true,
-            responsive: true,
             items: obj.options.toolbar
         });
+        // Append to the DOM
+        el.appendChild(toolbar);
     }
 
     // Focus to the editor
@@ -981,17 +886,6 @@ jSuites.editor = (function(el, options) {
 
     // Change method
     el.change = obj.setData;
-
-    // Global generic value handler
-    el.val = function(val) {
-        if (val === undefined) {
-            // Data type
-            var o = el.getAttribute('data-html') === 'true' ? false : true;
-            return obj.getData(o);
-        } else {
-            obj.setData(val);
-        }
-    }
 
     el.editor = obj;
 

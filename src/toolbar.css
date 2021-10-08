@@ -14,7 +14,6 @@
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    font-size: 13px;
 }
 
 .jtoolbar-mobile {
@@ -59,18 +58,12 @@
 
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
-    height: 18px;
+    height: 24px;
     padding: 0px;
     margin-left: 4px;
     margin-right: 4px;
-    background-color: #ddd;
+    background-color: #f2f2f2;
 }
-
-.jtoolbar .jtoolbar-label {
-    padding-left: 8px;
-    padding-right: 8px;
-}
-
 
 
 .jtoolbar-mobile a
@@ -122,13 +115,11 @@
     line-height: 24px;
     padding: 0px;
     padding-right: 20px;
-    padding-left: 8px;
+    padding-left: 4px;
     background-position: top 50% right 0px;
-    display: flex;
-    align-items: center;
 }
 
-.jtoolbar .jpicker-content > div {
+.jtoolbar .jpicker-content div {
     padding: 6px;
 }
 
@@ -137,31 +128,18 @@
 }
 
 .jtoolbar .fa {
-    width: 18px;
-    height: 18px;
-    display: block;
-    line-height: 18px;
-    font-size: 14px;
-}
-
-.jtoolbar .material-icons {
-    font-size: 18px;
     width: 24px;
     height: 24px;
     display: block;
     line-height: 24px;
-    transform: rotate(0.03deg);
-    text-align: center;
 }
 
 .jtoolbar .jtoolbar-arrow {
     background-repeat: no-repeat;
     background-position: center;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
-    width: 24px;
-    height: 16px;
-    margin-left: 4px;
-    border-left: 1px solid #f2f2f2;
+    width: 16px;
+    height: 24px;
 }
 
 .jtoolbar-floating {
@@ -175,15 +153,10 @@
     text-align: left;
 }
 
-.jtoolbar-floating .jtoolbar-divisor {
-    display: none;
-}
-
 .jtoolbar-floating > div {
     display: block;
 }
 
 .jtoolbar-arrow-selected .jtoolbar-floating {
-    display: flex;
-    flex-wrap: wrap;
+    display: block;
 }

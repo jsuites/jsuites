@@ -1,21 +1,20 @@
-jSuites.image = jSuites.upload = (function(el, options) {
+jSuites.image = (function(el, options) {
     var obj = {};
     obj.options = {};
 
     // Default configuration
     var defaults = {
-        type: 'image',
-        extension: '*',
         input: false,
         minWidth: false,
         maxWidth: null,
         maxHeight: null,
         maxJpegSizeBytes: null, // For example, 350Kb would be 350000
         onchange: null,
-        multiple: false,
+        singleFile: true,
         remoteParser: null,
         text:{
             extensionNotAllowed:'The extension is not allowed',
+            imageTooSmall:'The resolution is too low, try a image with a better resolution. width > 800px',
         }
     };
 
@@ -28,14 +27,6 @@ jSuites.image = jSuites.upload = (function(el, options) {
         }
     }
 
-    // Multiple
-    if (obj.options.multiple == true) {
-        el.setAttribute('data-multiple', true);
-    }
-
-    // Container
-    el.content = [];
-
     // Upload icon
     el.classList.add('jupload');
 
@@ -43,69 +34,72 @@ jSuites.image = jSuites.upload = (function(el, options) {
         el.classList.add('input');
     }
 
-    obj.add = function(data) {
-        // Reset container for single files
-        if (obj.options.multiple == false) {
-            el.content = [];
-            el.innerText = '';
+    // Add image
+    obj.addImage = function(file) {
+        return jSuites.image.create(file);
+    }
+
+    // Add image
+    obj.addImages = function(files) {
+        if (obj.options.singleFile == true) {
+            el.innerHTML = '';
         }
 
-        // Append to the element
-        if (obj.options.type == 'image') {
-            var img = document.createElement('img');
-            img.setAttribute('src', data.file);
-            img.setAttribute('tabindex', -1);
-            if (! el.getAttribute('name')) {
-                img.className = 'jfile';
-                img.content = data;
-            }
-            el.appendChild(img);
-        } else {
-            if (data.name) {
-                var name = data.name;
-            } else {
-                var name = data.file;
-            }
-            var div = document.createElement('div');
-            div.innerText = name || obj.options.type;
-            div.classList.add('jupload-item');
-            div.setAttribute('tabindex', -1);
-            el.appendChild(div);
-        }
-
-        if (data.content) {
-            data.file = jSuites.guid();
-        }
-
-        // Push content
-        el.content.push(data);
-
-        // Onchange
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, data);
+        for (var i = 0; i < files.length; i++) {
+            el.appendChild(obj.addImage(files[i]));
         }
     }
 
     obj.addFromFile = function(file) {
         var type = file.type.split('/');
-        if (type[0] == obj.options.type) {
-            var readFile = new FileReader();
-            readFile.addEventListener("load", function (v) {
-                var data = {
-                    file: v.srcElement.result,
-                    extension: file.name.substr(file.name.lastIndexOf('.') + 1),
-                    name: file.name,
-                    size: file.size,
-                    lastmodified: file.lastModified,
-                    content: v.srcElement.result,
-                }
+        if (type[0] == 'image') {
+            if (obj.options.singleFile == true) {
+                el.innerHTML = '';
+            }
 
-                obj.add(data);
+            var imageFile = new FileReader();
+            imageFile.addEventListener("load", function (v) {
+
+                var img = new Image();
+
+                img.onload = function onload() {
+                    var canvas = document.createElement('canvas');
+                    canvas.width = img.width;
+                    canvas.height = img.height;
+
+                    var ctx = canvas.getContext('2d');
+                    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                    var data = {
+                        file: obj.getDataURL(canvas, file.type),
+                        extension: file.name.substr(file.name.lastIndexOf('.') + 1),
+                        name: file.name,
+                        size: file.size,
+                        lastmodified: file.lastModified,
+                    }
+
+                    // Content
+                    if (this.src.substr(0,5) == 'data:') {
+                        var content = this.src.split(',');
+                        data.content = content[1];
+                    }
+
+                    // Add image
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
+
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage, data);
+                    }
+                };
+
+                img.src = v.srcElement.result;
             });
 
-            readFile.readAsDataURL(file);
+            imageFile.readAsDataURL(file);
         } else {
-            alert(obj.options.text.extensionNotAllowed);
+            alert(text.extentionNotAllowed);
         }
     }
 
@@ -117,36 +111,60 @@ jSuites.image = jSuites.upload = (function(el, options) {
             if (src.substr(0,4) == 'data') {
                 var extension = src.split(';')
                 extension = extension[0].split('/');
-                var type = extension[0].replace('data:','');
-                if (type == obj.options.type) {
-                    var data = {
-                        file: src,
-                        name: '',
-                        extension: extension[1],
-                        content: src,
-                    }
-                    obj.add(data);
-                } else {
-                    alert(obj.options.text.extensionNotAllowed);
-                }
+                extension = extension[1];
             } else {
                 var extension = src.substr(src.lastIndexOf('.') + 1);
                 // Work for cross browsers
                 src = obj.options.remoteParser + src;
-                // Get remove content
-                jSuites.ajax({
-                    url: src,
-                    type: 'GET',
-                    dataType: 'blob',
-                    success: function(data) {
-                        //add(extension[0].replace('data:',''), data);
-                    }
-                })
             }
+
+            var img = new Image();
+
+            img.onload = function onload() {
+                var canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                var ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+                canvas.toBlob(function(blob) {
+                    var data = {
+                        file: window.URL.createObjectURL(blob),
+                        extension: extension
+                    }
+
+                    // Content to be uploaded
+                    data.content = canvas.toDataURL();
+                    data.content = data.content.split(',');
+                    data.content = data.content[1];
+
+                    // Add image
+                    var newImage = obj.addImage(data);
+                    el.appendChild(newImage);
+
+                    // Onchange
+                    if (typeof(obj.options.onchange) == 'function') {
+                        obj.options.onchange(newImage, data);
+                    }
+                });
+            };
+
+            img.src = src;
         }
     }
 
-    var getDataURL = function(canvas, type) {
+    obj.getCanvas = function(img) {
+        var canvas = document.createElement('canvas');
+        var r1 = (obj.options.maxWidth  || img.width ) / img.width;
+        var r2 = (obj.options.maxHeight || img.height) / img.height;
+        var r = Math.min(r1, r2, 1);
+        canvas.width = img.width * r;
+        canvas.height = img.height * r;
+        return canvas;
+    }
+
+    obj.getDataURL = function(canvas, type) {
         var compression = 0.92;
         var lastContentLength = null;
         var content = canvas.toDataURL(type, compression);
@@ -160,36 +178,17 @@ jSuites.image = jSuites.upload = (function(el, options) {
         return content;
     }
 
-    var mime = obj.options.type + '/' + obj.options.extension;
-    var input = document.createElement('input');
-    input.type = 'file';
-    input.setAttribute('accept', mime);
-    input.onchange = function() {
+    var attachmentInput = document.createElement('input');
+    attachmentInput.type = 'file';
+    attachmentInput.setAttribute('accept', 'image/*');
+    attachmentInput.onchange = function() {
         for (var i = 0; i < this.files.length; i++) {
             obj.addFromFile(this.files[i]);
         }
     }
 
-    // Allow multiple files
-    if (obj.options.multiple == true) {
-        input.setAttribute('multiple', true);
-    }
-
-    var current = null;
-
     el.addEventListener("click", function(e) {
-        current = null;
-        if (! el.children.length || e.target === el) {
-            jSuites.click(input);
-        } else {
-            if (e.target.parentNode == el) {
-                current = e.target;
-            }
-        }
-    });
-
-    el.addEventListener("dblclick", function(e) {
-        jSuites.click(input);
+        jSuites.click(attachmentInput);
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -208,20 +207,10 @@ jSuites.image = jSuites.upload = (function(el, options) {
         e.preventDefault();
     });
 
-    el.addEventListener('keydown', function(e) {
-        if (current && e.which == 46) {
-            var index = Array.prototype.indexOf.call(el.children, current);
-            if (index >= 0) {
-                el.content.splice(index, 1);
-                current.remove();
-                current = null;
-            }
-        }
-    });
-
     el.addEventListener('drop', function(e) {
         e.preventDefault();  
         e.stopPropagation();
+
 
         var html = (e.originalEvent || e).dataTransfer.getData('text/html');
         var file = (e.originalEvent || e).dataTransfer.files;
@@ -231,8 +220,8 @@ jSuites.image = jSuites.upload = (function(el, options) {
                 obj.addFromFile(e.dataTransfer.files[i]);
             }
         } else if (html) {
-            if (obj.options.multiple == false) {
-                el.innerText = '';
+            if (obj.options.singleFile == true) {
+                el.innerHTML = '';
             }
 
             // Create temp element
@@ -254,41 +243,29 @@ jSuites.image = jSuites.upload = (function(el, options) {
         return false;
     });
 
-    el.val = function(val) {
-        if (val === undefined) {
-            return el.content && el.content.length ? el.content : null;
-        } else {
-            // Reset
-            el.innerText = '';
-            el.content = [];
-
-            if (val) {
-                if (Array.isArray(val)) {
-                    for (var i = 0; i < val.length; i++) {
-                        if (typeof(val[i]) == 'string') {
-                            obj.add({ file: val[i] });
-                        } else {
-                            obj.add(val[i]);
-                        }
-                    }
-                } else if (typeof(val) == 'string') {
-                    obj.add({ file: val });
-                }
-            }
-        }
-    }
-
-    el.upload = el.image = obj;
+    el.image = obj;
 
     return obj;
 });
 
-jSuites.image.create = function(data) {
+jSuites.image.create = function(file) {
+    if (! file.date) {
+        file.date = '';
+    }
     var img = document.createElement('img');
-    img.setAttribute('src', data.file);
+    img.setAttribute('data-date', file.lastmodified ? file.lastmodified : file.date);
+    img.setAttribute('data-name', file.name);
+    img.setAttribute('data-size', file.size);
+    img.setAttribute('data-small', file.small ? file.small : '');
+    img.setAttribute('data-cover', file.cover ? 1 : 0);
+    img.setAttribute('data-extension', file.extension);
+    img.setAttribute('src', file.file);
     img.className = 'jfile';
-    img.setAttribute('tabindex', -1);
-    img.content = data;
+    img.style.width = '100%';
+
+    if (file.content) {
+        img.content = file.content;
+    }
 
     return img;
 }
