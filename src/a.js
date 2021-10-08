@@ -102,7 +102,14 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        obj.dictionary = d;
+        if (Object.values(obj.dictionary).length == 0) {
+            obj.dictionary = d;
+        } else {
+            // Replace the key into the dictionary and append the new ones
+            for (var k in d) {
+                obj.dictionary[k] = d[k];
+            }
+        }
 
         // Translations
         var t = null;

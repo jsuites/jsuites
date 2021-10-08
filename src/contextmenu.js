@@ -127,7 +127,7 @@ jSuites.contextmenu = (function(el, options) {
 
         return header;
     }
-    
+
     /**
      * Private function for create a new Item element
      * @param {type} item
@@ -177,7 +177,7 @@ jSuites.contextmenu = (function(el, options) {
                 el_submenu.classList.add('jcontextmenu');
                 // Focusable
                 el_submenu.setAttribute('tabindex', '900');
-                
+
                 // Append items
                 var submenu = item.submenu;
                 for (var i = 0; i < submenu.length; i++) {
