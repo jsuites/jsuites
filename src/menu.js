@@ -102,11 +102,7 @@ jSuites.menu = (function(el, options) {
         }
     }
 
-    if ('ontouchstart' in document.documentElement === true) {
-        el.addEventListener('touchsend', action);
-    } else {
-        el.addEventListener('mouseup', action);
-    }
+    el.addEventListener('click', action);
 
     // Add close action
     var i = document.createElement('i');
