@@ -1126,74 +1126,14 @@ jSuites.calendar.extractDateFromString = function(date, format) {
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
 
-    var v1 = '' + date;
-    var v2 = format.replace(/[0-9]/g,'');
-
-    var test = 1;
-
-    // Get year
-    var y = v2.search("YYYY");
-    y = v1.substr(y,4);
-    if (parseInt(y) != y) {
-        test = 0;
-    }
-
-    // Get month
-    var m = v2.search("MM");
-    m = v1.substr(m,2);
-    if (parseInt(m) != m || m > 12) {
-        test = 0;
-    }
-
-    // Get day
-    var d = v2.search("DD");
-    if (d >= 0) {
-        d = v1.substr(d,2);
-        if (parseInt(d) != d  || d > 31) {
-            test = 0;
+    var o = jSuites.mask(date, { mask: format }, true);
+    if (o.date[0] && o.date[1]) {
+        if (! o.date[2]) {
+            o.date[2] = 1;
         }
-    } else {
-        d = '01';
-    }
 
-    // Get hour
-    var h = v2.search("HH");
-    if (h >= 0) {
-        h = v1.substr(h,2);
-        if (! parseInt(h) || h > 23) {
-            h = '00';
-        }
-    } else {
-        h = '00';
+        return o.date[0] + '-' + jSuites.two(o.date[1]) + '-' + jSuites.two(o.date[2]) + ' ' + jSuites.two(o.date[3]) + ':' + jSuites.two(o.date[4])+ ':' + jSuites.two(o.date[5]);
     }
-
-    // Get minutes
-    var i = v2.search("MI");
-    if (i >= 0) {
-        i = v1.substr(i,2);
-        if (! parseInt(i) || i > 59) {
-            i = '00';
-        }
-    } else {
-        i = '00';
-    }
-
-    // Get seconds
-    var s = v2.search("SS");
-    if (s >= 0) {
-        s = v1.substr(s,2);
-        if (! parseInt(s) || s > 59) {
-            s = '00';
-        }
-    } else {
-        s = '00';
-    }
-
-    if (test == 1 && date.length == v2.length) {
-        // Update source
-        return y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
-    }
-
     return '';
 }
 
