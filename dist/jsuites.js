@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.13';
+    var version = '4.9.12';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -119,16 +119,7 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        if(Object.values(obj.dictionary).length == 0) {
-            obj.dictionary = d;
-        } else {
-            for(var keyDico in d) {
-                if(keyDico in obj.dictionary) {
-                    continue;
-                }
-                obj.dictionary[keyDico] = d[keyDico];
-            }
-        }
+        obj.dictionary = d;
 
         // Translations
         var t = null;
@@ -7372,9 +7363,12 @@ jSuites.mask = (function() {
             if (count > 1) {
                 this.values[this.index] += v;
             } else if (count == 1) {
+                // Jump number of chars
+                var t = (a[pos].length - this.values[this.index].length) - 1;
+                this.position += t;
+
                 this.values[this.index] = a[pos];
                 this.index++;
-
                 return pos;
             }
         },
@@ -8010,7 +8004,7 @@ jSuites.mask = (function() {
                 // Legacy
                 o.mask = o.mask.replace('[-]', '');
                 // Excel mask TODO: Improve
-                if (o.mask.indexOf('##')) {
+                if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
                         d[0] = d[0].replace('*', '');

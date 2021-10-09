@@ -338,9 +338,12 @@ jSuites.mask = (function() {
             if (count > 1) {
                 this.values[this.index] += v;
             } else if (count == 1) {
+                // Jump number of chars
+                var t = (a[pos].length - this.values[this.index].length) - 1;
+                this.position += t;
+
                 this.values[this.index] = a[pos];
                 this.index++;
-
                 return pos;
             }
         },
@@ -976,7 +979,7 @@ jSuites.mask = (function() {
                 // Legacy
                 o.mask = o.mask.replace('[-]', '');
                 // Excel mask TODO: Improve
-                if (o.mask.indexOf('##')) {
+                if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
                         d[0] = d[0].replace('*', '');
