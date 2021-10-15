@@ -29,10 +29,10 @@ var jSuites = function(options) {
         return false;
     }
 
-    var isOpened = function(e) {
+    var isOpened = function(element) {
         if (jSuites.current.length > 0) {
             for (var i = 0; i < jSuites.current.length; i++) {
-                if (jSuites.current[i] && ! find(e.target, jSuites.current[i])) {
+                if (jSuites.current[i] && ! find(element, jSuites.current[i])) {
                     jSuites.current[i].close();
                 }
             }
@@ -40,7 +40,26 @@ var jSuites = function(options) {
     }
 
     obj.init = function() {
-        document.addEventListener("click", isOpened);
+        document.addEventListener("click", function(e) {
+            if (e.changedTouches && e.changedTouches[0]) {
+                var x = e.changedTouches[0].clientX;
+                var y = e.changedTouches[0].clientY;
+            } else {
+                var x = e.clientX;
+                var y = e.clientY;
+            }
+
+            if (e.target && e.target.webcomponent) {
+                var d = e.target.webcomponent;
+            } else {
+                var d = document;
+            }
+
+            // Get the first target element
+            var element = d.elementFromPoint(x, y);
+            // Check opened components
+            isOpened(element);
+        });
 
         obj.version = version;
     }
