@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.12';
+    var version = '4.9.17';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -119,7 +119,16 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        obj.dictionary = d;
+        var k = Object.keys(obj.dictionary);
+        if (k.length == 0) {
+            obj.dictionary = d;
+        } else {
+            // Replace the key into the dictionary and append the new ones
+            var k = Object.keys(d);
+            for (var i = 0; i < k.length; i++) {
+                obj.dictionary[k[i]] = d[k[i]];
+            }
+        }
 
         // Translations
         var t = null;
@@ -2622,13 +2631,47 @@ jSuites.contextmenu = (function(el, options) {
         // Update content
         el.innerHTML = '';
 
+        // Add header contextmenu
+        var itemHeader = createHeader();
+        el.appendChild(itemHeader);
+
         // Append items
         for (var i = 0; i < items.length; i++) {
             var itemContainer = createItemElement(items[i]);
             el.appendChild(itemContainer);
         }
     }
-    
+
+    /**
+     * createHeader for context menu
+     * @private
+     * @returns {HTMLElement}
+     */
+    function createHeader() {
+        var header = document.createElement('div');
+        header.classList.add("header");
+        header.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        var title = document.createElement('a');
+        title.classList.add("title");
+        title.innerHTML = jSuites.translate("Menu");
+
+        header.appendChild(title);
+
+        var closeButton = document.createElement('a');
+        closeButton.classList.add("close");
+        closeButton.innerHTML = jSuites.translate("close");
+        closeButton.addEventListener("click", function(e) {
+            obj.close();
+        });
+
+        header.appendChild(closeButton);
+
+        return header;
+    }
+
     /**
      * Private function for create a new Item element
      * @param {type} item
@@ -2678,7 +2721,7 @@ jSuites.contextmenu = (function(el, options) {
                 el_submenu.classList.add('jcontextmenu');
                 // Focusable
                 el_submenu.setAttribute('tabindex', '900');
-                
+
                 // Append items
                 var submenu = item.submenu;
                 for (var i = 0; i < submenu.length; i++) {
@@ -2754,6 +2797,7 @@ jSuites.contextmenu.getElement = function(element) {
 
     return foundId;
 }
+
 
 jSuites.dropdown = (function(el, options) {
     // Already created, update options
@@ -4510,7 +4554,8 @@ jSuites.dropdown.extractFromDom = function(el, options) {
 }
 
 jSuites.editor = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'editor' };
     obj.options = {};
 
     // Default configuration
@@ -8072,7 +8117,7 @@ jSuites.mask = (function() {
      * Legacy support
      */
     obj.run = function(value, mask, decimal) {
-        return obj(value, { mask, decimal });
+        return obj(value, { mask: mask, decimal: decimal });
     }
 
     /**

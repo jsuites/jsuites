@@ -102,12 +102,14 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        if (Object.values(obj.dictionary).length == 0) {
+        var k = Object.keys(obj.dictionary);
+        if (k.length == 0) {
             obj.dictionary = d;
         } else {
             // Replace the key into the dictionary and append the new ones
-            for (var k in d) {
-                obj.dictionary[k] = d[k];
+            var k = Object.keys(d);
+            for (var i = 0; i < k.length; i++) {
+                obj.dictionary[k[i]] = d[k[i]];
             }
         }
 

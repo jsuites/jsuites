@@ -1107,7 +1107,7 @@ jSuites.mask = (function() {
      * Legacy support
      */
     obj.run = function(value, mask, decimal) {
-        return obj(value, { mask, decimal });
+        return obj(value, { mask: mask, decimal: decimal });
     }
 
     /**

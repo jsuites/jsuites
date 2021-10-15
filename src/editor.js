@@ -1,5 +1,6 @@
 jSuites.editor = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'editor' };
     obj.options = {};
 
     // Default configuration

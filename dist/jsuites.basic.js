@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.13';
+    var version = '4.9.17';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -119,7 +119,16 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        obj.dictionary = d;
+        var k = Object.keys(obj.dictionary);
+        if (k.length == 0) {
+            obj.dictionary = d;
+        } else {
+            // Replace the key into the dictionary and append the new ones
+            var k = Object.keys(d);
+            for (var i = 0; i < k.length; i++) {
+                obj.dictionary[k[i]] = d[k[i]];
+            }
+        }
 
         // Translations
         var t = null;
@@ -1629,74 +1638,14 @@ jSuites.calendar.extractDateFromString = function(date, format) {
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
 
-    var v1 = '' + date;
-    var v2 = format.replace(/[0-9]/g,'');
-
-    var test = 1;
-
-    // Get year
-    var y = v2.search("YYYY");
-    y = v1.substr(y,4);
-    if (parseInt(y) != y) {
-        test = 0;
-    }
-
-    // Get month
-    var m = v2.search("MM");
-    m = v1.substr(m,2);
-    if (parseInt(m) != m || m > 12) {
-        test = 0;
-    }
-
-    // Get day
-    var d = v2.search("DD");
-    if (d >= 0) {
-        d = v1.substr(d,2);
-        if (parseInt(d) != d  || d > 31) {
-            test = 0;
+    var o = jSuites.mask(date, { mask: format }, true);
+    if (o.date[0] && o.date[1]) {
+        if (! o.date[2]) {
+            o.date[2] = 1;
         }
-    } else {
-        d = '01';
-    }
 
-    // Get hour
-    var h = v2.search("HH");
-    if (h >= 0) {
-        h = v1.substr(h,2);
-        if (! parseInt(h) || h > 23) {
-            h = '00';
-        }
-    } else {
-        h = '00';
+        return o.date[0] + '-' + jSuites.two(o.date[1]) + '-' + jSuites.two(o.date[2]) + ' ' + jSuites.two(o.date[3]) + ':' + jSuites.two(o.date[4])+ ':' + jSuites.two(o.date[5]);
     }
-
-    // Get minutes
-    var i = v2.search("MI");
-    if (i >= 0) {
-        i = v1.substr(i,2);
-        if (! parseInt(i) || i > 59) {
-            i = '00';
-        }
-    } else {
-        i = '00';
-    }
-
-    // Get seconds
-    var s = v2.search("SS");
-    if (s >= 0) {
-        s = v1.substr(s,2);
-        if (! parseInt(s) || s > 59) {
-            s = '00';
-        }
-    } else {
-        s = '00';
-    }
-
-    if (test == 1 && date.length == v2.length) {
-        // Update source
-        return y + '-' + m + '-' + d + ' ' + h + ':' +  i + ':' + s;
-    }
-
     return '';
 }
 
@@ -2671,13 +2620,47 @@ jSuites.contextmenu = (function(el, options) {
         // Update content
         el.innerHTML = '';
 
+        // Add header contextmenu
+        var itemHeader = createHeader();
+        el.appendChild(itemHeader);
+
         // Append items
         for (var i = 0; i < items.length; i++) {
             var itemContainer = createItemElement(items[i]);
             el.appendChild(itemContainer);
         }
     }
-    
+
+    /**
+     * createHeader for context menu
+     * @private
+     * @returns {HTMLElement}
+     */
+    function createHeader() {
+        var header = document.createElement('div');
+        header.classList.add("header");
+        header.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        });
+        var title = document.createElement('a');
+        title.classList.add("title");
+        title.innerHTML = jSuites.translate("Menu");
+
+        header.appendChild(title);
+
+        var closeButton = document.createElement('a');
+        closeButton.classList.add("close");
+        closeButton.innerHTML = jSuites.translate("close");
+        closeButton.addEventListener("click", function(e) {
+            obj.close();
+        });
+
+        header.appendChild(closeButton);
+
+        return header;
+    }
+
     /**
      * Private function for create a new Item element
      * @param {type} item
@@ -2727,7 +2710,7 @@ jSuites.contextmenu = (function(el, options) {
                 el_submenu.classList.add('jcontextmenu');
                 // Focusable
                 el_submenu.setAttribute('tabindex', '900');
-                
+
                 // Append items
                 var submenu = item.submenu;
                 for (var i = 0; i < submenu.length; i++) {
@@ -2803,6 +2786,7 @@ jSuites.contextmenu.getElement = function(element) {
 
     return foundId;
 }
+
 
 jSuites.dropdown = (function(el, options) {
     // Already created, update options
@@ -4559,7 +4543,8 @@ jSuites.dropdown.extractFromDom = function(el, options) {
 }
 
 jSuites.editor = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'editor' };
     obj.options = {};
 
     // Default configuration
@@ -6942,9 +6927,12 @@ jSuites.mask = (function() {
             if (count > 1) {
                 this.values[this.index] += v;
             } else if (count == 1) {
+                // Jump number of chars
+                var t = (a[pos].length - this.values[this.index].length) - 1;
+                this.position += t;
+
                 this.values[this.index] = a[pos];
                 this.index++;
-
                 return pos;
             }
         },
@@ -7580,7 +7568,7 @@ jSuites.mask = (function() {
                 // Legacy
                 o.mask = o.mask.replace('[-]', '');
                 // Excel mask TODO: Improve
-                if (o.mask.indexOf('##')) {
+                if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
                         d[0] = d[0].replace('*', '');
@@ -7708,7 +7696,7 @@ jSuites.mask = (function() {
      * Legacy support
      */
     obj.run = function(value, mask, decimal) {
-        return obj(value, { mask, decimal });
+        return obj(value, { mask: mask, decimal: decimal });
     }
 
     /**
