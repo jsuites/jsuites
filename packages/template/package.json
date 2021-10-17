@@ -1,0 +1,30 @@
+{
+    "name": "@jsuites/template",
+    "title": "JavaScript template",
+    "description": "JavaScript template plugin. Transform a array of objects in a list of HTML elements with search and pagination.",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript plugins, signature pad, javascript signature"
+    ],
+    "dependencies": {
+        "jsuites": "^4.9.17"
+    },
+    "main": "template.js",
+    "version": "1.0.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v4",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
