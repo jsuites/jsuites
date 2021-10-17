@@ -24,7 +24,9 @@ var jSuites = function(options) {
     }
 
     obj.init = function() {
-        document.addEventListener("click", function(e) {
+        var element = null;
+
+        document.addEventListener("mousedown", function(e) {
             if (e.changedTouches && e.changedTouches[0]) {
                 var x = e.changedTouches[0].clientX;
                 var y = e.changedTouches[0].clientY;
@@ -40,7 +42,10 @@ var jSuites = function(options) {
             }
 
             // Get the first target element
-            var element = d.elementFromPoint(x, y);
+            element = d.elementFromPoint(x, y);
+        });
+
+        document.addEventListener("click", function(e) {
             // Check opened components
             isOpened(element);
         });

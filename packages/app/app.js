@@ -500,22 +500,19 @@
          * Panel methods
          */
         obj.panel = function() {
-            var panel = null;
+            // Create element
+            var panel = document.createElement('div');
+            panel.classList.add('panel');
+            panel.classList.add('panel-left');
+            panel.style.display = 'none';
 
+            // Bind to the app
+            el.appendChild(panel);
+
+            // Component
             var component = function(route, o) {
-                if (! panel) {
-                    // Create element
-                    panel = document.createElement('div');
-                    panel.classList.add('panel');
-                    panel.classList.add('panel-left');
-                    panel.style.display = 'none';
-
-                    // Bind to the app
-                    el.appendChild(panel);
-                }
-
                 // Remote content
-                if (route) {
+                if (route && ! (panel.options && panel.options.route === route)) {
                     // URL
                     if (! o) {
                         o = {};
@@ -524,32 +521,47 @@
                         o.url = obj.options.path + route + '.html';
                     }
                     // Route
+                    o.ident = ident(route);
                     o.route = route;
+
                     // Panel
                     panel.options = o;
 
+                    // Create page overwrite
+                    var ret = null;
+                    if (typeof(obj.options.onbeforecreatepage) == 'function') {
+                        ret = obj.options.onbeforecreatepage(obj, panel);
+                        if (ret === false) {
+                            return false;
+                        }
+                    }
+
                     // Request remote data
                     jSuites.ajax({
-                        url: o.url,
+                        url: o.url + '?ts=' + new Date().getTime(),
                         method: 'GET',
                         dataType: 'html',
                         success: function(result) {
-                            // Create page overwrite
-                            var ret = null;
-                            if (typeof(obj.options.oncreatepage) == 'function') {
-                                ret = obj.options.oncreatepage(obj, panel, result);
+                            // Open page
+                            panel.innerHTML = result;
+
+                            // Get javascript
+                            try {
+                                parseScript(panel);
+                            } catch (e) {
+                                console.log(e);
                             }
 
-                            // Ignore create page actions 
-                            if (ret !== false) {
-                                // Open page
-                                panel.innerHTML = result;
-                                // Get javascript
-                                parseScript(page);
+                            if (typeof(obj.options.oncreatepage) == 'function') {
+                                obj.options.oncreatepage(obj, panel, result);
                             }
+
+                            // Show panel
+                            component.show();
                         }
                     });
                 } else {
+                    // Show panel
                     component.show();
                 }
             }
@@ -649,11 +661,12 @@
 
             if (tmp) {
                 var h = tmp.getAttribute('href');
-                if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link') || h.indexOf('#') >= 0) {
+                if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link')) {
                     action = null;
                 } else {
                     var p = jSuites.getPosition(e);
                     action = {
+                        type: tmp.classList.contains('panel') ? 'panel' : 'page',
                         h: h,
                         element: tmp,
                         target: e.target,
@@ -693,8 +706,12 @@
                 var p = jSuites.getPosition(e);
                 // If mouse move cancel the click action
                 if (Math.abs(action.x - p[0]) < 5 && Math.abs(action.y - p[1]) < 5) {
-                    // Go to the page
-                    obj.pages(action.h);
+                    if (action.type == 'panel') {
+                        obj.panel(action.h);
+                    } else {
+                        // Go to the page
+                        obj.pages(action.h);
+                    }
                 }
                 // Prevent default
                 e.preventDefault();

@@ -201,7 +201,7 @@ japp.jwarning .page {
     padding-top: 45px;
 }
 
-.japp .panel {
+.japp div.panel {
     position:fixed;
     top: 0;
     left: 0;
@@ -217,12 +217,12 @@ japp.jwarning .page {
     padding:4px;
 }
 
-.japp .panel-left {
+.japp div.panel-left {
     -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
     box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
 }
 
-.japp .panel a {
+.japp div.panel a {
     color:var(--active-color);
 }
 
@@ -555,6 +555,15 @@ japp.jwarning .page {
 
 .japp .options .option .option-badget:empty {
     display:none;
+}
+
+.japp .options .option select {
+    border: 0px;
+    background: transparent;
+}
+
+.japp .options .option select {
+    margin-right: 10px;
 }
 
 .japp .options input::-webkit-input-placeholder
