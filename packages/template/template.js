@@ -637,7 +637,7 @@
     });
 
     if (window.jSuites) {
-        jSuites.setExtensions(Plugin);
+        jSuites.setExtensions({ template: Plugin });
     }
 
     return Plugin;
