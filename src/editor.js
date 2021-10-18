@@ -843,7 +843,8 @@ jSuites.editor = (function(el, options) {
                 } else {
                     var d = filter(html);
                     // Paste to the editor
-                    insertNodeAtCaret(d);
+                    //insertNodeAtCaret(d);
+                    document.execCommand('insertHtml', false, d.innerHTML);
                 }
             }
 

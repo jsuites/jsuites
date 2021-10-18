@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.17';
+    var version = '4.9.20';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5411,7 +5411,8 @@ jSuites.editor = (function(el, options) {
                 } else {
                     var d = filter(html);
                     // Paste to the editor
-                    insertNodeAtCaret(d);
+                    //insertNodeAtCaret(d);
+                    document.execCommand('insertHtml', false, d.innerHTML);
                 }
             }
 
