@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.20';
+    var version = '4.9.21';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -51,8 +51,8 @@ var jSuites = function(options) {
                 var y = e.clientY;
             }
 
-            if (e.target && e.target.webcomponent) {
-                var d = e.target.webcomponent;
+            if (e.target && e.target.shadowRoot) {
+                var d = e.target.shadowRoot;
             } else {
                 var d = document;
             }

@@ -35,8 +35,8 @@ var jSuites = function(options) {
                 var y = e.clientY;
             }
 
-            if (e.target && e.target.webcomponent) {
-                var d = e.target.webcomponent;
+            if (e.target && e.target.shadowRoot) {
+                var d = e.target.shadowRoot;
             } else {
                 var d = document;
             }
