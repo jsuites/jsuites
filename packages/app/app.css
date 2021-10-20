@@ -905,8 +905,14 @@ japp.jwarning .page {
         background-color: transparent;
         padding: 4px;
         outline: none;
+        margin-bottom: 10px;
     }
-    
+
+    .japp button.red {
+        border: 1px solid red;
+        color: red;
+    }
+
     .japp button:active {
         border: 1px solid #000;
         color: #000;
@@ -1024,3 +1030,4 @@ japp.jwarning .page {
     transform: rotate(-180deg);
     transition: transform 150ms ease;
 }
+
