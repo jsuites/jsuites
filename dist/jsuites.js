@@ -109,7 +109,7 @@ var jSuites = function(options) {
                 // Get the property
                 p = str.shift();
                 // Check if the property exists
-                if (o.hasOwnProperty(p)) {
+                if (o[p] !== undefined) {
                     o = o[p];
                 } else {
                     // Property does not exists
