@@ -29,6 +29,11 @@
     background-color:#1a73e8;
 }
 
+.jbutton.dark a {
+    color: #fff;
+    text-decoration: none;
+}
+
 .jbutton.mobile {
     padding:4px;
     padding-left:25px;

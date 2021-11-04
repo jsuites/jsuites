@@ -32,6 +32,7 @@
     cursor: default;
     font-size: 11px;
     font-family:sans-serif;
+    text-align: left;
 }
 
 .jcontextmenu > div::before {

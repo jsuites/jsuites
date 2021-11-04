@@ -160,9 +160,9 @@ jSuites.contextmenu = (function(el, options) {
                 itemContainer.addEventListener("mousedown", function(e) {
                     e.preventDefault();
                 });
-                itemContainer.addEventListener("mouseup", function() {
+                itemContainer.addEventListener("mouseup", function(e) {
                     // Execute method
-                    this.method(this);
+                    this.method(this, e);
                 });
             }
             itemContainer.appendChild(itemText);

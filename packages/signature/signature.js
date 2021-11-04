@@ -177,6 +177,14 @@
 
         el.signature = obj;
 
+        el.val = function(v) {
+            if (typeof(v) === 'undefined') {
+                return obj.getValue();
+            } else {
+                obj.setValue(v);
+            }
+        }
+
         return obj;
     });
 })));

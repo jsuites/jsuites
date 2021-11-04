@@ -557,13 +557,15 @@ japp.jwarning .page {
     display:none;
 }
 
-.japp .options .option select {
+.japp .option select {
+    margin-right: 15px;
     border: 0px;
-    background: transparent;
+    background-color: transparent;
 }
 
-.japp .options .option select {
-    margin-right: 10px;
+.japp .red {
+    color: red !important;
+    border: 1px solid red !important;
 }
 
 .japp .options input::-webkit-input-placeholder
