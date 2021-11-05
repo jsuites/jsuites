@@ -83,8 +83,6 @@ jSuites.modal = (function(el, options) {
         } else {
             backdrop.style.display = 'block';
         }
-        // Current
-        jSuites.modal.current = obj;
         // Event
         if (typeof(obj.options.onopen) == 'function') {
             obj.options.onopen(el, obj);
@@ -104,8 +102,6 @@ jSuites.modal = (function(el, options) {
         el.style.display = 'none';
         // Backdrop
         backdrop.style.display = '';
-        // Current
-        jSuites.modal.current = null;
         // Remove fullscreen class
         obj.container.classList.remove('jmodal_fullscreen');
         // Event
@@ -115,17 +111,83 @@ jSuites.modal = (function(el, options) {
     }
 
     if (! jSuites.modal.hasEvents) {
-        jSuites.modal.current = obj;
+        //  Position
+        var tracker = null;
 
-        if ('ontouchstart' in document.documentElement === true) {
-            document.addEventListener("touchstart", jSuites.modal.mouseDownControls);
-        } else {
-            document.addEventListener('mousedown', jSuites.modal.mouseDownControls);
-            document.addEventListener('mousemove', jSuites.modal.mouseMoveControls);
-            document.addEventListener('mouseup', jSuites.modal.mouseUpControls);
-        }
+        document.addEventListener('keydown', function(e) {
+            if (e.which == 27) {
+                var modals = document.querySelectorAll('.jmodal');
+                for (var i = 0; i < modals.length; i++) {
+                    modals[i].parentNode.style.display = 'none';
+                }
+            }
+        });
 
-        document.addEventListener('keydown', jSuites.modal.keyDownControls);
+        document.addEventListener('mouseup', function(e) {
+            if (tracker) {
+                tracker.element.style.cursor = 'auto';
+                tracker = null;
+            }
+        });
+
+        document.addEventListener('mousedown', function(e) {
+            var item = jSuites.findElement(e.target, 'jmodal');
+            if (item) {
+                // Get target info
+                var rect = item.getBoundingClientRect();
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
+
+                if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
+                    item.parentNode.modal.close();
+                } else {
+                    if (e.target.getAttribute('title') && (y - rect.top) < 50) {
+                        if (document.selection) {
+                            document.selection.empty();
+                        } else if ( window.getSelection ) {
+                            window.getSelection().removeAllRanges();
+                        }
+
+                        tracker = {
+                            left: rect.left,
+                            top: rect.top,
+                            x: e.clientX,
+                            y: e.clientY,
+                            width: rect.width,
+                            height: rect.height,
+                            element: item,
+                        }
+                    }
+                }
+            }
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (tracker) {
+                e = e || window.event;
+                if (e.buttons) {
+                    var mouseButton = e.buttons;
+                } else if (e.button) {
+                    var mouseButton = e.button;
+                } else {
+                    var mouseButton = e.which;
+                }
+
+                if (mouseButton) {
+                    tracker.element.style.top = (tracker.top + (e.clientY - tracker.y) + (tracker.height / 2)) + 'px';
+                    tracker.element.style.left = (tracker.left + (e.clientX - tracker.x) + (tracker.width / 2)) + 'px';
+                    tracker.element.style.cursor = 'move';
+                } else {
+                    tracker.element.style.cursor = 'auto';
+                }
+            }
+        });
 
         jSuites.modal.hasEvents = true;
     }
@@ -154,76 +216,3 @@ jSuites.modal = (function(el, options) {
 
     return obj;
 });
-
-jSuites.modal.current = null;
-jSuites.modal.position = null;
-
-jSuites.modal.keyDownControls = function(e) {
-    if (e.which == 27) {
-        if (jSuites.modal.current) {
-            jSuites.modal.current.close();
-        }
-    }
-}
-
-jSuites.modal.mouseUpControls = function(e) {
-    if (jSuites.modal.current) {
-        jSuites.modal.current.container.style.cursor = 'auto';
-    }
-    jSuites.modal.position = null;
-}
-
-jSuites.modal.mouseMoveControls = function(e) {
-    if (jSuites.modal.current && jSuites.modal.position) {
-        if (e.which == 1 || e.which == 3) {
-            var position = jSuites.modal.position;
-            jSuites.modal.current.container.style.top = (position[1] + (e.clientY - position[3]) + (position[5] / 2)) + 'px';
-            jSuites.modal.current.container.style.left = (position[0] + (e.clientX - position[2]) + (position[4] / 2)) + 'px';
-            jSuites.modal.current.container.style.cursor = 'move';
-        } else {
-            jSuites.modal.current.container.style.cursor = 'auto';
-        }
-    }
-}
-
-jSuites.modal.mouseDownControls = function(e) {
-    jSuites.modal.position = [];
-
-    if (e.target.classList.contains('jmodal')) {
-        setTimeout(function() {
-            // Get target info
-            var rect = e.target.getBoundingClientRect();
-
-            if (e.changedTouches && e.changedTouches[0]) {
-                var x = e.changedTouches[0].clientX;
-                var y = e.changedTouches[0].clientY;
-            } else {
-                var x = e.clientX;
-                var y = e.clientY;
-            }
-
-            if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
-                setTimeout(function() {
-                    jSuites.modal.current.close();
-                }, 100);
-            } else {
-                if (e.target.getAttribute('title') && (y - rect.top) < 50) {
-                    if (document.selection) {
-                        document.selection.empty();
-                    } else if ( window.getSelection ) {
-                        window.getSelection().removeAllRanges();
-                    }
-
-                    jSuites.modal.position = [
-                        rect.left,
-                        rect.top,
-                        e.clientX,
-                        e.clientY,
-                        rect.width,
-                        rect.height,
-                    ];
-                }
-            }
-        }, 100);
-    }
-}
