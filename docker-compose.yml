@@ -1,0 +1,9 @@
+version: "3.7"
+services:
+    php:
+      build: ./resources
+      ports:
+        - 9000
+      volumes:
+        - .:/var/www/html
+

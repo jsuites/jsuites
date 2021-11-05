@@ -1164,7 +1164,7 @@ jSuites.login = (function(el, options) {
 
     // Login
     var labelLogin = document.createElement('label');
-    labelLogin.innerHTML = jSuites.translate('Login');
+    labelLogin.innerHTML = jSuites.translate('Username');
     var inputLogin = document.createElement('input');
     inputLogin.type = 'text';
     inputLogin.name = 'login';

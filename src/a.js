@@ -1,6 +1,6 @@
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.12';
+    var version = '4.9.22';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -11,7 +11,6 @@ var jSuites = function(options) {
         }
         return false;
     }
-
 
     var isOpened = function(element) {
         if (jSuites.current.length > 0) {
