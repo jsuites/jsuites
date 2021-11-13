@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.22';
+    var version = '4.9.23';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8345,6 +8345,7 @@ jSuites.modal = (function(el, options) {
         height: null,
         title: null,
         padding: null,
+        backdrop: true,
     };
 
     // Loop through our object
@@ -8397,12 +8398,14 @@ jSuites.modal = (function(el, options) {
     el.appendChild(obj.container);
 
     // Backdrop
-    var backdrop = document.createElement('div');
-    backdrop.className = 'jmodal_backdrop';
-    backdrop.onclick = function() {
-        obj.close();
+    if (obj.options.backdrop) {
+        var backdrop = document.createElement('div');
+        backdrop.className = 'jmodal_backdrop';
+        backdrop.onclick = function () {
+            obj.close();
+        }
+        el.appendChild(backdrop);
     }
-    el.appendChild(backdrop);
 
     obj.open = function() {
         el.style.display = 'block';
@@ -8414,7 +8417,9 @@ jSuites.modal = (function(el, options) {
             obj.container.classList.add('jmodal_fullscreen');
             jSuites.animation.slideBottom(obj.container, 1);
         } else {
-            backdrop.style.display = 'block';
+            if (obj.options.backdrop) {
+                backdrop.style.display = 'block';
+            }
         }
         // Event
         if (typeof(obj.options.onopen) == 'function') {
@@ -8433,8 +8438,10 @@ jSuites.modal = (function(el, options) {
 
     obj.close = function() {
         el.style.display = 'none';
-        // Backdrop
-        backdrop.style.display = '';
+        if (obj.options.backdrop) {
+            // Backdrop
+            backdrop.style.display = '';
+        }
         // Remove fullscreen class
         obj.container.classList.remove('jmodal_fullscreen');
         // Event
