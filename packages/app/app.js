@@ -568,7 +568,7 @@
 
             component.show = function() {
                 // Show panel
-                if (panel && panel.style.display == 'none') {
+                if (panel && panel.innerText && panel.style.display == 'none') {
                     panel.style.display = '';
                     // Add animation
                     if (panel.classList.contains('panel-left')) {

@@ -1,6 +1,6 @@
 {
     "name": "@jsuites/app",
-    "title": "jSuites App - Create amazing SPA.",
+    "title": "jSuites App - Single App Application builder.",
     "description": "JavaScript mobile app builder plugin. Build quick and responsive mobile app that feels native.",
     "repository": {
         "type": "git",
@@ -22,7 +22,7 @@
         "jsuites": "^4.9.20"
     },
     "main": "app.js",
-    "version": "1.1.1",
+    "version": "1.2.0",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",
