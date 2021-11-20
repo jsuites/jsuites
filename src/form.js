@@ -98,7 +98,7 @@ jSuites.form = (function(el, options) {
                 var data = obj.options.onbeforesave(el, data);
 
                 if (data === false) {
-                    return; 
+                    return;
                 }
             }
 
@@ -336,6 +336,8 @@ jSuites.form.getValue = function(element) {
         if (element.checked == true) {
             value = element.value;
         }
+    } else if (element.type == 'file') {
+        value = element.files;
     } else if (element.tagName == 'select' && element.multiple == true) {
         value = [];
         var options = element.querySelectorAll("options[selected]");
@@ -393,6 +395,8 @@ jSuites.form.setElements = function(el, data) {
             if (value !== null) {
                 if (type == 'checkbox' || type == 'radio') {
                     elements[i].checked = value ? true : false;
+                } else if (type == 'file') {
+                    // Do nothing
                 } else {
                     if (typeof (elements[i].val) == 'function') {
                         elements[i].val(value);

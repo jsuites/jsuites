@@ -231,7 +231,7 @@ jSuites.ajax = (function(options, complete) {
 
     if (options.data) {
         // Parse object to variables format
-        var parseData = function(value, key) {
+        var parseData = function (value, key) {
             var vars = [];
             var keys = Object.keys(value);
             if (keys.length) {
@@ -242,7 +242,9 @@ jSuites.ajax = (function(options, complete) {
                         var k = keys[i];
                     }
 
-                    if (typeof(value[keys[i]]) == 'object') {
+                    if (value[k] instanceof FileList) {
+                        vars[k] = value[keys[i]];
+                    } else if (typeof (value[keys[i]]) == 'object') {
                         var r = parseData(value[keys[i]], k);
                         var o = Object.keys(r);
                         for (var j = 0; j < o.length; j++) {
@@ -257,18 +259,21 @@ jSuites.ajax = (function(options, complete) {
             return vars;
         }
 
-        var data = [];
         var d = parseData(options.data);
         var k = Object.keys(d);
-        for (var i = 0; i < k.length; i++) {
-            data.push(k[i] + '=' + encodeURIComponent(d[k[i]]));
-        }
 
-        if (options.method == 'GET' && data.length > 0) {
-            if (options.url.indexOf('?') < 0) {
-                options.url += '?';
+        // Data form
+        var data = new FormData();
+        for (var i = 0; i < k.length; i++) {
+            if (d[k[i]] instanceof FileList) {
+                if (d[k[i]].length) {
+                    for (var j = 0; j < d[k[i]].length; j++) {
+                        data.append(k[i], d[k[i]][j], d[k[i]][j].name);
+                    }
+                }
+            } else {
+                data.append(k[i], d[k[i]]);
             }
-            options.url += data.join('&');
         }
     }
 
@@ -276,16 +281,25 @@ jSuites.ajax = (function(options, complete) {
     httpRequest.open(options.method, options.url, true);
     httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
+    // Content type
+    if (options.contentType) {
+        httpRequest.setRequestHeader('Content-Type', options.contentType);
+    }
+
+    // Headers
     if (options.method == 'POST') {
         httpRequest.setRequestHeader('Accept', 'application/json');
-        httpRequest.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
     } else {
-        if (options.dataType == 'json') {
-            httpRequest.setRequestHeader('Content-Type', 'text/json');
-        } else if (options.dataType == 'blob') {
+        if (options.dataType == 'blob') {
             httpRequest.responseType = "blob";
-        } else if (options.dataType == 'html') {
-            httpRequest.setRequestHeader('Content-Type', 'text/html');
+        } else {
+            if (! options.contentType) {
+                if (options.dataType == 'json') {
+                    httpRequest.setRequestHeader('Content-Type', 'text/json');
+                } else if (options.dataType == 'html') {
+                    httpRequest.setRequestHeader('Content-Type', 'text/html');
+                }
+            }
         }
     }
 
@@ -396,7 +410,11 @@ jSuites.ajax = (function(options, complete) {
 
 jSuites.ajax.send = function(httpRequest) {
     if (httpRequest.data) {
-        httpRequest.send(httpRequest.data.join('&'));
+        if (Array.isArray(httpRequest.data)) {
+            httpRequest.send(httpRequest.data.join('&'));
+        } else {
+            httpRequest.send(httpRequest.data);
+        }
     } else {
         httpRequest.send();
     }
@@ -5913,7 +5931,7 @@ jSuites.form = (function(el, options) {
                 var data = obj.options.onbeforesave(el, data);
 
                 if (data === false) {
-                    return; 
+                    return;
                 }
             }
 
@@ -6151,6 +6169,8 @@ jSuites.form.getValue = function(element) {
         if (element.checked == true) {
             value = element.value;
         }
+    } else if (element.type == 'file') {
+        value = element.files;
     } else if (element.tagName == 'select' && element.multiple == true) {
         value = [];
         var options = element.querySelectorAll("options[selected]");
@@ -6208,6 +6228,8 @@ jSuites.form.setElements = function(el, data) {
             if (value !== null) {
                 if (type == 'checkbox' || type == 'radio') {
                     elements[i].checked = value ? true : false;
+                } else if (type == 'file') {
+                    // Do nothing
                 } else {
                     if (typeof (elements[i].val) == 'function') {
                         elements[i].val(value);
