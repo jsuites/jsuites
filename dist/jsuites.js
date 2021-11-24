@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.23';
+    var version = '4.9.24';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7132,10 +7132,10 @@ jSuites.mask = (function() {
                     } else {
                         // Did not find any decimal last resort the default
                         var e = new RegExp('#,##', 'ig');
-                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == '.') {
-                            this.options.decimal = '.';
-                        } else {
+                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == ',') {
                             this.options.decimal = ',';
+                        } else {
+                            this.options.decimal = '.';
                         }
                     }
                 }
@@ -7188,10 +7188,7 @@ jSuites.mask = (function() {
         // Get decimal
         var d = getDecimal.call(this);
         // Convert value
-        var o = Object.create(this.options || {});
-        if (! o.minimumFractionDigits) {
-            o.minimumFractionDigits = 1;
-        }
+        var o = this.options;
         // Parse value
         v = ParseValue.call(this, v);
         if (v == '') {
@@ -7208,10 +7205,13 @@ jSuites.mask = (function() {
         }
         var n = new Intl.NumberFormat(this.locale, o).format(t);
         n = n.split(d);
-        var s = n[1].replace(/[0-9]*/g, '');
-        if (s) {
-            n[2] = s;
+        if (typeof(n[1]) !== 'undefined') {
+            var s = n[1].replace(/[0-9]*/g, '');
+            if (s) {
+                n[2] = s;
+            }
         }
+
         if (v[1] !== undefined) {
             n[1] = d + v[1];
         } else {
@@ -8284,18 +8284,31 @@ jSuites.mask = (function() {
                         d = d[0].length - 2;
                         t = value.toFixed(d);
                     } else {
-                        t = (''+value);
+                        t = value.toFixed(0);
                     }
                 } else if (options.locale && fullMask) {
+                    // Append zeros 
                     var d = (''+value).split('.');
-                    if (! d[1]) {
-                        d[1] = '00';
-                    } else {
-                        if (d[1].length == 1) {
-                            d[1] += '0';
+                    if (options.options) {
+                        if (typeof(d[1]) === 'undefined') {
+                            d[1] = '';
+                        }
+                        var len = d[1].length;
+                        if (options.options.minimumFractionDigits > len) {
+                            for (var i = 0; i < options.options.minimumFractionDigits - len; i++) {
+                                d[1] += '0';
+                            }
                         }
                     }
-                    t = d.join('.');
+                    if (! d[1].length) {
+                        t = d[0]
+                    } else {
+                        t = d.join('.');
+                    }
+                    var len = d[1].length;
+                    if (options.options && options.options.maximumFractionDigits < len) {
+                        t = parseFloat(t).toFixed(options.options.maximumFractionDigits);
+                    }
                 } else {
                     t = toPlainString(value);
                 }
