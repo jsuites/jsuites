@@ -67,6 +67,8 @@
 
 .jpicker-focus > .jpicker-content {
     display: block;
+    overflow-y: auto;
+    width: 100%;
 }
 
 .jpicker-content > div:hover {
