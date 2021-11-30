@@ -10,8 +10,8 @@
 
 ;(function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    global.app = factory();
+        typeof define === 'function' && define.amd ? define(factory) :
+            global.app = factory();
 
 }(this, (function () {
 
@@ -87,7 +87,7 @@
 
         obj.hideToolbar = function() {
             if (toolbar.style.display == '') {
-               toolbar.style.display = 'none';
+                toolbar.style.display = 'none';
             }
         }
 
@@ -423,7 +423,7 @@
             component.get = function(route) {
                 var key = ident(route);
                 if (component.container[key]) {
-                    return component.container[key]; 
+                    return component.container[key];
                 }
             }
 
@@ -664,22 +664,18 @@
                 if (h.substr(0,2) == '//' || h.substr(0,4) == 'http' || tmp.classList.contains('link')) {
                     action = null;
                 } else {
-                    var p = jSuites.getPosition(e);
                     action = {
                         type: tmp.classList.contains('panel') ? 'panel' : 'page',
                         h: h,
                         element: tmp,
                         target: e.target,
-                        x: p[0],
-                        y: p[1],
                     };
-
-                    // Cancel click operation in 400ms
-                    setTimeout(function() {
-                        action = null;
-                    }, 400);
                 }
             }
+        }
+
+        var actionMove = function(e) {
+            action = null;
         }
 
         var actionDown = function(e) {
@@ -702,20 +698,17 @@
             obj.actionsheet.close();
 
             // Action
-            if (action) {
-                var p = jSuites.getPosition(e);
-                // If mouse move cancel the click action
-                if (Math.abs(action.x - p[0]) < 5 && Math.abs(action.y - p[1]) < 5) {
-                    if (action.type == 'panel') {
-                        obj.panel(action.h);
-                    } else {
-                        // Go to the page
-                        obj.pages(action.h);
-                    }
+            if (action && action.target === e.target) {
+                if (action.type == 'panel') {
+                    obj.panel(action.h);
+                } else {
+                    // Go to the page
+                    obj.pages(action.h);
                 }
+                // Clear action
+                action = null;
                 // Prevent default
                 e.preventDefault();
-                action = null;
             }
         }
 
@@ -724,10 +717,12 @@
 
         if ('ontouchstart' in document.documentElement === true) {
             document.addEventListener('touchstart', actionDown);
+            document.addEventListener('touchmove', actionMove);
             document.addEventListener('touchend', actionUp);
         } else {
             document.addEventListener('mousedown', actionDown);
-            document.addEventListener('click', actionUp);
+            document.addEventListener('mousemove', actionMove);
+            document.addEventListener('mouseup', actionUp);
         }
 
         window.onpopstate = function(e) {
@@ -768,10 +763,10 @@
                     actionInput.type = 'button';
                     actionInput.value = v.title;
                     if (v.className) {
-                        actionInput.className = v.className; 
+                        actionInput.className = v.className;
                     }
                     if (v.onclick) {
-                        actionInput.event = v.onclick; 
+                        actionInput.event = v.onclick;
                         actionInput.onclick = function() {
                             this.event(component, this);
                         }
