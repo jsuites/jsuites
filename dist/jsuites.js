@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.24';
+    var version = '4.9.25';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8493,7 +8493,7 @@ jSuites.modal = (function(el, options) {
             if (e.which == 27) {
                 var modals = document.querySelectorAll('.jmodal');
                 for (var i = 0; i < modals.length; i++) {
-                    modals[i].parentNode.style.display = 'none';
+                    modals[i].parentNode.modal.close();
                 }
             }
         });
