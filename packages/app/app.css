@@ -207,11 +207,11 @@ japp.jwarning .page {
     min-width: 100%;
     box-sizing: border-box;
     overflow-y: auto;
-    /*will-change: scroll-position;
+    will-change: scroll-position;
     -webkit-overflow-scrolling: touch;
     -webkit-transform: translateZ(0px);
     -webkit-transform: translate3d(0,0,0);
-    -webkit-perspective: 1000;*/
+    -webkit-perspective: 1000;
 }
 
 .japp .page.with-navbar {
