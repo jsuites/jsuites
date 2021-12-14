@@ -68,16 +68,30 @@ jSuites.ajax = (function(options, complete) {
         var k = Object.keys(d);
 
         // Data form
-        var data = new FormData();
-        for (var i = 0; i < k.length; i++) {
-            if (d[k[i]] instanceof FileList) {
-                if (d[k[i]].length) {
-                    for (var j = 0; j < d[k[i]].length; j++) {
-                        data.append(k[i], d[k[i]][j], d[k[i]][j].name);
-                    }
+        if (options.method == 'GET') {
+            if (k.length) {
+                var data = [];
+                for (var i = 0; i < k.length; i++) {
+                    data.push(k[i] + '=' + encodeURIComponent(d[k[i]]));
                 }
-            } else {
-                data.append(k[i], d[k[i]]);
+
+                if (options.url.indexOf('?') < 0) {
+                    options.url += '?';
+                }
+                options.url += data.join('&');
+            }
+        } else {
+            var data = new FormData();
+            for (var i = 0; i < k.length; i++) {
+                if (d[k[i]] instanceof FileList) {
+                    if (d[k[i]].length) {
+                        for (var j = 0; j < d[k[i]].length; j++) {
+                            data.append(k[i], d[k[i]][j], d[k[i]][j].name);
+                        }
+                    }
+                } else {
+                    data.append(k[i], d[k[i]]);
+                }
             }
         }
     }

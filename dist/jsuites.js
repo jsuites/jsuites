@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.25';
+    var version = '4.9.28';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -263,16 +263,30 @@ jSuites.ajax = (function(options, complete) {
         var k = Object.keys(d);
 
         // Data form
-        var data = new FormData();
-        for (var i = 0; i < k.length; i++) {
-            if (d[k[i]] instanceof FileList) {
-                if (d[k[i]].length) {
-                    for (var j = 0; j < d[k[i]].length; j++) {
-                        data.append(k[i], d[k[i]][j], d[k[i]][j].name);
-                    }
+        if (options.method == 'GET') {
+            if (k.length) {
+                var data = [];
+                for (var i = 0; i < k.length; i++) {
+                    data.push(k[i] + '=' + encodeURIComponent(d[k[i]]));
                 }
-            } else {
-                data.append(k[i], d[k[i]]);
+
+                if (options.url.indexOf('?') < 0) {
+                    options.url += '?';
+                }
+                options.url += data.join('&');
+            }
+        } else {
+            var data = new FormData();
+            for (var i = 0; i < k.length; i++) {
+                if (d[k[i]] instanceof FileList) {
+                    if (d[k[i]].length) {
+                        for (var j = 0; j < d[k[i]].length; j++) {
+                            data.append(k[i], d[k[i]][j], d[k[i]][j].name);
+                        }
+                    }
+                } else {
+                    data.append(k[i], d[k[i]]);
+                }
             }
         }
     }
@@ -8734,7 +8748,10 @@ jSuites.notification.isVisible = function() {
 }
 
 // More palettes https://coolors.co/ or https://gka.github.io/palettes/#/10|s|003790,005647,ffffe0|ffffe0,ff005e,93003a|1|1
-jSuites.palette = function(o, v) {
+jSuites.palette = (function() {
+    /**
+     * Available palettes
+     */
     var palette = {
         material: [
             [ "#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1" ],
@@ -8767,18 +8784,33 @@ jSuites.palette = function(o, v) {
         ],
     }
 
-    // Is defined, set new palette value
-    if (typeof(v) !== 'undefined') {
+    /**
+     * Get a pallete
+     */
+    var component = function(o) {
+        // Otherwise get palette value
+        if (palette[o]) {
+            return palette[o];
+        } else {
+            return palette.material;
+        }
+    }
+
+    component.get = function(o) {
+        // Otherwise get palette value
+        if (palette[o]) {
+            return palette[o];
+        } else {
+            return palette;
+        }
+    }
+
+    component.set = function(o, v) {
         palette[o] = v;
     }
 
-    // Otherwise get palette value
-    if (palette[o]) {
-        return palette[o];
-    } else {
-        return palette.material;
-    }
-}
+    return component;
+})();
 
 
 jSuites.picker = (function(el, options) {
