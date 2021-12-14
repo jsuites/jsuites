@@ -7145,11 +7145,16 @@ jSuites.mask = (function() {
                         return t[1];
                     } else {
                         // Did not find any decimal last resort the default
-                        var e = new RegExp('#,##', 'ig');
-                        if ((v && v.match(e)) || '1.1'.toLocaleString().substring(1,2) == ',') {
-                            this.options.decimal = ',';
+                        var e = new RegExp('#{1}(.{1})#+', 'ig');
+                        var t = e.exec(v);
+                        if (t && t[1] && t[1].length == 1) {
+                            if (t[1] === ',') {
+                                this.options.decimal = '.';
+                            } else {
+                                this.options.decimal = ',';
+                            }
                         } else {
-                            this.options.decimal = '.';
+                            this.options.decimal = '1.1'.toLocaleString().substring(1,2);
                         }
                     }
                 }
