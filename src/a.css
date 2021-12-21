@@ -1,6 +1,8 @@
 :root {
     --button-color: #298BA8; 
     --active-color: #007aff;
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
 div[data-before]:before {

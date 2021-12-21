@@ -12,6 +12,8 @@
 :root {
     --button-color: #298BA8; 
     --active-color: #007aff;
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
 div[data-before]:before {
@@ -1753,7 +1755,7 @@ div[data-before]:before {
 
 @media (max-width: 800px) {
     .jnotification {
-        top: 0px;
+        top: calc(0px + var(--safe-area-top));
         width: 100%;
     }
     .jnotification-container {
