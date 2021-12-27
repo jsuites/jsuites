@@ -1698,11 +1698,12 @@ jSuites.menu = (function(el, options) {
             var menu = el.querySelectorAll('nav');
             var selected = null;
             for (var i = 0; i < menu.length; i++) {
-                menu[i].classList.remove('selected');
                 if (menu[i].getAttribute('data-id')) {
                     var state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
-                    if (state == 1) {
+                    if (state === '1') {
                         menu[i].classList.add('selected');
+                    } else if (state === '0') {
+                        menu[i].classList.remove('selected');
                     }
                 }
             }

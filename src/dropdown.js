@@ -22,11 +22,11 @@ jSuites.dropdown = (function(el, options) {
             }
 
             obj.setData(data);
+        }
 
-            // Onload method
-            if (typeof(obj.options.onload) == 'function') {
-                obj.options.onload(el, obj, data, val);
-            }
+        // Onload method
+        if (typeof(obj.options.onload) == 'function') {
+            obj.options.onload(el, obj, data, val);
         }
 
         // Set value
@@ -70,9 +70,9 @@ jSuites.dropdown = (function(el, options) {
             }
         }
         
-        if(typeof testA == "string" || typeof testB == "string") {
-            if(typeof testA != "string") { testA = ""+testA; }
-            if(typeof testB != "string") { testB = ""+testB; }
+        if (typeof testA == "string" || typeof testB == "string") {
+            if (typeof testA != "string") { testA = ""+testA; }
+            if (typeof testB != "string") { testB = ""+testB; }
             return testA.localeCompare(testB);
         } else {
             return testA - testB;

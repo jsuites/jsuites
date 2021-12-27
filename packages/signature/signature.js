@@ -51,7 +51,7 @@
         var ctx = canvas.getContext('2d');
         el.appendChild(canvas);
 
-       // Position
+        // Position
         var x = null;
         var y = null;
 
@@ -162,11 +162,11 @@
         if ('ontouchmove' in document.documentElement === true) {
             el.addEventListener('touchstart', setPosition);
             el.addEventListener('touchmove', draw);
-            el.addEventListener('touchend', finalize);
+            document.addEventListener('touchend', finalize);
         } else {
             el.addEventListener('mousedown', setPosition);
             el.addEventListener('mousemove', draw);
-            el.addEventListener('mouseup', finalize);
+            document.addEventListener('mouseup', finalize);
         }
 
         resize();
