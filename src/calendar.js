@@ -334,9 +334,9 @@ jSuites.calendar = (function(el, options) {
             // Lemonade JS
             if (el.value != val) {
                 el.value = val;
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
+                if (typeof(el.oninput) == 'function') {
+                    el.oninput({
+                        type: 'input',
                         target: el,
                         value: el.value
                     });

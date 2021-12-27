@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.30';
+    var version = '4.9.22';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -913,9 +913,9 @@ jSuites.calendar = (function(el, options) {
             // Lemonade JS
             if (el.value != val) {
                 el.value = val;
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
+                if (typeof(el.oninput) == 'function') {
+                    el.oninput({
+                        type: 'input',
                         target: el,
                         value: el.value
                     });
@@ -2149,9 +2149,9 @@ jSuites.color = (function(el, options) {
                 // Set input value
                 el.value = obj.options.value;
                 // Element onchange native
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
+                if (typeof(el.oninput) == 'function') {
+                    el.oninput({
+                        type: 'input',
                         target: el,
                         value: el.value
                     });
@@ -3754,9 +3754,9 @@ jSuites.dropdown = (function(el, options) {
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
+            if (typeof(el.oninput) == 'function') {
+                el.oninput({
+                    type: 'input',
                     target: el,
                     value: el.value
                 });
@@ -4749,9 +4749,9 @@ jSuites.editor = (function(el, options) {
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
+            if (typeof(el.oninput) == 'function') {
+                el.oninput({
+                    type: 'input',
                     target: el,
                     value: el.value
                 });
@@ -8947,9 +8947,9 @@ jSuites.picker = (function(el, options) {
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
+            if (typeof(el.oninput) == 'function') {
+                el.oninput({
+                    type: 'input',
                     target: el,
                     value: el.value
                 });
@@ -9145,9 +9145,9 @@ jSuites.progressbar = (function(el, options) {
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
+            if (typeof(el.oninput) == 'function') {
+                el.oninput({
+                    type: 'input',
                     target: el,
                     value: el.value
                 });
@@ -9276,9 +9276,9 @@ jSuites.rating = (function(el, options) {
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
-            if (typeof(el.onchange) == 'function') {
-                el.onchange({
-                    type: 'change',
+            if (typeof(el.oninput) == 'function') {
+                el.oninput({
+                    type: 'input',
                     target: el,
                     value: el.value
                 });
@@ -10849,9 +10849,9 @@ jSuites.tags = (function(el, options) {
             // Lemonade JS
             if (el.value != obj.options.value) {
                 el.value = obj.options.value;
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
+                if (typeof(el.oninput) == 'function') {
+                    el.oninput({
+                        type: 'input',
                         target: el,
                         value: el.value
                     });

@@ -210,9 +210,9 @@ jSuites.color = (function(el, options) {
                 // Set input value
                 el.value = obj.options.value;
                 // Element onchange native
-                if (typeof(el.onchange) == 'function') {
-                    el.onchange({
-                        type: 'change',
+                if (typeof(el.oninput) == 'function') {
+                    el.oninput({
+                        type: 'input',
                         target: el,
                         value: el.value
                     });
