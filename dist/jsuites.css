@@ -529,7 +529,6 @@ div[data-before]:before {
 
 
 .jcolor {
-    position: absolute;
     display: none;
     outline: none;
 }
@@ -544,7 +543,6 @@ div[data-before]:before {
 
 .jcolor-content {
     position: absolute;
-    left: 0px;
     z-index: 9000;
     user-select: none;
     -webkit-font-smoothing: antialiased;
@@ -603,6 +601,7 @@ div[data-before]:before {
 
 .jcolor-fullscreen {
     position: fixed;
+    left: 0px;
     bottom: 0px;
     width:100%;
     max-height: 290px;
@@ -2657,7 +2656,6 @@ div[data-before]:before {
 }
 
 .jtoolbar .jtoolbar-item {
-    position: relative;
     text-align: center;
     margin: auto;
     padding: 2px;
@@ -2666,6 +2664,7 @@ div[data-before]:before {
 }
 
 .jtoolbar-mobile .jtoolbar-item {
+    position: relative;
     flex:1;
 } 
 
@@ -2789,10 +2788,6 @@ div[data-before]:before {
 
 .jtoolbar-floating .jtoolbar-divisor {
     display: none;
-}
-
-.jtoolbar-floating > div {
-    display: block;
 }
 
 .jtoolbar-arrow-selected .jtoolbar-floating {

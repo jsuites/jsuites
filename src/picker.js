@@ -168,18 +168,35 @@ jSuites.picker = (function(el, options) {
             el.classList.add('jpicker-focus');
             el.focus();
 
+            var top = 0;
+            var left = 0;
+
+            dropdownContent.style.marginLeft = '';
+
             var rectHeader = dropdownHeader.getBoundingClientRect();
             var rectContent = dropdownContent.getBoundingClientRect();
+
             if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
+                top = -1 * (rectContent.height + 4);
             } else {
-                dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
+                top = rectHeader.height + 4;
             }
 
             if (obj.options.right === true) {
-                dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
+                left = -1 * rectContent.width + rectHeader.width;
             }
 
+            if (rectContent.left + left < 0) {
+                left = left + rectContent.left + 10;
+            }
+            if (rectContent.left + rectContent.width > window.innerWidth) {
+                left = -1 * (10 + rectContent.left + rectContent.width - window.innerWidth);
+            }
+
+            dropdownContent.style.marginTop = parseInt(top) + 'px';
+            dropdownContent.style.marginLeft = parseInt(left) + 'px';
+
+            //dropdownContent.style.marginTop
             if (typeof obj.options.onopen == 'function') {
                 obj.options.onopen(el, obj);
             }

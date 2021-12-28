@@ -1,5 +1,4 @@
 .jcolor {
-    position: absolute;
     display: none;
     outline: none;
 }
@@ -14,7 +13,6 @@
 
 .jcolor-content {
     position: absolute;
-    left: 0px;
     z-index: 9000;
     user-select: none;
     -webkit-font-smoothing: antialiased;
@@ -73,6 +71,7 @@
 
 .jcolor-fullscreen {
     position: fixed;
+    left: 0px;
     bottom: 0px;
     width:100%;
     max-height: 290px;

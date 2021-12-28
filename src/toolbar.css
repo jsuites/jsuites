@@ -45,7 +45,6 @@
 }
 
 .jtoolbar .jtoolbar-item {
-    position: relative;
     text-align: center;
     margin: auto;
     padding: 2px;
@@ -54,6 +53,7 @@
 }
 
 .jtoolbar-mobile .jtoolbar-item {
+    position: relative;
     flex:1;
 } 
 
@@ -177,10 +177,6 @@
 
 .jtoolbar-floating .jtoolbar-divisor {
     display: none;
-}
-
-.jtoolbar-floating > div {
-    display: block;
 }
 
 .jtoolbar-arrow-selected .jtoolbar-floating {

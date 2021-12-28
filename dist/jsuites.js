@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.31';
+    var version = '4.9.32';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -2046,10 +2046,15 @@ jSuites.color = (function(el, options) {
             // Show colorpicker
             container.classList.add('jcolor-focus');
 
-            var rectContent = content.getBoundingClientRect();
+            // Reset margin
+            content.style.marginTop = '';
+            content.style.marginLeft = '';
 
-            if (jSuites.getWindowWidth() < 800 || obj.options.fullscreen == true) {
-                content.style.top = '';
+            var rectContent = content.getBoundingClientRect();
+            var availableWidth = jSuites.getWindowWidth();
+            var availableHeight = jSuites.getWindowHeight();
+
+            if (availableWidth < 800 || obj.options.fullscreen == true) {
                 content.classList.add('jcolor-fullscreen');
                 jSuites.animation.slideBottom(content, 1);
                 backdrop.style.display = 'block';
@@ -2059,24 +2064,20 @@ jSuites.color = (function(el, options) {
                     backdrop.style.display = '';
                 }
 
-                var rect = el.getBoundingClientRect();
-
                 if (obj.options.position) {
                     content.style.position = 'fixed';
-                    if (window.innerHeight < rect.bottom + rectContent.height) {
-                        content.style.top = (rect.top - (rectContent.height + 2)) + 'px';
-                    } else {
-                        content.style.top = (rect.top + rect.height + 2) + 'px';
-                    }
-                    content.style.left = rect.left + 'px';
                 } else {
-                    if (window.innerHeight < rect.bottom + rectContent.height) {
-                        content.style.top = -1 * (rectContent.height + rect.height + 2) + 'px';
-                    } else {
-                        content.style.top = '2px';
-                    }
+                    content.style.position = '';
+                }
+
+                if (rectContent.left + rectContent.width > availableWidth) {
+                    content.style.marginLeft = -1 * (rectContent.left + rectContent.width - (availableWidth - 20)) + 'px';
+                }
+                if (rectContent.top + rectContent.height > availableHeight) {
+                    content.style.marginTop = -1 * (rectContent.top + rectContent.height - (availableHeight - 20)) + 'px';
                 }
             }
+
 
             if (typeof(obj.options.onopen) == 'function') {
                 obj.options.onopen(el);
@@ -2553,10 +2554,10 @@ jSuites.color = (function(el, options) {
             backdropClickControl = true;
         });
 
-        backdrop.addEventListener("mouseup", function(e) {
+        backdrop.addEventListener("click", function(e) {
             if (backdropClickControl) {
-                obj.close();
                 backdropClickControl = false;
+                obj.close();
             }
         });
 
@@ -8988,18 +8989,35 @@ jSuites.picker = (function(el, options) {
             el.classList.add('jpicker-focus');
             el.focus();
 
+            var top = 0;
+            var left = 0;
+
+            dropdownContent.style.marginLeft = '';
+
             var rectHeader = dropdownHeader.getBoundingClientRect();
             var rectContent = dropdownContent.getBoundingClientRect();
+
             if (window.innerHeight < rectHeader.bottom + rectContent.height) {
-                dropdownContent.style.marginTop = -1 * (rectContent.height + 4) + 'px';
+                top = -1 * (rectContent.height + 4);
             } else {
-                dropdownContent.style.marginTop = rectHeader.height + 2 + 'px';
+                top = rectHeader.height + 4;
             }
 
             if (obj.options.right === true) {
-                dropdownContent.style.marginLeft = -1 * rectContent.width + 24 + 'px';
+                left = -1 * rectContent.width + rectHeader.width;
             }
 
+            if (rectContent.left + left < 0) {
+                left = left + rectContent.left + 10;
+            }
+            if (rectContent.left + rectContent.width > window.innerWidth) {
+                left = -1 * (10 + rectContent.left + rectContent.width - window.innerWidth);
+            }
+
+            dropdownContent.style.marginTop = parseInt(top) + 'px';
+            dropdownContent.style.marginLeft = parseInt(left) + 'px';
+
+            //dropdownContent.style.marginTop
             if (typeof obj.options.onopen == 'function') {
                 obj.options.onopen(el, obj);
             }
