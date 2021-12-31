@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.32';
+    var version = '4.9.33';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7216,7 +7216,7 @@ jSuites.mask = (function() {
         }
         // Temporary value
         if (v[0]) {
-            var t = parseFloat(v.join('.'));
+            var t = parseFloat(v[0]);
             if (o.style == 'percent') {
                 t /= 100;
             }

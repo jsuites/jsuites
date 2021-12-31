@@ -144,7 +144,7 @@ jSuites.mask = (function() {
         }
         // Temporary value
         if (v[0]) {
-            var t = parseFloat(v.join('.'));
+            var t = parseFloat(v[0]);
             if (o.style == 'percent') {
                 t /= 100;
             }
