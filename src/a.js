@@ -34,14 +34,18 @@ var jSuites = function(options) {
                 var y = e.clientY;
             }
 
-            if (e.target && e.target.shadowRoot) {
-                var d = e.target.shadowRoot;
+            var path = event.path || (event.composedPath && event.composedPath());
+            if (path) {
+                element = path[0];
             } else {
-                var d = document;
+                if (e.target && e.target.shadowRoot) {
+                    var d = e.target.shadowRoot;
+                } else {
+                    var d = document;
+                }
+                // Get the first target element
+                element = d.elementFromPoint(x, y);
             }
-
-            // Get the first target element
-            element = d.elementFromPoint(x, y);
         });
 
         document.addEventListener("click", function(e) {

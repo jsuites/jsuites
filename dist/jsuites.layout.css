@@ -449,9 +449,6 @@
     .section {
         margin-right:0px !important;
     }
-    .section-content {
-        padding: 12px !important;
-    }
 }
 
 /* mobile */
@@ -895,6 +892,16 @@ section.middle {
 .p20
 {
     padding:20px;
+}
+
+.p25
+{
+    padding:25px;
+}
+
+.p30
+{
+    padding:30px;
 }
 
 .m0

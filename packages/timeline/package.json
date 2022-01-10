@@ -1,7 +1,7 @@
 {
-    "name": "@jsuites/login",
-    "title": "JavaScript login interface",
-    "description": "JavaScript login interface plugin.",
+    "name": "@jsuites/timeline",
+    "title": "JavaScript timeline",
+    "description": "JavaScript timeline.",
     "repository": {
         "type": "git",
         "url": "https://github.com/jsuites/jsuites.git"
@@ -16,12 +16,12 @@
         }
     ],
     "keywords": [
-        "javascript plugins, signature pad, javascript signature"
+        "javascript plugins, image cropper, javascript image cropper, javascript image editor, rotate, zoom, crop, brightness, contract."
     ],
     "dependencies": {
-        "jsuites": "^4.9.17"
+        "jsuites": "^4.9.33"
     },
-    "main": "login.js",
+    "main": "timeline.js",
     "version": "1.0.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",

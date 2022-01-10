@@ -861,6 +861,9 @@
                 method: 'POST',
                 dataType: 'json',
                 data: data,
+                beforeSend: function(xhr) {
+                    xhr.withCredentials = true;
+                },
                 success: function(result) {
                     // Remove loading
                     el.classList.remove('jlogin-loading');

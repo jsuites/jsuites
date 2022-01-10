@@ -142,6 +142,10 @@ jSuites.mask = (function() {
         if (v == '') {
             return '';
         }
+        // Negative values
+        if (v[0] === '-') {
+            v[0] = '-0';
+        }
         // Temporary value
         if (v[0]) {
             var t = parseFloat(v[0]);

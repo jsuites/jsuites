@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.33';
+    var version = '4.9.34';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -51,14 +51,18 @@ var jSuites = function(options) {
                 var y = e.clientY;
             }
 
-            if (e.target && e.target.shadowRoot) {
-                var d = e.target.shadowRoot;
+            var path = event.path || (event.composedPath && event.composedPath());
+            if (path) {
+                element = path[0];
             } else {
-                var d = document;
+                if (e.target && e.target.shadowRoot) {
+                    var d = e.target.shadowRoot;
+                } else {
+                    var d = document;
+                }
+                // Get the first target element
+                element = d.elementFromPoint(x, y);
             }
-
-            // Get the first target element
-            element = d.elementFromPoint(x, y);
         });
 
         document.addEventListener("click", function(e) {
@@ -6788,6 +6792,10 @@ jSuites.mask = (function() {
         v = ParseValue.call(this, v);
         if (v == '') {
             return '';
+        }
+        // Negative values
+        if (v[0] === '-') {
+            v[0] = '-0';
         }
         // Temporary value
         if (v[0]) {

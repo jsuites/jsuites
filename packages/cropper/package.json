@@ -16,7 +16,7 @@
         }
     ],
     "keywords": [
-        "javascript plugins, image cropper, javascript image cropper, javascript image editor, rotate, zoom, crop, brightness, contract."
+        "javascript plugins, image cropper, javascript image cropper, javascript image editor, rotate, zoom, crop, brightness, contrast."
     ],
     "dependencies": {
         "jsuites": "^4.2.2"

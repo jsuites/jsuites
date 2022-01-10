@@ -1,0 +1,179 @@
+.jtimeline {
+    overflow: hidden;
+    min-height:calc(100vh - 90px);
+    min-width: 300px;
+}
+
+.jtimeline-item {
+    display:flex;
+    margin-left:15px;
+    margin-right:15px;
+}
+
+.jtimeline-header {
+    position:fixed;
+    width:100%;
+    display:flex;
+    align-items: center;
+    justify-content:space-between;
+    padding:15px;
+    border-top:1px solid #eee;
+    border-bottom:1px solid #eee;
+    margin-top:-1px;
+    margin-bottom:10px;
+    background-color:#fff;
+    z-index:1;
+    box-sizing: border-box;
+}
+
+.jtimeline-year {
+    font-size:2.2em;
+    display:inline-block;
+}
+
+.jtimeline-month {
+    font-size:0.8em;
+    position:relative;
+    top:6px;
+}
+
+.jtimeline-navigation div {
+    display:inline-block;
+    padding-right:12px;
+    padding-left:12px;
+    margin-left:4px;
+    text-align: center;
+    cursor: pointer;
+}
+
+.jtimeline-navigation i {
+    font-size: 1.5rem !important;
+    line-height:32px;
+    display:inline-block;
+}
+
+.jtimeline-container {
+    position: relative;
+    padding-top:110px;
+    padding-bottom:30px;
+}
+
+.jtimeline-subtitle {
+    color:#aaa;
+    font-size:0.8em;
+}
+
+.jtimeline-content {
+    padding-top:0px;
+    padding-left:20px;
+    padding-bottom:30px;
+    font-size:0.8em;
+    border-left:3px solid #aaa;
+    width:100%;
+}
+
+.jtimeline-item:last-child .jtimeline-content {
+    padding-bottom:0px;
+}
+
+.jtimeline-text {
+    color:#888;
+    font-size:0.9em;
+    line-height:18px;
+    margin-top:5px;
+    margin-bottom:5px;
+}
+
+.jtimeline-item:last-child .jtimeline-text {
+}
+
+.jtimeline-date-container {
+    position:relative;
+    padding-top:0px;
+}
+
+.jtimeline-date {
+    font-size:1em;
+    width:40px;
+    padding-top:2px;
+}
+
+.jtimeline-title-container {
+    display:flex;
+}
+
+.jtimeline-title {
+    font-size:1.4em;
+    max-width:calc(100% - 30px);
+}
+
+.jtimeline-controls {
+    margin-left:5px;
+}
+
+.jtimeline-controls i {
+    font-size:16px;
+    width:16px;
+    height:16px;
+    line-height:24px;
+    color:#aaa;
+}
+
+.jtimeline-date small {
+    font-size:0.7em;
+}
+
+.jtimeline-date-bullet::after {
+    content:'';
+    width:12px;
+    height:12px;
+    border-radius:12px;
+    border:3px solid #00688B;
+    display: inline-block;
+    position:absolute;
+    top:4px;
+    right:-10px;
+    background-color:#fff;
+}
+
+.jtimeline-tags {
+    margin-top:15px;
+    margin-bottom:0px;
+    border-bottom:1px solid #fefefe;
+}
+
+.jtimeline-tags:empty {
+    display:none;
+}
+
+.jtimeline-tag {
+    padding:1px;
+    padding-right:10px;
+    padding-left:10px;
+    background-color:red;
+    color:#fff;
+    display:inline-block;
+    font-size:0.8em;
+    margin-bottom:5px;
+    margin-right:5px;
+}
+
+.jtimeline-message {
+    text-align:center;
+    padding:20px;
+    font-size:0.7em;
+}
+
+.jtimeline-action {
+    cursor: pointer;
+}
+
+@media only screen and (min-width: 992px) {
+    .jtimeline-header {
+        position: relative !important;
+    }
+    
+    .jtimeline-container {
+        padding: 0px !important;
+    }
+}
