@@ -192,6 +192,10 @@ jSuites.mask = (function() {
         // Keep the raw value
         var current = ParseValue.call(this, v);
         if (current) {
+            // Negative values
+            if (current[0] === '-') {
+                current[0] = '-0';
+            }
             return parseFloat(current.join('.'));
         }
         return null;

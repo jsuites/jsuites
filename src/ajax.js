@@ -138,6 +138,11 @@ jSuites.ajax = (function(options, complete) {
         options.beforeSend(httpRequest);
     }
 
+    // Before send
+    if (typeof(jSuites.ajax.beforeSend) == 'function') {
+        jSuites.ajax.beforeSend(httpRequest);
+    }
+
     httpRequest.onload = function() {
         if (httpRequest.status === 200) {
             if (options.dataType == 'json') {

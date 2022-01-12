@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.34';
+    var version = '4.9.36';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -335,6 +335,11 @@ jSuites.ajax = (function(options, complete) {
     // Before send
     if (typeof(options.beforeSend) == 'function') {
         options.beforeSend(httpRequest);
+    }
+
+    // Before send
+    if (typeof(jSuites.ajax.beforeSend) == 'function') {
+        jSuites.ajax.beforeSend(httpRequest);
     }
 
     httpRequest.onload = function() {
@@ -7268,6 +7273,10 @@ jSuites.mask = (function() {
         // Keep the raw value
         var current = ParseValue.call(this, v);
         if (current) {
+            // Negative values
+            if (current[0] === '-') {
+                current[0] = '-0';
+            }
             return parseFloat(current.join('.'));
         }
         return null;
