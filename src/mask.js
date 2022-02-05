@@ -1014,7 +1014,7 @@ jSuites.mask = (function() {
                 o.tokens = getTokens.call(o, o.mask);
             }
             // On new input
-            if (typeof(e) !== 'object' || ! e.inputType || e.inputType == 'insertText' || e.inputType == 'insertFromPaste') {
+            if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
                 // Start tranformation
                 if (o.locale) {
                     if (o.input) {

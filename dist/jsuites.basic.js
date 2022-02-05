@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.1';
+    var version = '4.10.2';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7901,7 +7901,7 @@ jSuites.mask = (function() {
                 o.tokens = getTokens.call(o, o.mask);
             }
             // On new input
-            if (typeof(e) !== 'object' || ! e.inputType || e.inputType == 'insertText' || e.inputType == 'insertFromPaste') {
+            if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
                 // Start tranformation
                 if (o.locale) {
                     if (o.input) {
