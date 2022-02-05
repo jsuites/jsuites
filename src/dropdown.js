@@ -889,11 +889,6 @@ jSuites.dropdown = (function(el, options) {
      * Change event
      */
     var change = function(oldValue) {
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, oldValue, obj.options.value);
-        }
-
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
@@ -904,6 +899,11 @@ jSuites.dropdown = (function(el, options) {
                     value: el.value
                 });
             }
+        }
+
+        // Events
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, oldValue, obj.options.value);
         }
     }
 

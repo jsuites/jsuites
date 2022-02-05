@@ -111,6 +111,9 @@ input, select, textarea, button, .input {
     background-color:#fff;
     font-size:1em;
     line-height: initial;
+    border-radius: 2px;
+    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .jdropdown .jdropdown-header {

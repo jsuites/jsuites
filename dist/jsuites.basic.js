@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.9.36';
+    var version = '4.10.1';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -29,10 +29,10 @@ var jSuites = function(options) {
         return false;
     }
 
-    var isOpened = function(element) {
+    var isOpened = function(e) {
         if (jSuites.current.length > 0) {
             for (var i = 0; i < jSuites.current.length; i++) {
-                if (jSuites.current[i] && ! find(element, jSuites.current[i])) {
+                if (jSuites.current[i] && ! find(e, jSuites.current[i])) {
                     jSuites.current[i].close();
                 }
             }
@@ -40,9 +40,66 @@ var jSuites = function(options) {
     }
 
     obj.init = function() {
+        // Width of the border
+        var cornerSize = 15;
+
+        // Current element
         var element = null;
 
-        document.addEventListener("mousedown", function(e) {
+        // Controllers
+        var editorAction = false;
+
+        // Event state
+        var state = {
+            x: null,
+            y: null,
+        }
+
+        // Events
+        var editorMouseDown = function(e) {
+            // Check if this is the floating
+            var item = jSuites.findElement(e.target, 'jpanel');
+            // Jfloating found
+            if (item && ! item.classList.contains("readonly")) {
+                // Add focus to the chart container
+                item.focus();
+                // Keep the tracking information
+                var rect = e.target.getBoundingClientRect();
+                editorAction = {
+                    e: item,
+                    x: e.clientX,
+                    y: e.clientY,
+                    w: rect.width,
+                    h: rect.height,
+                    d: item.style.cursor,
+                    resizing: item.style.cursor ? true : false,
+                }
+
+                // Make sure width and height styling is OK
+                if (! item.style.width) {
+                    item.style.width = rect.width + 'px';
+                }
+
+                if (! item.style.height) {
+                    item.style.height = rect.height + 'px';
+                }
+
+                // Remove any selection from the page
+                var s = window.getSelection();
+                if (s.rangeCount) {
+                    for (var i = 0; i < s.rangeCount; i++) {
+                        s.removeRange(s.getRangeAt(i));
+                    }
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+            } else {
+                // No floating action found
+                editorAction = false;
+            }
+
+            // Verify current components tracking
             if (e.changedTouches && e.changedTouches[0]) {
                 var x = e.changedTouches[0].clientX;
                 var y = e.changedTouches[0].clientY;
@@ -51,10 +108,14 @@ var jSuites = function(options) {
                 var y = e.clientY;
             }
 
+            // Which component I am clicking
             var path = event.path || (event.composedPath && event.composedPath());
+
+            // If path available get the first element in the chain
             if (path) {
                 element = path[0];
             } else {
+                // Try to guess using the coordinates
                 if (e.target && e.target.shadowRoot) {
                     var d = e.target.shadowRoot;
                 } else {
@@ -63,12 +124,186 @@ var jSuites = function(options) {
                 // Get the first target element
                 element = d.elementFromPoint(x, y);
             }
-        });
 
-        document.addEventListener("click", function(e) {
-            // Check opened components
             isOpened(element);
-        });
+        }
+
+        var editorMouseUp = function(e) {
+            if (editorAction && editorAction.e) {
+                if (typeof(editorAction.e.refresh) == 'function') {
+                    editorAction.e.refresh();
+                }
+                editorAction.e.style.cursor = '';
+            }
+
+            // Reset
+            state = {
+                x: null,
+                y: null,
+            }
+
+            editorAction = false;
+        }
+
+        var editorMouseMove = function(e) {
+            if (editorAction) {
+                var x = e.clientX || e.pageX;
+                var y = e.clientY || e.pageY;
+
+                // Action on going
+                if (! editorAction.resizing) {
+                    if (state.x == null && state.y == null) {
+                        state.x = x;
+                        state.y = y;
+                    }
+
+                    var dx = x - state.x;
+                    var dy = y - state.y;
+                    var top = editorAction.e.offsetTop + dy;
+                    var left = editorAction.e.offsetLeft + dx;
+
+                    // Update position
+                    editorAction.e.style.top = top + 'px';
+                    editorAction.e.style.left = left + 'px';
+                    editorAction.e.style.cursor = "move";
+
+                    state.x = x;
+                    state.y = y;
+
+
+                    // Update element
+                    if (typeof(editorAction.e.refresh) == 'function') {
+                        editorAction.e.refresh('position', top, left);
+                    }
+                } else {
+                    var width = null;
+                    var height = null;
+
+                    if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' || editorAction.d == 'se-resize') {
+                        // Update width
+                        width = editorAction.w + (x - editorAction.x);
+                        editorAction.e.style.width = width + 'px';
+
+                        // Update Height
+                        if (e.shiftKey) {
+                            var newHeight = (x - editorAction.x) * (editorAction.h / editorAction.w);
+                            height = editorAction.h + newHeight;
+                            editorAction.e.style.height = height + 'px';
+                        } else {
+                            var newHeight = false;
+                        }
+                    }
+
+                    if (! newHeight) {
+                        if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
+                            height = editorAction.h + (y - editorAction.y);
+                            editorAction.e.style.height = height + 'px';
+                        }
+                    }
+
+                    // Update element
+                    if (typeof(editorAction.e.refresh) == 'function') {
+                        editorAction.e.refresh('dimensions', width, height);
+                    }
+                }
+            } else {
+                // Resizing action
+                var item = jSuites.findElement(e.target, 'jpanel');
+                // Found eligible component
+                if (item) {
+                    if (item.getAttribute('tabindex')) {
+                        var rect = item.getBoundingClientRect();
+                        if (e.clientY - rect.top < cornerSize) {
+                            if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                                item.style.cursor = 'ne-resize';
+                            } else if (e.clientX - rect.left < cornerSize) {
+                                item.style.cursor = 'nw-resize';
+                            } else {
+                                item.style.cursor = 'n-resize';
+                            }
+                        } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
+                            if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                                item.style.cursor = 'se-resize';
+                            } else if (e.clientX - rect.left < cornerSize) {
+                                item.style.cursor = 'sw-resize';
+                            } else {
+                                item.style.cursor = 's-resize';
+                            }
+                        } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                            item.style.cursor = 'e-resize';
+                        } else if (e.clientX - rect.left < cornerSize) {
+                            item.style.cursor = 'w-resize';
+                        } else {
+                            item.style.cursor = '';
+                        }
+                    }
+                }
+            }
+        }
+
+        var editorDblClick = function(e) {
+            var item = jSuites.findElement(e.target, 'jpanel');
+            if (item && typeof(item.dblclick) == 'function') {
+                // Create edition
+                item.dblclick(e);
+            }
+        }
+
+        var editorContextmenu = function(e) {
+            var item = document.activeElement;
+            if (item && typeof(item.contextmenu) == 'function') {
+                // Create edition
+                item.contextmenu(e);
+
+                e.preventDefault();
+                e.stopImmediatePropagation();
+            } else {
+                // Search for possible context menus
+                item = jSuites.findElement(e.target, function(o) {
+                    return o.tagName && o.getAttribute('aria-contextmenu-id');
+                });
+
+                if (item) {
+                    var o = document.querySelector('#' + item);
+                    if (! o) {
+                        console.error('JSUITES: contextmenu id not found: ' + item);
+                    } else {
+                        o.contextmenu.open(e);
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            }
+        }
+
+        var editorKeyDown = function(e) {
+            var item = document.activeElement;
+            if (item) {
+                if (e.key == "Delete" && typeof(item.delete) == 'function') {
+                    item.delete();
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            }
+
+            if (jSuites.current.length) {
+                if (item = jSuites.current[jSuites.current.length - 1]) {
+                    if (e.key == "Escape" && typeof(item.close) == 'function') {
+                        item.close();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            }
+        }
+
+        document.addEventListener('mouseup', editorMouseUp);
+        document.addEventListener("mousedown", editorMouseDown);
+        document.addEventListener('mousemove', editorMouseMove);
+        document.addEventListener('dblclick', editorDblClick);
+        document.addEventListener('keydown', editorKeyDown);
+        document.addEventListener('contextmenu', editorContextmenu);
+        document.dictionary = {};
 
         obj.version = version;
     }
@@ -96,7 +331,7 @@ var jSuites = function(options) {
         } else {
             var index = jSuites.current.indexOf(component);
             if (index >= 0) {
-                jSuites.current[index] = null;
+                jSuites.current.splice(index, 1);
             }
         }
     }
@@ -147,15 +382,13 @@ var jSuites = function(options) {
 
     // Update dictionary
     obj.setDictionary = function(d) {
-        var k = Object.keys(obj.dictionary);
-        if (k.length == 0) {
-            obj.dictionary = d;
-        } else {
-            // Replace the key into the dictionary and append the new ones
-            var k = Object.keys(d);
-            for (var i = 0; i < k.length; i++) {
-                obj.dictionary[k[i]] = d[k[i]];
-            }
+        if (! document.dictionary) {
+            document.dictionary = {}
+        }
+        // Replace the key into the dictionary and append the new ones
+        var k = Object.keys(d);
+        for (var i = 0; i < k.length; i++) {
+            document.dictionary[k[i]] = d[k[i]];
         }
 
         // Translations
@@ -176,12 +409,13 @@ var jSuites = function(options) {
         }
     }
 
-    // Dictionary
-    obj.dictionary = {};
-
     // Translate
     obj.translate = function(t) {
-        return obj.dictionary[t] || t;
+        if (document.dictionary) {
+            return document.dictionary[t] || t;
+         } else {
+            return t;
+         }
     }
 
     // Array of opened components
@@ -340,6 +574,10 @@ jSuites.ajax = (function(options, complete) {
     // Before send
     if (typeof(jSuites.ajax.beforeSend) == 'function') {
         jSuites.ajax.beforeSend(httpRequest);
+    }
+
+    if (document.ajax && typeof(document.ajax.beforeSend) == 'function') {
+        document.ajax.beforeSend(httpRequest);
     }
 
     httpRequest.onload = function() {
@@ -2019,6 +2257,10 @@ jSuites.color = (function(el, options) {
         // Value
         if (typeof obj.options.value === 'string') {
             el.value = obj.options.value;
+            if (el.tagName === 'INPUT') {
+                el.style.color = el.value;
+                el.style.backgroundColor = el.value;
+            }
         }
 
         // Placeholder
@@ -2033,6 +2275,19 @@ jSuites.color = (function(el, options) {
         return obj;
     }
 
+    obj.select = function(color) {
+        // Remove current selecded mark
+        var selected = container.querySelector('.jcolor-selected');
+        if (selected) {
+            selected.classList.remove('jcolor-selected');
+        }
+
+        // Mark cell as selected
+        if (obj.values[color]) {
+            obj.values[color].classList.add('jcolor-selected');
+        }
+    }
+
     /**
      * Open color pallete
      */
@@ -2041,8 +2296,13 @@ jSuites.color = (function(el, options) {
             // Start tracking
             jSuites.tracking(obj, true);
 
-            // Show colorpicker
+            // Show color picker
             container.classList.add('jcolor-focus');
+
+            // Select current color
+            if (obj.options.value) {
+                obj.select(obj.options.value);
+            }
 
             // Reset margin
             content.style.marginTop = '';
@@ -2128,15 +2388,7 @@ jSuites.color = (function(el, options) {
             slidersResult = color;
 
             // Remove current selecded mark
-            var selected = container.querySelector('.jcolor-selected');
-            if (selected) {
-                selected.classList.remove('jcolor-selected');
-            }
-
-            // Mark cell as selected
-            if (obj.values[color]) {
-                obj.values[color].classList.add('jcolor-selected');
-            }
+            obj.select(color);
 
             // Onchange
             if (typeof(obj.options.onchange) == 'function') {
@@ -2147,6 +2399,11 @@ jSuites.color = (function(el, options) {
             if (el.value != obj.options.value) {
                 // Set input value
                 el.value = obj.options.value;
+                if (el.tagName === 'INPUT') {
+                    el.style.color = el.value;
+                    el.style.backgroundColor = el.value;
+                }
+
                 // Element onchange native
                 if (typeof(el.oninput) == 'function') {
                     el.oninput({
@@ -2232,16 +2489,6 @@ jSuites.color = (function(el, options) {
 
         // Append to the table
         tableContainer.appendChild(t);
-
-        // Select color
-        tableContainer.addEventListener("mousedown", function(e) {
-            if (e.target.tagName == 'TD') {
-                var value = e.target.getAttribute('data-value');
-                if (value) {
-                    obj.setValue(value);
-                }
-            }
-        });
 
         return tableContainer;
     }
@@ -2474,22 +2721,12 @@ jSuites.color = (function(el, options) {
         resetButton  = document.createElement('div');
         resetButton.className = 'jcolor-reset';
         resetButton.innerHTML = obj.options.resetLabel;
-        resetButton.onclick = function(e) {
-            obj.setValue('');
-            obj.close();
-        }
         controls.appendChild(resetButton);
 
         // Close button
         closeButton  = document.createElement('div');
         closeButton.className = 'jcolor-close';
         closeButton.innerHTML = obj.options.doneLabel;
-        closeButton.onclick = function(e) {
-            if (jsuitesTabs.getActive() > 0) {
-                obj.setValue(slidersResult);
-            }
-            obj.close();
-        }
         controls.appendChild(closeButton);
 
         // Element that will be used to create the tabs
@@ -2541,22 +2778,32 @@ jSuites.color = (function(el, options) {
             el.appendChild(container);
         }
 
+        container.addEventListener("click", function(e) {
+            if (e.target.tagName == 'TD') {
+                var value = e.target.getAttribute('data-value');
+                if (value) {
+                    obj.setValue(value);
+                }
+            } else if (e.target.classList.contains('jcolor-reset')) {
+                obj.setValue('');
+                obj.close();
+            } else if (e.target.classList.contains('jcolor-close')) {
+                if (jsuitesTabs.getActive() > 0) {
+                    obj.setValue(slidersResult);
+                }
+                obj.close();
+            } else if (e.target.classList.contains('jcolor-backdrop')) {
+                obj.close();
+            } else {
+                obj.open();
+            }
+        });
+
         /**
          * If element is focus open the picker
          */
         el.addEventListener("mouseup", function(e) {
             obj.open();
-        });
-
-        backdrop.addEventListener("mousedown", function(e) {
-            backdropClickControl = true;
-        });
-
-        backdrop.addEventListener("click", function(e) {
-            if (backdropClickControl) {
-                backdropClickControl = false;
-                obj.close();
-            }
         });
 
         // If the picker is open on the spectrum tab, it changes the canvas size when the window size is changed
@@ -2590,6 +2837,18 @@ jSuites.color = (function(el, options) {
         container.color = obj;
     }
 
+    obj.toHex = function(rgb) {
+        var hex = function(x) {
+            return ("0" + parseInt(x).toString(16)).slice(-2);
+        }
+        if (/^#[0-9A-F]{6}$/i.test(rgb)) {
+            return rgb;
+        } else {
+            rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        }
+    }
+
     init();
 
     return obj;
@@ -2598,7 +2857,8 @@ jSuites.color = (function(el, options) {
 
 
 jSuites.contextmenu = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'contextmenu'};
     obj.options = {};
 
     // Default configuration
@@ -2618,8 +2878,6 @@ jSuites.contextmenu = (function(el, options) {
 
     // Class definition
     el.classList.add('jcontextmenu');
-    // Focusable
-    el.setAttribute('tabindex', '900');
 
     /**
      * Open contextmenu
@@ -2632,6 +2890,20 @@ jSuites.contextmenu = (function(el, options) {
             obj.create(items);
         }
 
+        // Close current contextmenu
+        if (jSuites.contextmenu.current) {
+            jSuites.contextmenu.current.close();
+        }
+
+        // Add to the opened components monitor
+        jSuites.tracking(obj, true);
+
+        // Show context menu
+        el.classList.add('jcontextmenu-focus');
+
+        // Current
+        jSuites.contextmenu.current = obj;
+
         // Coordinates
         if ((obj.options.items && obj.options.items.length > 0) || el.children.length) {
             if (e.target) {
@@ -2641,9 +2913,6 @@ jSuites.contextmenu = (function(el, options) {
                 var x = e.x;
                 var y = e.y;
             }
-
-            el.classList.add('jcontextmenu-focus');
-            el.focus();
 
             var rect = el.getBoundingClientRect();
 
@@ -2676,6 +2945,7 @@ jSuites.contextmenu = (function(el, options) {
         if (el.classList.contains('jcontextmenu-focus')) {
             el.classList.remove('jcontextmenu-focus');
         }
+        jSuites.tracking(obj, false);
     }
 
     /**
@@ -2805,53 +3075,14 @@ jSuites.contextmenu = (function(el, options) {
         obj.create(obj.options.items);
     }
 
-    el.addEventListener('blur', function(e) {
+    window.addEventListener("mousewheel", function() {
         obj.close();
     });
-
-    if (! jSuites.contextmenu.hasEvents) {
-        window.addEventListener("mousewheel", function() {
-            obj.close();
-        });
-
-        document.addEventListener("contextmenu", function(e) {
-            var id = jSuites.contextmenu.getElement(e.target);
-            if (id) {
-                var element = document.querySelector('#' + id);
-                if (! element) {
-                    console.error('JSUITES: Contextmenu id not found');
-                } else {
-                    element.contextmenu.open(e);
-                    e.preventDefault();
-                }
-            }
-        });
-
-        jSuites.contextmenu.hasEvents = true;
-    }
 
     el.contextmenu = obj;
 
     return obj;
 });
-
-jSuites.contextmenu.getElement = function(element) {
-    var foundId = 0;
-
-    function path (element) {
-        if (element.parentNode && element.getAttribute('aria-contextmenu-id')) {
-            foundId = element.getAttribute('aria-contextmenu-id')
-        } else {
-            if (element.parentNode) {
-                path(element.parentNode);
-            }
-        }
-    }
-
-    path(element);
-
-    return foundId;
-}
 
 
 jSuites.dropdown = (function(el, options) {
@@ -3745,11 +3976,6 @@ jSuites.dropdown = (function(el, options) {
      * Change event
      */
     var change = function(oldValue) {
-        // Events
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange(el, obj, oldValue, obj.options.value);
-        }
-
         // Lemonade JS
         if (el.value != obj.options.value) {
             el.value = obj.options.value;
@@ -3760,6 +3986,11 @@ jSuites.dropdown = (function(el, options) {
                     value: el.value
                 });
             }
+        }
+
+        // Events
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange(el, obj, oldValue, obj.options.value);
         }
     }
 

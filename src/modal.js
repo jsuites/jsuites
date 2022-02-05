@@ -104,16 +104,18 @@ jSuites.modal = (function(el, options) {
     }
 
     obj.close = function() {
-        el.style.display = 'none';
-        if (obj.options.backdrop) {
-            // Backdrop
-            backdrop.style.display = '';
-        }
-        // Remove fullscreen class
-        obj.container.classList.remove('jmodal_fullscreen');
-        // Event
-        if (typeof(obj.options.onclose) == 'function') {
-            obj.options.onclose(el, obj);
+        if (obj.isOpen()) {
+            el.style.display = 'none';
+            if (obj.options.backdrop) {
+                // Backdrop
+                backdrop.style.display = '';
+            }
+            // Remove fullscreen class
+            obj.container.classList.remove('jmodal_fullscreen');
+            // Event
+            if (typeof(obj.options.onclose) == 'function') {
+                obj.options.onclose(el, obj);
+            }
         }
     }
 

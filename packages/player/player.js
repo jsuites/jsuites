@@ -79,6 +79,7 @@
         var init = function() {
             player_container = document.createElement('div');
             player_container.classList.add('jplayer-player');
+            player_container.style.display = 'none';
             
             // Inner component
             var leftContainer = document.createElement('div');
@@ -380,9 +381,17 @@
             obj.close();
         }
 
+        obj.show = function() {
+            player_container.style.display = '';
+        }
+
+        obj.hide = function() {
+            player_container.style.display = 'none';
+        }
+
         obj.close = function() {
-            if (el.children[0]) {
-                el.children[0].remove();
+            if (player_container) {
+                obj.hide();
                 audioEl.src = '';
             }
         }
@@ -436,6 +445,9 @@
         }
 
         obj.play = function() {
+            // Show player
+            obj.show();
+
             audioEl.play();
             changePlayIcon();
         }

@@ -82,6 +82,10 @@ jSuites.color = (function(el, options) {
         // Value
         if (typeof obj.options.value === 'string') {
             el.value = obj.options.value;
+            if (el.tagName === 'INPUT') {
+                el.style.color = el.value;
+                el.style.backgroundColor = el.value;
+            }
         }
 
         // Placeholder
@@ -96,6 +100,19 @@ jSuites.color = (function(el, options) {
         return obj;
     }
 
+    obj.select = function(color) {
+        // Remove current selecded mark
+        var selected = container.querySelector('.jcolor-selected');
+        if (selected) {
+            selected.classList.remove('jcolor-selected');
+        }
+
+        // Mark cell as selected
+        if (obj.values[color]) {
+            obj.values[color].classList.add('jcolor-selected');
+        }
+    }
+
     /**
      * Open color pallete
      */
@@ -104,8 +121,13 @@ jSuites.color = (function(el, options) {
             // Start tracking
             jSuites.tracking(obj, true);
 
-            // Show colorpicker
+            // Show color picker
             container.classList.add('jcolor-focus');
+
+            // Select current color
+            if (obj.options.value) {
+                obj.select(obj.options.value);
+            }
 
             // Reset margin
             content.style.marginTop = '';
@@ -191,15 +213,7 @@ jSuites.color = (function(el, options) {
             slidersResult = color;
 
             // Remove current selecded mark
-            var selected = container.querySelector('.jcolor-selected');
-            if (selected) {
-                selected.classList.remove('jcolor-selected');
-            }
-
-            // Mark cell as selected
-            if (obj.values[color]) {
-                obj.values[color].classList.add('jcolor-selected');
-            }
+            obj.select(color);
 
             // Onchange
             if (typeof(obj.options.onchange) == 'function') {
@@ -210,6 +224,11 @@ jSuites.color = (function(el, options) {
             if (el.value != obj.options.value) {
                 // Set input value
                 el.value = obj.options.value;
+                if (el.tagName === 'INPUT') {
+                    el.style.color = el.value;
+                    el.style.backgroundColor = el.value;
+                }
+
                 // Element onchange native
                 if (typeof(el.oninput) == 'function') {
                     el.oninput({
@@ -295,16 +314,6 @@ jSuites.color = (function(el, options) {
 
         // Append to the table
         tableContainer.appendChild(t);
-
-        // Select color
-        tableContainer.addEventListener("mousedown", function(e) {
-            if (e.target.tagName == 'TD') {
-                var value = e.target.getAttribute('data-value');
-                if (value) {
-                    obj.setValue(value);
-                }
-            }
-        });
 
         return tableContainer;
     }
@@ -537,22 +546,12 @@ jSuites.color = (function(el, options) {
         resetButton  = document.createElement('div');
         resetButton.className = 'jcolor-reset';
         resetButton.innerHTML = obj.options.resetLabel;
-        resetButton.onclick = function(e) {
-            obj.setValue('');
-            obj.close();
-        }
         controls.appendChild(resetButton);
 
         // Close button
         closeButton  = document.createElement('div');
         closeButton.className = 'jcolor-close';
         closeButton.innerHTML = obj.options.doneLabel;
-        closeButton.onclick = function(e) {
-            if (jsuitesTabs.getActive() > 0) {
-                obj.setValue(slidersResult);
-            }
-            obj.close();
-        }
         controls.appendChild(closeButton);
 
         // Element that will be used to create the tabs
@@ -604,22 +603,32 @@ jSuites.color = (function(el, options) {
             el.appendChild(container);
         }
 
+        container.addEventListener("click", function(e) {
+            if (e.target.tagName == 'TD') {
+                var value = e.target.getAttribute('data-value');
+                if (value) {
+                    obj.setValue(value);
+                }
+            } else if (e.target.classList.contains('jcolor-reset')) {
+                obj.setValue('');
+                obj.close();
+            } else if (e.target.classList.contains('jcolor-close')) {
+                if (jsuitesTabs.getActive() > 0) {
+                    obj.setValue(slidersResult);
+                }
+                obj.close();
+            } else if (e.target.classList.contains('jcolor-backdrop')) {
+                obj.close();
+            } else {
+                obj.open();
+            }
+        });
+
         /**
          * If element is focus open the picker
          */
         el.addEventListener("mouseup", function(e) {
             obj.open();
-        });
-
-        backdrop.addEventListener("mousedown", function(e) {
-            backdropClickControl = true;
-        });
-
-        backdrop.addEventListener("click", function(e) {
-            if (backdropClickControl) {
-                backdropClickControl = false;
-                obj.close();
-            }
         });
 
         // If the picker is open on the spectrum tab, it changes the canvas size when the window size is changed
@@ -651,6 +660,18 @@ jSuites.color = (function(el, options) {
 
         // Container shortcut
         container.color = obj;
+    }
+
+    obj.toHex = function(rgb) {
+        var hex = function(x) {
+            return ("0" + parseInt(x).toString(16)).slice(-2);
+        }
+        if (/^#[0-9A-F]{6}$/i.test(rgb)) {
+            return rgb;
+        } else {
+            rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+            return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        }
     }
 
     init();

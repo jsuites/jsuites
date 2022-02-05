@@ -1,5 +1,6 @@
 jSuites.contextmenu = (function(el, options) {
-    var obj = {};
+    // New instance
+    var obj = { type:'contextmenu'};
     obj.options = {};
 
     // Default configuration
@@ -19,8 +20,6 @@ jSuites.contextmenu = (function(el, options) {
 
     // Class definition
     el.classList.add('jcontextmenu');
-    // Focusable
-    el.setAttribute('tabindex', '900');
 
     /**
      * Open contextmenu
@@ -33,6 +32,20 @@ jSuites.contextmenu = (function(el, options) {
             obj.create(items);
         }
 
+        // Close current contextmenu
+        if (jSuites.contextmenu.current) {
+            jSuites.contextmenu.current.close();
+        }
+
+        // Add to the opened components monitor
+        jSuites.tracking(obj, true);
+
+        // Show context menu
+        el.classList.add('jcontextmenu-focus');
+
+        // Current
+        jSuites.contextmenu.current = obj;
+
         // Coordinates
         if ((obj.options.items && obj.options.items.length > 0) || el.children.length) {
             if (e.target) {
@@ -42,9 +55,6 @@ jSuites.contextmenu = (function(el, options) {
                 var x = e.x;
                 var y = e.y;
             }
-
-            el.classList.add('jcontextmenu-focus');
-            el.focus();
 
             var rect = el.getBoundingClientRect();
 
@@ -77,6 +87,7 @@ jSuites.contextmenu = (function(el, options) {
         if (el.classList.contains('jcontextmenu-focus')) {
             el.classList.remove('jcontextmenu-focus');
         }
+        jSuites.tracking(obj, false);
     }
 
     /**
@@ -206,50 +217,11 @@ jSuites.contextmenu = (function(el, options) {
         obj.create(obj.options.items);
     }
 
-    el.addEventListener('blur', function(e) {
+    window.addEventListener("mousewheel", function() {
         obj.close();
     });
-
-    if (! jSuites.contextmenu.hasEvents) {
-        window.addEventListener("mousewheel", function() {
-            obj.close();
-        });
-
-        document.addEventListener("contextmenu", function(e) {
-            var id = jSuites.contextmenu.getElement(e.target);
-            if (id) {
-                var element = document.querySelector('#' + id);
-                if (! element) {
-                    console.error('JSUITES: Contextmenu id not found');
-                } else {
-                    element.contextmenu.open(e);
-                    e.preventDefault();
-                }
-            }
-        });
-
-        jSuites.contextmenu.hasEvents = true;
-    }
 
     el.contextmenu = obj;
 
     return obj;
 });
-
-jSuites.contextmenu.getElement = function(element) {
-    var foundId = 0;
-
-    function path (element) {
-        if (element.parentNode && element.getAttribute('aria-contextmenu-id')) {
-            foundId = element.getAttribute('aria-contextmenu-id')
-        } else {
-            if (element.parentNode) {
-                path(element.parentNode);
-            }
-        }
-    }
-
-    path(element);
-
-    return foundId;
-}
