@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.2';
+    var version = '4.10.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -10774,6 +10774,7 @@ jSuites.tags = (function(el, options) {
             search: null,
             placeholder: null,
             validation: null,
+            onbeforepaste: null,
             onbeforechange: null,
             onlimit: null,
             onchange: null,
@@ -11290,8 +11291,24 @@ jSuites.tags = (function(el, options) {
         }
 
         var data = extractTags(text);
+
+        if (typeof(obj.options.onbeforepaste) == 'function') {
+            var ret = obj.options.onbeforepaste(el, obj, data);
+            if (ret === false) {
+                e.preventDefault();
+                return false;
+            } else {
+                if (ret) {
+                    data = ret;
+                }
+            }
+        }
+
         if (data.length > 1) {
             obj.add(data, true);
+            e.preventDefault();
+        } else if (data[0]) {
+            document.execCommand('insertText', false, data[0])
             e.preventDefault();
         }
     }
