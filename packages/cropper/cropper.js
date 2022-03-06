@@ -3,26 +3,26 @@
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
- * Plugin: Image cropper
  *
  * MIT License
+ *
  */
-
 
 ;(function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
-    global.crop = factory();
-
-    if (typeof(jSuites) !== 'undefined') {
-        jSuites.crop = global.crop;
-    }
+    global.cropper = factory();
 }(this, (function () {
 
     'use strict';
 
-    if (! jSuites && typeof(require) === 'function') {
-        var jSuites = require('jsuites');
+    // Load jsuites
+    if (typeof(jSuites) == 'undefined') {
+        if (typeof(require) === 'function') {
+            var jSuites = require('jsuites');
+        } else if (window.jSuites) {
+            var jSuites = window.jSuites;
+        }
     }
 
     return (function(el, options) {
@@ -93,6 +93,8 @@
             if (jSuites.getWindowWidth() > 800) {
                 obj.resetCropSelection();
             }
+
+            refreshFilters();
 
             // Onchange
             if (typeof(obj.options.onchange) == 'function') {
@@ -231,16 +233,28 @@
 
         // Reset canvas
         obj.resetCanvas = function() {
+            // Reset state
+            properties = {
+                zoom: {
+                    origin: { x: null, y: null },
+                    scale: 1,
+                },
+                contrast: 0,
+                brightness: 0,
+                rotate: 0,
+                greyScale: 0,
+                saturation: 0,
+            }
             context.setTransform(1, 0, 0, 1, 0, 0);
             context.clearRect(0,0,canvas.width,canvas.height);
         }
 
         // Reset all the properties
         obj.reset = function() {
-            // Reset crop selection
-            obj.resetCropSelection()
             // Reset canvas
             obj.resetCanvas();
+            // Reset crop selection
+            obj.resetCropSelection()
             // Reset state
             properties = {
                 zoom: {
@@ -415,7 +429,7 @@
         /**
          *  Returns the attachment input
          */
-        obj.getFileInput = function() { 
+        obj.getFileInput = function() {
             return attachmentInput;
         }
 
@@ -618,7 +632,7 @@
                         }
                     }
                 }
-            } else { 
+            } else {
                 editorAction = true;
             }
         }
@@ -680,7 +694,7 @@
                     } else {
                         editorAction.e.style.left = cropOffsetX + 'px';
                     }
-                    
+
                     if (cropOffsetY < 0) {
                         editorAction.e.style.top = '0px';
                     } else if (cropOffsetY > el.offsetHeight - crop.offsetHeight - 2){
@@ -853,7 +867,7 @@
         });
 
         el.addEventListener('drop', function(e) {
-            e.preventDefault();  
+            e.preventDefault();
             e.stopPropagation();
 
 

@@ -126,6 +126,7 @@
     background-position: top 50% right 0px;
     display: flex;
     align-items: center;
+    font-size: 0.9em;
 }
 
 .jtoolbar .jpicker-content > div {

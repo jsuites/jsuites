@@ -1,3 +1,4 @@
+
 .jmenu .close {
     position: absolute;
     top: 20px;
@@ -7,39 +8,43 @@
 .jmenu nav {
     font-family: Roboto;
     position: relative;
-    margin-left: 5px;
-    margin-bottom: 25px;
+    margin-bottom: 2px;
 }
 
-.jmenu nav[data-icon] {
-    padding-left: 28px;
+.jmenu nav h2 {
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    font-weight: bold;
+    font-size: 1em;
+    padding: 10px;
+    line-height: 24px;
+    border-radius: 4px;
+    margin: 0px;
 }
 
-.jmenu nav[data-icon]:before {
-    position: absolute;
-    margin-top: -2px;
-    top: 0px;
-    left: 0px;
+.jmenu nav.selected h2 {
+    background-color:  #f3f3f3;
+}
+
+.jmenu nav h2:hover {
+    background-color:  #f3f3f3;
+}
+
+.jmenu nav h2[data-icon]:before {
     content: attr(data-icon);
     width: 24px;
     height: 24px;
     font-size: 24px;
     line-height: 24px;
     font-family: 'Material icons';
+    margin-right: 6px;
+    font-weight: normal;
 }
 
-.jmenu nav h2 {
-    text-transform: uppercase;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    font-weight: bold;
-    font-size: 0.9em;
-}
-
-.jmenu nav h2::before {
-    margin-left: -18px;
+.jmenu nav h2::after {
     position: absolute;
+    right: 6px;
     width: 18px;
     height: 18px;
     content: '';
@@ -48,11 +53,7 @@
     transition: transform .25s ease-in-out;
 }
 
-.jmenu nav[data-icon] h2::before {
-    margin-left: -44px;
-}
-
-.jmenu nav.selected h2::before {
+.jmenu nav.selected h2::after {
     transform: rotate(90deg);
     -ms-transform: rotate(90deg);
     -webkit-transform: rotate(90deg);
@@ -60,9 +61,9 @@
 
 .jmenu nav div {
     font-family: Roboto;
-    padding: 2px;
-    padding-bottom: 10px;
+    padding: 10px;
     display: none;
+    margin-bottom: 20px;
 }
 
 .jmenu nav.selected div {
@@ -89,11 +90,6 @@
 .jmenu li {
     margin-bottom: 2px;
     list-style: none;
-}
-
-.jmenu i {
-    margin-left: 2px;
-    margin-right: 5px;
 }
 
 .jmenu a {

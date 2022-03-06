@@ -277,6 +277,27 @@
         }
 
         /**
+         * Reset the data of the element
+         */
+        obj.setUrl = function (url) {
+            obj.options.url = url;
+            // Current page number
+            pageNumber = 0;
+            // Reset search
+            obj.options.searchValue = '';
+            // Set data
+            obj.options.data = [];
+            // Reset any search results
+            searchResults = null;
+            // Render new data
+            obj.reload();
+            // Onchange method
+            if (typeof (obj.options.onchange) == 'function') {
+                obj.options.onchange(el, obj.options.data);
+            }
+        }
+
+        /**
          * Get the current page number
          */
         obj.getPage = function () {

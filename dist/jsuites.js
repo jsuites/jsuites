@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.4';
+    var version = '4.10.5';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -5188,8 +5188,12 @@ jSuites.editor = (function(el, options) {
     /**
      * Set editor value
      */
-    obj.setData = function(html) {
-        editor.innerHTML = html;
+    obj.setData = function(o) {
+        if (typeof(o) == 'object') {
+            editor.innerHTML = o.content;
+        } else {
+            editor.innerHTML = o;
+        }
 
         if (obj.options.focus) {
             jSuites.editor.setCursor(editor, true);

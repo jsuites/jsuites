@@ -116,8 +116,6 @@ div[data-before]:before {
     cursor: pointer;
     box-sizing: border-box;
     width: 100%;
-    max-height: 100%;
-    min-height: 180px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -965,10 +963,6 @@ div[data-before]:before {
     background:#fff;
     -webkit-tap-highlight-color: transparent;
     display: inline-block;
-}
-
-.jdropdown-header::placeholder {
-    color:#000;
 }
 
 .jdropdown-backdrop {
@@ -2423,7 +2417,7 @@ div[data-before]:before {
 }
 
 .jtabs .jtabs-headers > div:not(.jtabs-border) {
-    padding: 6px;
+    padding: 8px;
     padding-left: 20px;
     padding-right: 20px;
     margin-left: 1px;
@@ -2740,6 +2734,7 @@ div[data-before]:before {
     background-position: top 50% right 0px;
     display: flex;
     align-items: center;
+    font-size: 0.9em;
 }
 
 .jtoolbar .jpicker-content > div {

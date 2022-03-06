@@ -12,10 +12,6 @@
     display: inline-block;
 }
 
-.jdropdown-header::placeholder {
-    color:#000;
-}
-
 .jdropdown-backdrop {
     position:fixed;
     top:0px;

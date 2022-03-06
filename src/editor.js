@@ -336,8 +336,12 @@ jSuites.editor = (function(el, options) {
     /**
      * Set editor value
      */
-    obj.setData = function(html) {
-        editor.innerHTML = html;
+    obj.setData = function(o) {
+        if (typeof(o) == 'object') {
+            editor.innerHTML = o.content;
+        } else {
+            editor.innerHTML = o;
+        }
 
         if (obj.options.focus) {
             jSuites.editor.setCursor(editor, true);
