@@ -142,8 +142,10 @@ jSuites.search = (function(el, options) {
     obj.options = {
         data: options.data || null,
         input: options.input || null,
+        searchByNode: options.searchByNode || null,
         onselect: options.onselect || null,
         forceSelect: options.forceSelect,
+        onbeforesearch: options.onbeforesearch || null,
     };
 
     obj.selectIndex = function(item) {
@@ -217,15 +219,33 @@ jSuites.search = (function(el, options) {
     }
 
     obj.keyup = function(e) {
-        if (obj.options.input) {
-            obj(obj.options.input.value);
+        if (! obj.options.searchByNode) {
+            if (obj.options.input.tagName === 'DIV') {
+                var terms = obj.options.input.innerText;
+            } else {
+                var terms = obj.options.input.value;
+            }
         } else {
             // Current node
             var node = jSuites.getNode();
             if (node) {
-                obj(node.innerText);
+                var terms = node.innerText;
             }
         }
+
+        if (typeof(obj.options.onbeforesearch) == 'function') {
+            var ret = obj.options.onbeforesearch(obj, terms);
+            if (ret) {
+                terms = ret;
+            } else {
+                if (ret === false) {
+                    // Ignore event
+                    return;
+                }
+            }
+        }
+
+        obj(terms);
     }
     
     // Add events

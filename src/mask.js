@@ -1153,8 +1153,11 @@ jSuites.mask = (function() {
             type = getType.call(options, options.mask);
         }
 
+        if (type === 'general') {
+            var o = obj(v, options, true);
 
-        if (type === 'datetime') {
+            value = v;
+        } else if (type === 'datetime') {
             if (v instanceof Date) {
                 var t = jSuites.calendar.getDateString(value, options.mask);
             }

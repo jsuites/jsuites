@@ -4880,6 +4880,7 @@ jSuites.editor = (function(el, options) {
         onkeyup: null,
         onkeydown: null,
         onchange: null,
+        userSearch: null,
     };
 
     // Loop through our object
@@ -4958,7 +4959,7 @@ jSuites.editor = (function(el, options) {
     if (obj.options.value) {
         var value = obj.options.value;
     } else {
-        var value = el.innerHTML ? el.innerHTML : ''; 
+        var value = el.innerHTML ? el.innerHTML : '';
     }
 
     if (! value) {
@@ -4969,7 +4970,7 @@ jSuites.editor = (function(el, options) {
      * Onchange event controllers
      */
     var change = function(e) {
-        if (typeof(obj.options.onchange) == 'function') { 
+        if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, obj, e);
         }
 
@@ -4987,6 +4988,25 @@ jSuites.editor = (function(el, options) {
                 });
             }
         }
+    }
+
+    // Create node
+    var createUserSearchNode = function() {
+        // Get coordinates from caret
+        var sel = window.getSelection ? window.getSelection() : document.selection;
+        var range = sel.getRangeAt(0);
+        range.deleteContents();
+        // Append text node
+        var input = document.createElement('a');
+        input.innerText = '@';
+        input.searchable = true;
+        range.insertNode(input);
+        var node = range.getBoundingClientRect();
+        range.collapse(false);
+        // Position
+        userSearch.style.position = 'fixed';
+        userSearch.style.top = node.top + node.height + 10 + 'px';
+        userSearch.style.left = node.left + 2 + 'px';
     }
 
     /**
@@ -5019,10 +5039,10 @@ jSuites.editor = (function(el, options) {
                 range = sel.getRangeAt(0);
                 var selectedText = range.toString();
                 range.deleteContents();
-                range.insertNode(newNode); 
+                range.insertNode(newNode);
                 // move the cursor after element
                 range.setStartAfter(newNode);
-                range.setEndAfter(newNode); 
+                range.setEndAfter(newNode);
                 sel.removeAllRanges();
                 sel.addRange(range);
             }
@@ -5104,7 +5124,7 @@ jSuites.editor = (function(el, options) {
                 var html = editor.innerHTML.replace(/\n/g, ' ');
                 var container = document.createElement('div');
                 container.innerHTML = html;
-                var text = container.innerText; 
+                var text = container.innerText;
                 var url = jSuites.editor.detectUrl(text);
 
                 if (url) {
@@ -5250,8 +5270,31 @@ jSuites.editor = (function(el, options) {
                 }
             }
 
+            // Users
+            if (userSearch) {
+                // Get tag users
+                var tagged = editor.querySelectorAll('a[data-user]');
+                if (tagged.length) {
+                    data.users = [];
+                    for (var i = 0; i < tagged.length; i++) {
+                        var userId = tagged[i].getAttribute('data-user');
+                        if (userId) {
+                            data.users.push(userId);
+                        }
+                    }
+                    data.users = data.users.join(',');
+                }
+            }
+
             // Get content
-            var text = editor.innerHTML;
+            var d = document.createElement('div');
+            d.innerHTML = editor.innerHTML;
+            var s = d.querySelector('.jsnippet');
+            if (s) {
+                s.remove();
+            }
+
+            var text = d.innerHTML;
             text = text.replace(/<br>/g, "\n");
             text = text.replace(/<\/div>/g, "<\/div>\n");
             text = text.replace(/<(?:.|\n)*?>/gm, "");
@@ -5410,13 +5453,8 @@ jSuites.editor = (function(el, options) {
         editor.removeEventListener('dragover', editorDragOver);
         editor.removeEventListener('drop', editorDrop);
         editor.removeEventListener('paste', editorPaste);
-
-        if (typeof(obj.options.onblur) == 'function') {
-            editor.removeEventListener('blur', editorBlur);
-        }
-        if (typeof(obj.options.onfocus) == 'function') {
-            editor.removeEventListener('focus', editorFocus);
-        }
+        editor.removeEventListener('blur', editorBlur);
+        editor.removeEventListener('focus', editorFocus);
 
         el.editor = null;
         el.classList.remove('jeditor-container');
@@ -5480,7 +5518,7 @@ jSuites.editor = (function(el, options) {
             } else {
                 editorAction = true;
             }
-        } else { 
+        } else {
             if (e.target.classList.contains('jsnippet')) {
                 close(e.target);
             } else if (e.target.parentNode.classList.contains('jsnippet')) {
@@ -5549,7 +5587,23 @@ jSuites.editor = (function(el, options) {
             editor.innerHTML = '<div><br></div>';
         }
 
-        if (typeof(obj.options.onkeyup) == 'function') { 
+        if (userSearch) {
+            var t = jSuites.getNode();
+            if (t) {
+                if (t.searchable === true) {
+                    if (t.innerText && t.innerText.substr(0,1) == '@') {
+                        userSearchInstance(t.innerText.substr(1));
+                    }
+                } else if (t.searchable === false) {
+                    if (t.innerText !== t.getAttribute('data-label'))  {
+                        t.searchable = true;
+                        t.removeAttribute('href');
+                    }
+                }
+            }
+        }
+
+        if (typeof(obj.options.onkeyup) == 'function') {
             obj.options.onkeyup(el, obj, e);
         }
     }
@@ -5561,7 +5615,18 @@ jSuites.editor = (function(el, options) {
             verifyEditor();
         }
 
-        if (typeof(obj.options.onkeydown) == 'function') { 
+        if (userSearch) {
+            if (e.key == '@') {
+                createUserSearchNode(editor);
+                e.preventDefault();
+            } else {
+                if (userSearchInstance.isOpened()) {
+                    userSearchInstance.keydown(e);
+                }
+            }
+        }
+
+        if (typeof(obj.options.onkeydown) == 'function') {
             obj.options.onkeydown(el, obj, e);
         }
 
@@ -5653,7 +5718,7 @@ jSuites.editor = (function(el, options) {
         var span = document.createElement('span');
         span.innerHTML = d.firstChild.innerHTML;
         return span;
-    } 
+    }
 
     var editorPaste = function(e) {
         if (obj.options.filterPaste == true) {
@@ -5747,7 +5812,7 @@ jSuites.editor = (function(el, options) {
             var html = (e.originalEvent || e).dataTransfer.getData('text/html');
             var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
             var file = (e.originalEvent || e).dataTransfer.files;
-    
+
             if (file.length) {
                 obj.addFile(file);
             } else if (text) {
@@ -5760,6 +5825,10 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorBlur = function(e) {
+        if (userSearch && userSearchInstance.isOpened()) {
+            userSearchInstance.close();
+        }
+
         // Blur
         if (typeof(obj.options.onblur) == 'function') {
             obj.options.onblur(el, obj, e);
@@ -5818,6 +5887,33 @@ jSuites.editor = (function(el, options) {
             container: true,
             responsive: true,
             items: obj.options.toolbar
+        });
+    }
+
+    // Add user search
+    var userSearch = null;
+    var userSearchInstance = null;
+    if (obj.options.userSearch) {
+        userSearch = document.createElement('div');
+        el.appendChild(userSearch);
+
+        // Component
+        userSearchInstance = jSuites.search(userSearch, {
+            data: obj.options.userSearch,
+            placeholder: jSuites.translate('Type the name a user'),
+            onselect: function(a,b,c,d) {
+                if (userSearchInstance.isOpened()) {
+                    var t = jSuites.getNode();
+                    if (t && t.searchable == true && (t.innerText.trim() && t.innerText.substr(1))) {
+                        t.innerText = '@' + c;
+                        t.href = '/' + c;
+                        t.setAttribute('data-user', d);
+                        t.setAttribute('data-label', t.innerText);
+                        t.searchable = false;
+                        jSuites.focus(t);
+                    }
+                }
+            }
         });
     }
 
@@ -8044,8 +8140,11 @@ jSuites.mask = (function() {
             type = getType.call(options, options.mask);
         }
 
+        if (type === 'general') {
+            var o = obj(v, options, true);
 
-        if (type === 'datetime') {
+            value = v;
+        } else if (type === 'datetime') {
             if (v instanceof Date) {
                 var t = jSuites.calendar.getDateString(value, options.mask);
             }
@@ -8665,7 +8764,7 @@ jSuites.picker = (function(el, options) {
                     obj.setValue(item.k);
                     // Call method
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k, e);
                     }
                 }
             }

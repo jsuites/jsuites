@@ -1,130 +1,196 @@
-jSuites.validations = function(value, options) {
-    if (typeof(jSuites.validations[options.type]) === 'function') {
-        return jSuites.validations[options.type](value, options);
-    }
-    return null;
-};
+jSuites.validations = (function() {
+    /**
+     * Options: Object,
+     * Properties:
+     * Constraint,
+     * Reference,
+     * Value
+     */
 
-// Legacy
-jSuites.validations.email = function(data) {
-    var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-    return data && pattern.test(data) ? true : false; 
-}
-
-jSuites.validations.required = function(data) {
-    return data.trim() ? true : false;
-}
-
-jSuites.validations.number = function(data) {
-    return jSuites.isNumber(data);
-}
-
-jSuites.validations.login = function(data) {
-    var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
-    return data && pattern.test(data) ? true : false;
-}
-
-/**
- * Options: Object,
- * Properties: 
- * Constraint,
- * Reference,
- * Value
- */
-
-var valueComparisons = function(data, options) {
-    if (options.constraint === '=') {
-        return data === options.reference;
-    }
-    if (options.constraint === '<') {
-        return data < options.reference;
-    }
-    if (options.constraint === '<=') {
-        return data <= options.reference;
-    }
-    if (options.constraint === '>') {
-        return data > options.reference;
-    }
-    if (options.constraint === '>=') {
-        return data >= options.reference;
-    }
-    if (options.constraint === 'between') {
-        return data >= options.reference[0] && data <= options.reference[1];
-    }
-    if (options.constraint === 'not between') {
-        return data < options.reference[0] || data > options.reference[1];
+    var isNumeric = function(num) {
+        return !isNaN(num) && num !== null && num !== '';
     }
 
-    return null;
-}
-
-jSuites.validations.number = function(data, options) {
-    if (!jSuites.isNumeric(data)) {
-        return false;
+    var numberCriterias = {
+        'between': function(value, range) {
+            return value >= range[0] && value <= range[1];
+        },
+        'not between': function(value, range) {
+            return value < range[0] || value > range[1];
+        },
+        '<': function(value, range) {
+            return value < range[0];
+        },
+        '<=': function(value, range) {
+            return value <= range[0];
+        },
+        '>': function(value, range) {
+            return value > range[0];
+        },
+        '>=': function(value, range) {
+            return value >= range[0];
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        '!=': function(value, range) {
+            return value !== range[0];
+        },
     }
 
-    if (options === undefined || options.constraint === undefined) {
-        return true;
+    var dateCriterias = {
+        'valid date': function() {
+            return true;
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        '<': function(value, range) {
+            return value < range[0];
+        },
+        '<=': function(value, range) {
+            return value <= range[0];
+        },
+        '>': function(value, range) {
+            return value > range[0];
+        },
+        '>=': function(value, range) {
+            return value >= range[0];
+        },
+        'between': function(value, range) {
+            return value >= range[0] && value <= range[1];
+        },
+        'not between': function(value, range) {
+            return value < range[0] || value > range[1];
+        },
     }
 
-    return valueComparisons(data, options);
-}
+    var textCriterias = {
+        'contains': function(value, range) {
+            return value.includes(range[0]);
+        },
+        'not contains': function(value, range) {
+            return !value.includes(range[0]);
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        'valid email': function(value) {
+            var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
 
-jSuites.validations.date = function(data, options) {
-    if (new Date(data) == 'Invalid Date') {
-        return false;
+            return pattern.test(value);
+        },
+        'valid url': function(value) {
+            var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
+
+            return pattern.test(value);
+        },
     }
 
-    if (options === undefined || options.constraint === undefined) {
-        return true;
-    } else if (typeof(options) === 'object') {
-        data = new Date(data).getTime();
+    // Component router
+    var component = function(value, options) {
+        if (typeof(component[options.type]) === 'function') {
+            if (options.allowBlank && value === '') {
+                return true;
+            }
 
-        if (Array.isArray(options.reference)) {
-            options.reference = options.reference.map(function(reference) {
-                return new Date(reference).getTime();
-            });
-        } else {
-            options.reference = new Date(options.reference).getTime();
+            return component[options.type](value, options);
         }
-
-        return valueComparisons(data, options);
+        return null;
     }
-    return null;
-}
-
-jSuites.validations.itemList = function(data, options) {
-    return options.reference.some(function(reference) {
-        return reference == data;
-    });
-}
-
-jSuites.validations.text = function(data, options) {
-    if (typeof data !== 'string') {
-        return false;
-    }
-
-    if (options === undefined || options.constraint === undefined) {
-        return true;
-    }
-    if (options.constraint === '=') {
-        return data === options.reference;
-    }
-    if (options.constraint === 'contains') {
-        return data.includes(options.reference);
-    }
-    if (options.constraint === 'not contain') {
-        return !data.includes(options.reference);
-    }
-    if (options.constraint === 'email') {
-        return jSuites.validations.email(data);
-    }
-    if (options.constraint === 'url') {
+    
+    component.url = function() {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
     }
-    return null;
-}
 
-jSuites.validations.constraints = function() {
-}
+    component.email = function(data) {
+        var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+        return data && pattern.test(data) ? true : false; 
+    }
+    
+    component.required = function(data) {
+        return data.trim() ? true : false;
+    }
+    
+    component.number = function(data, options) {
+       if (! isNumeric(data)) {
+           return false;
+       }
+
+       if (!options || !options.criteria) {
+           return true;
+       }
+
+       if (!numberCriterias[options.criteria]) {
+           return false;
+       }
+
+       return numberCriterias[options.criteria](
+           data,
+           options.value.map(function(num) {
+               return parseFloat(num);
+           }),
+       );
+   };
+
+    component.login = function(data) {
+        var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
+        return data && pattern.test(data) ? true : false;
+    }
+
+    component.list = function(data, options) {
+        var dataType = typeof data;
+        if (dataType !== 'string' && dataType !== 'number') {
+            return false;
+        }
+
+        var validOption = options.value[0].split(',').findIndex(function name(item) {
+            return item == data;
+        });
+
+        return validOption > -1;
+    }
+
+    component.date = function(data, options) {
+        if (new Date(data) == 'Invalid Date') {
+            return false;
+        }
+
+        if (!options || !options.criteria) {
+            return true;
+        }
+
+        if (!dateCriterias[options.criteria]) {
+            return false;
+        }
+
+        return dateCriterias[options.criteria](
+            new Date(data).getTime(),
+            options.value.map(function(date) {
+                return new Date(date).getTime();
+            }),
+        );
+    }
+
+    component.text = function(data, options) {
+        if (typeof data !== 'string') {
+            return false;
+        }
+
+        if (!options || !options.criteria) {
+            return true;
+        }
+
+        if (!textCriterias[options.criteria]) {
+            return false;
+        }
+
+        return textCriterias[options.criteria](
+            data,
+            options.value,
+        );
+    }
+
+    return component;
+})();

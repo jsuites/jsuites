@@ -244,7 +244,7 @@ jSuites.picker = (function(el, options) {
                     obj.setValue(item.k);
                     // Call method
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k, e);
                     }
                 }
             }

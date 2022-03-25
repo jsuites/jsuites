@@ -4,15 +4,11 @@
     overflow: auto;
     line-height: 1.4;
     font-size: 16px;
-    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
+    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif;
 }
 
 .japp a {
     text-decoration: none;
-}
-
-.japp input, .japp textarea, .japp select, .japp div {
-    font-family:-apple-system,SF UI Text,Helvetica Neue,Helvetica,Arial,sans-serif !important;
 }
 
 .japp .red {

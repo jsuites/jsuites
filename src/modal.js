@@ -133,6 +133,24 @@ jSuites.modal = (function(el, options) {
         });
 
         document.addEventListener('mouseup', function(e) {
+            var item = jSuites.findElement(e.target, 'jmodal');
+            if (item) {
+                // Get target info
+                var rect = item.getBoundingClientRect();
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
+
+                if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
+                    item.parentNode.modal.close();
+                }
+            }
+
             if (tracker) {
                 tracker.element.style.cursor = 'auto';
                 tracker = null;
@@ -154,7 +172,7 @@ jSuites.modal = (function(el, options) {
                 }
 
                 if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
-                    item.parentNode.modal.close();
+                    // Do nothing
                 } else {
                     if (e.target.getAttribute('title') && (y - rect.top) < 50) {
                         if (document.selection) {

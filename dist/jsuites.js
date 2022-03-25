@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.5';
+    var version = '4.10.6';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -4891,6 +4891,7 @@ jSuites.editor = (function(el, options) {
         onkeyup: null,
         onkeydown: null,
         onchange: null,
+        userSearch: null,
     };
 
     // Loop through our object
@@ -4969,7 +4970,7 @@ jSuites.editor = (function(el, options) {
     if (obj.options.value) {
         var value = obj.options.value;
     } else {
-        var value = el.innerHTML ? el.innerHTML : ''; 
+        var value = el.innerHTML ? el.innerHTML : '';
     }
 
     if (! value) {
@@ -4980,7 +4981,7 @@ jSuites.editor = (function(el, options) {
      * Onchange event controllers
      */
     var change = function(e) {
-        if (typeof(obj.options.onchange) == 'function') { 
+        if (typeof(obj.options.onchange) == 'function') {
             obj.options.onchange(el, obj, e);
         }
 
@@ -4998,6 +4999,25 @@ jSuites.editor = (function(el, options) {
                 });
             }
         }
+    }
+
+    // Create node
+    var createUserSearchNode = function() {
+        // Get coordinates from caret
+        var sel = window.getSelection ? window.getSelection() : document.selection;
+        var range = sel.getRangeAt(0);
+        range.deleteContents();
+        // Append text node
+        var input = document.createElement('a');
+        input.innerText = '@';
+        input.searchable = true;
+        range.insertNode(input);
+        var node = range.getBoundingClientRect();
+        range.collapse(false);
+        // Position
+        userSearch.style.position = 'fixed';
+        userSearch.style.top = node.top + node.height + 10 + 'px';
+        userSearch.style.left = node.left + 2 + 'px';
     }
 
     /**
@@ -5030,10 +5050,10 @@ jSuites.editor = (function(el, options) {
                 range = sel.getRangeAt(0);
                 var selectedText = range.toString();
                 range.deleteContents();
-                range.insertNode(newNode); 
+                range.insertNode(newNode);
                 // move the cursor after element
                 range.setStartAfter(newNode);
-                range.setEndAfter(newNode); 
+                range.setEndAfter(newNode);
                 sel.removeAllRanges();
                 sel.addRange(range);
             }
@@ -5115,7 +5135,7 @@ jSuites.editor = (function(el, options) {
                 var html = editor.innerHTML.replace(/\n/g, ' ');
                 var container = document.createElement('div');
                 container.innerHTML = html;
-                var text = container.innerText; 
+                var text = container.innerText;
                 var url = jSuites.editor.detectUrl(text);
 
                 if (url) {
@@ -5261,8 +5281,31 @@ jSuites.editor = (function(el, options) {
                 }
             }
 
+            // Users
+            if (userSearch) {
+                // Get tag users
+                var tagged = editor.querySelectorAll('a[data-user]');
+                if (tagged.length) {
+                    data.users = [];
+                    for (var i = 0; i < tagged.length; i++) {
+                        var userId = tagged[i].getAttribute('data-user');
+                        if (userId) {
+                            data.users.push(userId);
+                        }
+                    }
+                    data.users = data.users.join(',');
+                }
+            }
+
             // Get content
-            var text = editor.innerHTML;
+            var d = document.createElement('div');
+            d.innerHTML = editor.innerHTML;
+            var s = d.querySelector('.jsnippet');
+            if (s) {
+                s.remove();
+            }
+
+            var text = d.innerHTML;
             text = text.replace(/<br>/g, "\n");
             text = text.replace(/<\/div>/g, "<\/div>\n");
             text = text.replace(/<(?:.|\n)*?>/gm, "");
@@ -5421,13 +5464,8 @@ jSuites.editor = (function(el, options) {
         editor.removeEventListener('dragover', editorDragOver);
         editor.removeEventListener('drop', editorDrop);
         editor.removeEventListener('paste', editorPaste);
-
-        if (typeof(obj.options.onblur) == 'function') {
-            editor.removeEventListener('blur', editorBlur);
-        }
-        if (typeof(obj.options.onfocus) == 'function') {
-            editor.removeEventListener('focus', editorFocus);
-        }
+        editor.removeEventListener('blur', editorBlur);
+        editor.removeEventListener('focus', editorFocus);
 
         el.editor = null;
         el.classList.remove('jeditor-container');
@@ -5491,7 +5529,7 @@ jSuites.editor = (function(el, options) {
             } else {
                 editorAction = true;
             }
-        } else { 
+        } else {
             if (e.target.classList.contains('jsnippet')) {
                 close(e.target);
             } else if (e.target.parentNode.classList.contains('jsnippet')) {
@@ -5560,7 +5598,23 @@ jSuites.editor = (function(el, options) {
             editor.innerHTML = '<div><br></div>';
         }
 
-        if (typeof(obj.options.onkeyup) == 'function') { 
+        if (userSearch) {
+            var t = jSuites.getNode();
+            if (t) {
+                if (t.searchable === true) {
+                    if (t.innerText && t.innerText.substr(0,1) == '@') {
+                        userSearchInstance(t.innerText.substr(1));
+                    }
+                } else if (t.searchable === false) {
+                    if (t.innerText !== t.getAttribute('data-label'))  {
+                        t.searchable = true;
+                        t.removeAttribute('href');
+                    }
+                }
+            }
+        }
+
+        if (typeof(obj.options.onkeyup) == 'function') {
             obj.options.onkeyup(el, obj, e);
         }
     }
@@ -5572,7 +5626,18 @@ jSuites.editor = (function(el, options) {
             verifyEditor();
         }
 
-        if (typeof(obj.options.onkeydown) == 'function') { 
+        if (userSearch) {
+            if (e.key == '@') {
+                createUserSearchNode(editor);
+                e.preventDefault();
+            } else {
+                if (userSearchInstance.isOpened()) {
+                    userSearchInstance.keydown(e);
+                }
+            }
+        }
+
+        if (typeof(obj.options.onkeydown) == 'function') {
             obj.options.onkeydown(el, obj, e);
         }
 
@@ -5664,7 +5729,7 @@ jSuites.editor = (function(el, options) {
         var span = document.createElement('span');
         span.innerHTML = d.firstChild.innerHTML;
         return span;
-    } 
+    }
 
     var editorPaste = function(e) {
         if (obj.options.filterPaste == true) {
@@ -5758,7 +5823,7 @@ jSuites.editor = (function(el, options) {
             var html = (e.originalEvent || e).dataTransfer.getData('text/html');
             var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
             var file = (e.originalEvent || e).dataTransfer.files;
-    
+
             if (file.length) {
                 obj.addFile(file);
             } else if (text) {
@@ -5771,6 +5836,10 @@ jSuites.editor = (function(el, options) {
     }
 
     var editorBlur = function(e) {
+        if (userSearch && userSearchInstance.isOpened()) {
+            userSearchInstance.close();
+        }
+
         // Blur
         if (typeof(obj.options.onblur) == 'function') {
             obj.options.onblur(el, obj, e);
@@ -5829,6 +5898,33 @@ jSuites.editor = (function(el, options) {
             container: true,
             responsive: true,
             items: obj.options.toolbar
+        });
+    }
+
+    // Add user search
+    var userSearch = null;
+    var userSearchInstance = null;
+    if (obj.options.userSearch) {
+        userSearch = document.createElement('div');
+        el.appendChild(userSearch);
+
+        // Component
+        userSearchInstance = jSuites.search(userSearch, {
+            data: obj.options.userSearch,
+            placeholder: jSuites.translate('Type the name a user'),
+            onselect: function(a,b,c,d) {
+                if (userSearchInstance.isOpened()) {
+                    var t = jSuites.getNode();
+                    if (t && t.searchable == true && (t.innerText.trim() && t.innerText.substr(1))) {
+                        t.innerText = '@' + c;
+                        t.href = '/' + c;
+                        t.setAttribute('data-user', d);
+                        t.setAttribute('data-label', t.innerText);
+                        t.searchable = false;
+                        jSuites.focus(t);
+                    }
+                }
+            }
         });
     }
 
@@ -8469,8 +8565,11 @@ jSuites.mask = (function() {
             type = getType.call(options, options.mask);
         }
 
+        if (type === 'general') {
+            var o = obj(v, options, true);
 
-        if (type === 'datetime') {
+            value = v;
+        } else if (type === 'datetime') {
             if (v instanceof Date) {
                 var t = jSuites.calendar.getDateString(value, options.mask);
             }
@@ -8773,6 +8872,24 @@ jSuites.modal = (function(el, options) {
         });
 
         document.addEventListener('mouseup', function(e) {
+            var item = jSuites.findElement(e.target, 'jmodal');
+            if (item) {
+                // Get target info
+                var rect = item.getBoundingClientRect();
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
+
+                if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
+                    item.parentNode.modal.close();
+                }
+            }
+
             if (tracker) {
                 tracker.element.style.cursor = 'auto';
                 tracker = null;
@@ -8794,7 +8911,7 @@ jSuites.modal = (function(el, options) {
                 }
 
                 if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
-                    item.parentNode.modal.close();
+                    // Do nothing
                 } else {
                     if (e.target.getAttribute('title') && (y - rect.top) < 50) {
                         if (document.selection) {
@@ -9319,7 +9436,7 @@ jSuites.picker = (function(el, options) {
                     obj.setValue(item.k);
                     // Call method
                     if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k);
+                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k, e);
                     }
                 }
             }
@@ -9764,8 +9881,10 @@ jSuites.search = (function(el, options) {
     obj.options = {
         data: options.data || null,
         input: options.input || null,
+        searchByNode: options.searchByNode || null,
         onselect: options.onselect || null,
         forceSelect: options.forceSelect,
+        onbeforesearch: options.onbeforesearch || null,
     };
 
     obj.selectIndex = function(item) {
@@ -9839,15 +9958,33 @@ jSuites.search = (function(el, options) {
     }
 
     obj.keyup = function(e) {
-        if (obj.options.input) {
-            obj(obj.options.input.value);
+        if (! obj.options.searchByNode) {
+            if (obj.options.input.tagName === 'DIV') {
+                var terms = obj.options.input.innerText;
+            } else {
+                var terms = obj.options.input.value;
+            }
         } else {
             // Current node
             var node = jSuites.getNode();
             if (node) {
-                obj(node.innerText);
+                var terms = node.innerText;
             }
         }
+
+        if (typeof(obj.options.onbeforesearch) == 'function') {
+            var ret = obj.options.onbeforesearch(obj, terms);
+            if (ret) {
+                terms = ret;
+            } else {
+                if (ret === false) {
+                    // Ignore event
+                    return;
+                }
+            }
+        }
+
+        obj(terms);
     }
     
     // Add events
@@ -11705,136 +11842,202 @@ jSuites.toolbar = (function(el, options) {
     return obj;
 });
 
-jSuites.validations = function(value, options) {
-    if (typeof(jSuites.validations[options.type]) === 'function') {
-        return jSuites.validations[options.type](value, options);
-    }
-    return null;
-};
+jSuites.validations = (function() {
+    /**
+     * Options: Object,
+     * Properties:
+     * Constraint,
+     * Reference,
+     * Value
+     */
 
-// Legacy
-jSuites.validations.email = function(data) {
-    var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-    return data && pattern.test(data) ? true : false; 
-}
-
-jSuites.validations.required = function(data) {
-    return data.trim() ? true : false;
-}
-
-jSuites.validations.number = function(data) {
-    return jSuites.isNumber(data);
-}
-
-jSuites.validations.login = function(data) {
-    var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
-    return data && pattern.test(data) ? true : false;
-}
-
-/**
- * Options: Object,
- * Properties: 
- * Constraint,
- * Reference,
- * Value
- */
-
-var valueComparisons = function(data, options) {
-    if (options.constraint === '=') {
-        return data === options.reference;
-    }
-    if (options.constraint === '<') {
-        return data < options.reference;
-    }
-    if (options.constraint === '<=') {
-        return data <= options.reference;
-    }
-    if (options.constraint === '>') {
-        return data > options.reference;
-    }
-    if (options.constraint === '>=') {
-        return data >= options.reference;
-    }
-    if (options.constraint === 'between') {
-        return data >= options.reference[0] && data <= options.reference[1];
-    }
-    if (options.constraint === 'not between') {
-        return data < options.reference[0] || data > options.reference[1];
+    var isNumeric = function(num) {
+        return !isNaN(num) && num !== null && num !== '';
     }
 
-    return null;
-}
-
-jSuites.validations.number = function(data, options) {
-    if (!jSuites.isNumeric(data)) {
-        return false;
+    var numberCriterias = {
+        'between': function(value, range) {
+            return value >= range[0] && value <= range[1];
+        },
+        'not between': function(value, range) {
+            return value < range[0] || value > range[1];
+        },
+        '<': function(value, range) {
+            return value < range[0];
+        },
+        '<=': function(value, range) {
+            return value <= range[0];
+        },
+        '>': function(value, range) {
+            return value > range[0];
+        },
+        '>=': function(value, range) {
+            return value >= range[0];
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        '!=': function(value, range) {
+            return value !== range[0];
+        },
     }
 
-    if (options === undefined || options.constraint === undefined) {
-        return true;
+    var dateCriterias = {
+        'valid date': function() {
+            return true;
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        '<': function(value, range) {
+            return value < range[0];
+        },
+        '<=': function(value, range) {
+            return value <= range[0];
+        },
+        '>': function(value, range) {
+            return value > range[0];
+        },
+        '>=': function(value, range) {
+            return value >= range[0];
+        },
+        'between': function(value, range) {
+            return value >= range[0] && value <= range[1];
+        },
+        'not between': function(value, range) {
+            return value < range[0] || value > range[1];
+        },
     }
 
-    return valueComparisons(data, options);
-}
+    var textCriterias = {
+        'contains': function(value, range) {
+            return value.includes(range[0]);
+        },
+        'not contains': function(value, range) {
+            return !value.includes(range[0]);
+        },
+        '=': function(value, range) {
+            return value === range[0];
+        },
+        'valid email': function(value) {
+            var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
 
-jSuites.validations.date = function(data, options) {
-    if (new Date(data) == 'Invalid Date') {
-        return false;
+            return pattern.test(value);
+        },
+        'valid url': function(value) {
+            var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
+
+            return pattern.test(value);
+        },
     }
 
-    if (options === undefined || options.constraint === undefined) {
-        return true;
-    } else if (typeof(options) === 'object') {
-        data = new Date(data).getTime();
+    // Component router
+    var component = function(value, options) {
+        if (typeof(component[options.type]) === 'function') {
+            if (options.allowBlank && value === '') {
+                return true;
+            }
 
-        if (Array.isArray(options.reference)) {
-            options.reference = options.reference.map(function(reference) {
-                return new Date(reference).getTime();
-            });
-        } else {
-            options.reference = new Date(options.reference).getTime();
+            return component[options.type](value, options);
         }
-
-        return valueComparisons(data, options);
+        return null;
     }
-    return null;
-}
-
-jSuites.validations.itemList = function(data, options) {
-    return options.reference.some(function(reference) {
-        return reference == data;
-    });
-}
-
-jSuites.validations.text = function(data, options) {
-    if (typeof data !== 'string') {
-        return false;
-    }
-
-    if (options === undefined || options.constraint === undefined) {
-        return true;
-    }
-    if (options.constraint === '=') {
-        return data === options.reference;
-    }
-    if (options.constraint === 'contains') {
-        return data.includes(options.reference);
-    }
-    if (options.constraint === 'not contain') {
-        return !data.includes(options.reference);
-    }
-    if (options.constraint === 'email') {
-        return jSuites.validations.email(data);
-    }
-    if (options.constraint === 'url') {
+    
+    component.url = function() {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
     }
-    return null;
-}
 
-jSuites.validations.constraints = function() {
-}
+    component.email = function(data) {
+        var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+        return data && pattern.test(data) ? true : false; 
+    }
+    
+    component.required = function(data) {
+        return data.trim() ? true : false;
+    }
+    
+    component.number = function(data, options) {
+       if (! isNumeric(data)) {
+           return false;
+       }
+
+       if (!options || !options.criteria) {
+           return true;
+       }
+
+       if (!numberCriterias[options.criteria]) {
+           return false;
+       }
+
+       return numberCriterias[options.criteria](
+           data,
+           options.value.map(function(num) {
+               return parseFloat(num);
+           }),
+       );
+   };
+
+    component.login = function(data) {
+        var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
+        return data && pattern.test(data) ? true : false;
+    }
+
+    component.list = function(data, options) {
+        var dataType = typeof data;
+        if (dataType !== 'string' && dataType !== 'number') {
+            return false;
+        }
+
+        var validOption = options.value[0].split(',').findIndex(function name(item) {
+            return item == data;
+        });
+
+        return validOption > -1;
+    }
+
+    component.date = function(data, options) {
+        if (new Date(data) == 'Invalid Date') {
+            return false;
+        }
+
+        if (!options || !options.criteria) {
+            return true;
+        }
+
+        if (!dateCriterias[options.criteria]) {
+            return false;
+        }
+
+        return dateCriterias[options.criteria](
+            new Date(data).getTime(),
+            options.value.map(function(date) {
+                return new Date(date).getTime();
+            }),
+        );
+    }
+
+    component.text = function(data, options) {
+        if (typeof data !== 'string') {
+            return false;
+        }
+
+        if (!options || !options.criteria) {
+            return true;
+        }
+
+        if (!textCriterias[options.criteria]) {
+            return false;
+        }
+
+        return textCriterias[options.criteria](
+            data,
+            options.value,
+        );
+    }
+
+    return component;
+})();
 
 
 
