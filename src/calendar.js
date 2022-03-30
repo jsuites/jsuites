@@ -374,6 +374,7 @@ jSuites.calendar = (function(el, options) {
 
             if (element.classList.contains('jcalendar-set-month')) {
                 obj.date[1] = v;
+                obj.date[2] = 1; // first day of the month
             } else {
                 obj.date[2] = element.innerText;
             }

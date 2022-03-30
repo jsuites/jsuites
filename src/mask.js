@@ -634,7 +634,14 @@ jSuites.mask = (function() {
             }
             // New entry
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] != '0' || v == decimal) {
+                // Replace the zero for a number
+                if (this.values[this.index] == '0' && v > 0) {
+                    this.values[this.index] = '';
+                } else if (this.values[this.index] == '-0' && v > 0) {
+                    this.values[this.index] = '-';
+                }
+                // Don't add up zeros because does not mean anything here
+                if ((this.values[this.index] != '0' && this.values[this.index] != '-0') || v == decimal) {
                     this.values[this.index] += v;
                 }
             } else if (decimal && v == decimal) {
@@ -1027,7 +1034,7 @@ jSuites.mask = (function() {
                     o.methods = getMethods.call(o, o.tokens);
                     // Go through all tokes
                     while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
-                        // Get the approate parser
+                        // Get the appropriate parser
                         parse.call(o);
                     }
 
