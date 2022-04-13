@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.1';
+    var version = '4.11.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8174,6 +8174,10 @@ jSuites.mask = (function() {
 
         o.value = value;
 
+        if (! o.type && type) {
+            o.type = type;
+        }
+
         if (returnObject) {
             return o;
         } else {
@@ -9829,7 +9833,9 @@ jSuites.toolbar = (function(el, options) {
             // Available parent space
             var available = parseInt(obj.options.maxWidth);
             // Remove arrow
-            toolbarArrow.remove();
+            if (toolbarArrow.parentNode) {
+                toolbarArrow.parentNode.removeChild(toolbarArrow);
+            }
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);

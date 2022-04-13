@@ -126,12 +126,11 @@ jSuites.validations = (function() {
            return false;
        }
 
-       return numberCriterias[options.criteria](
-           data,
-           options.value.map(function(num) {
-               return parseFloat(num);
-           }),
-       );
+       var values = options.value.map(function(num) {
+          return parseFloat(num);
+       })
+
+       return numberCriterias[options.criteria](data, values);
    };
 
     component.login = function(data) {
@@ -165,12 +164,11 @@ jSuites.validations = (function() {
             return false;
         }
 
-        return dateCriterias[options.criteria](
-            new Date(data).getTime(),
-            options.value.map(function(date) {
-                return new Date(date).getTime();
-            }),
-        );
+        var values = options.value.map(function(date) {
+            return new Date(date).getTime();
+        });
+
+        return dateCriterias[options.criteria](new Date(data).getTime(), values);
     }
 
     component.text = function(data, options) {
@@ -186,10 +184,7 @@ jSuites.validations = (function() {
             return false;
         }
 
-        return textCriterias[options.criteria](
-            data,
-            options.value,
-        );
+        return textCriterias[options.criteria](data, options.value);
     }
 
     return component;

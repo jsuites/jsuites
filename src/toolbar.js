@@ -221,7 +221,9 @@ jSuites.toolbar = (function(el, options) {
             // Available parent space
             var available = parseInt(obj.options.maxWidth);
             // Remove arrow
-            toolbarArrow.remove();
+            if (toolbarArrow.parentNode) {
+                toolbarArrow.parentNode.removeChild(toolbarArrow);
+            }
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);

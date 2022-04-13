@@ -1186,6 +1186,10 @@ jSuites.mask = (function() {
 
         o.value = value;
 
+        if (! o.type && type) {
+            o.type = type;
+        }
+
         if (returnObject) {
             return o;
         } else {

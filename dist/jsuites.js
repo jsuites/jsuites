@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.11.2';
+    var version = '4.11.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8599,6 +8599,10 @@ jSuites.mask = (function() {
 
         o.value = value;
 
+        if (! o.type && type) {
+            o.type = type;
+        }
+
         if (returnObject) {
             return o;
         } else {
@@ -11791,7 +11795,9 @@ jSuites.toolbar = (function(el, options) {
             // Available parent space
             var available = parseInt(obj.options.maxWidth);
             // Remove arrow
-            toolbarArrow.remove();
+            if (toolbarArrow.parentNode) {
+                toolbarArrow.parentNode.removeChild(toolbarArrow);
+            }
             // Move all items to the toolbar
             while (toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
@@ -11978,12 +11984,11 @@ jSuites.validations = (function() {
            return false;
        }
 
-       return numberCriterias[options.criteria](
-           data,
-           options.value.map(function(num) {
-               return parseFloat(num);
-           }),
-       );
+       var values = options.value.map(function(num) {
+          return parseFloat(num);
+       })
+
+       return numberCriterias[options.criteria](data, values);
    };
 
     component.login = function(data) {
@@ -12017,12 +12022,11 @@ jSuites.validations = (function() {
             return false;
         }
 
-        return dateCriterias[options.criteria](
-            new Date(data).getTime(),
-            options.value.map(function(date) {
-                return new Date(date).getTime();
-            }),
-        );
+        var values = options.value.map(function(date) {
+            return new Date(date).getTime();
+        });
+
+        return dateCriterias[options.criteria](new Date(data).getTime(), values);
     }
 
     component.text = function(data, options) {
@@ -12038,10 +12042,7 @@ jSuites.validations = (function() {
             return false;
         }
 
-        return textCriterias[options.criteria](
-            data,
-            options.value,
-        );
+        return textCriterias[options.criteria](data, options.value);
     }
 
     return component;
