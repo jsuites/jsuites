@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.11.3';
+    var version = '4.11.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -1964,25 +1964,53 @@ jSuites.calendar.extractDateFromString = function(date, format) {
     return '';
 }
 
+
+var excelInitialTime = Date.UTC(1900, 0, 0);
+var excelLeapYearBug = Date.UTC(1900, 1, 29);
+var millisecondsPerDay = 86400000;
+
 /**
  * Date to number
  */
-jSuites.calendar.dateToNum = function(a, b) {
-    a = new Date(a);
-    if (! b) {
-        b = '1899-12-30 ' + a.getHours() + ':' + a.getMinutes() + ':' + a.getSeconds();
+jSuites.calendar.dateToNum = function(jsDate) {
+    if (typeof(jsDate) === 'string') {
+        jsDate = new Date(jsDate + '  GMT+0');
     }
-    b = new Date(b);
-    var v = a.getTime() - b.getTime();
-    return Math.round(v / 86400000);
+    var jsDateInMilliseconds = jsDate.getTime();
+
+    if (jsDateInMilliseconds >= excelLeapYearBug) {
+        jsDateInMilliseconds += millisecondsPerDay;
+    }
+
+    jsDateInMilliseconds -= excelInitialTime;
+
+    return jsDateInMilliseconds / millisecondsPerDay;
 }
 
 /**
  * Number to date
  */
-jSuites.calendar.numToDate = function(value) {
-    var d = new Date(Math.round((value - 25569)*86400*1000));
-    return d.getFullYear() + "-" + jSuites.two(d.getMonth()+1) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
+// !IMPORTANT!
+// Excel incorrectly considers 1900 to be a leap year
+jSuites.calendar.numToDate = function(excelSerialNumber) {
+    var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
+
+    if (jsDateInMilliseconds >= excelLeapYearBug) {
+        jsDateInMilliseconds -= millisecondsPerDay;
+    }
+
+    const d = new Date(jsDateInMilliseconds);
+
+    var date = [
+        d.getUTCFullYear(),
+        d.getUTCMonth()+1,
+        d.getUTCDate(),
+        d.getUTCHours(),
+        d.getUTCMinutes(),
+        d.getUTCSeconds(),
+    ];
+
+    return jSuites.calendar.now(date);
 }
 
 // Helper to convert date into string
@@ -7561,7 +7589,7 @@ jSuites.mask = (function() {
         }
         // Temporary value
         if (v[0]) {
-            var t = parseFloat(v[0]);
+            var t = parseFloat(v[0] + '.1');
             if (o.style == 'percent') {
                 t /= 100;
             }
@@ -7668,9 +7696,12 @@ jSuites.mask = (function() {
                 if (this.tagName == 'DIV') {
                     var s = window.getSelection();
                     var r = document.createRange();
-                    r.setStart(this.childNodes[0], index);
-                    s.removeAllRanges();
-                    s.addRange(r);
+
+                    if (this.childNodes[0]) {
+                        r.setStart(this.childNodes[0], index);
+                        s.removeAllRanges();
+                        s.addRange(r);
+                    }
                 } else {
                     this.selectionStart = index;
                     this.selectionEnd = index;
@@ -8584,10 +8615,8 @@ jSuites.mask = (function() {
 
             var o = obj(v, options, true);
             var value = getDate.call(o);
-            if ((o.date[0] && o.date[1] && o.date[2]) && ! (o.date[3] || o.date[4] || o.date[5])) {
-                var t = jSuites.calendar.now(o.date);
-                value = jSuites.calendar.dateToNum(t);
-            }
+            var t = jSuites.calendar.now(o.date);
+            value = jSuites.calendar.dateToNum(t);
         } else {
             var value = Extract.call(options, v);
             // Percentage

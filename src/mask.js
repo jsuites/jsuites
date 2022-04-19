@@ -148,7 +148,7 @@ jSuites.mask = (function() {
         }
         // Temporary value
         if (v[0]) {
-            var t = parseFloat(v[0]);
+            var t = parseFloat(v[0] + '.1');
             if (o.style == 'percent') {
                 t /= 100;
             }
@@ -255,9 +255,12 @@ jSuites.mask = (function() {
                 if (this.tagName == 'DIV') {
                     var s = window.getSelection();
                     var r = document.createRange();
-                    r.setStart(this.childNodes[0], index);
-                    s.removeAllRanges();
-                    s.addRange(r);
+
+                    if (this.childNodes[0]) {
+                        r.setStart(this.childNodes[0], index);
+                        s.removeAllRanges();
+                        s.addRange(r);
+                    }
                 } else {
                     this.selectionStart = index;
                     this.selectionEnd = index;
@@ -1171,10 +1174,8 @@ jSuites.mask = (function() {
 
             var o = obj(v, options, true);
             var value = getDate.call(o);
-            if ((o.date[0] && o.date[1] && o.date[2]) && ! (o.date[3] || o.date[4] || o.date[5])) {
-                var t = jSuites.calendar.now(o.date);
-                value = jSuites.calendar.dateToNum(t);
-            }
+            var t = jSuites.calendar.now(o.date);
+            value = jSuites.calendar.dateToNum(t);
         } else {
             var value = Extract.call(options, v);
             // Percentage
