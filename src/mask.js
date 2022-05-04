@@ -109,13 +109,13 @@ jSuites.mask = (function() {
 
         // New value
         v = (''+v).split(decimal);
-        v[0] = v[0].match(/[\-0-9]+/g, '');
+        v[0] = v[0].match(/[\-0-9]+/g);
         if (v[0]) {
             v[0] = v[0].join('');
         }
         if (v[0] || v[1]) {
             if (v[1] !== undefined) {
-                v[1] = v[1].match(/[0-9]+/g, '');
+                v[1] = v[1].match(/[0-9]+/g);
                 if (v[1]) {
                     v[1] = v[1].join('');
                 } else {
@@ -125,11 +125,10 @@ jSuites.mask = (function() {
         } else {
             return '';
         }
-
         return v;
     }
 
-    var FormatValue = function(v) {
+    var FormatValue = function(v, event) {
         if (v == '') {
             return '';
         }
@@ -142,10 +141,6 @@ jSuites.mask = (function() {
         if (v == '') {
             return '';
         }
-        // Negative values
-        if (v[0] === '-') {
-            v[0] = '-0';
-        }
         // Temporary value
         if (v[0]) {
             var t = parseFloat(v[0] + '.1');
@@ -155,6 +150,11 @@ jSuites.mask = (function() {
         } else {
             var t = null;
         }
+
+        if ((v[0] == '-' || v[0] == '-00') && ! v[1] && (event && event.inputType == "deleteContentBackward")) {
+            return '';
+        }
+
         var n = new Intl.NumberFormat(this.locale, o).format(t);
         n = n.split(d);
         if (typeof(n[1]) !== 'undefined') {
@@ -173,7 +173,7 @@ jSuites.mask = (function() {
         return n.join('');
     }
 
-    var Format = function(e) {
+    var Format = function(e, event) {
         var v = Value.call(e);
         if (! v) {
             return;
@@ -181,7 +181,7 @@ jSuites.mask = (function() {
 
         // Get decimal
         var d = getDecimal.call(this);
-        var n = FormatValue.call(this, v);
+        var n = FormatValue.call(this, v, event);
         var t = (n.length) - v.length;
         var index = Caret.call(e) + t;
         // Set value and update caret
@@ -1025,10 +1025,10 @@ jSuites.mask = (function() {
             }
             // On new input
             if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
-                // Start tranformation
+                // Start transformation
                 if (o.locale) {
                     if (o.input) {
-                        Format.call(o, o.input);
+                        Format.call(o, o.input, e);
                     } else {
                         var newValue = FormatValue.call(o, o.value);
                     }
@@ -1143,6 +1143,8 @@ jSuites.mask = (function() {
         if (typeof(options) != 'object') {
             return value;
         } else {
+            options = Object.assign({}, options);
+
             if (! options.options) {
                 options.options = {};
             }
@@ -1173,9 +1175,14 @@ jSuites.mask = (function() {
             }
 
             var o = obj(v, options, true);
-            var value = getDate.call(o);
-            var t = jSuites.calendar.now(o.date);
-            value = jSuites.calendar.dateToNum(t);
+
+            if (jSuites.isNumeric(v)) {
+                value = v;
+            } else {
+                var value = getDate.call(o);
+                var t = jSuites.calendar.now(o.date);
+                value = jSuites.calendar.dateToNum(t);
+            }
         } else {
             var value = Extract.call(options, v);
             // Percentage
@@ -1209,6 +1216,8 @@ jSuites.mask = (function() {
         if (typeof(options) != 'object') {
             return value;
         } else {
+            options = Object.assign({}, options);
+
             if (! options.options) {
                 options.options = {};
             }
@@ -1249,10 +1258,11 @@ jSuites.mask = (function() {
             if (typeof(value) === 'number') {
                 var t = null;
                 if (options.mask && fullMask) {
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var d = options.mask.match(e);
-                    if (d && d[0]) {
-                        d = d[0].length - 2;
+                    var d = getDecimal.call(options, options.mask);
+                    if (options.mask.indexOf(d) !== -1) {
+                        d = options.mask.split(d);
+                        d = (''+d[1].match(/[0-9]+/g))
+                        d = d.length;
                         t = value.toFixed(d);
                     } else {
                         t = value.toFixed(0);

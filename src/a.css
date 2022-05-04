@@ -46,6 +46,10 @@ div[data-before]:before {
     right: 5px;
 }
 
+.jupload:empty:before {
+    z-index: 0;
+}
+
 .jupload img {
     width: 100%;
 } 

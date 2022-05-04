@@ -41,21 +41,23 @@ jSuites.tabs = (function(el, options) {
     // Helpers
     var setBorder = function(index) {
         if (obj.options.animation) {
-            var rect = obj.headers.children[index].getBoundingClientRect();
+            setTimeout(function() {
+                var rect = obj.headers.children[index].getBoundingClientRect();
 
-            if (obj.options.palette == 'modern') {
-                border.style.width = rect.width - 4 + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-            } else {
-                border.style.width = rect.width + 'px';
-                border.style.left = obj.headers.children[index].offsetLeft + 'px';
-            }
+                if (obj.options.palette == 'modern') {
+                    border.style.width = rect.width - 4 + 'px';
+                    border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+                } else {
+                    border.style.width = rect.width + 'px';
+                    border.style.left = obj.headers.children[index].offsetLeft + 'px';
+                }
 
-            if (obj.options.position == 'bottom') {
-                border.style.top = '0px';
-            } else {
-                border.style.bottom = '0px';
-            }
+                if (obj.options.position == 'bottom') {
+                    border.style.top = '0px';
+                } else {
+                    border.style.bottom = '0px';
+                }
+            }, 150);
         }
     }
 
@@ -172,6 +174,8 @@ jSuites.tabs = (function(el, options) {
             obj.options.oncreate(el, div)
         }
 
+        setBorder();
+
         return div;
     }
 
@@ -266,6 +270,8 @@ jSuites.tabs = (function(el, options) {
         }
 
         obj.content.replaceChild(newContent, obj.content.children[position]);
+
+        setBorder();
     }
 
     obj.updatePosition = function(f, t) {

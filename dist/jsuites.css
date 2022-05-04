@@ -57,6 +57,10 @@ div[data-before]:before {
     right: 5px;
 }
 
+.jupload:empty:before {
+    z-index: 0;
+}
+
 .jupload img {
     width: 100%;
 } 
@@ -2782,6 +2786,7 @@ div[data-before]:before {
     padding: 4px;
     z-index: 50;
     text-align: left;
+    margin-right: 20px;
 }
 
 .jtoolbar-floating .jtoolbar-divisor {

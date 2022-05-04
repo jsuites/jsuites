@@ -81,6 +81,14 @@ jSuites.toolbar = (function(el, options) {
                 toolbarItem.updateState(el, obj, toolbarItem, a, b);
             }
         }
+        for (var i = 0; i < toolbarFloating.children.length; i++) {
+            // Toolbar element
+            var toolbarItem = toolbarFloating.children[i];
+            // State management
+            if (typeof(toolbarItem.updateState) == 'function') {
+                toolbarItem.updateState(el, obj, toolbarItem, a, b);
+            }
+        }
     }
 
     obj.create = function(items) {
