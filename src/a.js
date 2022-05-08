@@ -1,6 +1,6 @@
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.10.1';
+    var version = '4.12.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -56,6 +56,7 @@ var jSuites = function(options) {
                     h: rect.height,
                     d: item.style.cursor,
                     resizing: item.style.cursor ? true : false,
+                    actioned: false,
                 }
 
                 // Make sure width and height styling is OK
@@ -113,7 +114,7 @@ var jSuites = function(options) {
 
         var editorMouseUp = function(e) {
             if (editorAction && editorAction.e) {
-                if (typeof(editorAction.e.refresh) == 'function') {
+                if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
                     editorAction.e.refresh();
                 }
                 editorAction.e.style.cursor = '';
@@ -156,6 +157,7 @@ var jSuites = function(options) {
 
                     // Update element
                     if (typeof(editorAction.e.refresh) == 'function') {
+                        state.actioned = true;
                         editorAction.e.refresh('position', top, left);
                     }
                 } else {
@@ -186,6 +188,7 @@ var jSuites = function(options) {
 
                     // Update element
                     if (typeof(editorAction.e.refresh) == 'function') {
+                        state.actioned = true;
                         editorAction.e.refresh('dimensions', width, height);
                     }
                 }

@@ -49,8 +49,13 @@ jSuites.contextmenu = (function(el, options) {
         // Coordinates
         if ((obj.options.items && obj.options.items.length > 0) || el.children.length) {
             if (e.target) {
-                var x = e.clientX;
-                var y = e.clientY;
+                if (e.changedTouches && e.changedTouches[0]) {
+                    x = e.changedTouches[0].clientX;
+                    y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
             } else {
                 var x = e.x;
                 var y = e.y;
@@ -78,6 +83,10 @@ jSuites.contextmenu = (function(el, options) {
                 el.style.left = x + 'px';
             }
         }
+    }
+
+    obj.isOpened = function() {
+        return el.classList.contains('jcontextmenu-focus') ? true : false;
     }
 
     /**

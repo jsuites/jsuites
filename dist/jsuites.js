@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.11.6';
+    var version = '4.12.0';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -73,6 +73,7 @@ var jSuites = function(options) {
                     h: rect.height,
                     d: item.style.cursor,
                     resizing: item.style.cursor ? true : false,
+                    actioned: false,
                 }
 
                 // Make sure width and height styling is OK
@@ -130,7 +131,7 @@ var jSuites = function(options) {
 
         var editorMouseUp = function(e) {
             if (editorAction && editorAction.e) {
-                if (typeof(editorAction.e.refresh) == 'function') {
+                if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
                     editorAction.e.refresh();
                 }
                 editorAction.e.style.cursor = '';
@@ -173,6 +174,7 @@ var jSuites = function(options) {
 
                     // Update element
                     if (typeof(editorAction.e.refresh) == 'function') {
+                        state.actioned = true;
                         editorAction.e.refresh('position', top, left);
                     }
                 } else {
@@ -203,6 +205,7 @@ var jSuites = function(options) {
 
                     // Update element
                     if (typeof(editorAction.e.refresh) == 'function') {
+                        state.actioned = true;
                         editorAction.e.refresh('dimensions', width, height);
                     }
                 }
@@ -2947,8 +2950,13 @@ jSuites.contextmenu = (function(el, options) {
         // Coordinates
         if ((obj.options.items && obj.options.items.length > 0) || el.children.length) {
             if (e.target) {
-                var x = e.clientX;
-                var y = e.clientY;
+                if (e.changedTouches && e.changedTouches[0]) {
+                    x = e.changedTouches[0].clientX;
+                    y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
             } else {
                 var x = e.x;
                 var y = e.y;
@@ -2976,6 +2984,10 @@ jSuites.contextmenu = (function(el, options) {
                 el.style.left = x + 'px';
             }
         }
+    }
+
+    obj.isOpened = function() {
+        return el.classList.contains('jcontextmenu-focus') ? true : false;
     }
 
     /**
