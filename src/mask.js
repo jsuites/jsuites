@@ -1105,6 +1105,9 @@ jSuites.mask = (function() {
         }
     }
 
+    // Get the type of the mask
+    obj.getType = getType;
+
     // Extract the tokens from a mask
     obj.prepare = function(str, o) {
         if (! o) {

@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.3';
+    var version = '4.12.4';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8164,6 +8164,9 @@ jSuites.mask = (function() {
             }
         }
     }
+
+    // Get the type of the mask
+    obj.getType = getType;
 
     // Extract the tokens from a mask
     obj.prepare = function(str, o) {
