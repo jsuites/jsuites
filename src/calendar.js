@@ -1067,6 +1067,7 @@ jSuites.calendar.prettifyAll = function() {
             elements[i].innerHTML = jSuites.calendar.prettify(elements[i].getAttribute('data-date'));
         } else {
             if (elements[i].innerHTML) {
+                elements[i].setAttribute('title', elements[i].innerHTML);
                 elements[i].setAttribute('data-date', elements[i].innerHTML);
                 elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
             }

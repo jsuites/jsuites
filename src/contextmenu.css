@@ -38,20 +38,13 @@
 .jcontextmenu > div::before {
     content: attr(data-icon);
     font-family: 'Material Icons' !important;
-    font-weight: normal;
-    font-style: normal;
-    font-size: 16px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
     position: absolute;
     left: 9px;
+}
+
+.jcontextmenu.symbols > div::before {
+    font-family: 'Material Symbols Outlined' !important;
 }
 
 .jcontextmenu > div.header {
@@ -132,25 +125,6 @@
 
     .jcontextmenu > div.header > a.close {
         text-align: right;
-    }
-
-    .jcontextmenu > div::before {
-        content: attr(data-icon);
-        font-family: 'Material Icons' !important;
-        font-weight: normal;
-        font-style: normal;
-        font-size: 16px;
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        display: inline-block;
-        white-space: nowrap;
-        word-wrap: normal;
-        direction: ltr;
-        -webkit-font-feature-settings: 'liga';
-        -webkit-font-smoothing: antialiased;
-        position: absolute;
-        left: 9px;
     }
     .jcontextmenu a {
         font-size: 1.4em;

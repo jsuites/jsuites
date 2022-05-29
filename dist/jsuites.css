@@ -143,7 +143,37 @@ div[data-before]:before {
     border-radius: 1000px;
 }
 
+.jtooltip {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
 
+    font-family: initial;
+    font-size: 12px;
+    color: #000;
+    background-color: #fff;
+    border: 1px solid black;
+    padding: 8px;
+    margin: 10px;
+
+    display: block;
+    animation: fadeIn 0.5s;
+    pointer-events: none;
+}
+
+.jtooltip:empty {
+    display: none;
+}
+
+@keyframes fadeIn {
+     0% {
+          opacity: 0;
+     }
+     100% {
+          opacity: 1;
+     }
+}
 
 /** Animations **/
 .fade-in {
@@ -825,20 +855,13 @@ div[data-before]:before {
 .jcontextmenu > div::before {
     content: attr(data-icon);
     font-family: 'Material Icons' !important;
-    font-weight: normal;
-    font-style: normal;
-    font-size: 16px;
-    line-height: 1;
-    letter-spacing: normal;
-    text-transform: none;
-    display: inline-block;
-    white-space: nowrap;
-    word-wrap: normal;
-    direction: ltr;
-    -webkit-font-feature-settings: 'liga';
-    -webkit-font-smoothing: antialiased;
+    font-size: 15px;
     position: absolute;
     left: 9px;
+}
+
+.jcontextmenu.symbols > div::before {
+    font-family: 'Material Symbols Outlined' !important;
 }
 
 .jcontextmenu > div.header {
@@ -919,25 +942,6 @@ div[data-before]:before {
 
     .jcontextmenu > div.header > a.close {
         text-align: right;
-    }
-
-    .jcontextmenu > div::before {
-        content: attr(data-icon);
-        font-family: 'Material Icons' !important;
-        font-weight: normal;
-        font-style: normal;
-        font-size: 16px;
-        line-height: 1;
-        letter-spacing: normal;
-        text-transform: none;
-        display: inline-block;
-        white-space: nowrap;
-        word-wrap: normal;
-        direction: ltr;
-        -webkit-font-feature-settings: 'liga';
-        -webkit-font-smoothing: antialiased;
-        position: absolute;
-        left: 9px;
     }
     .jcontextmenu a {
         font-size: 1.4em;

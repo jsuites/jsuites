@@ -38,8 +38,12 @@ var jSuites = function(options) {
             y: null,
         }
 
+        // Tooltip element
+        var tooltip = document.createElement('div')
+        tooltip.classList.add('jtooltip');
+
         // Events
-        var editorMouseDown = function(e) {
+        var mouseDown = function(e) {
             // Check if this is the floating
             var item = jSuites.findElement(e.target, 'jpanel');
             // Jfloating found
@@ -112,7 +116,7 @@ var jSuites = function(options) {
             isOpened(element);
         }
 
-        var editorMouseUp = function(e) {
+        var mouseUp = function(e) {
             if (editorAction && editorAction.e) {
                 if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
                     editorAction.e.refresh();
@@ -129,7 +133,7 @@ var jSuites = function(options) {
             editorAction = false;
         }
 
-        var editorMouseMove = function(e) {
+        var mouseMove = function(e) {
             if (editorAction) {
                 var x = e.clientX || e.pageX;
                 var y = e.clientY || e.pageY;
@@ -227,7 +231,31 @@ var jSuites = function(options) {
             }
         }
 
-        var editorDblClick = function(e) {
+        var mouseOver = function(e) {
+            var message = e.target.getAttribute('data-tooltip');
+            if (message) {
+                // Instructions
+                tooltip.innerText = message;
+
+                // Position
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
+
+                tooltip.style.top = y + 'px';
+                tooltip.style.left = x + 'px';
+                document.body.appendChild(tooltip);
+            } else if (tooltip.innerText) {
+                tooltip.innerText = '';
+                document.body.removeChild(tooltip);
+            }
+        }
+
+        var dblClick = function(e) {
             var item = jSuites.findElement(e.target, 'jpanel');
             if (item && typeof(item.dblclick) == 'function') {
                 // Create edition
@@ -235,7 +263,7 @@ var jSuites = function(options) {
             }
         }
 
-        var editorContextmenu = function(e) {
+        var contextMenu = function(e) {
             var item = document.activeElement;
             if (item && typeof(item.contextmenu) == 'function') {
                 // Create edition
@@ -262,7 +290,7 @@ var jSuites = function(options) {
             }
         }
 
-        var editorKeyDown = function(e) {
+        var keyDown = function(e) {
             var item = document.activeElement;
             if (item) {
                 if (e.key == "Delete" && typeof(item.delete) == 'function') {
@@ -283,12 +311,13 @@ var jSuites = function(options) {
             }
         }
 
-        document.addEventListener('mouseup', editorMouseUp);
-        document.addEventListener("mousedown", editorMouseDown);
-        document.addEventListener('mousemove', editorMouseMove);
-        document.addEventListener('dblclick', editorDblClick);
-        document.addEventListener('keydown', editorKeyDown);
-        document.addEventListener('contextmenu', editorContextmenu);
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener("mousedown", mouseDown);
+        document.addEventListener('mousemove', mouseMove);
+        document.addEventListener('mouseover', mouseOver);
+        document.addEventListener('dblclick', dblClick);
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('contextmenu', contextMenu);
         document.dictionary = {};
 
         obj.version = version;

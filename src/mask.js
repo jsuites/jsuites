@@ -1005,14 +1005,12 @@ jSuites.mask = (function() {
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
-                        d[0] = d[0].replace('*', '');
-                        d[0] = d[0].replace(/_/g, '');
-                        d[0] = d[0].replace(/-/g, '');
-                        d[0] = d[0].replace('(','');
-                        d[0] = d[0].replace(')','');
+                        d[0] = d[0].replace('*', '\t');
+                        d[0] = d[0].replace(new RegExp(/_-/g), ' ');
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
+                        d[0] = d[0].replace(new RegExp(/\[.*?\]/),'');
                     }
                     o.mask = d[0];
                 }

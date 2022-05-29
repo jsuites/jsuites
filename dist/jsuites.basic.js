@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.0';
+    var version = '4.12.3';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -55,8 +55,12 @@ var jSuites = function(options) {
             y: null,
         }
 
+        // Tooltip element
+        var tooltip = document.createElement('div')
+        tooltip.classList.add('jtooltip');
+
         // Events
-        var editorMouseDown = function(e) {
+        var mouseDown = function(e) {
             // Check if this is the floating
             var item = jSuites.findElement(e.target, 'jpanel');
             // Jfloating found
@@ -129,7 +133,7 @@ var jSuites = function(options) {
             isOpened(element);
         }
 
-        var editorMouseUp = function(e) {
+        var mouseUp = function(e) {
             if (editorAction && editorAction.e) {
                 if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
                     editorAction.e.refresh();
@@ -146,7 +150,7 @@ var jSuites = function(options) {
             editorAction = false;
         }
 
-        var editorMouseMove = function(e) {
+        var mouseMove = function(e) {
             if (editorAction) {
                 var x = e.clientX || e.pageX;
                 var y = e.clientY || e.pageY;
@@ -244,7 +248,31 @@ var jSuites = function(options) {
             }
         }
 
-        var editorDblClick = function(e) {
+        var mouseOver = function(e) {
+            var message = e.target.getAttribute('data-tooltip');
+            if (message) {
+                // Instructions
+                tooltip.innerText = message;
+
+                // Position
+                if (e.changedTouches && e.changedTouches[0]) {
+                    var x = e.changedTouches[0].clientX;
+                    var y = e.changedTouches[0].clientY;
+                } else {
+                    var x = e.clientX;
+                    var y = e.clientY;
+                }
+
+                tooltip.style.top = y + 'px';
+                tooltip.style.left = x + 'px';
+                document.body.appendChild(tooltip);
+            } else if (tooltip.innerText) {
+                tooltip.innerText = '';
+                document.body.removeChild(tooltip);
+            }
+        }
+
+        var dblClick = function(e) {
             var item = jSuites.findElement(e.target, 'jpanel');
             if (item && typeof(item.dblclick) == 'function') {
                 // Create edition
@@ -252,7 +280,7 @@ var jSuites = function(options) {
             }
         }
 
-        var editorContextmenu = function(e) {
+        var contextMenu = function(e) {
             var item = document.activeElement;
             if (item && typeof(item.contextmenu) == 'function') {
                 // Create edition
@@ -279,7 +307,7 @@ var jSuites = function(options) {
             }
         }
 
-        var editorKeyDown = function(e) {
+        var keyDown = function(e) {
             var item = document.activeElement;
             if (item) {
                 if (e.key == "Delete" && typeof(item.delete) == 'function') {
@@ -300,12 +328,13 @@ var jSuites = function(options) {
             }
         }
 
-        document.addEventListener('mouseup', editorMouseUp);
-        document.addEventListener("mousedown", editorMouseDown);
-        document.addEventListener('mousemove', editorMouseMove);
-        document.addEventListener('dblclick', editorDblClick);
-        document.addEventListener('keydown', editorKeyDown);
-        document.addEventListener('contextmenu', editorContextmenu);
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener("mousedown", mouseDown);
+        document.addEventListener('mousemove', mouseMove);
+        document.addEventListener('mouseover', mouseOver);
+        document.addEventListener('dblclick', dblClick);
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('contextmenu', contextMenu);
         document.dictionary = {};
 
         obj.version = version;
@@ -1885,6 +1914,7 @@ jSuites.calendar.prettifyAll = function() {
             elements[i].innerHTML = jSuites.calendar.prettify(elements[i].getAttribute('data-date'));
         } else {
             if (elements[i].innerHTML) {
+                elements[i].setAttribute('title', elements[i].innerHTML);
                 elements[i].setAttribute('data-date', elements[i].innerHTML);
                 elements[i].innerHTML = jSuites.calendar.prettify(elements[i].innerHTML);
             }
@@ -2308,7 +2338,7 @@ jSuites.color = (function(el, options) {
     }
 
     obj.select = function(color) {
-        // Remove current selecded mark
+        // Remove current selected mark
         var selected = container.querySelector('.jcolor-selected');
         if (selected) {
             selected.classList.remove('jcolor-selected');
@@ -2318,6 +2348,8 @@ jSuites.color = (function(el, options) {
         if (obj.values[color]) {
             obj.values[color].classList.add('jcolor-selected');
         }
+
+        obj.options.value = color;
     }
 
     /**
@@ -8033,14 +8065,12 @@ jSuites.mask = (function() {
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
-                        d[0] = d[0].replace('*', '');
-                        d[0] = d[0].replace(/_/g, '');
-                        d[0] = d[0].replace(/-/g, '');
-                        d[0] = d[0].replace('(','');
-                        d[0] = d[0].replace(')','');
+                        d[0] = d[0].replace('*', '\t');
+                        d[0] = d[0].replace(new RegExp(/_-/g), ' ');
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
+                        d[0] = d[0].replace(new RegExp(/\[.*?\]/),'');
                     }
                     o.mask = d[0];
                 }

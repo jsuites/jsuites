@@ -101,7 +101,7 @@ jSuites.color = (function(el, options) {
     }
 
     obj.select = function(color) {
-        // Remove current selecded mark
+        // Remove current selected mark
         var selected = container.querySelector('.jcolor-selected');
         if (selected) {
             selected.classList.remove('jcolor-selected');
@@ -111,6 +111,8 @@ jSuites.color = (function(el, options) {
         if (obj.values[color]) {
             obj.values[color].classList.add('jcolor-selected');
         }
+
+        obj.options.value = color;
     }
 
     /**
