@@ -1,6 +1,8 @@
 jSuites.mask = (function() {
     // Currency 
     var tokens = {
+        // Text
+        text: [ '@' ],
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
         // Percentage
@@ -758,6 +760,12 @@ jSuites.mask = (function() {
         },
         '.': function(v) {
             parser['[0-9a-zA-Z$]+'].call(this, v);
+        },
+        '@': function(v) {
+            if (isBlank(this.values[this.index])) {
+                this.values[this.index] = '';
+            }
+            this.values[this.index] += v;
         }
     }
 
@@ -768,7 +776,7 @@ jSuites.mask = (function() {
         if (this.type == 'general') {
             var t = [].concat(tokens.general);
         } else {
-            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.numeric, tokens.general);
+            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.numeric, tokens.text, tokens.general);
         }
         // Expression to extract all tokens from the string
         var e = new RegExp(t.join('|'), 'gi');
@@ -782,6 +790,8 @@ jSuites.mask = (function() {
     var getMethod = function(str) {
         if (! this.type) {
             var types = Object.keys(tokens);
+        } else if (this.type == 'text') {
+            var types = [ 'text' ];
         } else if (this.type == 'general') {
             var types = [ 'general' ];
         } else if (this.type == 'datetime') {
@@ -999,8 +1009,8 @@ jSuites.mask = (function() {
         if (! isFormula(o.value) && (o.mask || o.locale)) {
             // Compatibility ixes
             if (o.mask) {
-                // Legacy
-                o.mask = o.mask.replace('[-]', '');
+                // Remove []
+                o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
                 // Excel mask TODO: Improve
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
@@ -1010,7 +1020,6 @@ jSuites.mask = (function() {
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
-                        d[0] = d[0].replace(new RegExp(/\[.*?\]/),'');
                     }
                     o.mask = d[0];
                 }
@@ -1228,6 +1237,9 @@ jSuites.mask = (function() {
         if (! options.mask && options.format) {
             options.mask = options.format;
         }
+
+        // Remove []
+        options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
 
         var type = null;
         if (options.type == 'percent' || options.options.style == 'percent') {
