@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.5';
+    var version = '4.12.6';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8502,6 +8502,7 @@ jSuites.mask = (function() {
                     if (d[0]) {
                         d[0] = d[0].replace('*', '\t');
                         d[0] = d[0].replace(new RegExp(/_-/g), ' ');
+                        d[0] = d[0].replace(new RegExp(/_/g), '');
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
@@ -8724,7 +8725,9 @@ jSuites.mask = (function() {
         }
 
         // Remove []
-        options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+        if (options.mask) {
+            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+        }
 
         var type = null;
         if (options.type == 'percent' || options.options.style == 'percent') {
