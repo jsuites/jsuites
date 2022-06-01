@@ -31,10 +31,10 @@ jSuites.validations = (function() {
             return value >= range[0];
         },
         '=': function(value, range) {
-            return value === range[0];
+            return value == range[0];
         },
         '!=': function(value, range) {
-            return value !== range[0];
+            return value != range[0];
         },
     }
 
@@ -71,6 +71,12 @@ jSuites.validations = (function() {
         },
         'not contains': function(value, range) {
             return !value.includes(range[0]);
+        },
+        'begins with': function(value, range) {
+            return value.startsWith(range[0]);
+        },
+        'ends with': function(value, range) {
+            return value.endsWith(range[0]);
         },
         '=': function(value, range) {
             return value === range[0];
@@ -112,7 +118,15 @@ jSuites.validations = (function() {
     component.required = function(data) {
         return data.trim() ? true : false;
     }
-    
+
+    component.exist = function(data, options) {
+        return !!data.toString();
+    }
+
+    component['not exist'] = function(data, options) {
+        return !data.toString();
+    }
+
     component.number = function(data, options) {
        if (! isNumeric(data)) {
            return false;
@@ -144,7 +158,7 @@ jSuites.validations = (function() {
             return false;
         }
 
-        var validOption = options.value[0].split(',').findIndex(function name(item) {
+        var validOption = options.value[0].findIndex(function name(item) {
             return item == data;
         });
 
@@ -185,6 +199,12 @@ jSuites.validations = (function() {
         }
 
         return textCriterias[options.criteria](data, options.value);
+    }
+
+    component.textLength = function(data, options) {
+        data = data.toString();
+
+        return component.number(data.length, options);
     }
 
     return component;

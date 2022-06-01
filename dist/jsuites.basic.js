@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.6';
+    var version = '4.12.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7292,7 +7292,7 @@ jSuites.mask = (function() {
             if (adjustNumeric) {
                 var p = null;
                 for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {  
+                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {
                         p = i;
                     }
                 }
@@ -7337,7 +7337,11 @@ jSuites.mask = (function() {
     var Value = function(v, updateCaret, adjustNumeric) {
         if (this.tagName == 'DIV') {
             if (v === undefined) {
-                return this.innerText;
+                var v = this.innerText;
+                if (this.value && this.value.length > v.length) {
+                    v = this.value;
+                }
+                return v;
             } else {
                 if (this.innerText !== v) {
                     this.innerText = v;
@@ -8067,10 +8071,14 @@ jSuites.mask = (function() {
 
         // Mask detected start the process
         if (! isFormula(o.value) && (o.mask || o.locale)) {
-            // Compatibility ixes
+            // Compatibility fixes
             if (o.mask) {
                 // Remove []
                 o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
+                if (o.mask.indexOf(';') !== -1) {
+                    var t = o.mask.split(';');
+                    o.mask = t[0];
+                }
                 // Excel mask TODO: Improve
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
@@ -8226,6 +8234,15 @@ jSuites.mask = (function() {
             options.mask = options.format;
         }
 
+        // Remove []
+        if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
+            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+        }
+
         // Get decimal
         getDecimal.call(options, options.mask);
 
@@ -8301,6 +8318,10 @@ jSuites.mask = (function() {
 
         // Remove []
         if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
             options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
         }
 

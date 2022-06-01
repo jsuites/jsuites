@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.6';
+    var version = '4.12.7';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -7717,7 +7717,7 @@ jSuites.mask = (function() {
             if (adjustNumeric) {
                 var p = null;
                 for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {  
+                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {
                         p = i;
                     }
                 }
@@ -7762,7 +7762,11 @@ jSuites.mask = (function() {
     var Value = function(v, updateCaret, adjustNumeric) {
         if (this.tagName == 'DIV') {
             if (v === undefined) {
-                return this.innerText;
+                var v = this.innerText;
+                if (this.value && this.value.length > v.length) {
+                    v = this.value;
+                }
+                return v;
             } else {
                 if (this.innerText !== v) {
                     this.innerText = v;
@@ -8492,10 +8496,14 @@ jSuites.mask = (function() {
 
         // Mask detected start the process
         if (! isFormula(o.value) && (o.mask || o.locale)) {
-            // Compatibility ixes
+            // Compatibility fixes
             if (o.mask) {
                 // Remove []
                 o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
+                if (o.mask.indexOf(';') !== -1) {
+                    var t = o.mask.split(';');
+                    o.mask = t[0];
+                }
                 // Excel mask TODO: Improve
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
@@ -8651,6 +8659,15 @@ jSuites.mask = (function() {
             options.mask = options.format;
         }
 
+        // Remove []
+        if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
+            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+        }
+
         // Get decimal
         getDecimal.call(options, options.mask);
 
@@ -8726,6 +8743,10 @@ jSuites.mask = (function() {
 
         // Remove []
         if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
             options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
         }
 
@@ -12002,10 +12023,10 @@ jSuites.validations = (function() {
             return value >= range[0];
         },
         '=': function(value, range) {
-            return value === range[0];
+            return value == range[0];
         },
         '!=': function(value, range) {
-            return value !== range[0];
+            return value != range[0];
         },
     }
 
@@ -12042,6 +12063,12 @@ jSuites.validations = (function() {
         },
         'not contains': function(value, range) {
             return !value.includes(range[0]);
+        },
+        'begins with': function(value, range) {
+            return value.startsWith(range[0]);
+        },
+        'ends with': function(value, range) {
+            return value.endsWith(range[0]);
         },
         '=': function(value, range) {
             return value === range[0];
@@ -12083,7 +12110,15 @@ jSuites.validations = (function() {
     component.required = function(data) {
         return data.trim() ? true : false;
     }
-    
+
+    component.exist = function(data, options) {
+        return !!data.toString();
+    }
+
+    component['not exist'] = function(data, options) {
+        return !data.toString();
+    }
+
     component.number = function(data, options) {
        if (! isNumeric(data)) {
            return false;
@@ -12115,7 +12150,7 @@ jSuites.validations = (function() {
             return false;
         }
 
-        var validOption = options.value[0].split(',').findIndex(function name(item) {
+        var validOption = options.value[0].findIndex(function name(item) {
             return item == data;
         });
 
@@ -12156,6 +12191,12 @@ jSuites.validations = (function() {
         }
 
         return textCriterias[options.criteria](data, options.value);
+    }
+
+    component.textLength = function(data, options) {
+        data = data.toString();
+
+        return component.number(data.length, options);
     }
 
     return component;
