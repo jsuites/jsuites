@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.7';
+    var version = '4.12.8';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -503,25 +503,27 @@ jSuites.ajax = (function(options, complete) {
         // Parse object to variables format
         var parseData = function (value, key) {
             var vars = [];
-            var keys = Object.keys(value);
-            if (keys.length) {
-                for (var i = 0; i < keys.length; i++) {
-                    if (key) {
-                        var k = key + '[' + keys[i] + ']';
-                    } else {
-                        var k = keys[i];
-                    }
-
-                    if (value[k] instanceof FileList) {
-                        vars[k] = value[keys[i]];
-                    } else if (typeof (value[keys[i]]) == 'object') {
-                        var r = parseData(value[keys[i]], k);
-                        var o = Object.keys(r);
-                        for (var j = 0; j < o.length; j++) {
-                            vars[o[j]] = r[o[j]];
+            if (value) {
+                var keys = Object.keys(value);
+                if (keys.length) {
+                    for (var i = 0; i < keys.length; i++) {
+                        if (key) {
+                            var k = key + '[' + keys[i] + ']';
+                        } else {
+                            var k = keys[i];
                         }
-                    } else {
-                        vars[k] = value[keys[i]];
+
+                        if (value[k] instanceof FileList) {
+                            vars[k] = value[keys[i]];
+                        } else if (value[keys[i]] && typeof(value[keys[i]]) == 'object') {
+                            var r = parseData(value[keys[i]], k);
+                            var o = Object.keys(r);
+                            for (var j = 0; j < o.length; j++) {
+                                vars[o[j]] = r[o[j]];
+                            }
+                        } else {
+                            vars[k] = value[keys[i]];
+                        }
                     }
                 }
             }
