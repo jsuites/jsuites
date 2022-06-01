@@ -50,7 +50,9 @@ jSuites.ajax = (function(options, complete) {
 
                         if (value[k] instanceof FileList) {
                             vars[k] = value[keys[i]];
-                        } else if (value[keys[i]] && typeof(value[keys[i]]) == 'object') {
+                        } else if (value[keys[i]] === null || value[keys[i]] === undefined) {
+                            vars[k] = '';
+                        } else if (typeof(value[keys[i]]) == 'object') {
                             var r = parseData(value[keys[i]], k);
                             var o = Object.keys(r);
                             for (var j = 0; j < o.length; j++) {
