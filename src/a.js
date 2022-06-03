@@ -6,6 +6,9 @@ var jSuites = function(options) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
             return true;
         }
+        if (DOMElement.component && DOMElement.component == component) {
+            return true;
+        }
         if (DOMElement.parentNode) {
             return find(DOMElement.parentNode, component);
         }

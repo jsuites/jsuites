@@ -17,10 +17,13 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.9';
+    var version = '4.12.10';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
+            return true;
+        }
+        if (DOMElement.component && DOMElement.component == component) {
             return true;
         }
         if (DOMElement.parentNode) {
