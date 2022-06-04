@@ -17,7 +17,7 @@
 
 var jSuites = function(options) {
     var obj = {}
-    var version = '4.12.10';
+    var version = '4.12.11';
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -8124,7 +8124,11 @@ jSuites.mask = (function() {
                         parse.call(o);
                     }
 
-                    if (isNumeric(o.type)) {
+                    // New value
+                    var newValue = o.values.join('');
+
+                    // Add tokens to the end of string only if string is not empty
+                    if (isNumeric(o.type) && newValue !== '') {
                         // Complement things in the end of the mask
                         while (typeof(o.tokens[o.index]) !== 'undefined') {
                             var t = getMethod.call(o, o.tokens[o.index]);
@@ -8140,7 +8144,7 @@ jSuites.mask = (function() {
                     }
 
                     // New value
-                    var newValue = o.values.join('');
+                    newValue = o.values.join('');
 
                     // Reset value
                     if (o.input) {
