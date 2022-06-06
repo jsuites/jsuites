@@ -15,9 +15,13 @@
 
     'use strict';
 
-var Version = '4.13.0';
+var jSuites = {};
+
+var Version = '4.13.4';
 
 var Events = function() {
+
+    document.jsuitesComponents = [];
 
     var find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -33,10 +37,10 @@ var Events = function() {
     }
 
     var isOpened = function(e) {
-        if (jSuites.current && jSuites.current.length > 0) {
-            for (var i = 0; i < jSuites.current.length; i++) {
-                if (jSuites.current[i] && ! find(e, jSuites.current[i])) {
-                    jSuites.current[i].close();
+        if (document.jSuitesCurrent && document.jsuitesComponents.length > 0) {
+            for (var i = 0; i < document.jsuitesComponents.length; i++) {
+                if (document.jsuitesComponents[i] && ! find(e, document.jsuitesComponents[i])) {
+                    document.jsuitesComponents[i].close();
                 }
             }
         }
@@ -319,8 +323,8 @@ var Events = function() {
             }
         }
 
-        if (jSuites.current && jSuites.current.length) {
-            if (item = jSuites.current[jSuites.current.length - 1]) {
+        if (document.jsuitesComponents && document.jsuitesComponents.length) {
+            if (item = document.jsuitesComponents[document.jsuitesComponents.length - 1]) {
                 if (e.key == "Escape" && typeof(item.close) == 'function') {
                     item.close();
                     e.preventDefault();
@@ -337,19 +341,13 @@ var Events = function() {
     document.addEventListener('dblclick', dblClick);
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
-};
-
-var jSuites = {};
+}
 
 /**
  * Global jsuites event
  */
-if (typeof(document) !== "undefined") {
-    if (window.jSuites) {
-        jSuites = window.jSuites;
-    } else {
-        Events();
-    }
+if (typeof(document) !== "undefined" && ! document.jsuitesComponents) {
+    Events();
 }
 
 jSuites.version = Version;
@@ -364,24 +362,20 @@ jSuites.setExtensions = function(o) {
 }
 
 jSuites.tracking = function(component, state) {
-    if (! jSuites.current) {
-        jSuites.current = [];
-    }
-
     if (state == true) {
-        jSuites.current = jSuites.current.filter(function(v) {
+        document.jsuitesComponents = document.jsuitesComponents.filter(function(v) {
             return v !== null;
         });
 
         // Start after all events
         setTimeout(function() {
-            jSuites.current.push(component);
+            document.jsuitesComponents.push(component);
         }, 0);
 
     } else {
-        var index = jSuites.current.indexOf(component);
+        var index = document.jsuitesComponents.indexOf(component);
         if (index >= 0) {
-            jSuites.current.splice(index, 1);
+            document.jsuitesComponents.splice(index, 1);
         }
     }
 }
@@ -6271,6 +6265,9 @@ jSuites.focus = function(el) {
 }
 
 jSuites.isNumeric = (function (num) {
+    if (typeof(num) === 'string') {
+        num = num.trim();
+    }
     return !isNaN(num) && num !== null && num !== '';
 });
 

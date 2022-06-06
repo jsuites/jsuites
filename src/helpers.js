@@ -12,6 +12,9 @@ jSuites.focus = function(el) {
 }
 
 jSuites.isNumeric = (function (num) {
+    if (typeof(num) === 'string') {
+        num = num.trim();
+    }
     return !isNaN(num) && num !== null && num !== '';
 });
 
