@@ -1362,6 +1362,20 @@ jSuites.mask = (function() {
 
         value = obj(value, options);
 
+        // Numeric mask, number of zeros
+        if (fullMask && type === 'numeric') {
+            var maskZeros = options.mask.match(new RegExp(/^[0]+$/gm));
+            if (maskZeros && maskZeros.length === 1) {
+                var maskLength = maskZeros[0].length;
+                if (maskLength > 3) {
+                    value = '' + value;
+                    while (value.length < maskLength) {
+                        value = '0' + value;
+                    }
+                }
+            }
+        }
+
         return value;
     }
 

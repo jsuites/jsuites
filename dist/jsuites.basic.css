@@ -16,6 +16,10 @@
     --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
+[data-visible="false"] {
+    display: none;
+}
+
 div[data-before]:before {
     content: attr(data-before);
 }
@@ -858,6 +862,7 @@ div[data-before]:before {
     font-size: 15px;
     position: absolute;
     left: 9px;
+    top: 5px;
 }
 
 .jcontextmenu.symbols > div::before {

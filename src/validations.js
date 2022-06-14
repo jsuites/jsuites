@@ -157,8 +157,13 @@ jSuites.validations = (function() {
         if (dataType !== 'string' && dataType !== 'number') {
             return false;
         }
+        if (typeof(options.value[0]) === 'string') {
+            var list = options.value[0].split(',');
+        } else {
+            var list = options.value[0];
+        }
 
-        var validOption = options.value[0].findIndex(function name(item) {
+        var validOption = list.findIndex(function name(item) {
             return item == data;
         });
 

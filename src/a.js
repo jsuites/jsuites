@@ -20,7 +20,7 @@ var Events = function() {
     }
 
     var isOpened = function(e) {
-        if (document.jSuitesCurrent && document.jsuitesComponents.length > 0) {
+        if (document.jsuitesComponents && document.jsuitesComponents.length > 0) {
             for (var i = 0; i < document.jsuitesComponents.length; i++) {
                 if (document.jsuitesComponents[i] && ! find(e, document.jsuitesComponents[i])) {
                     document.jsuitesComponents[i].close();

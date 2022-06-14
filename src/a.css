@@ -5,6 +5,10 @@
     --safe-area-bottom: env(safe-area-inset-bottom);
 }
 
+[data-visible="false"] {
+    display: none;
+}
+
 div[data-before]:before {
     content: attr(data-before);
 }

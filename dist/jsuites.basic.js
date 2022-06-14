@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.13.4';
+var Version = '4.13.6';
 
 var Events = function() {
 
@@ -37,7 +37,7 @@ var Events = function() {
     }
 
     var isOpened = function(e) {
-        if (document.jSuitesCurrent && document.jsuitesComponents.length > 0) {
+        if (document.jsuitesComponents && document.jsuitesComponents.length > 0) {
             for (var i = 0; i < document.jsuitesComponents.length; i++) {
                 if (document.jsuitesComponents[i] && ! find(e, document.jsuitesComponents[i])) {
                     document.jsuitesComponents[i].close();
@@ -3964,8 +3964,20 @@ jSuites.dropdown = (function(el, options) {
     }
 
     obj.setData = function(data) {
+        // Reset current value
+        resetValue();
+
+        // Make sure the content container is blank
+        content.innerHTML = '';
+
+        // Reset
+        obj.header.value = '';
+
+        // Reset items and values
+        obj.items = [];
+
         // Prepare data
-        if (data.length) {
+        if (data && data.length) {
             for (var i = 0; i < data.length; i++) {
                 // Compatibility
                 if (typeof(data[i]) != 'object') {
@@ -3984,24 +3996,17 @@ jSuites.dropdown = (function(el, options) {
                 }
             }
 
-            // Reset current value
-            resetValue();
-
-            // Make sure the content container is blank
-            content.innerHTML = '';
-
-            // Reset
-            obj.header.value = '';
-
-            // Reset items and values
-            obj.items = [];
-
             // Append data
             obj.appendData(data);
 
             // Update data
             obj.options.data = data;
+        } else {
+            // Update data
+           obj.options.data = [];
         }
+
+        obj.close();
     }
 
     obj.getData = function() {
@@ -8427,6 +8432,20 @@ jSuites.mask = (function() {
         }
 
         value = obj(value, options);
+
+        // Numeric mask, number of zeros
+        if (fullMask && type === 'numeric') {
+            var maskZeros = options.mask.match(new RegExp(/^[0]+$/gm));
+            if (maskZeros && maskZeros.length === 1) {
+                var maskLength = maskZeros[0].length;
+                if (maskLength > 3) {
+                    value = '' + value;
+                    while (value.length < maskLength) {
+                        value = '0' + value;
+                    }
+                }
+            }
+        }
 
         return value;
     }

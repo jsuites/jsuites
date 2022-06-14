@@ -801,8 +801,20 @@ jSuites.dropdown = (function(el, options) {
     }
 
     obj.setData = function(data) {
+        // Reset current value
+        resetValue();
+
+        // Make sure the content container is blank
+        content.innerHTML = '';
+
+        // Reset
+        obj.header.value = '';
+
+        // Reset items and values
+        obj.items = [];
+
         // Prepare data
-        if (data.length) {
+        if (data && data.length) {
             for (var i = 0; i < data.length; i++) {
                 // Compatibility
                 if (typeof(data[i]) != 'object') {
@@ -821,24 +833,17 @@ jSuites.dropdown = (function(el, options) {
                 }
             }
 
-            // Reset current value
-            resetValue();
-
-            // Make sure the content container is blank
-            content.innerHTML = '';
-
-            // Reset
-            obj.header.value = '';
-
-            // Reset items and values
-            obj.items = [];
-
             // Append data
             obj.appendData(data);
 
             // Update data
             obj.options.data = data;
+        } else {
+            // Update data
+           obj.options.data = [];
         }
+
+        obj.close();
     }
 
     obj.getData = function() {
