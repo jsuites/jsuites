@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.13.6';
+var Version = '4.13.7';
 
 var Events = function() {
 
@@ -120,7 +120,7 @@ var Events = function() {
         }
 
         // Which component I am clicking
-        var path = event.path || (event.composedPath && event.composedPath());
+        var path = e.path || (e.composedPath && e.composedPath());
 
         // If path available get the first element in the chain
         if (path) {
