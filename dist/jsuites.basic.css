@@ -2068,6 +2068,15 @@ div[data-before]:before {
     font-size: 13px;
 }
 
+.jtoolbar-readonly {
+    pointer-events: none;
+}
+
+.jtoolbar-readonly div,
+.jtoolbar-readonly .jtoolbar-item i {
+    color: gray;
+}
+
 .jtoolbar-mobile {
     display: flex;
     position:fixed;

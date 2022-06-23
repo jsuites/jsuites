@@ -1014,7 +1014,9 @@ jSuites.mask = (function() {
             // Compatibility fixes
             if (o.mask) {
                 // Remove []
+                o.mask = o.mask.replace(new RegExp(/\[h]/),'|h|');
                 o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
+                o.mask = o.mask.replace(new RegExp(/\|h\|/),'[h]');
                 if (o.mask.indexOf(';') !== -1) {
                     var t = o.mask.split(';');
                     o.mask = t[0];
@@ -1029,6 +1031,9 @@ jSuites.mask = (function() {
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
+                        d[0] = d[0].replace('##0,###','##0,000');
+                        d[0] = d[0].replace('##0,##','##0,00');
+                        d[0] = d[0].replace('##0,#','##0,0');
                     }
                     o.mask = d[0];
                 }
@@ -1266,7 +1271,9 @@ jSuites.mask = (function() {
                 var t = options.mask.split(';');
                 options.mask = t[0];
             }
+            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
             options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
         }
 
         var type = null;

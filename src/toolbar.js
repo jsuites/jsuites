@@ -252,6 +252,11 @@ jSuites.toolbar = (function(el, options) {
         }
     }
 
+    obj.setReadonly = function(state) {
+        state = state ? 'add' : 'remove';
+        el.classList[state]('jtoolbar-readonly');
+    }
+
     el.onclick = function(e) {
         var element = jSuites.findElement(e.target, 'jtoolbar-item');
         if (element) {
