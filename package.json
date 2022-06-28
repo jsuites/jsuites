@@ -23,5 +23,11 @@
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
-    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip",
+    "devDependencies": {
+        "jest": "^28.1.1"
+    },
+    "scripts": {
+        "test": "jest"
+    }
 }

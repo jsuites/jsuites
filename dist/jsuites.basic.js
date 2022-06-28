@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.14.0';
+var Version = '4.14.1';
 
 var Events = function() {
 
@@ -889,7 +889,6 @@ jSuites.calendar = (function(el, options) {
             months: jSuites.calendar.monthsShort,
             monthsFull: jSuites.calendar.months,
             weekdays: jSuites.calendar.weekdays,
-            weekdays_short: jSuites.calendar.weekdays,
             textDone: jSuites.translate('Done'),
             textReset: jSuites.translate('Reset'),
             textUpdate: jSuites.translate('Update'),
@@ -909,10 +908,6 @@ jSuites.calendar = (function(el, options) {
             position: null,
             // Data type
             dataType: null,
-        }
-
-        for (var i = 0; i < defaults.weekdays_short.length; i++) {
-            defaults.weekdays_short[i] = defaults.weekdays_short[i].substr(0,1);
         }
 
         // Loop through our object
@@ -1305,7 +1300,7 @@ jSuites.calendar = (function(el, options) {
         for (var i = 0; i < 7; i++) {
             var cell = document.createElement('td');
             cell.classList.add('jcalendar-weekday')
-            cell.innerHTML = obj.options.weekdays_short[index];
+            cell.innerHTML = obj.options.weekdays[index].substr(0,1);
             row.appendChild(cell);
             // Next week day
             index++;

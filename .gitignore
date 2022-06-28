@@ -2,3 +2,4 @@
 .settings
 .buildpath
 .idea
+node_modules
