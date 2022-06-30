@@ -3,7 +3,9 @@
 .settings
 .gitignore
 .gitattributes
+tests
 src
 dev
 packages
 resources
+node_modules

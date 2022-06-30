@@ -111,10 +111,28 @@ jSuites.mask = (function() {
 
         // New value
         v = (''+v).split(decimal);
-        v[0] = v[0].match(/[\-0-9]+/g);
-        if (v[0]) {
-            v[0] = v[0].join('');
+
+        // Signal
+        var signal = v[0].match(/[-]+/g);
+        if (signal && signal.length) {
+            signal = true;
+        } else {
+            signal = false;
         }
+
+        v[0] = v[0].match(/[0-9]+/g);
+
+        if (v[0]) {
+            if (signal) {
+                v[0].unshift('-');
+            }
+            v[0] = v[0].join('');
+        } else {
+            if (signal) {
+                v[0] = '-';
+            }
+        }
+
         if (v[0] || v[1]) {
             if (v[1] !== undefined) {
                 v[1] = v[1].match(/[0-9]+/g);
