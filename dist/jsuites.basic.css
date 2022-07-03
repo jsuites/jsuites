@@ -854,6 +854,8 @@ div[data-before]:before {
     font-size: 11px;
     font-family:sans-serif;
     text-align: left;
+    -webkit-box-align: center;
+    align-items: center;
 }
 
 .jcontextmenu > div::before {
@@ -862,7 +864,6 @@ div[data-before]:before {
     font-size: 15px;
     position: absolute;
     left: 9px;
-    top: 5px;
 }
 
 .jcontextmenu.symbols > div::before {
