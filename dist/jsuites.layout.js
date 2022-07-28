@@ -1,20 +1,3 @@
-/**
- * (c) jSuites Javascript Web Components
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- *
- * MIT License
- *
- */
-;(function (global, factory) {
-    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
-    typeof define === 'function' && define.amd ? define(factory) :
-    global.jSuites = factory();
-}(this, (function () {
-
-    'use strict';
-
 jSuites.crop = (function(el, options) {
     // Already created, update options
     if (el.crop) {
@@ -3468,9 +3451,3 @@ jSuites.timeline = (function(el, options) {
 
     return obj;
 });
-
-
-
-    return jSuites;
-
-})));

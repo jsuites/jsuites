@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.13.2';
+var Version = '4.14.4';
 
 var Events = function() {
 
