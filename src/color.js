@@ -668,11 +668,17 @@ jSuites.color = (function(el, options) {
         var hex = function(x) {
             return ("0" + parseInt(x).toString(16)).slice(-2);
         }
-        if (/^#[0-9A-F]{6}$/i.test(rgb)) {
-            return rgb;
-        } else {
-            rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
-            return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+        if (rgb) {
+            if (/^#[0-9A-F]{6}$/i.test(rgb)) {
+                return rgb;
+            } else {
+                rgb = rgb.match(/^rgb\((\d+),\s*(\d+),\s*(\d+)\)$/);
+                if (rgb && rgb.length) {
+                    return "#" + hex(rgb[1]) + hex(rgb[2]) + hex(rgb[3]);
+                } else {
+                    return "";
+                }
+            }
         }
     }
 

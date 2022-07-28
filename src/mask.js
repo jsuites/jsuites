@@ -1323,7 +1323,7 @@ jSuites.mask = (function() {
             // Number of decimal places
             if (typeof(value) === 'number') {
                 var t = null;
-                if (options.mask && fullMask) {
+                if (options.mask && fullMask && ((''+value).indexOf('e') === -1)) {
                     var d = getDecimal.call(options, options.mask);
                     if (options.mask.indexOf(d) !== -1) {
                         d = options.mask.split(d);
