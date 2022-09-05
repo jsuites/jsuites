@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.14.4';
+var Version = '4.15.0';
 
 var Events = function() {
 
@@ -455,7 +455,7 @@ jSuites.setDictionary = function(d) {
 
 // Translate
 jSuites.translate = function(t) {
-    if (document.dictionary) {
+    if (typeof(document) !== "undefined" && document.dictionary) {
         return document.dictionary[t] || t;
      } else {
         return t;
@@ -8939,6 +8939,7 @@ jSuites.modal = (function(el, options) {
         title: null,
         padding: null,
         backdrop: true,
+        icon: null,
     };
 
     // Loop through our object
@@ -8960,6 +8961,12 @@ jSuites.modal = (function(el, options) {
         temp.appendChild(el.children[0]);
     }
 
+    obj.title = document.createElement('div');
+    obj.title.className = 'jmodal_title';
+    if (obj.options.icon) {
+        obj.title.setAttribute('data-icon', obj.options.icon);
+    }
+
     obj.content = document.createElement('div');
     obj.content.className = 'jmodal_content';
     obj.content.innerHTML = el.innerHTML;
@@ -8970,6 +8977,7 @@ jSuites.modal = (function(el, options) {
 
     obj.container = document.createElement('div');
     obj.container.className = 'jmodal';
+    obj.container.appendChild(obj.title);
     obj.container.appendChild(obj.content);
 
     if (obj.options.padding) {
@@ -8982,10 +8990,9 @@ jSuites.modal = (function(el, options) {
         obj.container.style.height = obj.options.height;
     }
     if (obj.options.title) {
-        obj.container.setAttribute('title', obj.options.title);
-    } else {
-        obj.container.classList.add('no-title');
+        obj.title.innerText = obj.options.title;
     }
+
     el.innerHTML = '';
     el.style.display = 'none';
     el.appendChild(obj.container);
@@ -9100,7 +9107,7 @@ jSuites.modal = (function(el, options) {
                 if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
                     // Do nothing
                 } else {
-                    if (e.target.getAttribute('title') && (y - rect.top) < 50) {
+                    if (y - rect.top < 50) {
                         if (document.selection) {
                             document.selection.empty();
                         } else if ( window.getSelection ) {

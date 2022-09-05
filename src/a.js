@@ -438,7 +438,7 @@ jSuites.setDictionary = function(d) {
 
 // Translate
 jSuites.translate = function(t) {
-    if (document.dictionary) {
+    if (typeof(document) !== "undefined" && document.dictionary) {
         return document.dictionary[t] || t;
      } else {
         return t;

@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.14.4';
+var Version = '4.15.0';
 
 var Events = function() {
 
@@ -455,7 +455,7 @@ jSuites.setDictionary = function(d) {
 
 // Translate
 jSuites.translate = function(t) {
-    if (document.dictionary) {
+    if (typeof(document) !== "undefined" && document.dictionary) {
         return document.dictionary[t] || t;
      } else {
         return t;

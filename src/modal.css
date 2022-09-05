@@ -10,23 +10,31 @@
     background-color:#fff;
     transform: translate(-50%, -50%);
     box-sizing: border-box;
-    padding-top: 50px !important;
     z-index:9002;
     border-radius: 4px;
 }
 
-.jmodal:before {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    content:attr(title);
+.jmodal_title {
     padding: 25px;
-    padding-bottom: 20px;
+    padding-bottom: 0px;
     box-sizing: border-box;
     font-size: 1.4em;
     background-color: #fff;
     border-radius: 8px 8px 0px 0px;
+    pointer-events: none;
+    display: flex;
+    -webkit-align-items: center;
+    -webkit-box-align: center;
+    align-items: center;
+}
+
+.jmodal_title[data-icon]:before {
+    content: attr(data-icon);
+    font-family: 'Material Icons' !important;
+    width: 40px;
+    height: 40px;
+    font-size: 40px;
+    padding-right: 6px;
 }
 
 .jmodal_content {
@@ -34,10 +42,17 @@
     overflow-y: auto;
     max-height: 100%;
     box-sizing: border-box;
-    height: -webkit-fill-available;
-
+    height: calc(100% - 55px);
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
+}
+
+.jmodal_title:empty {
+    display: none;
+}
+
+.jmodal_title:empty + .jmodal_content {
+    height: -webkit-fill-available;
 }
 
 .jmodal_content::-webkit-scrollbar {
@@ -56,15 +71,6 @@
 .jmodal_content::-webkit-scrollbar-thumb {
     border: 1px solid #fff;
     background: #888;
-}
-
-
-.jmodal.no-title {
-    padding-top: initial !important;
-}
-
-.jmodal.no-title:before {
-    display:none;
 }
 
 .jmodal:after {
