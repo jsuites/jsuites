@@ -39,6 +39,31 @@ jSuites.mask = (function() {
         return v;
     }
 
+    var extractDate = function() {
+         var v = '';
+         if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
+             if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
+                 v = parseInt(this.date[3]);
+             } else {
+                 v = parseInt(this.date[3]) % 24;
+             }
+             if (this.date[4]) {
+                 v += parseFloat(this.date[4] / 60);
+             }
+             v /= 24;
+         } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
+             if (this.date[0] && this.date[1] && ! this.date[2]) {
+                 this.date[2] = 1;
+             }
+             var t = jSuites.calendar.now(this.date);
+             v = jSuites.calendar.dateToNum(t);
+             if (this.date[4]) {
+                 v += parseFloat(this.date[4] / 60);
+             }
+         }
+         return v;
+     }
+
     var isBlank = function(v) {
         return v === null || v === '' || v === undefined ? true : false;
     }
@@ -1207,7 +1232,9 @@ jSuites.mask = (function() {
                 var t = options.mask.split(';');
                 options.mask = t[0];
             }
+            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
             options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
         }
 
         // Get decimal
@@ -1234,9 +1261,7 @@ jSuites.mask = (function() {
             if (jSuites.isNumeric(v)) {
                 value = v;
             } else {
-                var value = getDate.call(o);
-                var t = jSuites.calendar.now(o.date);
-                value = jSuites.calendar.dateToNum(t);
+                var value = extractDate.call(o);
             }
         } else {
             var value = Extract.call(options, v);
@@ -1311,7 +1336,6 @@ jSuites.mask = (function() {
             if (t) {
                 value = t;
             }
-
             if (options.mask && fullMask) {
                 fillWithBlanks = true;
             }

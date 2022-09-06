@@ -375,7 +375,7 @@ jSuites.dropdown = (function(el, options) {
 
         // Header
         obj.header = document.createElement('input');
-        obj.header.className = 'jdropdown-header';
+        obj.header.className = 'jdropdown-header jss_object';
         obj.header.type = 'text';
         obj.header.setAttribute('autocomplete', 'off');
         obj.header.onfocus = function() {

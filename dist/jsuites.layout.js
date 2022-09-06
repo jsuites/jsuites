@@ -3040,6 +3040,7 @@ jSuites.template = (function(el, options) {
     var searchContainer = document.createElement('div');
     searchContainer.className = 'jtemplate-results';
     obj.searchInput = document.createElement('input');
+    obj.searchInput .className = 'jss_object';
     obj.searchInput.onkeyup = function(e) {
         // Clear current trigger
         if (searchTimer) {

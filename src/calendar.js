@@ -1201,17 +1201,20 @@ jSuites.calendar.getDateString = function(value, options) {
     }
 
     // Convert to number of hours
-    if (typeof(value) == 'number' && format.indexOf('[h]') >= 0) {
-        var result = parseFloat(24 * Number(value));
-        if (format.indexOf('mm') >= 0) {
-            var h = (''+result).split('.');
-            if (h[1]) {
-                var d = 60 * parseFloat('0.' + h[1])
-                d = parseFloat(d.toFixed(2));
-            } else {
-                var d = 0;
+    if (format.indexOf('[h]') >= 0) {
+        var result = 0;
+        if (value && jSuites.isNumeric(value)) {
+            result = parseFloat(24 * Number(value));
+            if (format.indexOf('mm') >= 0) {
+                var h = (''+result).split('.');
+                if (h[1]) {
+                    var d = 60 * parseFloat('0.' + h[1])
+                    d = parseFloat(d.toFixed(2));
+                } else {
+                    var d = 0;
+                }
+                result = parseInt(h[0]) + ':' + jSuites.two(d);
             }
-            result = parseInt(h[0]) + ':' + jSuites.two(d);
         }
         return result;
     }
