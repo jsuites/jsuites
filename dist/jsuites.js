@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.15.1';
+var Version = '4.16.0';
 
 var Events = function() {
 
@@ -325,10 +325,12 @@ var Events = function() {
 
         if (document.jsuitesComponents && document.jsuitesComponents.length) {
             if (item = document.jsuitesComponents[document.jsuitesComponents.length - 1]) {
-                if (e.key == "Escape" && typeof(item.close) == 'function') {
-                    item.close();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+                if (e.key == "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
+                    if (item.isOpened()) {
+                        item.close();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
                 }
             }
         }
@@ -8960,6 +8962,7 @@ jSuites.modal = (function(el, options) {
         url: null,
         onopen: null,
         onclose: null,
+        onload: null,
         closed: false,
         width: null,
         height: null,
@@ -9190,11 +9193,19 @@ jSuites.modal = (function(el, options) {
                 if (! obj.options.closed) {
                     obj.open();
                 }
+
+                if (typeof(obj.options.onload) === 'function') {
+                    obj.options.onload(obj);
+                }
             }
         });
     } else {
         if (! obj.options.closed) {
             obj.open();
+        }
+
+        if (typeof(obj.options.onload) === 'function') {
+            obj.options.onload(obj);
         }
     }
 

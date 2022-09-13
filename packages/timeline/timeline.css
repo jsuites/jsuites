@@ -1,5 +1,6 @@
 .jtimeline {
-    overflow: hidden;
+    display: flex;
+    flex-direction: column;
     min-height:calc(100vh - 90px);
     min-width: 300px;
 }
@@ -64,12 +65,16 @@
 }
 
 .jtimeline-content {
-    padding-top:0px;
+    padding-top:30px;
     padding-left:20px;
     padding-bottom:30px;
     font-size:0.8em;
     border-left:3px solid #aaa;
     width:100%;
+}
+
+.jtimeline-content:first-child {
+    padding-top: 30px;
 }
 
 .jtimeline-item:last-child .jtimeline-content {

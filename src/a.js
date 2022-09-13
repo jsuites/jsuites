@@ -308,10 +308,12 @@ var Events = function() {
 
         if (document.jsuitesComponents && document.jsuitesComponents.length) {
             if (item = document.jsuitesComponents[document.jsuitesComponents.length - 1]) {
-                if (e.key == "Escape" && typeof(item.close) == 'function') {
-                    item.close();
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
+                if (e.key == "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
+                    if (item.isOpened()) {
+                        item.close();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
                 }
             }
         }

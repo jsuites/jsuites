@@ -18,11 +18,8 @@
     "keywords": [
         "javascript plugins, menu, javascript menu plugin"
     ],
-    "dependencies": {
-        "jsuites": "^4.10.1"
-    },
     "main": "menu.js",
-    "version": "1.1.0",
+    "version": "1.2.4",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",

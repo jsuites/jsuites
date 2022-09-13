@@ -47,6 +47,26 @@
     animation: slide-bottom-out 0.1s forwards;
 }
 
+.slide-left-in > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-left-out > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-right-in > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-right-out > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
 .spin {
     animation: spin 2s infinite linear;
 }

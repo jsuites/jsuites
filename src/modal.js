@@ -7,6 +7,7 @@ jSuites.modal = (function(el, options) {
         url: null,
         onopen: null,
         onclose: null,
+        onload: null,
         closed: false,
         width: null,
         height: null,
@@ -237,11 +238,19 @@ jSuites.modal = (function(el, options) {
                 if (! obj.options.closed) {
                     obj.open();
                 }
+
+                if (typeof(obj.options.onload) === 'function') {
+                    obj.options.onload(obj);
+                }
             }
         });
     } else {
         if (! obj.options.closed) {
             obj.open();
+        }
+
+        if (typeof(obj.options.onload) === 'function') {
+            obj.options.onload(obj);
         }
     }
 

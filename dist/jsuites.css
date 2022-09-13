@@ -228,6 +228,26 @@ div[data-before]:before {
     animation: slide-bottom-out 0.1s forwards;
 }
 
+.slide-left-in > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-left-out > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-right-in > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
+.slide-right-out > div {
+    -webkit-transform: translateZ(0px);
+    -webkit-transform: translate3d(0,0,0);
+}
+
 .spin {
     animation: spin 2s infinite linear;
 }
@@ -1013,15 +1033,14 @@ div[data-before]:before {
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='gray' width='24px' height='24px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M19 3H5c-1.11 0-2 .9-2 2v14c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-2 10h-4v4h-2v-4H7v-2h4V7h2v4h4v2z'/%3E%3C/svg%3E");
 }
 
-.jdropdown-container-header
-{
+.jdropdown-container-header {
     padding:0px;
     margin:0px;
     position:relative;
+    box-sizing: border-box;
 }
 
-.jdropdown-header
-{
+.jdropdown-header {
     width:100%;
     appearance: none;
     background-repeat: no-repeat;
@@ -1035,8 +1054,7 @@ div[data-before]:before {
     padding-right:30px !important;
 }
 
-.jdropdown-insert-button
-{
+.jdropdown-insert-button {
     font-size: 1.4em;
     text-transform: uppercase;
     position:absolute;
@@ -1045,16 +1063,14 @@ div[data-before]:before {
     display:none;
 }
 
-.jdropdown-container
-{
+.jdropdown-container {
     min-width: inherit;
     transform: translate3d(-10000px,0,0);
     position:absolute;
     z-index:9001;
 }
 
-.jdropdown-close
-{
+.jdropdown-close {
     display:none;
     font-size:1em;
     color: var(--active-color);
@@ -1064,19 +1080,16 @@ div[data-before]:before {
     font-weight:bold;
 }
 
-.jdropdown-content
-{
+.jdropdown-content {
     min-width:inherit;
     margin:0px;
     box-sizing:border-box;
 }
 
-.jdropdown-content:empty
-{
+.jdropdown-content:empty {
 }
 
-.jdropdown-item
-{
+.jdropdown-item {
     white-space: nowrap;
     text-align: left;
     text-overflow: ellipsis;
@@ -1086,42 +1099,36 @@ div[data-before]:before {
     align-items: center;
 }
 
-.jdropdown-description
-{
+.jdropdown-description {
     text-overflow: ellipsis;
     overflow: hidden;
     line-height: 1.5em;
 }
 
-.jdropdown-image
-{
+.jdropdown-image {
     margin-right:10px;
     width: 32px;
     height: 32px;
     border-radius:20px;
 }
 
-.jdropdown-image-small
-{
+.jdropdown-image-small {
     width:24px;
     height:24px;
 }
 
-.jdropdown-icon
-{
+.jdropdown-icon {
     margin-right:10px;
     font-size: 30px;
     margin-left: -5px;
 }
 
-.jdropdown-icon-small
-{
+.jdropdown-icon-small {
     font-size: 24px;
     margin-left: 0px;
 }
 
-.jdropdown-title
-{
+.jdropdown-title {
     font-size: 0.7em;
     text-overflow: ellipsis;
     overflow-x: hidden;
@@ -1130,16 +1137,14 @@ div[data-before]:before {
 
 /** Default visual **/
 
-.jdropdown-default .jdropdown-header
-{
+.jdropdown-default .jdropdown-header {
     border:1px solid #ccc;
     padding:5px;
     padding-left:10px;
     padding-right:16px;
 }
 
-.jdropdown-default .jdropdown-container
-{
+.jdropdown-default .jdropdown-container {
     background-color:#fff;
 }
 
@@ -1327,7 +1332,6 @@ div[data-before]:before {
     padding:10px;
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
-    max-height: 24px;
     width: 100%;
 }
 
@@ -1710,8 +1714,8 @@ div[data-before]:before {
 }
 
 .jmodal_title {
-    padding: 25px;
-    padding-bottom: 0px;
+    padding: 20px;
+    height: 70px;
     box-sizing: border-box;
     font-size: 1.4em;
     background-color: #fff;
@@ -1721,23 +1725,25 @@ div[data-before]:before {
     -webkit-align-items: center;
     -webkit-box-align: center;
     align-items: center;
+    border-bottom: 1px solid #eee;
 }
 
 .jmodal_title[data-icon]:before {
     content: attr(data-icon);
     font-family: 'Material Icons' !important;
-    width: 48px;
-    height: 48px;
-    font-size: 48px;
-    padding-right: 10px;
+    width: 24px;
+    height: 24px;
+    font-size: 24px;
+    margin-right: 10px;
+    line-height: 24px;
 }
 
 .jmodal_content {
-    padding: 22px;
+    padding: 20px;
     overflow-y: auto;
     max-height: 100%;
     box-sizing: border-box;
-    height: calc(100% - 55px);
+    height: calc(100% - 65px);
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
 }

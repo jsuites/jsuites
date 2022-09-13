@@ -1,8 +1,18 @@
+.jmenu {
+    min-width: 220px;
+}
 
 .jmenu .close {
     position: absolute;
     top: 20px;
     right: 20px;
+    display: none;
+}
+
+.jmenu > img {
+    max-height: 40px;
+    margin-bottom: 20px;
+    display: none;
 }
 
 .jmenu nav {
@@ -21,6 +31,8 @@
     line-height: 24px;
     border-radius: 4px;
     margin: 0px;
+    letter-spacing: 1.1px;
+    color: #555;
 }
 
 .jmenu nav.selected h2 {
@@ -59,15 +71,17 @@
     -webkit-transform: rotate(90deg);
 }
 
-.jmenu nav div {
-    font-family: Roboto;
-    padding: 10px;
+.jmenu nav > div {
+    padding: 15px;
     display: none;
-    margin-bottom: 20px;
 }
 
-.jmenu nav.selected div {
+.jmenu nav.selected > div {
     display: block;
+}
+
+.jmenu nav > div > div {
+    margin-bottom: 15px;
 }
 
 .jmenu nav h3 {
@@ -80,15 +94,11 @@
 .jmenu ul {
     margin: 0px;
     padding-left: 20px;
-    padding-bottom: 20px;
-}
-
-.jmenu div ul:last-child {
-    padding-bottom: 0px;
+    padding-bottom: 10px;
 }
 
 .jmenu li {
-    margin-bottom: 2px;
+    margin-bottom: 6px;
     list-style: none;
 }
 
@@ -110,14 +120,14 @@
 
 @media only screen and (max-device-width : 800px) {
     .jmenu {
-        height:100vh;
+        height: 100vh;
+        width: 220px;
         position: fixed;
         top:0px;
         left:0px;
         background-color:#fff;
         z-index:9000;
         overflow: scroll;
-        padding-left: 20px;
         box-shadow: 1px 1px 0px 0.1px #ccc !important;
         -webkit-box-shadow: 1px 0px 1px 0.1px #ccc !important;
         -moz-box-shadow: 1px 1px 0px 0.1px #ccc !important;
@@ -125,5 +135,13 @@
 
     .jmenu li {
         margin-bottom: 10px;
+    }
+
+    .jmenu .close {
+        display: block;
+    }
+
+    .jmenu > img {
+        display: block;
     }
 }

@@ -62,13 +62,19 @@
 
         obj.show = function() {
             el.style.display = 'block';
-            slideLeft(el, 1);
+            if (document.body.offsetWidth < 800) {
+                slideLeft(el, 1);
+            }
         }
 
         obj.hide = function() {
-            slideLeft(el, 0, function() {
-                el.style.display = '';
-            });
+            if (document.body.offsetWidth < 800) {
+                slideLeft(el, 0, function() {
+                    el.style.display = 'none';
+                });
+            } else {
+                el.style.display = 'none';
+            }
         }
 
         obj.load = function() {
@@ -129,7 +135,7 @@
                             m.style.display = 'block';
                         }
 
-                        m = jSuites.findElement(o.parentNode, 'selected');
+                        m = findElement(o.parentNode, 'selected');
                         if (m) {
                             m.style.display = '';
                         }
