@@ -182,6 +182,12 @@
         // Add menu class
         el.classList.add('jmenu');
 
+        if (getWindowWidth() < 800) {
+            el.style.display = 'none';
+        } else {
+            el.style.display = 'block';
+        }
+
         // Load state
         obj.load();
 

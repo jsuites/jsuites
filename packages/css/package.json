@@ -1,7 +1,7 @@
 {
-    "name": "@jsuites/menu",
-    "title": "JavaScript menu",
-    "description": "JavaScript menu plugin.",
+    "name": "@jsuites/css",
+    "title": "jSuites CSS bootstrap",
+    "description": "jSuites CSS style bootstrap classes",
     "repository": {
         "type": "git",
         "url": "https://github.com/jsuites/jsuites.git"
@@ -16,10 +16,9 @@
         }
     ],
     "keywords": [
-        "javascript plugins, menu, javascript menu plugin"
+        "CSS bootstrap classes"
     ],
-    "main": "menu.js",
-    "version": "1.3.2",
+    "version": "1.0.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",

@@ -1,5 +1,6 @@
 .jmenu {
-    min-width: 220px;
+    padding: 20px;
+    min-width: 260px !important;
 }
 
 .jmenu .close {
@@ -9,9 +10,7 @@
     display: none;
 }
 
-.jmenu > img {
-    max-height: 40px;
-    margin-bottom: 20px;
+.jmenu-logo {
     display: none;
 }
 
@@ -28,6 +27,7 @@
     font-weight: bold;
     font-size: 1em;
     padding: 10px;
+    padding-left: 15px;
     line-height: 24px;
     border-radius: 4px;
     margin: 0px;
@@ -72,6 +72,7 @@
 }
 
 .jmenu nav > div {
+    font-family: Roboto;
     padding: 15px;
     display: none;
 }
@@ -123,7 +124,7 @@
     .jmenu {
         height: 100vh;
         width: 220px;
-        position: fixed;
+        position: fixed !important;
         top:0px;
         left:0px;
         background-color:#fff;
@@ -132,17 +133,20 @@
         box-shadow: 1px 1px 0px 0.1px #ccc !important;
         -webkit-box-shadow: 1px 0px 1px 0.1px #ccc !important;
         -moz-box-shadow: 1px 1px 0px 0.1px #ccc !important;
+        padding: 20px;
     }
 
     .jmenu li {
         margin-bottom: 10px;
     }
 
-    .jmenu .close {
+    .jmenu-logo {
         display: block;
+        max-height: 50px;
+        margin-bottom: 20px;
     }
 
-    .jmenu > img {
+    .jmenu .close {
         display: block;
     }
 }
