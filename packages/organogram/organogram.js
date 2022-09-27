@@ -28,7 +28,7 @@
         }
     }
 
-    return (function(el, options) {
+    var Plugin (function(el, options) {
         if (el.organogram) {
             return el.organogram.setOptions(options, true);
         }
@@ -36,7 +36,7 @@
         var obj = {};
         obj.options = {};
 
-        // Defines the state to deal with mouse events 
+        // Defines the state to deal with mouse events
         var state = {
             x: 0,
             y: 0,
@@ -385,7 +385,7 @@
 
                 if (findedParent) {
                     obj.options.data.push(item);
-                    
+
                     obj.refresh();
 
                     if (typeof obj.options.onchange == 'function') {
@@ -517,7 +517,7 @@
                     ul.children[0].style.top = (state.scrollTop + y * zoomFactor * -1)   + 'px';
                 }
             }
-            
+
             if (state.scaling) {
                 pinchMove(e);
             }
@@ -670,4 +670,10 @@
 
         return obj;
     });
+
+    if (window.jSuites) {
+        jSuites.setExtensions({ organogram: Plugin });
+    }
+
+    return Plugin;
 })));

@@ -136,6 +136,7 @@ div[data-before]:before {
     color: #eee;
     width: 100%;
     height: 100%;
+    text-align: center;
 }
 
 .jremove {
@@ -1753,7 +1754,7 @@ div[data-before]:before {
 }
 
 .jmodal_title:empty + .jmodal_content {
-    height: -webkit-fill-available;
+    height: 100%;
 }
 
 .jmodal_content::-webkit-scrollbar {

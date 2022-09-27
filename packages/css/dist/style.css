@@ -48,6 +48,18 @@ footer a {
     color: black;
 }
 
+[visible="false"] {
+    display: none;
+}
+
+[visible="false"] {
+    display: none;
+}
+
+[visible="true"] {
+    display: block;
+}
+
 .jdropdown-default .jdropdown-header {
     padding: 8px;
 }
@@ -267,7 +279,8 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
 
 .form-group {
     width: 100%;
-    padding: 2px;
+    padding-right: 8px;
+    padding-bottom: 8px;
     box-sizing: border-box;
 }
 

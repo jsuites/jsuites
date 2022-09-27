@@ -254,11 +254,11 @@
 }
 
 .jorg-tf-tree ul.jorg-vertical {
-    margin: 2em 0px !important;
-    display: flex;
-    flex-direction: column;
-    padding: 0px;
-    padding-left: 4em !important;
+	margin: 2em 0px !important;
+	display: flex;
+	flex-direction: column;
+	padding: 0px;
+	padding-left: 4em !important;
     position: relative;
 }
 
@@ -267,7 +267,7 @@
 }
 
 .jorg-tf-tree ul.jorg-vertical li {
-    margin-bottom: 40px;
+	margin-bottom: 40px;
 }
 
 .jorg-tf-tree ul.jorg-vertical span.jorg-tf-nc:before {
@@ -299,7 +299,7 @@
 }
 
 .jorg-disable-scrollbars::-webkit-scrollbar {
-    width: 0;
+    width: 0px;
     background: transparent; /* Chrome/Safari/Webkit */
 }
 
