@@ -42,7 +42,7 @@
         var searchResults = null;
 
         // Parse events inside the template
-        var parse = function (element) {
+        var parse = function(element) {
             // Attributes
             var attr = {};
 
@@ -58,25 +58,25 @@
             if (k.length) {
                 for (var i = 0; i < k.length; i++) {
                     // Parse events
-                    if (k[i].substring(0, 2) == 'on') {
+                    if (k[i].substring(0,2) == 'on') {
                         // Get event
                         var event = k[i].toLowerCase();
                         var value = attr[k[i]];
 
                         // Get action
                         element.removeAttribute(event);
-                        if (!element.events) {
+                        if (! element.events) {
                             element.events = []
                         }
 
                         // Keep method to the event
                         element[k[i].substring(2)] = value;
                         if (obj.options.version == 2) {
-                            element[event] = function (e) {
+                            element[event] = function(e) {
                                 Function('template', 'e', element[e.type]).call(element, obj.options.template, e);
                             }
                         } else {
-                            element[event] = function (e) {
+                            element[event] = function(e) {
                                 Function('e', 'element', element[e.type]).call(obj.options.template, e, element);
                             }
                         }
@@ -95,7 +95,7 @@
         /**
          * Set the options
          */
-        obj.setOptions = function () {
+        obj.setOptions = function() {
             // Default configuration
             var defaults = {
                 version: null,
@@ -129,7 +129,7 @@
             for (var property in defaults) {
                 if (options && options.hasOwnProperty(property)) {
                     obj.options[property] = options[property];
-                } else if (typeof (obj.options[property]) === 'undefined') {
+                } else if (typeof(obj.options[property]) === 'undefined') {
                     obj.options[property] = defaults[property];
                 }
             }
@@ -178,7 +178,7 @@
          * @param data
          * @param contentDOMContainer
          */
-        obj.setContent = function (a, b) {
+        obj.setContent = function(a, b) {
             // Get template
             var c = obj.options.template[Object.keys(obj.options.template)[0]](a, obj);
             // Process events
@@ -191,7 +191,7 @@
             parse(b);
 
             // Oncreate a new item
-            if (typeof (obj.options.oncreateitem) == 'function') {
+            if (typeof(obj.options.oncreateitem) == 'function') {
                 obj.options.oncreateitem(el, obj, b.children[0], a);
             }
         }
@@ -199,7 +199,7 @@
         /**
          * Add a new option in the data
          */
-        obj.addItem = function (data, beginOfDataSet) {
+        obj.addItem = function(data, beginOfDataSet) {
             // Append itens
             var content = document.createElement('div');
             // Append data
@@ -224,7 +224,7 @@
                 container.append(content.children[0]);
             }
             // Onchange method
-            if (typeof (obj.options.onchange) == 'function') {
+            if (typeof(obj.options.onchange) == 'function') {
                 obj.options.onchange(el, obj.options.data);
             }
         }
@@ -232,7 +232,7 @@
         /**
          * Remove the item from the data
          */
-        obj.removeItem = function (element) {
+        obj.removeItem = function(element) {
             if (Array.prototype.indexOf.call(container.children, element) > -1) {
                 // Remove data from array
                 var index = obj.options.data.indexOf(element.dataReference);
@@ -240,10 +240,10 @@
                     obj.options.data.splice(index, 1);
                 }
                 // Remove element from DOM
-                jSuites.animation.fadeOut(element, function () {
+                jSuites.animation.fadeOut(element, function() {
                     element.parentNode.removeChild(element);
 
-                    if (!container.innerHTML) {
+                    if (! container.innerHTML) {
                         container.classList.add('jtemplate-empty');
                         container.innerHTML = obj.options.noRecordsFound;
                     }
@@ -255,7 +255,7 @@
         /**
          * Reset the data of the element
          */
-        obj.setData = function (data) {
+        obj.setData = function(data) {
             if (data) {
                 // Current page number
                 pageNumber = 0;
@@ -270,7 +270,7 @@
                 obj.render();
 
                 // Onchange method
-                if (typeof (obj.options.onchange) == 'function') {
+                if (typeof(obj.options.onchange) == 'function') {
                     obj.options.onchange(el, obj.options.data);
                 }
             }
@@ -300,19 +300,19 @@
         /**
          * Get the current page number
          */
-        obj.getPage = function () {
+        obj.getPage = function() {
             return pageNumber;
         }
 
         /**
          * Append data to the component
          */
-        obj.appendData = function (data, p) {
+        obj.appendData = function(data, p) {
             if (p) {
                 pageNumber = p;
             }
 
-            var execute = function (data) {
+            var execute = function(data) {
                 // Concat data
                 obj.options.data.concat(data);
 
@@ -354,12 +354,12 @@
                     method: 'GET',
                     data: ajaxData,
                     dataType: 'json',
-                    success: function (data) {
+                    success: function(data) {
                         execute(data);
                     }
                 });
             } else {
-                if (!obj.options.data) {
+                if (! obj.options.data) {
                     console.log('TEMPLATE: no data or external url defined');
                 } else {
                     execute(data);
@@ -367,19 +367,19 @@
             }
         }
 
-        obj.renderTemplate = function () {
+        obj.renderTemplate = function() {
             // Data container
             var data = searchResults ? searchResults : obj.options.data;
 
             // Data filtering
-            if (typeof (obj.options.filter) == 'function') {
+            if (typeof(obj.options.filter) == 'function') {
                 data = obj.options.filter(data);
             }
 
             // Reset pagination container
             pagination.innerHTML = '';
 
-            if (!data.length) {
+            if (! data.length) {
                 container.innerHTML = obj.options.noRecordsFound;
                 container.classList.add('jtemplate-empty');
             } else {
@@ -403,7 +403,7 @@
                 var content = document.createElement('div');
                 for (var i = startNumber; i < finalNumber; i++) {
                     // Check if cache obj contains the element
-                    if (!data[i].element) {
+                    if (! data[i].element) {
                         obj.setContent(data[i], content);
                         content.children[0].dataReference = data[i];
                         data[i].element = content.children[0];
@@ -469,32 +469,32 @@
             }
         }
 
-        obj.render = function (p, forceLoad) {
+        obj.render = function(p, forceLoad) {
             // Update page number
             if (p !== undefined) {
                 pageNumber = p;
             }
 
             // Render data into template
-            var execute = function () {
+            var execute = function() {
                 // Render new content
-                if (typeof (obj.options.render) == 'function') {
+                if (typeof(obj.options.render) == 'function') {
                     container.innerHTML = obj.options.render(obj);
                 } else {
-                    container.innerHTML = '';
+                   container.innerHTML = '';
                 }
 
                 // Load data
                 obj.renderTemplate();
 
                 // On Update
-                if (typeof (obj.options.onupdate) == 'function') {
+                if (typeof(obj.options.onupdate) == 'function') {
                     obj.options.onupdate(el, obj, pageNumber);
                 }
 
                 if (forceLoad) {
                     // Onload
-                    if (typeof (obj.options.onload) == 'function') {
+                    if (typeof(obj.options.onload) == 'function') {
                         obj.options.onload(el, obj, pageNumber);
                     }
                 }
@@ -526,7 +526,7 @@
                     method: 'GET',
                     dataType: 'json',
                     data: ajaxData,
-                    success: function (data) {
+                    success: function(data) {
                         // Search and keep data in the client side
                         if (data.hasOwnProperty("total")) {
                             obj.options.total = data.total;
@@ -541,7 +541,7 @@
                     }
                 });
             } else {
-                if (!obj.options.data) {
+                if (! obj.options.data) {
                     console.log('TEMPLATE: no data or external url defined');
                 } else {
                     // Load data for the user
@@ -550,45 +550,45 @@
             }
         }
 
-        obj.search = function (query) {
+        obj.search = function(query) {
             // Page number
             pageNumber = 0;
             // Search query
             obj.options.searchValue = query ? query : '';
 
             // Filter data
-            if (obj.options.remoteData == true || !query) {
+            if (obj.options.remoteData == true || ! query) {
                 searchResults = null;
             } else {
-                var test = function (o, query) {
+                var test = function(o, query) {
                     for (var key in o) {
                         var value = o[key];
 
-                        if (('' + value).toLowerCase().search(query) >= 0) {
+                        if ((''+value).toLowerCase().search(query) >= 0) {
                             return true;
                         }
                     }
                     return false;
                 }
 
-                searchResults = obj.options.data.filter(function (item) {
+                searchResults = obj.options.data.filter(function(item) {
                     return test(item, query);
                 });
             }
 
             obj.render(0);
 
-            if (typeof (obj.options.onsearch) == 'function') {
+            if (typeof(obj.options.onsearch) == 'function') {
                 obj.options.onsearch(el, obj, query);
             }
         }
 
-        obj.refresh = function () {
+        obj.refresh = function() {
             obj.cache = [];
             obj.render();
         }
 
-        obj.reload = function () {
+        obj.reload = function() {
             obj.cache = [];
             obj.render(0, true);
         }
@@ -596,7 +596,7 @@
         /**
          * Events
          */
-        el.addEventListener('mousedown', function (e) {
+        el.addEventListener('mousedown', function(e) {
             if (e.target.parentNode.classList.contains('jtemplate-pagination')) {
                 var index = e.target.innerText;
                 if (index == '<') {
@@ -604,14 +604,14 @@
                 } else if (index == '>') {
                     obj.render(e.target.getAttribute('title'));
                 } else {
-                    obj.render(parseInt(index) - 1);
+                    obj.render(parseInt(index)-1);
                 }
                 e.preventDefault();
             }
         });
 
-        el.addEventListener('mouseup', function (e) {
-            if (typeof (obj.options.onclick) == 'function') {
+        el.addEventListener('mouseup', function(e) {
+            if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, e);
             }
         });
@@ -621,7 +621,7 @@
 
         // Container
         var container = document.createElement('div');
-        container.classList.add('jtemplate-content');
+        container.classList.add ('jtemplate-content');
         el.appendChild(container);
 
         // Pagination container
@@ -632,13 +632,14 @@
         var searchContainer = document.createElement('div');
         searchContainer.className = 'jtemplate-results';
         obj.searchInput = document.createElement('input');
-        obj.searchInput.onkeyup = function (e) {
+        obj.searchInput .className = 'jss_object';
+        obj.searchInput.onkeyup = function(e) {
             // Clear current trigger
             if (searchTimer) {
                 clearTimeout(searchTimer);
             }
             // Prepare search
-            searchTimer = setTimeout(function () {
+            searchTimer = setTimeout(function() {
                 obj.search(obj.searchInput.value.toLowerCase());
                 searchTimer = null;
             }, 300)

@@ -80,7 +80,7 @@ $css
 }
 
 g('.basic', [ 'a', 'ajax', 'animation', 'calendar', 'color', 'contextmenu', 'dropdown', 'editor', 'image', 'helpers', 'lazyloading', 'loading', 'mask', 'notification', 'rating', 'tabs', 'toolbar', 'sorting', 'picker', 'palette' ]);
-g('.layout', [ 'layout', 'template', 'login', 'buttons', 'organogram', 'timeline', 'chat', 'menu', 'crop', 'signature', 'heatmap', 'player', 'floating' ]);
+//g('.layout', [ 'layout', 'template', 'login', 'buttons', 'organogram', 'timeline', 'chat', 'menu', 'crop', 'signature', 'heatmap', 'player', 'floating' ]);
 g('', null, [ 'app', 'dialog', 'refresh', 'layout', 'template', 'login', 'buttons', 'organogram', 'timeline', 'chat', 'menu', 'crop', 'signature', 'heatmap', 'player', 'floating', 'progress' ]);
 
 echo "Done!\n";

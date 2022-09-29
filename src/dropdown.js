@@ -96,6 +96,8 @@ jSuites.dropdown = (function(el, options) {
         }
         // Reset options
         obj.options.value = '';
+        // Reset value
+        el.value = '';
     }
 
     /**

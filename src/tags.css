@@ -7,19 +7,22 @@
     -ms-flex-pack: flex-start;
     -webkit-justify-content: space-between;
     justify-content: flex-start;
-    padding: 2px;
+    padding: 1px;
     border: 1px solid #ccc;
+    position: relative;
 } 
 
 .jtags.jtags-empty:not(.jtags-focus)::before {
     position: absolute;
-    margin: 5px;
+    margin: 3px;
     color: #ccc;
-    content:attr(data-placeholder);
+    content: attr(data-placeholder);
+    top: 0px;
+    margin-left: 6px;
 }
 
 .jtags > div {
-    padding: 3px;
+    padding: 1px;
     padding-left: 10px;
     padding-right: 22px;
     position: relative;

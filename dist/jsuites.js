@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.16.2';
+var Version = '4.16.3';
 
 var Events = function() {
 
@@ -3276,6 +3276,8 @@ jSuites.dropdown = (function(el, options) {
         }
         // Reset options
         obj.options.value = '';
+        // Reset value
+        el.value = '';
     }
 
     /**

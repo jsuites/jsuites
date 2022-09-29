@@ -885,6 +885,7 @@ div[data-before]:before {
     font-size: 15px;
     position: absolute;
     left: 9px;
+    line-height: 24px;
 }
 
 .jcontextmenu.symbols > div::before {
