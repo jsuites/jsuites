@@ -12,6 +12,8 @@
     box-sizing: border-box;
     z-index:9002;
     border-radius: 4px;
+    display: flex;
+    flex-direction: column;
 }
 
 .jmodal_title {
@@ -42,9 +44,8 @@
 .jmodal_content {
     padding: 20px;
     overflow-y: auto;
-    max-height: 100%;
+    height: 100%;
     box-sizing: border-box;
-    height: calc(100% - 65px);
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
 }
@@ -105,7 +106,7 @@
     left: 0px;
     min-width: 100%;
     min-height: 100%;
-    background-color: rgba(0,0,0,0.5);
+    background-color: rgba(0,0,0,0.2);
     border: 0px;
     padding: 0px;
     z-index: 8000;

@@ -3,12 +3,19 @@ jSuites.loading = (function() {
 
     var loading = null;
 
-    obj.show = function() {
+    obj.show = function(timeout) {
         if (! loading) {
             loading = document.createElement('div');
             loading.className = 'jloading';
         }
         document.body.appendChild(loading);
+
+        // Max timeout in seconds
+        if (timeout > 0) {
+            setTimeout(function() {
+                obj.hide();
+            }, timeout * 1000)
+        }
     }
 
     obj.hide = function() {
