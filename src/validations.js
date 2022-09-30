@@ -127,6 +127,14 @@ jSuites.validations = (function() {
         return !data.toString();
     }
 
+    component.empty = function(data) {
+        return !data.toString();
+    }
+
+    component.notEmpty = function(data) {
+        return !!data.toString();
+    }
+
     component.number = function(data, options) {
        if (! isNumeric(data)) {
            return false;

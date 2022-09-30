@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.16.4';
+var Version = '4.16.6';
 
 var Events = function() {
 
@@ -12245,6 +12245,14 @@ jSuites.validations = (function() {
 
     component['not exist'] = function(data, options) {
         return !data.toString();
+    }
+
+    component.empty = function(data) {
+        return !data.toString();
+    }
+
+    component.notEmpty = function(data) {
+        return !!data.toString();
     }
 
     component.number = function(data, options) {

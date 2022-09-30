@@ -19,7 +19,7 @@
         "javascript plugins"
     ],
     "main": "dist/jsuites.js",
-    "version": "4.16.4",
+    "version": "4.16.6",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
