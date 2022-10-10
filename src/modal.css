@@ -31,6 +31,10 @@
     border-bottom: 1px solid #eee;
 }
 
+.jmodal_title > div {
+    font-size: 1.4em;
+}
+
 .jmodal_title[data-icon]:before {
     content: attr(data-icon);
     font-family: 'Material Icons' !important;

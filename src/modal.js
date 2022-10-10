@@ -65,7 +65,9 @@ jSuites.modal = (function(el, options) {
         obj.container.style.height = obj.options.height;
     }
     if (obj.options.title) {
-        obj.title.innerText = obj.options.title;
+        var title = document.createElement('h4');
+        title.innerText = obj.options.title;
+        obj.title.appendChild(title);
     }
 
     el.innerHTML = '';

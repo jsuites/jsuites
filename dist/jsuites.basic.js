@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.16.6';
+var Version = '4.16.8';
 
 var Events = function() {
 
@@ -9970,6 +9970,10 @@ jSuites.toolbar = (function(el, options) {
                 toolbarItem.classList.add('jtoolbar-active');
             }
 
+            if (items[i].disabled) {
+                toolbarItem.classList.add('jtoolbar-disabled');
+            }
+
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
                 jSuites.picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
@@ -10099,7 +10103,7 @@ jSuites.toolbar = (function(el, options) {
 
     obj.setReadonly = function(state) {
         state = state ? 'add' : 'remove';
-        el.classList[state]('jtoolbar-readonly');
+        el.classList[state]('jtoolbar-disabled');
     }
 
     el.onclick = function(e) {

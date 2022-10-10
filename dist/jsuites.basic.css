@@ -2075,13 +2075,9 @@ div[data-before]:before {
     font-size: 13px;
 }
 
-.jtoolbar-readonly {
+.jtoolbar-disabled {
     pointer-events: none;
-}
-
-.jtoolbar-readonly div,
-.jtoolbar-readonly .jtoolbar-item i {
-    color: gray;
+    opacity: 0.4;
 }
 
 .jtoolbar-mobile {
@@ -2252,5 +2248,6 @@ div[data-before]:before {
     display: flex;
     flex-wrap: wrap;
 }
+
 
 

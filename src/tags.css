@@ -22,7 +22,7 @@
 }
 
 .jtags > div {
-    padding: 1px;
+    padding: 5px;
     padding-left: 10px;
     padding-right: 22px;
     position: relative;
@@ -40,7 +40,7 @@
 .jtags > div::after {
     content: 'x';
     position: absolute;
-    top: 4px;
+    top: 6px;
     right: 4px;
     width: 12px;
     height: 12px;

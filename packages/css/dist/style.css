@@ -52,10 +52,6 @@ footer a {
     display: none;
 }
 
-[visible="false"] {
-    display: none;
-}
-
 [visible="true"] {
     display: block;
 }
@@ -950,6 +946,8 @@ jwarning .navbar {
     }
 
     .page {
+        height: 100%;
+        box-sizing: border-box;
         padding: 20px;
     }
 
@@ -1394,4 +1392,8 @@ jwarning .navbar {
     color: #777;
     padding: 28px;
     border-radius: 8px 0px 0px 8px;
+}
+
+.error {
+    outline: 1px solid red;
 }

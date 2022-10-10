@@ -1732,6 +1732,10 @@ div[data-before]:before {
     border-bottom: 1px solid #eee;
 }
 
+.jmodal_title > div {
+    font-size: 1.4em;
+}
+
 .jmodal_title[data-icon]:before {
     content: attr(data-icon);
     font-family: 'Material Icons' !important;
@@ -2598,7 +2602,7 @@ div[data-before]:before {
 }
 
 .jtags > div {
-    padding: 1px;
+    padding: 5px;
     padding-left: 10px;
     padding-right: 22px;
     position: relative;
@@ -2616,7 +2620,7 @@ div[data-before]:before {
 .jtags > div::after {
     content: 'x';
     position: absolute;
-    top: 4px;
+    top: 6px;
     right: 4px;
     width: 12px;
     height: 12px;
@@ -2662,13 +2666,9 @@ div[data-before]:before {
     font-size: 13px;
 }
 
-.jtoolbar-readonly {
+.jtoolbar-disabled {
     pointer-events: none;
-}
-
-.jtoolbar-readonly div,
-.jtoolbar-readonly .jtoolbar-item i {
-    color: gray;
+    opacity: 0.4;
 }
 
 .jtoolbar-mobile {
@@ -2839,5 +2839,6 @@ div[data-before]:before {
     display: flex;
     flex-wrap: wrap;
 }
+
 
 
