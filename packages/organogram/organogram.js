@@ -8,27 +8,23 @@
  * MIT License
  */
 
+if (! jSuites) {
+    if (window.jSuites) {
+        var jSuites = window.jSuites;
+    } else if (typeof(require) === 'function') {
+        var jSuites = require('jsuites');
+    }
+}
+
 ;(function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
     global.organogram = factory();
-
-    if (typeof(jSuites) !== 'undefined') {
-        jSuites.organogram = global.organogram;
-    }
 }(this, (function () {
 
     'use strict';
 
-    if (! jSuites) {
-        if (window.jSuites) {
-            var jSuites = window.jSuites;
-        } else if (typeof(require) === 'function') {
-            var jSuites = require('jsuites');
-        }
-    }
-
-    var Plugin (function(el, options) {
+    var Plugin = (function(el, options) {
         if (el.organogram) {
             return el.organogram.setOptions(options, true);
         }

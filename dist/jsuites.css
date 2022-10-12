@@ -1826,6 +1826,11 @@ div[data-before]:before {
                                   supported by Chrome and Opera */
 }
 
+.jmodal_content .jcalendar .jcalendar-content,
+.jmodal_content .jdropdown-container {
+    position: fixed;
+}
+
 
 .jnotification {
     position: fixed;

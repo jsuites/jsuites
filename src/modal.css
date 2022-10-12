@@ -124,3 +124,8 @@
             user-select: none; /* Non-prefixed version, currently
                                   supported by Chrome and Opera */
 }
+
+.jmodal_content .jcalendar .jcalendar-content,
+.jmodal_content .jdropdown-container {
+    position: fixed;
+}

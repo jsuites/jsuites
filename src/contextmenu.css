@@ -58,6 +58,7 @@
     color: #555;
     text-decoration: none;
     flex: 1;
+    cursor: pointer;
 }
 
 .jcontextmenu > div span {

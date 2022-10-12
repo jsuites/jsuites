@@ -552,7 +552,7 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
 }
 
 .jswitch {
-    display: flex;
+    display: flex ;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
     align-items: center;
@@ -608,6 +608,10 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
 .jswitch input:checked + i::before { transform: translate3d(18px, 2px, 0) scale3d(0, 0, 0); }
 
 .jswitch input:checked + i::after { transform: translate3d(22px, 2px, 0); }
+
+label.jswitch {
+    display: flex;
+}
 
 .jbutton {
     padding: 8px;
@@ -1396,4 +1400,9 @@ jwarning .navbar {
 
 .error {
     outline: 1px solid red;
+}
+
+.disabled {
+    pointer-events: none;
+    opacity: 0.5;
 }
