@@ -307,6 +307,8 @@
             deviceToken: null,
             facebookUrl: null,
             facebookAuthentication: null,
+            googleAuthentication: null,
+            googleClientId: null,
             maxHeight: null,
             onload: null,
             onsuccess: null,
@@ -480,14 +482,27 @@
         divCaptcha.appendChild(imageCaptcha);
 
         // Facebook
-        var facebookButton = document.createElement('div');
-        facebookButton.innerHTML = jSuites.translate('Login with Facebook');
+        var facebookButton = document.createElement('input');
+        facebookButton.type = 'button';
+        facebookButton.value = jSuites.translate('Login with Facebook');
         facebookButton.className = 'facebookButton';
         var divFacebookButton = document.createElement('div');
         divFacebookButton.appendChild(facebookButton);
-        divFacebookButton.onclick = function() {
+        facebookButton.onclick = function() {
             obj.requestLoginViaFacebook();
         }
+
+        // Google
+        var googleButton = document.createElement('input');
+        googleButton.type = 'button';
+        googleButton.value = jSuites.translate('Login with Google');
+        googleButton.className = 'googleButton';
+        var divGoogleButton = document.createElement('div');
+        divGoogleButton.appendChild(googleButton);
+        divGoogleButton.onclick = function() {
+            obj.requestLoginViaGoogle();
+        }
+
         // Forgot password
         var inputRequest = document.createElement('span');
         inputRequest.innerHTML = jSuites.translate('Request a new password');
@@ -540,6 +555,9 @@
             container.appendChild(divActionButton);
             if (obj.options.facebookAuthentication == true) {
                 container.appendChild(divFacebookButton);
+            }
+            if (obj.options.googleAuthentication == true) {
+                container.appendChild(divGoogleButton);
             }
             container.appendChild(divCancelButton);
 
@@ -626,6 +644,9 @@
             if (obj.options.facebookAuthentication == true) {
                 container.appendChild(divFacebookButton);
             }
+            if (obj.options.googleAuthentication == true) {
+                container.appendChild(divGoogleButton);
+            }
             container.appendChild(divRequestButton);
             container.appendChild(divRememberButton);
             container.appendChild(divRequestButton);
@@ -651,16 +672,48 @@
             action = 'requestAccess';
         }
 
+        var fbLogin = null;
+
+        /**
+         * Request login via facebook
+         */
+        obj.requestLoginViaGoogle = function() {
+            google.accounts.id.initialize({
+                client_id: obj.options.googleClientId,
+                auto_select: true,
+                callback: function(response) {
+                    obj.execute({ social: 'google', token: response.credential });
+                }
+            });
+
+            google.accounts.id.prompt(function(notification) {
+                if (notification.isNotDisplayed() || notification.isSkippedMoment()) {
+                    google.accounts.id.renderButton(
+                        divGoogleButton, // Ensure the element exist and it is a div to display correcctly
+                        {
+                            theme: "outline",
+                            size: "large",
+                            width: divGoogleButton.offsetWidth,
+                            text: 'signin_with',
+                        }  // Customization attributes
+                    );
+                }
+            });
+
+            // Action
+            action = 'requestLoginViaGoogle';
+        }
+
         /**
          * Request login via facebook
          */
         obj.requestLoginViaFacebook = function() {
-            if (typeof(deviceNotificationToken) == 'undefined') {
+            if (typeof(FB) !== 'undefined') {
                 FB.getLoginStatus(function(response) {
                     if (! response.status || response.status != 'connected') {
                         FB.login(function(response) {
                             if (response.authResponse) {
-                                obj.execute({ f:response.authResponse.accessToken });
+                                obj.execute({ social: 'facebook', token: response.authResponse.accessToken });
                             } else {
                                 obj.showMessage(jSuites.translate('Not authorized by facebook'));
                             }
@@ -670,7 +723,7 @@
                     }
                 }, true);
             } else {
-                jDestroy = function() {
+                var jDestroy = function() {
                     fbLogin.removeEventListener('loadstart', jStart);
                     fbLogin.removeEventListener('loaderror', jError);
                     fbLogin.removeEventListener('exit', jExit);
@@ -678,7 +731,7 @@
                     fbLogin = null;
                 }
 
-                jStart = function(event) {
+                var jStart = function(event) {
                     var url = event.url;
                     if (url.indexOf("access_token") >= 0) {
                         setTimeout(function(){
@@ -697,15 +750,15 @@
                     }
                 }
 
-                jError = function(event) {
+                var jError = function(event) {
                     jDestroy();
                 }
 
-                jExit = function(event) {
+                var jExit = function(event) {
                     jDestroy();
                 }
 
-                fbLogin = window.open(obj.options.facebookUrl, "_blank", "location=no,closebuttoncaption=Exit,disallowoverscroll=yes,toolbar=no");
+                fbLogin = window.open(url, "_blank", "width=400,height=600,location=no,closebuttoncaption=Exit,disallowoverscroll=yes,toolbar=no");
                 fbLogin.addEventListener('loadstart', jStart);
                 fbLogin.addEventListener('loaderror', jError);
                 fbLogin.addEventListener('exit', jExit);
