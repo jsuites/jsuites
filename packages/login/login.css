@@ -55,20 +55,21 @@
     appearance: none;
 }
 
-.jlogin span
-{
-    margin:0 auto;
-}
-.jlogin img
-{
-    text-align:center;
-    max-width:220px;
+.jlogin-instructions {
+    font-weight: bold;
 }
 
-.jlogin .jlogin-logo
-{
-    text-align:center;
-    padding:20px;
+.jlogin span  {
+    margin:0 auto;
+}
+.jlogin img  {
+    text-align: center;
+    max-width: 220px;
+}
+
+.jlogin .jlogin-logo  {
+    text-align: center;
+    padding: 20px;
 }
 
 .jlogin .jlogin-logo:empty {

@@ -333,6 +333,7 @@
 
         // Action
         var action = null;
+        var social = null;
 
         // Container
         var container = document.createElement('form');
@@ -348,6 +349,10 @@
             logo.src = obj.options.logo;
             divLogo.appendChild(logo);
         }
+
+        // Instructions
+        var divInstructions = document.createElement('div');
+        divInstructions.classList.add('jlogin-instructions');
 
         // Code
         var labelCode = document.createElement('label');
@@ -546,10 +551,14 @@
          */
         obj.newProfile = function() {
             container.innerHTML = '';
+            divInstructions.innerText = jSuites.translate('You will receive an email message to confirm your email address.');
             container.appendChild(divLogo);
-            if (obj.options.newProfileLogin) {
+            container.appendChild(divInstructions);
+
+            if (obj.options.newProfileLogin == true) {
                 container.appendChild(divLogin);
             }
+
             container.appendChild(divName);
             container.appendChild(divUsername);
             container.appendChild(divActionButton);
@@ -579,6 +588,8 @@
         obj.requestNewPassword = function() {
             if (Array.prototype.indexOf.call(container.children, divCaptcha) >= 0) {
                 var captcha = true;
+            } else {
+                var captcha = false;
             }
 
             container.innerHTML = '';
@@ -674,6 +685,21 @@
 
         var fbLogin = null;
 
+        obj.bindSocialAccount = function() {
+            container.innerHTML = '';
+            divInstructions.innerText = jSuites.translate('Please enter your password to bind your account.');
+
+            container.appendChild(divLogo);
+            container.appendChild(divInstructions);
+            container.appendChild(divPassword);
+            container.appendChild(divActionButton);
+            container.appendChild(divCancelButton);
+            actionButton.value = jSuites.translate('Bind accounts');
+
+            // Action
+            action = 'bindSocialAccount';
+        }
+
         /**
          * Request login via facebook
          */
@@ -682,7 +708,9 @@
                 client_id: obj.options.googleClientId,
                 auto_select: true,
                 callback: function(response) {
-                    obj.execute({ social: 'google', token: response.credential });
+                    social = { social: 'google', token: response.credential };
+
+                    obj.execute(social);
                 }
             });
 
@@ -708,61 +736,23 @@
          * Request login via facebook
          */
         obj.requestLoginViaFacebook = function() {
-            if (typeof(FB) !== 'undefined') {
-                FB.getLoginStatus(function(response) {
-                    if (! response.status || response.status != 'connected') {
-                        FB.login(function(response) {
-                            if (response.authResponse) {
-                                obj.execute({ social: 'facebook', token: response.authResponse.accessToken });
-                            } else {
-                                obj.showMessage(jSuites.translate('Not authorized by facebook'));
-                            }
-                        }, {scope: 'public_profile,email'});
-                    } else {
-                        obj.execute({ f:response.authResponse.accessToken });
-                    }
-                }, true);
-            } else {
-                var jDestroy = function() {
-                    fbLogin.removeEventListener('loadstart', jStart);
-                    fbLogin.removeEventListener('loaderror', jError);
-                    fbLogin.removeEventListener('exit', jExit);
-                    fbLogin.close();
-                    fbLogin = null;
+            FB.getLoginStatus(function(response) {
+                if (! response.status || response.status != 'connected') {
+                    FB.login(function(response) {
+                        if (response.authResponse) {
+                            social = { social: 'facebook', token: response.authResponse.accessToken };
+
+                            obj.execute(social);
+                        } else {
+                            obj.showMessage(jSuites.translate('Not authorized by facebook'));
+                        }
+                    }, {scope: 'public_profile,email'});
+                } else {
+                    social = { social: 'facebook', token: response.authResponse.accessToken };
+
+                    obj.execute(social);
                 }
-
-                var jStart = function(event) {
-                    var url = event.url;
-                    if (url.indexOf("access_token") >= 0) {
-                        setTimeout(function(){
-                            var u = url.match(/=(.*?)&/);
-                            if (u[1].length > 32) {
-                                obj.execute({ f:u[1] });
-                            }
-                            jDestroy();
-                       },500);
-                    }
-
-                    if (url.indexOf("error=access_denied") >= 0) {
-                       setTimeout(jDestroy ,500);
-                       // Not authorized by facebook
-                       obj.showMessage(jSuites.translate('Not authorized by facebook'));
-                    }
-                }
-
-                var jError = function(event) {
-                    jDestroy();
-                }
-
-                var jExit = function(event) {
-                    jDestroy();
-                }
-
-                fbLogin = window.open(url, "_blank", "width=400,height=600,location=no,closebuttoncaption=Exit,disallowoverscroll=yes,toolbar=no");
-                fbLogin.addEventListener('loadstart', jStart);
-                fbLogin.addEventListener('loaderror', jError);
-                fbLogin.addEventListener('exit', jExit);
-            }
+            }, true);
 
             // Action
             action = 'requestLoginViaFacebook';
@@ -770,23 +760,21 @@
 
         // Perform request
         obj.execute = function(data) {
+            var message = null;
+
             // New profile
             if (action == 'newProfile') {
                 if (! jSuites.validations.email(inputUsername.value)) {
-                    var message = jSuites.translate('Invalid e-mail address');
+                    message = jSuites.translate('Invalid e-mail address');
                 }
                 if (! jSuites.validations.login(inputLogin.value)) {
-                    var message = jSuites.translate('Invalid username, please use only characters and numbers');
-                }
-                if (message) {
-                    obj.showMessage(message);
-                    return false;
+                    message = jSuites.translate('Invalid username, please use only characters and numbers');
                 }
             } else if (action == 'changeMyPassword') {
                 if (inputPassword.value.length < 3) {
-                    var message = jSuites.translate('Password is too short');
+                    message = jSuites.translate('Password is too short');
                 } else  if (inputPassword.value != inputRepeatPassword.value) {
-                    var message = jSuites.translate('Password should match');
+                    message = jSuites.translate('Password should match');
                 } else {
                     if (typeof(obj.options.newPasswordValidation) == 'function') {
                         var val = obj.options.newPasswordValidation(obj, inputPassword.value, inputPassword.value);
@@ -795,11 +783,18 @@
                         }
                     }
                 }
-
-                if (message) {
-                    obj.showMessage(message);
-                    return false;
+            } else if (action == 'bindSocialAccount') {
+                data = social;
+                if (! inputPassword.value) {
+                    message = jSuites.translate('Password is mandatory');
+                } else {
+                    data.password = sha512(inputPassword.value);
                 }
+            }
+
+            if (message) {
+                obj.showMessage(message);
+                return false;
             }
 
             // Keep email
@@ -824,7 +819,7 @@
             }
 
             // Callback
-            var onsuccess = function(result) {
+            var onsuccess = function(result, data) {
                 if (result) {
                     // Successfully response
                     if (result.success == 1) {
@@ -865,15 +860,18 @@
                     }
 
                     // Give time to user see the message
-                    if (result.hash) {
+                    if (result.action === 'bindSocialAccount') {
+                        // Change password
+                        obj.bindSocialAccount(result.hash);
+                    } else if (result.action === 'resetPassword') {
                         // Change password
                         obj.changeMyPassword(result.hash);
-                    } else if (result.url) {
+                    } else {
                         // App initialization
                         if (result.success == 1) {
                             if (typeof(obj.options.onsuccess) == 'function') {
-                                obj.options.onsuccess(result);
-                            } else {
+                                obj.options.onsuccess.call(obj, result, data);
+                            } else if (result.url) {
                                 if (result.message) {
                                     setTimeout(function() { window.location.href = result.url; }, 2000);
                                 } else {
@@ -892,7 +890,7 @@
             // Password
             if (! data) {
                 var data = jSuites.form.getElements(el, true);
-                // Encode passworfd
+                // Encode password
                 if (data.password) {
                     data.password = sha512(data.password);
                 }
@@ -921,7 +919,7 @@
                     // Remove loading
                     el.classList.remove('jlogin-loading');
                     // Callback
-                    onsuccess(result);
+                    onsuccess(result, data);
                 },
                 error: function(result) {
                     // Error
@@ -934,9 +932,10 @@
             });
         }
 
-        var queryString = window.location.href.split('?');
-        if (queryString[1] && queryString[1].length == 130 && queryString[1].substr(0,2) == 'h=') {
-            obj.changeMyPassword(queryString[1].substr(2));
+        var params = new URLSearchParams(window.location.search);
+        var hash = null;
+        if (hash = params.get('h')) {
+            obj.changeMyPassword(hash);
         } else {
             obj.requestAccess();
         }
