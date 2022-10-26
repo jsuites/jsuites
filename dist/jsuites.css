@@ -900,6 +900,7 @@ div[data-before]:before {
     color: #555;
     text-decoration: none;
     flex: 1;
+    cursor: pointer;
 }
 
 .jcontextmenu > div span {
@@ -907,6 +908,10 @@ div[data-before]:before {
 }
 
 .jcontextmenu .jcontextmenu-disabled a {
+    color: #ccc;
+}
+
+.jcontextmenu .jcontextmenu-disabled::before {
     color: #ccc;
 }
 

@@ -69,6 +69,10 @@
     color: #ccc;
 }
 
+.jcontextmenu .jcontextmenu-disabled::before {
+    color: #ccc;
+}
+
 .jcontextmenu > div:hover {
     background: #ebebeb;
 }

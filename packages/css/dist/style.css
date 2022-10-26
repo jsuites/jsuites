@@ -70,8 +70,7 @@ footer a {
 }
 
 input:disabled, select:disabled, textarea:disabled, button:disabled {
-    background-color:#eee;
-    color:#888;
+    color: #888;
 }
 
 .application {

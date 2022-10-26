@@ -16,9 +16,9 @@
         }
     ],
     "main": "sha512.js",
-    "version": "1.0.01",
+    "version": "1.0.2",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
-    "docs": "https://jsuites.net/v3",
+    "docs": "https://jsuites.net/v4",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip"
 }
