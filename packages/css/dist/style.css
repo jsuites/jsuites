@@ -782,12 +782,24 @@ jwarning .navbar {
     margin-right: 5px;
 }
 
+.start {
+    justify-content: start;
+}
+
 .center {
     text-align: center;
 }
 
 .right {
     text-align: right;
+}
+
+.left {
+    float: left;
+}
+
+.justify {
+    text-align: justify
 }
 
 @media (max-width: 600px) {
@@ -1404,4 +1416,50 @@ jwarning .navbar {
 .disabled {
     pointer-events: none;
     opacity: 0.5;
+}
+
+
+.fullpath {
+    display: flex;
+    -ms-flex-direction: row;
+    -webkit-flex-direction: row;
+    flex-direction: row;
+    padding: 4px;
+}
+
+.fullpath div {
+    line-height: 1.8em;
+}
+
+.fullpath input {
+    border: 0px;
+    margin: 0px;
+    padding: 0px;
+    outline: none;
+}
+
+.fullpath input.error {
+    outline: 1px solid red;
+}
+
+.breadcrumb {
+    display: inline-flex;
+    list-style: none;
+    margin: 0px;
+    padding: 0px;
+}
+
+.breadcrumb > li:after {
+    content: '\00BB';
+    padding: 8px;
+    font-size: 1.2em;
+}
+
+.breadcrumb > li:last-child:after {
+    opacity: 0;
+}
+
+.breadcrumb a:hover {
+    color: #000;
+    text-decoration: underline;
 }

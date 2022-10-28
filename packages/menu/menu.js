@@ -57,7 +57,7 @@
         return x;
     }
 
-    return (function(el, options) {
+    var Plugin = (function(el, options) {
         var obj = {};
 
         obj.show = function() {
@@ -200,5 +200,11 @@
 
         return obj;
     });
+
+    if (window.jSuites) {
+        jSuites.setExtensions({ menu: Plugin });
+    }
+
+    return Plugin;
 
 })));

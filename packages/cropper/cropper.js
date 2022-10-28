@@ -25,7 +25,7 @@
         }
     }
 
-    return (function(el, options) {
+    var Plugin = (function(el, options) {
         // Already created, update options
         if (el.crop) {
             return el.crop.setOptions(options, true);
@@ -983,4 +983,11 @@
 
         return obj;
     });
+
+    if (window.jSuites) {
+        jSuites.setExtensions({ crop: Plugin });
+    }
+
+    return Plugin;
+
 })));
