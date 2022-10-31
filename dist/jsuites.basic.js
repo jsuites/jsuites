@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.16.10';
+var Version = '4.16.11';
 
 var Events = function() {
 
@@ -1970,12 +1970,14 @@ jSuites.calendar.toArray = function(value) {
 
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
-    if (date > 0 && Number(date) == date) {
+    var o = jSuites.mask(date, { mask: format }, true);
+    
+    // Check if in format Excel (Need difference with format date or type detected is numeric)
+    if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
         var d = new Date(Math.round((date - 25569)*86400*1000));
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
-
-    var o = jSuites.mask(date, { mask: format }, true);
+    
     if (o.date[0] && o.date[1]) {
         if (! o.date[2]) {
             o.date[2] = 1;

@@ -219,7 +219,7 @@ jSuites.search = (function(el, options) {
     }
 
     obj.keyup = function(e) {
-        if (! obj.options.searchByNode) {
+        if (! obj.options.searchByNode && obj.options.input) {
             if (obj.options.input.tagName === 'DIV') {
                 var terms = obj.options.input.innerText;
             } else {

@@ -338,7 +338,7 @@ jSuites.tags = (function(el, options) {
     }
 
     var setFocus = function(node) {
-        if (el.children.length > 1) {
+        if (el.children.length) {
             var range = document.createRange();
             var sel = window.getSelection();
             if (! node) {
@@ -399,25 +399,27 @@ jSuites.tags = (function(el, options) {
      */
     var filter = function() {
         for (var i = 0; i < el.children.length; i++) {
-            // Create label design
-            if (! obj.getValue(i)) {
-                el.children[i].classList.remove('jtags_label');
-            } else {
-                el.children[i].classList.add('jtags_label');
+            if (el.children[i].tagName === 'DIV') {
+                // Create label design
+                if (!obj.getValue(i)) {
+                    el.children[i].classList.remove('jtags_label');
+                } else {
+                    el.children[i].classList.add('jtags_label');
 
-                // Validation in place
-                if (typeof(obj.options.validation) == 'function') {
-                    if (obj.getValue(i)) {
-                        if (! obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-value'))) {
-                            el.children[i].classList.add('jtags_error');
+                    // Validation in place
+                    if (typeof (obj.options.validation) == 'function') {
+                        if (obj.getValue(i)) {
+                            if (!obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-value'))) {
+                                el.children[i].classList.add('jtags_error');
+                            } else {
+                                el.children[i].classList.remove('jtags_error');
+                            }
                         } else {
                             el.children[i].classList.remove('jtags_error');
                         }
                     } else {
                         el.children[i].classList.remove('jtags_error');
                     }
-                } else {
-                    el.children[i].classList.remove('jtags_error');
                 }
             }
         }
@@ -428,8 +430,10 @@ jSuites.tags = (function(el, options) {
     var isEmpty = function() {
         // Can't be empty
         if (! el.innerText.trim()) {
-            el.innerHTML = '<div></div>';
-            el.classList.add('jtags-empty');
+            if (! el.children.length || el.children[0].tagName === 'BR') {
+                el.innerHTML = '';
+                setFocus(createElement());
+            }
         } else {
             el.classList.remove('jtags-empty');
         }
@@ -518,6 +522,9 @@ jSuites.tags = (function(el, options) {
         if (search) {
             search.keydown(e);
         }
+
+        // Verify if is empty
+        isEmpty();
     }
 
     /**

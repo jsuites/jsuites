@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.16.10';
+var Version = '4.16.11';
 
 var Events = function() {
 
@@ -1981,12 +1981,14 @@ jSuites.calendar.toArray = function(value) {
 
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
-    if (date > 0 && Number(date) == date) {
+    var o = jSuites.mask(date, { mask: format }, true);
+    
+    // Check if in format Excel (Need difference with format date or type detected is numeric)
+    if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
         var d = new Date(Math.round((date - 25569)*86400*1000));
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
-
-    var o = jSuites.mask(date, { mask: format }, true);
+    
     if (o.date[0] && o.date[1]) {
         if (! o.date[2]) {
             o.date[2] = 1;
@@ -10215,7 +10217,7 @@ jSuites.search = (function(el, options) {
     }
 
     obj.keyup = function(e) {
-        if (! obj.options.searchByNode) {
+        if (! obj.options.searchByNode && obj.options.input) {
             if (obj.options.input.tagName === 'DIV') {
                 var terms = obj.options.input.innerText;
             } else {
@@ -11479,7 +11481,7 @@ jSuites.tags = (function(el, options) {
     }
 
     var setFocus = function(node) {
-        if (el.children.length > 1) {
+        if (el.children.length) {
             var range = document.createRange();
             var sel = window.getSelection();
             if (! node) {
@@ -11540,25 +11542,27 @@ jSuites.tags = (function(el, options) {
      */
     var filter = function() {
         for (var i = 0; i < el.children.length; i++) {
-            // Create label design
-            if (! obj.getValue(i)) {
-                el.children[i].classList.remove('jtags_label');
-            } else {
-                el.children[i].classList.add('jtags_label');
+            if (el.children[i].tagName === 'DIV') {
+                // Create label design
+                if (!obj.getValue(i)) {
+                    el.children[i].classList.remove('jtags_label');
+                } else {
+                    el.children[i].classList.add('jtags_label');
 
-                // Validation in place
-                if (typeof(obj.options.validation) == 'function') {
-                    if (obj.getValue(i)) {
-                        if (! obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-value'))) {
-                            el.children[i].classList.add('jtags_error');
+                    // Validation in place
+                    if (typeof (obj.options.validation) == 'function') {
+                        if (obj.getValue(i)) {
+                            if (!obj.options.validation(el.children[i], el.children[i].innerText, el.children[i].getAttribute('data-value'))) {
+                                el.children[i].classList.add('jtags_error');
+                            } else {
+                                el.children[i].classList.remove('jtags_error');
+                            }
                         } else {
                             el.children[i].classList.remove('jtags_error');
                         }
                     } else {
                         el.children[i].classList.remove('jtags_error');
                     }
-                } else {
-                    el.children[i].classList.remove('jtags_error');
                 }
             }
         }
@@ -11569,8 +11573,10 @@ jSuites.tags = (function(el, options) {
     var isEmpty = function() {
         // Can't be empty
         if (! el.innerText.trim()) {
-            el.innerHTML = '<div></div>';
-            el.classList.add('jtags-empty');
+            if (! el.children.length || el.children[0].tagName === 'BR') {
+                el.innerHTML = '';
+                setFocus(createElement());
+            }
         } else {
             el.classList.remove('jtags-empty');
         }
@@ -11659,6 +11665,9 @@ jSuites.tags = (function(el, options) {
         if (search) {
             search.keydown(e);
         }
+
+        // Verify if is empty
+        isEmpty();
     }
 
     /**

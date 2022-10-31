@@ -771,6 +771,7 @@ jwarning .navbar {
 .navbar .icon {
     color:var(--active-color);
     cursor: pointer;
+    width: 24px;
 }
 
 [data-icon]:before {
