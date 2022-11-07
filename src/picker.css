@@ -29,7 +29,7 @@
 }
 
 .jpicker-header:hover {
-    background-color: #eee;
+    background-color: #f2f2f2;
 }
 
 .jpicker-content {
@@ -86,3 +86,8 @@
     justify-content: center;
     flex-wrap: wrap;
 }
+
+.jpicker-focus .jpicker-content.jpicker-grid {
+    display: inline-grid;
+}
+

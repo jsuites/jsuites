@@ -12,6 +12,13 @@ jSuites.picker = (function(el, options) {
     var dropdownContent = null;
 
     /**
+     * The element passed is a DOM element
+     */
+    var isDOM = function(o) {
+        return (o instanceof Element || o instanceof HTMLDocument);
+    }
+
+    /**
      * Create the content options
      */
     var createContent = function() {
@@ -28,7 +35,12 @@ jSuites.picker = (function(el, options) {
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
-            dropdownItem.innerHTML = obj.getLabel(keys[i]);
+            var item = obj.getLabel(keys[i], dropdownItem);
+            if (isDOM(item)) {
+                dropdownItem.appendChild(item);
+            } else {
+                dropdownItem.innerHTML = item;
+            }
             // Append
             dropdownContent.appendChild(dropdownItem);
         }
@@ -44,6 +56,7 @@ jSuites.picker = (function(el, options) {
             data: null,
             render: null,
             onchange: null,
+            onmouseover: null,
             onselect: null,
             onopen: null,
             onclose: null,
@@ -51,8 +64,10 @@ jSuites.picker = (function(el, options) {
             width: null,
             header: true,
             right: false,
+            bottom: false,
             content: false,
             columns: null,
+            grid: null,
             height: null,
         }
 
@@ -95,8 +110,13 @@ jSuites.picker = (function(el, options) {
         }
 
         if (obj.options.columns > 0) {
-            dropdownContent.classList.add('jpicker-columns');
-            dropdownContent.style.width =  obj.options.width ? obj.options.width : 36 * obj.options.columns + 'px';
+            if (! obj.options.grid) {
+                dropdownContent.classList.add('jpicker-columns');
+                dropdownContent.style.width = obj.options.width ? obj.options.width : 36 * obj.options.columns + 'px';
+            } else {
+                dropdownContent.classList.add('jpicker-grid');
+                dropdownContent.style.gridTemplateColumns = 'repeat(' + obj.options.grid + ', 1fr)';
+            }
         }
 
         if (isNaN(obj.options.value)) {
@@ -141,22 +161,29 @@ jSuites.picker = (function(el, options) {
         }
     }
 
-    obj.getLabel = function(v) {
+    obj.getLabel = function(v, item) {
         var label = obj.options.data[v] || null;
         if (typeof(obj.options.render) == 'function') {
-            label = obj.options.render(label);
+            label = obj.options.render(label, item);
         }
         return label;
     }
 
     obj.setLabel = function(v) {
-        if (obj.options.content) {
-            var label = '<i class="material-icons">' + obj.options.content + '</i>';
-        } else {
-            var label = obj.getLabel(v);
-        }
+        var item;
 
-        dropdownHeader.innerHTML = label;
+        if (obj.options.content) {
+            item = '<i class="material-icons">' + obj.options.content + '</i>';
+        } else {
+            item = obj.getLabel(v, null);
+        }
+        // Label
+        if (isDOM(item)) {
+            dropdownHeader.innerHTML = '';
+            dropdownHeader.appendChild(item);
+        } else {
+            dropdownHeader.innerHTML = item;
+        }
     }
 
     obj.open = function() {
@@ -176,7 +203,7 @@ jSuites.picker = (function(el, options) {
             var rectHeader = dropdownHeader.getBoundingClientRect();
             var rectContent = dropdownContent.getBoundingClientRect();
 
-            if (window.innerHeight < rectHeader.bottom + rectContent.height) {
+            if (window.innerHeight < rectHeader.bottom + rectContent.height || obj.options.bottom) {
                 top = -1 * (rectContent.height + 4);
             } else {
                 top = rectHeader.height + 4;

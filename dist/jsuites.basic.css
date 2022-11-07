@@ -1536,29 +1536,31 @@ div[data-before]:before {
     box-sizing: border-box;
 }
 
-.jeditor-dragging {
-     border:1px dashed #000;
+.jeditor-container.with-margin {
+    background-color: #f2f2f2;
+    max-width: 1200px;
 }
 
-.jeditor-container.jeditor-padding {
-    padding:10px;
+.jeditor-dragging {
+     border:1px dashed #000;
 }
 
 .jeditor {
     outline:none;
     word-break: break-word;
+}
 
+.jeditor-container.with-margin .jeditor {
+    background-color: #fff;
+    margin: 80px;
+    min-height: 800px;
+    padding: 80px;
+    max-width: 800px;
 }
 
 .jeditor[data-placeholder]:empty:before {
     content: attr(data-placeholder);
     color: lightgray;
-}
-
-.jeditor-container.jeditor-padding .jeditor {
-    min-height:100px;
-    margin-bottom:10px;
-    padding:10px;
 }
 
 /** Snippet **/
@@ -1647,7 +1649,7 @@ div[data-before]:before {
 }
 
 .jeditor img:focus {
-    border:2px solid #0096FD;
+    border: 2px solid #0096FD;
     outline: #0096FD;
 }
 
@@ -1663,6 +1665,59 @@ div[data-before]:before {
     width: fit-content;
     max-width: 100%;
     box-sizing: border-box;
+    margin: 10px;
+}
+
+.toolbar-on-top .jeditor-toolbar {
+    width: initial;
+    margin: 0px;
+    box-shadow: 1px 1px 2px rgb(0 0 0 / 10%);
+    display: block;
+}
+
+.toolbar-on-top .jeditor {
+    padding: 15px;
+}
+
+.toolbar-on-top .jtoolbar .material-icons {
+    font-size: 24px;
+    transform: initial;
+    margin: 4px;
+}
+
+.toolbar-on-top .jtoolbar .jpicker-header {
+    font-size: 1em;
+    margin-top: 4px;
+    margin-bottom: 4px;
+}
+
+.jeditor table {
+    border-collapse: collapse;
+}
+
+.jeditor table td {
+    border: 1px solid #bbb;
+    height: 2em;
+}
+
+.jeditor table td:focus {
+    border: 1px solid blue;
+}
+
+.jeditor .line-break {
+    border-top: 1px dashed #ccc;
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+}
+
+.jeditor .line-break:before {
+    content: 'New page';
+    background-color: #fff;
+    color: #ccc;
+    margin: -1em;
+    padding: 6px;
+    position: absolute;
 }
 
 .jloading {
@@ -1841,7 +1896,7 @@ div[data-before]:before {
 }
 
 .jpicker-header:hover {
-    background-color: #eee;
+    background-color: #f2f2f2;
 }
 
 .jpicker-content {
@@ -1898,6 +1953,11 @@ div[data-before]:before {
     justify-content: center;
     flex-wrap: wrap;
 }
+
+.jpicker-focus .jpicker-content.jpicker-grid {
+    display: inline-grid;
+}
+
 
 
 .jrating {
