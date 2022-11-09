@@ -420,8 +420,3 @@ jSuites.sha512 = (function(str) {
 
     return binb2hex(binarray);
 });
-
-if (! jSuites.login) {
-    jSuites.login = {};
-    jSuites.login.sha512 = jSuites.sha512;
-}

@@ -14,7 +14,6 @@
 }
 
 .jmenu nav {
-    font-family: Roboto;
     position: relative;
     margin-bottom: 2px;
 }
@@ -71,7 +70,6 @@
 }
 
 .jmenu nav > div {
-    font-family: Roboto;
     padding: 15px;
     display: none;
 }

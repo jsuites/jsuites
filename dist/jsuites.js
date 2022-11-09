@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.17.0';
+var Version = '4.17.2';
 
 var Events = function() {
 
@@ -7095,10 +7095,6 @@ jSuites.sha512 = (function(str) {
     return binb2hex(binarray);
 });
 
-if (! jSuites.login) {
-    jSuites.login = {};
-    jSuites.login.sha512 = jSuites.sha512;
-}
 
 jSuites.image = jSuites.upload = (function(el, options) {
     var obj = {};

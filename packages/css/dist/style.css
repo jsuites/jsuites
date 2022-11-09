@@ -1043,6 +1043,7 @@ jwarning .navbar {
     border-bottom: 1px solid #ddd;
     margin: 0px;
     margin-top: -1px;
+    padding: 0px;
 }
 
 .lines .form-group label {
