@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.17.2';
+var Version = '4.17.3';
 
 var Events = function() {
 
@@ -910,6 +910,8 @@ jSuites.calendar = (function(el, options) {
             position: null,
             // Data type
             dataType: null,
+            // Controls
+            controls: true,
         }
 
         // Loop through our object
@@ -946,7 +948,7 @@ jSuites.calendar = (function(el, options) {
 
         if (jSuites.isNumeric(obj.options.value) && obj.options.value > 0) {
             obj.options.value = jSuites.calendar.numToDate(obj.options.value);
-            // Data type numberic
+            // Data type numeric
             obj.options.dataType = 'numeric';
         }
 
@@ -1154,6 +1156,8 @@ jSuites.calendar = (function(el, options) {
             if (! newValue) {
                 obj.date = null;
                 var val = '';
+                el.classList.remove('jcalendar_warning');
+                el.title = '';
             } else {
                 var value = obj.setLabel(newValue, obj.options);
                 var date = newValue.split(' ');
@@ -1169,6 +1173,35 @@ jSuites.calendar = (function(el, options) {
                 var i = parseInt(time[1]);
                 obj.date = [ y, m, d, h, i, 0 ];
                 var val = obj.setLabel(newValue, obj.options);
+
+                // Current selection day
+                var current = jSuites.calendar.now(new Date(y, m-1, d), true);
+
+                // Available ranges
+                if (obj.options.validRange) {
+                    if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                        var test1 = true;
+                    } else {
+                        var test1 = false;
+                    }
+
+                    if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+                        var test2 = true;
+                    } else {
+                        var test2 = false;
+                    }
+
+                    if (! (test1 && test2)) {
+                        el.classList.add('jcalendar_warning');
+                        el.title = jSuites.translate('Date outside the valid range');
+                    } else {
+                        el.classList.remove('jcalendar_warning');
+                        el.title = '';
+                    }
+                } else {
+                    el.classList.remove('jcalendar_warning');
+                    el.title = '';
+                }
             }
 
             // New value
@@ -1192,6 +1225,10 @@ jSuites.calendar = (function(el, options) {
         }
 
         obj.getDays();
+        // Render months
+        if (obj.options.type == 'year-month-picker') {
+            obj.getMonths();
+        }
     }
 
     obj.getValue = function() {
@@ -1641,6 +1678,11 @@ jSuites.calendar = (function(el, options) {
         calendarContainer = document.createElement('div');
         calendarContainer.className = 'jcalendar-container';
 
+        // Controls
+        if (! obj.options.controls) {
+            calendarContainer.classList.add('jcalendar-hide-controls');
+        }
+
         calendarContent = document.createElement('div');
         calendarContent.className = 'jcalendar-content';
         calendarContainer.appendChild(calendarContent);
@@ -1971,23 +2013,29 @@ jSuites.calendar.toArray = function(value) {
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
     var o = jSuites.mask(date, { mask: format }, true);
-    
+
     // Check if in format Excel (Need difference with format date or type detected is numeric)
     if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
         var d = new Date(Math.round((date - 25569)*86400*1000));
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
-    
-    if (o.date[0] && o.date[1]) {
+
+    var complete = false;
+
+    if (o.values.length === o.tokens.length && o.values[o.values.length-1].length >= o.tokens[o.tokens.length-1].length) {
+        complete = true;
+    }
+
+    if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
         if (! o.date[2]) {
             o.date[2] = 1;
         }
 
         return o.date[0] + '-' + jSuites.two(o.date[1]) + '-' + jSuites.two(o.date[2]) + ' ' + jSuites.two(o.date[3]) + ':' + jSuites.two(o.date[4])+ ':' + jSuites.two(o.date[5]);
     }
+
     return '';
 }
-
 
 var excelInitialTime = Date.UTC(1900, 0, 0);
 var excelLeapYearBug = Date.UTC(1900, 1, 29);
@@ -7075,7 +7123,7 @@ jSuites.mask = (function() {
         // Number
         numeric: [ '0{1}(.{1}0+)?' ],
         // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M' ],
+        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
         general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
     }
@@ -7456,6 +7504,10 @@ jSuites.mask = (function() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
+            if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
+                this.values[this.index] += v;
+                return;
+            }
             var pos = 0;
             var count = 0;
             var value = (this.values[this.index] + v).toLowerCase();
@@ -7483,11 +7535,17 @@ jSuites.mask = (function() {
                 this.date[1] = ret + 1;
             }
         },
+        'MON': function(v) {
+            parser['MMM'].call(this, v);
+        },
         'MMMM': function(v) {
             var ret = parser.FIND.call(this, v, monthsFull);
             if (ret !== undefined) {
                 this.date[1] = ret + 1;
             }
+        },
+        'MONTH': function(v) {
+            parser['MMMM'].call(this, v);
         },
         'MMMMM': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -7620,8 +7678,14 @@ jSuites.mask = (function() {
         'DDD': function(v) {
             parser.FIND.call(this, v, weekDays);
         },
+        'DY': function(v) {
+            parser['DDD'].call(this, v);
+        },
         'DDDD': function(v) {
             parser.FIND.call(this, v, weekDaysFull);
+        },
+        'DAY': function(v) {
+            parser['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
             if (isBlank(this.values[this.index])) {
@@ -8152,6 +8216,7 @@ jSuites.mask = (function() {
                 // Get tokens
                 o.tokens = getTokens.call(o, o.mask);
             }
+
             // On new input
             if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
                 // Start transformation
@@ -8164,6 +8229,8 @@ jSuites.mask = (function() {
                 } else {
                     // Get tokens
                     o.methods = getMethods.call(o, o.tokens);
+                    o.event = e;
+
                     // Go through all tokes
                     while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
                         // Get the appropriate parser

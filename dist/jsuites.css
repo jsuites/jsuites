@@ -585,6 +585,14 @@ div[data-before]:before {
     display:flex;
 }
 
+.jcalendar_warning {
+    color: red;
+}
+
+.jcalendar-hide-controls .jcalendar-controls {
+    display: none;
+}
+
 
 .jcolor {
     display: none;

@@ -204,3 +204,11 @@
 .jcalendar-time {
     display:flex;
 }
+
+.jcalendar_warning {
+    color: red;
+}
+
+.jcalendar-hide-controls .jcalendar-controls {
+    display: none;
+}

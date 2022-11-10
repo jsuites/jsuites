@@ -58,6 +58,8 @@ jSuites.calendar = (function(el, options) {
             position: null,
             // Data type
             dataType: null,
+            // Controls
+            controls: true,
         }
 
         // Loop through our object
@@ -94,7 +96,7 @@ jSuites.calendar = (function(el, options) {
 
         if (jSuites.isNumeric(obj.options.value) && obj.options.value > 0) {
             obj.options.value = jSuites.calendar.numToDate(obj.options.value);
-            // Data type numberic
+            // Data type numeric
             obj.options.dataType = 'numeric';
         }
 
@@ -302,6 +304,8 @@ jSuites.calendar = (function(el, options) {
             if (! newValue) {
                 obj.date = null;
                 var val = '';
+                el.classList.remove('jcalendar_warning');
+                el.title = '';
             } else {
                 var value = obj.setLabel(newValue, obj.options);
                 var date = newValue.split(' ');
@@ -317,6 +321,35 @@ jSuites.calendar = (function(el, options) {
                 var i = parseInt(time[1]);
                 obj.date = [ y, m, d, h, i, 0 ];
                 var val = obj.setLabel(newValue, obj.options);
+
+                // Current selection day
+                var current = jSuites.calendar.now(new Date(y, m-1, d), true);
+
+                // Available ranges
+                if (obj.options.validRange) {
+                    if (! obj.options.validRange[0] || current >= obj.options.validRange[0]) {
+                        var test1 = true;
+                    } else {
+                        var test1 = false;
+                    }
+
+                    if (! obj.options.validRange[1] || current <= obj.options.validRange[1]) {
+                        var test2 = true;
+                    } else {
+                        var test2 = false;
+                    }
+
+                    if (! (test1 && test2)) {
+                        el.classList.add('jcalendar_warning');
+                        el.title = jSuites.translate('Date outside the valid range');
+                    } else {
+                        el.classList.remove('jcalendar_warning');
+                        el.title = '';
+                    }
+                } else {
+                    el.classList.remove('jcalendar_warning');
+                    el.title = '';
+                }
             }
 
             // New value
@@ -340,6 +373,10 @@ jSuites.calendar = (function(el, options) {
         }
 
         obj.getDays();
+        // Render months
+        if (obj.options.type == 'year-month-picker') {
+            obj.getMonths();
+        }
     }
 
     obj.getValue = function() {
@@ -789,6 +826,11 @@ jSuites.calendar = (function(el, options) {
         calendarContainer = document.createElement('div');
         calendarContainer.className = 'jcalendar-container';
 
+        // Controls
+        if (! obj.options.controls) {
+            calendarContainer.classList.add('jcalendar-hide-controls');
+        }
+
         calendarContent = document.createElement('div');
         calendarContent.className = 'jcalendar-content';
         calendarContainer.appendChild(calendarContent);
@@ -1119,23 +1161,29 @@ jSuites.calendar.toArray = function(value) {
 // Helper to extract date from a string
 jSuites.calendar.extractDateFromString = function(date, format) {
     var o = jSuites.mask(date, { mask: format }, true);
-    
+
     // Check if in format Excel (Need difference with format date or type detected is numeric)
     if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
         var d = new Date(Math.round((date - 25569)*86400*1000));
         return d.getFullYear() + "-" + jSuites.two(d.getMonth()) + "-" + jSuites.two(d.getDate()) + ' 00:00:00';
     }
-    
-    if (o.date[0] && o.date[1]) {
+
+    var complete = false;
+
+    if (o.values.length === o.tokens.length && o.values[o.values.length-1].length >= o.tokens[o.tokens.length-1].length) {
+        complete = true;
+    }
+
+    if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
         if (! o.date[2]) {
             o.date[2] = 1;
         }
 
         return o.date[0] + '-' + jSuites.two(o.date[1]) + '-' + jSuites.two(o.date[2]) + ' ' + jSuites.two(o.date[3]) + ':' + jSuites.two(o.date[4])+ ':' + jSuites.two(o.date[5]);
     }
+
     return '';
 }
-
 
 var excelInitialTime = Date.UTC(1900, 0, 0);
 var excelLeapYearBug = Date.UTC(1900, 1, 29);

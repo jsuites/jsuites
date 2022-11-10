@@ -10,7 +10,7 @@ jSuites.mask = (function() {
         // Number
         numeric: [ '0{1}(.{1}0+)?' ],
         // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'MONTH', 'MON', 'Y', 'M' ],
+        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
         general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
     }
@@ -391,6 +391,10 @@ jSuites.mask = (function() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
+            if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
+                this.values[this.index] += v;
+                return;
+            }
             var pos = 0;
             var count = 0;
             var value = (this.values[this.index] + v).toLowerCase();
@@ -418,11 +422,17 @@ jSuites.mask = (function() {
                 this.date[1] = ret + 1;
             }
         },
+        'MON': function(v) {
+            parser['MMM'].call(this, v);
+        },
         'MMMM': function(v) {
             var ret = parser.FIND.call(this, v, monthsFull);
             if (ret !== undefined) {
                 this.date[1] = ret + 1;
             }
+        },
+        'MONTH': function(v) {
+            parser['MMMM'].call(this, v);
         },
         'MMMMM': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -555,8 +565,14 @@ jSuites.mask = (function() {
         'DDD': function(v) {
             parser.FIND.call(this, v, weekDays);
         },
+        'DY': function(v) {
+            parser['DDD'].call(this, v);
+        },
         'DDDD': function(v) {
             parser.FIND.call(this, v, weekDaysFull);
+        },
+        'DAY': function(v) {
+            parser['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
             if (isBlank(this.values[this.index])) {
@@ -1087,6 +1103,7 @@ jSuites.mask = (function() {
                 // Get tokens
                 o.tokens = getTokens.call(o, o.mask);
             }
+
             // On new input
             if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
                 // Start transformation
@@ -1099,6 +1116,8 @@ jSuites.mask = (function() {
                 } else {
                     // Get tokens
                     o.methods = getMethods.call(o, o.tokens);
+                    o.event = e;
+
                     // Go through all tokes
                     while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
                         // Get the appropriate parser
