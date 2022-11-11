@@ -295,7 +295,6 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
     width: 100%;
     max-width: 380px;
     float: right;
-    margin: 2px;
 }
 
 .f1 {
@@ -882,14 +881,11 @@ jwarning .navbar {
     .section-container .list-header {
         margin: 0px;
         padding: 10px;
-    }
-
-    .top-search {
         border-bottom: 1px solid #ddd;
     }
 
-     .top-search input,
-     .section-container .list-header input {
+    .top-search input,
+    .section-container .list-header input {
         background-color: #e6e6e6;
         border: 0px;
         border-radius: 4px;
@@ -902,6 +898,19 @@ jwarning .navbar {
         padding-left: 32px;
     }
 
+    .list-content:empty {
+        padding: 0px;
+    }
+
+    .list-content:empty::before {
+        width: 100%;
+        position: absolute;
+        text-align: center;
+        font-size: 0.8em;
+        padding: 20px;
+        box-sizing: border-box;
+    }
+
     .section-divisor {
         padding: 20px;
         border: 1px solid transparent;
@@ -911,18 +920,19 @@ jwarning .navbar {
         display: none;
     }
 
+    ::placeholder {
+        text-transform: uppercase;
+    }
+
     ::-webkit-input-placeholder {
-       color: #ccc;
        text-transform: uppercase;
     }
 
     :-moz-placeholder {
-       color: #ccc;
       text-transform: uppercase;
     }
 
     :-ms-input-placeholder {
-       color: #ccc;
        text-transform: uppercase;
     }
 
@@ -1125,7 +1135,11 @@ jwarning .navbar {
 }
 
 .lines .form-group .jcalendar-input {
-    background-position: top 50% right 8px;
+    background-position: top 50% right 16px;
+}
+
+.lines .form-group .jdropdown-header {
+    background-position: top 50% right 12px;
 }
 
 .lines .form-group .icon {
@@ -1464,4 +1478,20 @@ jwarning .navbar {
 .breadcrumb a:hover {
     color: #000;
     text-decoration: underline;
+}
+
+::placeholder {
+    color: #ccc;
+}
+
+::-webkit-input-placeholder {
+    color: #ccc;
+}
+
+:-moz-placeholder {
+    color: #ccc;
+}
+
+:-ms-input-placeholder {
+    color: #ccc;
 }

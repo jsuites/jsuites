@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.17.4';
+var Version = '4.17.5';
 
 var Events = function() {
 
@@ -1358,8 +1358,8 @@ jSuites.calendar = (function(el, options) {
             // Reset cells container
             var row = document.createElement('tr');
             row.setAttribute('align', 'center');
-            // Data control
-            var emptyRow = true;
+            row.style.height = '34px';
+
             // Create cells
             for (var i = 0; i < 7; i++) {
                 // Create cell
@@ -1402,9 +1402,6 @@ jSuites.calendar = (function(el, options) {
                             cell.classList.add('jcalendar-disabled');
                         }
                     }
-
-                    // Control
-                    emptyRow = false;
                 }
                 // Day cell
                 row.appendChild(cell);
@@ -1413,9 +1410,7 @@ jSuites.calendar = (function(el, options) {
             }
 
             // Add cell to the calendar body
-            if (emptyRow == false) {
-                calendarBody.appendChild(row);
-            }
+            calendarBody.appendChild(row);
         }
 
         // Show time controls
@@ -1824,14 +1819,12 @@ jSuites.calendar = (function(el, options) {
             e.stopPropagation();
         });
 
-        el.onmouseup = function() {
-            obj.open();
-        }
-
         if ('ontouchend' in document.documentElement === true) {
             calendar.addEventListener("touchend", mouseUpControls);
+            el.addEventListener("touchend", obj.open);
         } else {
             calendar.addEventListener("mouseup", mouseUpControls);
+            el.addEventListener("mouseup", obj.open);
         }
 
         // Global controls
