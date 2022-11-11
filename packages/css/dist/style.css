@@ -49,7 +49,7 @@ footer a {
 }
 
 [visible="false"] {
-    display: none;
+    display: none !important;
 }
 
 [visible="true"] {

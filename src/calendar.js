@@ -825,12 +825,6 @@ jSuites.calendar = (function(el, options) {
 
         calendarContainer = document.createElement('div');
         calendarContainer.className = 'jcalendar-container';
-
-        // Controls
-        if (! obj.options.controls) {
-            calendarContainer.classList.add('jcalendar-hide-controls');
-        }
-
         calendarContent = document.createElement('div');
         calendarContent.className = 'jcalendar-content';
         calendarContainer.appendChild(calendarContent);
@@ -1021,6 +1015,11 @@ jSuites.calendar = (function(el, options) {
         // Default opened
         if (obj.options.opened == true) {
             obj.open();
+        }
+
+        // Controls
+        if (obj.options.controls == false) {
+            calendarContainer.classList.add('jcalendar-hide-controls');
         }
 
         // Change method
