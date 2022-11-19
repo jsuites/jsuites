@@ -1,4 +1,15 @@
-jSuites.focus = function(el) {
+const Component = {};
+
+// Two digits
+Component.two = function(value) {
+    value = '' + value;
+    if (value.length == 1) {
+        value = '0' + value;
+    }
+    return value;
+}
+
+Component.focus = function(el) {
     if (el.innerText.length) {
         var range = document.createRange();
         var sel = window.getSelection();
@@ -11,21 +22,21 @@ jSuites.focus = function(el) {
     }
 }
 
-jSuites.isNumeric = (function (num) {
+Component.isNumeric = (function (num) {
     if (typeof(num) === 'string') {
         num = num.trim();
     }
     return !isNaN(num) && num !== null && num !== '';
 });
 
-jSuites.guid = function() {
+Component.guid = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
 
-jSuites.getNode = function() {
+Component.getNode = function() {
     var node = document.getSelection().anchorNode;
     if (node) {
         return (node.nodeType == 3 ? node.parentNode : node);
@@ -36,7 +47,7 @@ jSuites.getNode = function() {
 /**
  * Generate hash from a string
  */
-jSuites.hash = function(str) {
+Component.hash = function(str) {
     var hash = 0, i, chr;
 
     if (str.length === 0) {
@@ -56,7 +67,7 @@ jSuites.hash = function(str) {
 /**
  * Generate a random color
  */
-jSuites.randomColor = function(h) {
+Component.randomColor = function(h) {
     var lum = -0.25;
     var hex = String('#' + Math.random().toString(16).slice(2, 8).toUpperCase()).replace(/[^0-9a-f]/gi, '');
     if (hex.length < 6) {
@@ -71,13 +82,13 @@ jSuites.randomColor = function(h) {
 
     // Return hex
     if (h == true) {
-        return '#' + jSuites.two(rgb[0].toString(16)) + jSuites.two(rgb[1].toString(16)) + jSuites.two(rgb[2].toString(16));
+        return '#' + Component.two(rgb[0].toString(16)) + Component.two(rgb[1].toString(16)) + Component.two(rgb[2].toString(16));
     }
 
     return rgb;
 }
 
-jSuites.getWindowWidth = function() {
+Component.getWindowWidth = function() {
     var w = window,
     d = document,
     e = d.documentElement,
@@ -86,7 +97,7 @@ jSuites.getWindowWidth = function() {
     return x;
 }
 
-jSuites.getWindowHeight = function() {
+Component.getWindowHeight = function() {
     var w = window,
     d = document,
     e = d.documentElement,
@@ -95,7 +106,7 @@ jSuites.getWindowHeight = function() {
     return  y;
 }
 
-jSuites.getPosition = function(e) {
+Component.getPosition = function(e) {
     if (e.changedTouches && e.changedTouches[0]) {
         var x = e.changedTouches[0].pageX;
         var y = e.changedTouches[0].pageY;
@@ -107,7 +118,7 @@ jSuites.getPosition = function(e) {
     return [ x, y ];
 }
 
-jSuites.click = function(el) {
+Component.click = function(el) {
     if (el.click) {
         el.click();
     } else {
@@ -120,7 +131,7 @@ jSuites.click = function(el) {
     }
 }
 
-jSuites.findElement = function(element, condition) {
+Component.findElement = function(element, condition) {
     var foundElement = false;
 
     function path (element) {
@@ -144,16 +155,7 @@ jSuites.findElement = function(element, condition) {
     return foundElement;
 }
 
-// Two digits
-jSuites.two = function(value) {
-    value = '' + value;
-    if (value.length == 1) {
-        value = '0' + value;
-    }
-    return value;
-}
-
-jSuites.sha512 = (function(str) {
+Component.sha512 = (function(str) {
     function int64(msint_32, lsint_32) {
         this.highOrder = msint_32;
         this.lowOrder = lsint_32;
@@ -218,11 +220,11 @@ jSuites.sha512 = (function(str) {
         var bin = [];
         var mask = (1 << charsize) - 1;
         var len = str.length * charsize;
-    
+
         for (var i = 0; i < len; i += charsize) {
             bin[i >> 5] |= (str.charCodeAt(i / charsize) & mask) << (32 - charsize - (i % 32));
         }
-    
+
         return bin;
     }
 
@@ -420,3 +422,5 @@ jSuites.sha512 = (function(str) {
 
     return binb2hex(binarray);
 });
+
+export default Component;

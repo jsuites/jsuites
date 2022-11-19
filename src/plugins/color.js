@@ -1,4 +1,6 @@
-jSuites.color = (function(el, options) {
+import Palette from './palette';
+
+export default function Color(el, options) {
     // Already created, update options
     if (el.color) {
         return el.color.setOptions(options, true);
@@ -51,8 +53,8 @@ jSuites.color = (function(el, options) {
         }
 
         if (options && ! options.palette) {
-            // Default pallete
-            options.palette = jSuites.palette();
+            // Default palette
+            options.palette = Palette();
         }
 
         // Loop through our object
@@ -685,5 +687,4 @@ jSuites.color = (function(el, options) {
     init();
 
     return obj;
-});
-
+}

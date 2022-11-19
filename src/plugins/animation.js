@@ -1,6 +1,6 @@
-jSuites.animation = {};
+const Animation = {};
 
-jSuites.animation.slideLeft = function(element, direction, done) {
+Animation.slideLeft = function(element, direction, done) {
     if (direction == true) {
         element.classList.add('slide-left-in');
         setTimeout(function() {
@@ -20,7 +20,7 @@ jSuites.animation.slideLeft = function(element, direction, done) {
     }
 }
 
-jSuites.animation.slideRight = function(element, direction, done) {
+Animation.slideRight = function(element, direction, done) {
     if (direction == true) {
         element.classList.add('slide-right-in');
         setTimeout(function() {
@@ -40,7 +40,7 @@ jSuites.animation.slideRight = function(element, direction, done) {
     }
 }
 
-jSuites.animation.slideTop = function(element, direction, done) {
+Animation.slideTop = function(element, direction, done) {
     if (direction == true) {
         element.classList.add('slide-top-in');
         setTimeout(function() {
@@ -60,7 +60,7 @@ jSuites.animation.slideTop = function(element, direction, done) {
     }
 }
 
-jSuites.animation.slideBottom = function(element, direction, done) {
+Animation.slideBottom = function(element, direction, done) {
     if (direction == true) {
         element.classList.add('slide-bottom-in');
         setTimeout(function() {
@@ -80,7 +80,7 @@ jSuites.animation.slideBottom = function(element, direction, done) {
     }
 }
 
-jSuites.animation.fadeIn = function(element, done) {
+Animation.fadeIn = function(element, done) {
     element.style.display = '';
     element.classList.add('fade-in');
     setTimeout(function() {
@@ -91,7 +91,7 @@ jSuites.animation.fadeIn = function(element, done) {
     }, 2000);
 }
 
-jSuites.animation.fadeOut = function(element, done) {
+Animation.fadeOut = function(element, done) {
     element.classList.add('fade-out');
     setTimeout(function() {
         element.style.display = 'none';
@@ -101,3 +101,5 @@ jSuites.animation.fadeOut = function(element, done) {
         }
     }, 1000);
 }
+
+export default Animation;

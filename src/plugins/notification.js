@@ -1,4 +1,7 @@
-jSuites.notification = (function(options) {
+import { getWindowWidth } from '../helpers';
+import Animation from './animation';
+
+function Notification(options) {
     var obj = {};
     obj.options = {};
 
@@ -85,16 +88,16 @@ jSuites.notification = (function(options) {
 
     obj.show = function() {
         document.body.appendChild(notification);
-        if (jSuites.getWindowWidth() > 800) { 
-            jSuites.animation.fadeIn(notification);
+        if (getWindowWidth() > 800) {
+            Animation.fadeIn(notification);
         } else {
-            jSuites.animation.slideTop(notification, 1);
+            Animation.slideTop(notification, 1);
         }
     }
 
     obj.hide = function() {
-        if (jSuites.getWindowWidth() > 800) { 
-            jSuites.animation.fadeOut(notification, function() {
+        if (getWindowWidth() > 800) {
+            Animation.fadeOut(notification, function() {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                     if (notificationTimeout) {
@@ -103,7 +106,7 @@ jSuites.notification = (function(options) {
                 }
             });
         } else {
-            jSuites.animation.slideTop(notification, 0, function() {
+            Animation.slideTop(notification, 0, function() {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
                     if (notificationTimeout) {
@@ -122,7 +125,7 @@ jSuites.notification = (function(options) {
         }, obj.options.timeout);
     }
 
-    if (jSuites.getWindowWidth() < 800) {
+    if (getWindowWidth() < 800) {
         notification.addEventListener("swipeup", function(e) {
             obj.hide();
             e.preventDefault();
@@ -131,9 +134,11 @@ jSuites.notification = (function(options) {
     }
 
     return obj;
-});
+}
 
-jSuites.notification.isVisible = function() {
+Notification.isVisible = function() {
     var j = document.querySelector('.jnotification');
     return j && j.parentNode ? true : false;
 }
+
+export default Notification;
