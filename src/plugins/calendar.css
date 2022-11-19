@@ -1,0 +1,221 @@
+.jcalendar {
+    position:absolute;
+    z-index:9000;
+    display:none;
+    box-sizing:border-box;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    -webkit-tap-highlight-color: transparent;
+    min-width:280px;
+}
+
+.jcalendar.jcalendar-focus {
+    display:block;
+}
+
+.jcalendar .jcalendar-backdrop {
+    position:fixed;
+    top:0px;
+    left:0px;
+    z-index:9000;
+    min-width:100%;
+    min-height:100%;
+    background-color:rgba(0,0,0,0.5);
+    border:0px;
+    padding:0px;
+    display:none;
+}
+
+.jcalendar .jcalendar-container {
+    position:relative;
+    box-sizing:border-box;
+}
+
+.jcalendar .jcalendar-content {
+    position:absolute;
+    z-index:9001;
+    -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    background-color:#fff;
+}
+
+.jcalendar-header {
+    text-align:center;
+}
+
+.jcalendar-header span {
+    margin-right:4px;
+    font-size:1.1em;
+    font-weight:bold;
+}
+
+.jcalendar-prev {
+    cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M15.41 16.59L10.83 12l4.58-4.59L14 6l-6 6 6 6 1.41-1.41z' fill='%23000' /%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3C/svg%3E");
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+.jcalendar-next {
+    cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z' fill='%23000' /%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3C/svg%3E");
+    background-position:center;
+    background-repeat:no-repeat;
+}
+
+.jcalendar-weekday {
+    font-weight: 600;
+    background-color: #fcfcfc;
+    padding: 14px;
+}
+
+.jcalendar-table {
+    padding: 10px;
+}
+
+.jcalendar-table > table {
+    width:100%;
+    background-color:#fff;
+}
+
+.jcalendar-table > table > thead {
+    cursor: pointer;
+}
+
+.jcalendar-table thead td {
+    padding: 10px;
+    height: 40px;
+}
+
+.jcalendar-table > table > tbody > tr {
+    height: 34px;
+}
+
+.jcalendar-table > table > tbody td {
+    box-sizing:border-box;
+    cursor:pointer;
+    padding:9px;
+    font-size:0.9em;
+}
+
+.jcalendar-table tfoot td {
+    padding:10px;
+}
+
+.jcalendar-months td, .jcalendar-years td {
+    height:24px;
+} 
+
+.jcalendar-input {
+    padding-right:18px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M20 3h-1V1h-2v2H7V1H5v2H4c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 18H4V8h16v13z'/%3E%3Cpath fill='none' d='M0 0h24v24H0z'/%3E%3C/svg%3E");
+    background-position:top 50% right 5px;
+    background-repeat:no-repeat;
+    box-sizing: border-box;
+}
+
+.jcalendar-done {
+    -webkit-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    -moz-box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    box-shadow: 1px 1px 5px 0px rgba(0,0,0,0.39);
+    background-color:#fff;
+}
+
+.jcalendar-update {
+    border:1px solid #ccc;
+    background-color:#fff;
+    border-radius:4px;
+    padding:5px;
+    width:100%;
+}
+
+.jcalendar-container select {
+    width:55px;
+    display:inline-block;
+    border:0px;
+    padding:4px;
+    text-align:center;
+    font-size:1.1em;
+    user-select:none;
+    margin-right:10px;
+}
+
+.jcalendar-container select:first-child {
+    margin-right:2px;
+}
+
+.jcalendar-selected {
+    background-color:#eee;
+}
+
+.jcalendar-reset, .jcalendar-confirm {
+    text-transform:uppercase;
+    cursor:pointer;
+    color: var(--active-color);
+}
+
+.jcalendar-controls {
+    padding:15px;
+
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    vertical-align:middle;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-flow: row wrap;
+    justify-content: space-between;
+    align-items:center;
+}
+
+.jcalendar-controls div {
+    font-weight:bold;
+}
+
+.jcalendar-fullsize  {
+    position:fixed;
+    width:100%;
+    top:0px;
+    left:0px;
+}
+
+.jcalendar-fullsize .jcalendar-content
+{
+    position:fixed;
+    width:100%;
+    left:0px;
+    bottom:0px;
+}
+
+.jcalendar-focus.jcalendar-fullsize .jcalendar-backdrop {
+    display:block;
+}
+
+.jcalendar-sunday {
+    color: red;
+}
+.jcalendar-disabled {
+    color: #ccc;
+}
+
+.jcalendar-time {
+    display:flex;
+}
+
+.jcalendar_warning {
+    color: red;
+}
+
+.jcalendar-hide-controls .jcalendar-controls {
+    display: none;
+}

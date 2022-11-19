@@ -1,0 +1,93 @@
+.jpicker {
+    cursor: pointer;
+    white-space: nowrap;
+    display: inline-flex;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    outline: none;
+    position: relative;
+}
+
+.jpicker-header {
+    background-repeat: no-repeat;
+    background-position: top 50% right 5px;
+    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath fill='none' d='M0 0h24v24H0V0z'/%3E%3Cpath d='M7 10l5 5 5-5H7z' fill='gray'/%3E%3C/svg%3E");
+    text-overflow: ellipsis;
+    cursor: pointer;
+    box-sizing: border-box;
+    text-align: left;
+    outline: none;
+
+    line-height: 24px;
+    padding: 2px;
+    padding-left: 12px;
+    padding-right: 35px;
+    outline: none;
+    border-radius: 4px;
+}
+
+.jpicker-header:hover {
+    background-color: #f2f2f2;
+}
+
+.jpicker-content {
+    position: absolute;
+    top: 0;
+    display: none;
+    box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
+    border-radius: 4px;
+    background-color: #fff;
+    padding: 4px;
+    z-index: 50;
+    text-align: left;
+    max-height: 200px;
+    scrollbar-width: thin;
+    scrollbar-color: #333 transparent;
+}
+
+.jpicker-content::-webkit-scrollbar {
+    width: 8px;
+}
+
+.jpicker-content::-webkit-scrollbar-track {
+    background: #eee;
+}
+ 
+.jpicker-content::-webkit-scrollbar-thumb {
+    background: #888;
+}
+ 
+.jpicker-content > div {
+    padding: 6px;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+.jpicker-focus > .jpicker-content {
+    display: block;
+}
+
+.jpicker-content > div:hover {
+    background-color:#efefef;
+}
+
+.jpicker-content > div:empty {
+    opacity: 0;
+}
+
+.jpicker-header > i, .jpicker-header > div {
+    display: block;
+}
+
+.jpicker-focus > .jpicker-content.jpicker-columns {
+    display: flex !important ;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.jpicker-focus .jpicker-content.jpicker-grid {
+    display: inline-grid;
+}
+
