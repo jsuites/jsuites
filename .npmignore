@@ -2,12 +2,7 @@
 .project
 .settings
 .gitignore
-.gitattributes
 tests
 src
-dev
 packages
-resources
 node_modules
-compile.php
-docker-compose.yml
