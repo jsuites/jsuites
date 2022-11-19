@@ -30,7 +30,6 @@
     border-radius: 4px;
     margin: 0px;
     letter-spacing: 1.1px;
-    color: #555;
 }
 
 .jmenu nav.selected h2 {
@@ -102,7 +101,7 @@
 }
 
 .jmenu a {
-    color: #555;
+    color: #000;
     text-decoration: none;
 }
 

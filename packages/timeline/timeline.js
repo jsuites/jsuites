@@ -24,6 +24,7 @@
             var jSuites = window.jSuites;
         }
     }
+
     return (function(el, options) {
         // Already created, update options
         var obj = {};
