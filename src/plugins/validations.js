@@ -1,4 +1,4 @@
-jSuites.validations = (function() {
+function Validations() {
     /**
      * Options: Object,
      * Properties:
@@ -221,4 +221,6 @@ jSuites.validations = (function() {
     }
 
     return component;
-})();
+}
+
+export default Validations();
