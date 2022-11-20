@@ -1,4 +1,4 @@
-jSuites.search = (function(el, options) {
+export default function Search(el, options) {
     if (el.search) {
         return el.search;
     }
@@ -264,4 +264,4 @@ jSuites.search = (function(el, options) {
     el.search = obj;
 
     return obj;
-});
+}

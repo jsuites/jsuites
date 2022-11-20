@@ -1,4 +1,4 @@
-jSuites.tags = (function(el, options) {
+export default function Tags(el, options) {
     // Redefine configuration
     if (el.tags) {
         return el.tags.setOptions(options, true);
@@ -687,4 +687,4 @@ jSuites.tags = (function(el, options) {
     init();
 
     return obj;
-});
+}

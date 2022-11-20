@@ -1,4 +1,4 @@
-jSuites.tabs = (function(el, options) {
+export default function Tabs(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -512,4 +512,4 @@ jSuites.tabs = (function(el, options) {
     el.tabs = obj;
 
     return obj;
-});
+}

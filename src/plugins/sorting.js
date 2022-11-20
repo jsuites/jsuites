@@ -1,4 +1,4 @@
-jSuites.sorting = (function(el, options) {
+export default function Sorting(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -134,4 +134,4 @@ jSuites.sorting = (function(el, options) {
     }
 
     return el;
-});
+}

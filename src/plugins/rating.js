@@ -1,4 +1,4 @@
-jSuites.rating = (function(el, options) {
+export default function Rating(el, options) {
     // Already created, update options
     if (el.rating) {
         return el.rating.setOptions(options, true);
@@ -140,4 +140,4 @@ jSuites.rating = (function(el, options) {
     init();
 
     return obj;
-});
+}

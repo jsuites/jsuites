@@ -1,4 +1,4 @@
-jSuites.picker = (function(el, options) {
+export default function Picker(el, options) {
     // Already created, update options
     if (el.picker) {
         return el.picker.setOptions(options, true);
@@ -310,4 +310,4 @@ jSuites.picker = (function(el, options) {
     init();
 
     return obj;
-});
+}

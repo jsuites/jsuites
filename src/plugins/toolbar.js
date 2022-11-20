@@ -1,4 +1,4 @@
-jSuites.toolbar = (function(el, options) {
+export default function Toolbar(el, options) {
     // New instance
     var obj = { type:'toolbar' };
     obj.options = {};
@@ -297,4 +297,4 @@ jSuites.toolbar = (function(el, options) {
     el.toolbar = obj;
 
     return obj;
-});
+}

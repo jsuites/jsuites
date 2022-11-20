@@ -1,4 +1,4 @@
-jSuites.slider = (function(el, options) {
+export default function Slider(el, options) {
     var obj = {};
     obj.options = {};
     obj.currentImage = null;
@@ -218,4 +218,4 @@ jSuites.slider = (function(el, options) {
     el.slider = obj;
 
     return obj;
-});
+}
