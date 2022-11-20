@@ -24,12 +24,17 @@
         "start": "npx webpack serve --history-api-fallback"
     },
     "main": "dist/jsuites.js",
-    "version": "4.17.5",
+    "version": "5.0.0",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "devDependencies": {
-        "jest": "^28.1.1"
+        "jest": "^28.1.1",
+        "css-minimizer-webpack-plugin": "^3.4.1",
+        "mini-css-extract-plugin": "^2.7.0",
+        "url-loader": "^4.1.1",
+        "style-loader": "^3.3.1",
+        "css-loader": "^6.7.2"
     }
 }

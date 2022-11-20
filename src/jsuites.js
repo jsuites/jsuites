@@ -1,7 +1,9 @@
 import Helpers from './utils/helpers';
 import animation from './plugins/animation';
-import loading from './plugins/loading';
 import notification from './plugins/notification';
+
+import './style/animation.css';
+import './style/notification.css';
 
 var jSuites = {
     animation,

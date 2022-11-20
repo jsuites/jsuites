@@ -1,4 +1,5 @@
 const path = require('path');
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 
 module.exports = {
     target: ['web', 'es5'],
@@ -15,6 +16,20 @@ module.exports = {
         globalObject: 'this',
         filename: '[name].js',
     },
+    module: {
+        rules: [
+            {
+                test: /\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    'css-loader'
+                ],
+            }
+        ],
+    },
+    plugins: [
+        new MiniCssExtractPlugin({ filename: "[name].css" })
+    ],
     optimization: {
         minimize: false
     },
@@ -34,4 +49,4 @@ module.exports = {
         hot: "only",
     },
     stats: { warnings: false },
-};
+}
