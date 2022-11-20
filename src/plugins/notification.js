@@ -1,4 +1,4 @@
-import { getWindowWidth } from '../helpers';
+import Helpers from '../utils/helpers';
 import Animation from './animation';
 
 function Notification(options) {
@@ -88,7 +88,7 @@ function Notification(options) {
 
     obj.show = function() {
         document.body.appendChild(notification);
-        if (getWindowWidth() > 800) {
+        if (Helpers.getWindowWidth() > 800) {
             Animation.fadeIn(notification);
         } else {
             Animation.slideTop(notification, 1);
@@ -96,7 +96,7 @@ function Notification(options) {
     }
 
     obj.hide = function() {
-        if (getWindowWidth() > 800) {
+        if (Helpers.getWindowWidth() > 800) {
             Animation.fadeOut(notification, function() {
                 if (notification.parentNode) {
                     notification.parentNode.removeChild(notification);
@@ -125,7 +125,7 @@ function Notification(options) {
         }, obj.options.timeout);
     }
 
-    if (getWindowWidth() < 800) {
+    if (Helpers.getWindowWidth() < 800) {
         notification.addEventListener("swipeup", function(e) {
             obj.hide();
             e.preventDefault();

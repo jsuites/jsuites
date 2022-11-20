@@ -1,7 +1,7 @@
-const Component = {};
+var Helpers = {};
 
 // Two digits
-Component.two = function(value) {
+Helpers.two = function(value) {
     value = '' + value;
     if (value.length == 1) {
         value = '0' + value;
@@ -9,7 +9,7 @@ Component.two = function(value) {
     return value;
 }
 
-Component.focus = function(el) {
+Helpers.focus = function(el) {
     if (el.innerText.length) {
         var range = document.createRange();
         var sel = window.getSelection();
@@ -22,21 +22,21 @@ Component.focus = function(el) {
     }
 }
 
-Component.isNumeric = (function (num) {
+Helpers.isNumeric = (function (num) {
     if (typeof(num) === 'string') {
         num = num.trim();
     }
     return !isNaN(num) && num !== null && num !== '';
 });
 
-Component.guid = function() {
+Helpers.guid = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
         var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
 
-Component.getNode = function() {
+Helpers.getNode = function() {
     var node = document.getSelection().anchorNode;
     if (node) {
         return (node.nodeType == 3 ? node.parentNode : node);
@@ -47,7 +47,7 @@ Component.getNode = function() {
 /**
  * Generate hash from a string
  */
-Component.hash = function(str) {
+Helpers.hash = function(str) {
     var hash = 0, i, chr;
 
     if (str.length === 0) {
@@ -67,7 +67,7 @@ Component.hash = function(str) {
 /**
  * Generate a random color
  */
-Component.randomColor = function(h) {
+Helpers.randomColor = function(h) {
     var lum = -0.25;
     var hex = String('#' + Math.random().toString(16).slice(2, 8).toUpperCase()).replace(/[^0-9a-f]/gi, '');
     if (hex.length < 6) {
@@ -82,13 +82,13 @@ Component.randomColor = function(h) {
 
     // Return hex
     if (h == true) {
-        return '#' + Component.two(rgb[0].toString(16)) + Component.two(rgb[1].toString(16)) + Component.two(rgb[2].toString(16));
+        return '#' + Helpers.two(rgb[0].toString(16)) + Helpers.two(rgb[1].toString(16)) + Helpers.two(rgb[2].toString(16));
     }
 
     return rgb;
 }
 
-Component.getWindowWidth = function() {
+Helpers.getWindowWidth = function() {
     var w = window,
     d = document,
     e = d.documentElement,
@@ -97,7 +97,7 @@ Component.getWindowWidth = function() {
     return x;
 }
 
-Component.getWindowHeight = function() {
+Helpers.getWindowHeight = function() {
     var w = window,
     d = document,
     e = d.documentElement,
@@ -106,7 +106,7 @@ Component.getWindowHeight = function() {
     return  y;
 }
 
-Component.getPosition = function(e) {
+Helpers.getPosition = function(e) {
     if (e.changedTouches && e.changedTouches[0]) {
         var x = e.changedTouches[0].pageX;
         var y = e.changedTouches[0].pageY;
@@ -118,7 +118,7 @@ Component.getPosition = function(e) {
     return [ x, y ];
 }
 
-Component.click = function(el) {
+Helpers.click = function(el) {
     if (el.click) {
         el.click();
     } else {
@@ -131,7 +131,7 @@ Component.click = function(el) {
     }
 }
 
-Component.findElement = function(element, condition) {
+Helpers.findElement = function(element, condition) {
     var foundElement = false;
 
     function path (element) {
@@ -155,7 +155,7 @@ Component.findElement = function(element, condition) {
     return foundElement;
 }
 
-Component.sha512 = (function(str) {
+Helpers.sha512 = (function(str) {
     function int64(msint_32, lsint_32) {
         this.highOrder = msint_32;
         this.lowOrder = lsint_32;
@@ -213,7 +213,7 @@ Component.sha512 = (function(str) {
     var charsize = 8;
 
     function utf8_encode(str) {
-        return unescape(encodeURIComponent(str));
+        return unescape(encodeURIHelpers(str));
     }
 
     function str2binb(str) {
@@ -423,4 +423,4 @@ Component.sha512 = (function(str) {
     return binb2hex(binarray);
 });
 
-export default Component;
+export default Helpers;

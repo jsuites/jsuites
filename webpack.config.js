@@ -3,12 +3,17 @@ const path = require('path');
 module.exports = {
     target: ['web', 'es5'],
     entry: {
-        jsuites: './src/jsuites.js',
+        'jsuites': './src/jsuites.js',
     },
-    mode: 'development',
+    mode: 'production',
     output: {
-        filename: 'dist/[name].js',
-        libraryExport: 'default'
+        library: {
+            name: 'jSuites',
+            type: 'umd',
+            export: [ 'default' ]
+        },
+        globalObject: 'this',
+        filename: '[name].js',
     },
     optimization: {
         minimize: false

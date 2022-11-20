@@ -1,9 +1,15 @@
-import Animation from 'plugins/animation';
-import Notification from 'plugins/notification';
+import Helpers from './utils/helpers';
+import animation from './plugins/animation';
+import loading from './plugins/loading';
+import notification from './plugins/notification';
 
-const jSuites = {};
+var jSuites = {
+    animation,
+    notification,
+    ...Helpers
+};
 
-jSuites.animation = Animation;
-jSuites.notification = Notification;
+// Legacy
+jSuites.loading = animation.loading;
 
 export default jSuites;

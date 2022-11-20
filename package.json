@@ -18,6 +18,11 @@
     "keywords": [
         "javascript plugins"
     ],
+    "scripts": {
+        "test": "jest",
+        "build": "npx webpack --config webpack.config.js",
+        "start": "npx webpack serve --history-api-fallback"
+    },
     "main": "dist/jsuites.js",
     "version": "4.17.5",
     "bugs": "https://github.com/jsuites/jsuites/issues",
@@ -26,8 +31,5 @@
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "devDependencies": {
         "jest": "^28.1.1"
-    },
-    "scripts": {
-        "test": "jest"
     }
 }
