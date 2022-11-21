@@ -1,4 +1,7 @@
-jSuites.mask = (function() {
+import Helpers from '../utils/helpers';
+import HelpersDate from '../utils/helpers.date';
+
+function Mask() {
     // Currency 
     var tokens = {
         // Text
@@ -24,15 +27,15 @@ jSuites.mask = (function() {
             var v = parseInt(this.date[3]) + m;
             v /= 24;
         } else if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            v = jSuites.two(this.date[3]) + ':' + jSuites.two(this.date[4]) + ':' + jSuites.two(this.date[5]) 
+            v = Helpers.two(this.date[3]) + ':' + Helpers.two(this.date[4]) + ':' + Helpers.two(this.date[5]) 
         } else {
             if (this.date[0] && this.date[1] && ! this.date[2]) {
                 this.date[2] = 1;
             }
-            v = jSuites.two(this.date[0]) + '-' + jSuites.two(this.date[1]) + '-' + jSuites.two(this.date[2]);
+            v = Helpers.two(this.date[0]) + '-' + Helpers.two(this.date[1]) + '-' + Helpers.two(this.date[2]);
 
             if (this.date[3] || this.date[4] || this.date[5]) {
-                v += ' ' + jSuites.two(this.date[3]) + ':' + jSuites.two(this.date[4]) + ':' + jSuites.two(this.date[5]);
+                v += ' ' + Helpers.two(this.date[3]) + ':' + Helpers.two(this.date[4]) + ':' + Helpers.two(this.date[5]);
             }
         }
 
@@ -55,8 +58,8 @@ jSuites.mask = (function() {
              if (this.date[0] && this.date[1] && ! this.date[2]) {
                  this.date[2] = 1;
              }
-             var t = jSuites.calendar.now(this.date);
-             v = jSuites.calendar.dateToNum(t);
+             var t = HelpersDate.now(this.date);
+             v = HelpersDate.dateToNum(t);
              if (this.date[4]) {
                  v += parseFloat(this.date[4] / 60);
              }
@@ -349,10 +352,10 @@ jSuites.mask = (function() {
     }
 
     // Labels
-    var weekDaysFull = jSuites.calendar.weekdays;
-    var weekDays = jSuites.calendar.weekdaysShort;
-    var monthsFull = jSuites.calendar.months;
-    var months = jSuites.calendar.monthsShort;
+    var weekDaysFull = HelpersDate.weekdays;
+    var weekDays = HelpersDate.weekdaysShort;
+    var monthsFull = HelpersDate.months;
+    var months = HelpersDate.monthsShort;
 
     var parser = {
         'YEAR': function(v, s) {
@@ -1062,7 +1065,7 @@ jSuites.mask = (function() {
                 // Value
                 Value.call(o.input, e);
                 // Focus
-                jSuites.focus(o.input);
+                Helpers.focus(o.input);
                 // Caret
                 o.caret = Caret.call(o.input);
             }
@@ -1272,12 +1275,12 @@ jSuites.mask = (function() {
             value = v;
         } else if (type === 'datetime') {
             if (v instanceof Date) {
-                var t = jSuites.calendar.getDateString(value, options.mask);
+                var t = HelpersDate.getDateString(value, options.mask);
             }
 
             var o = obj(v, options, true);
 
-            if (jSuites.isNumeric(v)) {
+            if (Helpers.isNumeric(v)) {
                 value = v;
             } else {
                 var value = extractDate.call(o);
@@ -1351,7 +1354,7 @@ jSuites.mask = (function() {
         var fillWithBlanks = false;
 
         if (type =='datetime' || options.type == 'calendar') {
-            var t = jSuites.calendar.getDateString(value, options.mask);
+            var t = HelpersDate.getDateString(value, options.mask);
             if (t) {
                 value = t;
             }
@@ -1459,6 +1462,229 @@ jSuites.mask = (function() {
         }
     }
 
+    // Helper to extract date from a string
+    obj.extractDateFromString = function (date, format) {
+        var o = obj(date, { mask: format }, true);
+
+        // Check if in format Excel (Need difference with format date or type detected is numeric)
+        if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
+            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
+            return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
+        }
+
+        var complete = false;
+
+        if (o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
+            complete = true;
+        }
+
+        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
+            if (!o.date[2]) {
+                o.date[2] = 1;
+            }
+
+            return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
+        }
+
+        return '';
+    }
+
+    // Helper to convert date into string
+    obj.getDateString = function (value, options) {
+        if (!options) {
+            var options = {};
+        }
+
+        // Labels
+        if (options && typeof (options) == 'object') {
+            var format = options.format;
+        } else {
+            var format = options;
+        }
+
+        if (!format) {
+            format = 'YYYY-MM-DD';
+        }
+
+        // Convert to number of hours
+        if (format.indexOf('[h]') >= 0) {
+            var result = 0;
+            if (value && Helpers.isNumeric(value)) {
+                result = parseFloat(24 * Number(value));
+                if (format.indexOf('mm') >= 0) {
+                    var h = ('' + result).split('.');
+                    if (h[1]) {
+                        var d = 60 * parseFloat('0.' + h[1])
+                        d = parseFloat(d.toFixed(2));
+                    } else {
+                        var d = 0;
+                    }
+                    result = parseInt(h[0]) + ':' + Helpers.two(d);
+                }
+            }
+            return result;
+        }
+
+        // Date instance
+        if (value instanceof Date) {
+            value = HelpersDate.now(value);
+        } else if (value && Helpers.isNumeric(value)) {
+            value = HelpersDate.numToDate(value);
+        }
+
+        // Tokens
+        var tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+
+        // Expression to extract all tokens from the string
+        var e = new RegExp(tokens.join('|'), 'gi');
+        // Extract
+        var t = format.match(e);
+
+        // Compatibility with excel
+        for (var i = 0; i < t.length; i++) {
+            if (t[i].toUpperCase() == 'MM') {
+                // Not a month, correct to minutes
+                if (t[i - 1] && t[i - 1].toUpperCase().indexOf('H') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i - 2] && t[i - 2].toUpperCase().indexOf('H') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i + 1] && t[i + 1].toUpperCase().indexOf('S') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i + 2] && t[i + 2].toUpperCase().indexOf('S') >= 0) {
+                    t[i] = 'mi';
+                }
+            }
+        }
+
+        // Object
+        var o = {
+            tokens: t
+        }
+
+        // Value
+        if (value) {
+            var d = '' + value;
+            var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
+            d = d.split(splitStr);
+
+            var h = 0;
+            var m = 0;
+            var s = 0;
+
+            if (d[1]) {
+                h = d[1].split(':');
+                m = h[1] ? h[1] : 0;
+                s = h[2] ? h[2] : 0;
+                h = h[0] ? h[0] : 0;
+            }
+
+            d = d[0].split('-');
+
+            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] < 32) {
+
+                // Data
+                o.data = [d[0], d[1], d[2], h, m, s];
+
+                // Value
+                o.value = [];
+
+                // Calendar instance
+                var calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
+
+                // Get method
+                var get = function (i) {
+                    // Token
+                    var t = this.tokens[i];
+                    // Case token
+                    var s = t.toUpperCase();
+                    var v = null;
+
+                    if (s === 'YYYY') {
+                        v = this.data[0];
+                    } else if (s === 'YYY') {
+                        v = this.data[0].substring(1, 4);
+                    } else if (s === 'YY') {
+                        v = this.data[0].substring(2, 4);
+                    } else if (s === 'Y') {
+                        v = this.data[0].substring(3, 4);
+                    } else if (t === 'MON') {
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toUpperCase();
+                    } else if (t === 'mon') {
+                        v = HelpersDate[calendar.getMonth()].substr(0, 3).toLowerCase();
+                    } else if (t === 'MONTH') {
+                        v = HelpersDate[calendar.getMonth()].toUpperCase();
+                    } else if (t === 'month') {
+                        v = HelpersDate[calendar.getMonth()].toLowerCase();
+                    } else if (s === 'MMMMM') {
+                        v = HelpersDate[calendar.getMonth()].substr(0, 1);
+                    } else if (s === 'MMMM' || t === 'Month') {
+                        v = HelpersDate[calendar.getMonth()];
+                    } else if (s === 'MMM' || t == 'Mon') {
+                        v = HelpersDate[calendar.getMonth()].substr(0, 3);
+                    } else if (s === 'MM') {
+                        v = Helpers.two(this.data[1]);
+                    } else if (s === 'M') {
+                        v = calendar.getMonth() + 1;
+                    } else if (t === 'DAY') {
+                        v = HelpersDate.weekdays[calendar.getDay()].toUpperCase();
+                    } else if (t === 'day') {
+                        v = HelpersDate.weekdays[calendar.getDay()].toLowerCase();
+                    } else if (s === 'DDDD' || t == 'Day') {
+                        v = HelpersDate.weekdays[calendar.getDay()];
+                    } else if (s === 'DDD') {
+                        v = HelpersDate.weekdays[calendar.getDay()].substr(0, 3);
+                    } else if (s === 'DD') {
+                        v = Helpers.two(this.data[2]);
+                    } else if (s === 'D') {
+                        v = this.data[2];
+                    } else if (s === 'Q') {
+                        v = Math.floor((calendar.getMonth() + 3) / 3);
+                    } else if (s === 'HH24' || s === 'HH') {
+                        v = Helpers.two(this.data[3]);
+                    } else if (s === 'HH12') {
+                        if (this.data[3] > 12) {
+                            v = Helpers.two(this.data[3] - 12);
+                        } else {
+                            v = Helpers.two(this.data[3]);
+                        }
+                    } else if (s === 'H') {
+                        v = this.data[3];
+                    } else if (s === 'MI') {
+                        v = Helpers.two(this.data[4]);
+                    } else if (s === 'SS') {
+                        v = Helpers.two(this.data[5]);
+                    } else if (s === 'MS') {
+                        v = calendar.getMilliseconds();
+                    } else if (s === 'AM/PM') {
+                        if (this.data[3] >= 12) {
+                            v = 'PM';
+                        } else {
+                            v = 'AM';
+                        }
+                    } else if (s === 'WD') {
+                        v = HelpersDate.weekdays[calendar.getDay()];
+                    }
+
+                    if (v === null) {
+                        this.value[i] = this.tokens[i];
+                    } else {
+                        this.value[i] = v;
+                    }
+                }
+
+                for (var i = 0; i < o.tokens.length; i++) {
+                    get.call(o, i);
+                }
+                // Put pieces together
+                value = o.value.join('');
+            } else {
+                value = '';
+            }
+        }
+
+        return value;
+    }
+
     if (typeof document !== 'undefined') {
         document.addEventListener('input', function(e) {
             if (e.target.getAttribute('data-mask') || e.target.mask) {
@@ -1468,4 +1694,6 @@ jSuites.mask = (function() {
     }
 
     return obj;
-})();
+}
+
+export default Mask();

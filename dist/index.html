@@ -1,1 +1,14 @@
-<script src="jsuites.js"></script>
+<html>
+<head></head>
+<script type="text/javascript" src="jsuites.js"></script>
+<link rel="stylesheet" href="jsuites.css" type="text/css" />
+
+<input id='calendar' />
+
+<script>
+    jSuites.calendar(document.getElementById('calendar'),{
+        format: 'DD/MM/YYYY HH:MM',
+        time: true,
+    });
+</script>
+</html>

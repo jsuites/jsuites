@@ -1,149 +1,23 @@
-jSuites.modal = (function(el, options) {
-    var obj = {};
-    obj.options = {};
+import Helpers from '../utils/helpers';
+import Animation from './animation';
 
-    // Default configuration
-    var defaults = {
-        url: null,
-        onopen: null,
-        onclose: null,
-        onload: null,
-        closed: false,
-        width: null,
-        height: null,
-        title: null,
-        padding: null,
-        backdrop: true,
-        icon: null,
-    };
+function Modal() {
 
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // Title
-    if (! obj.options.title && el.getAttribute('title')) {
-        obj.options.title = el.getAttribute('title');
-    }
-
-    var temp = document.createElement('div');
-    while (el.children[0]) {
-        temp.appendChild(el.children[0]);
-    }
-
-    obj.title = document.createElement('div');
-    obj.title.className = 'jmodal_title';
-    if (obj.options.icon) {
-        obj.title.setAttribute('data-icon', obj.options.icon);
-    }
-
-    obj.content = document.createElement('div');
-    obj.content.className = 'jmodal_content';
-    obj.content.innerHTML = el.innerHTML;
-
-    while (temp.children[0]) {
-        obj.content.appendChild(temp.children[0]);
-    }
-
-    obj.container = document.createElement('div');
-    obj.container.className = 'jmodal';
-    obj.container.appendChild(obj.title);
-    obj.container.appendChild(obj.content);
-
-    if (obj.options.padding) {
-        obj.content.style.padding = obj.options.padding;
-    }
-    if (obj.options.width) {
-        obj.container.style.width = obj.options.width;
-    }
-    if (obj.options.height) {
-        obj.container.style.height = obj.options.height;
-    }
-    if (obj.options.title) {
-        var title = document.createElement('h4');
-        title.innerText = obj.options.title;
-        obj.title.appendChild(title);
-    }
-
-    el.innerHTML = '';
-    el.style.display = 'none';
-    el.appendChild(obj.container);
-
-    // Backdrop
-    if (obj.options.backdrop) {
-        var backdrop = document.createElement('div');
-        backdrop.className = 'jmodal_backdrop';
-        backdrop.onclick = function () {
-            obj.close();
-        }
-        el.appendChild(backdrop);
-    }
-
-    obj.open = function() {
-        el.style.display = 'block';
-        // Fullscreen
-        var rect = obj.container.getBoundingClientRect();
-        if (jSuites.getWindowWidth() < rect.width) {
-            obj.container.style.top = '';
-            obj.container.style.left = '';
-            obj.container.classList.add('jmodal_fullscreen');
-            jSuites.animation.slideBottom(obj.container, 1);
-        } else {
-            if (obj.options.backdrop) {
-                backdrop.style.display = 'block';
-            }
-        }
-        // Event
-        if (typeof(obj.options.onopen) == 'function') {
-            obj.options.onopen(el, obj);
-        }
-    }
-
-    obj.resetPosition = function() {
-        obj.container.style.top = '';
-        obj.container.style.left = '';
-    }
-
-    obj.isOpen = function() {
-        return el.style.display != 'none' ? true : false;
-    }
-
-    obj.close = function() {
-        if (obj.isOpen()) {
-            el.style.display = 'none';
-            if (obj.options.backdrop) {
-                // Backdrop
-                backdrop.style.display = '';
-            }
-            // Remove fullscreen class
-            obj.container.classList.remove('jmodal_fullscreen');
-            // Event
-            if (typeof(obj.options.onclose) == 'function') {
-                obj.options.onclose(el, obj);
-            }
-        }
-    }
-
-    if (! jSuites.modal.hasEvents) {
+    var Events = function() {
         //  Position
         var tracker = null;
 
-        document.addEventListener('keydown', function(e) {
+        var keyDown = function (e) {
             if (e.which == 27) {
                 var modals = document.querySelectorAll('.jmodal');
                 for (var i = 0; i < modals.length; i++) {
                     modals[i].parentNode.modal.close();
                 }
             }
-        });
+        }
 
-        document.addEventListener('mouseup', function(e) {
-            var item = jSuites.findElement(e.target, 'jmodal');
+        var mouseUp = function (e) {
+            var item = Helpers.findElement(e.target, 'jmodal');
             if (item) {
                 // Get target info
                 var rect = item.getBoundingClientRect();
@@ -165,10 +39,10 @@ jSuites.modal = (function(el, options) {
                 tracker.element.style.cursor = 'auto';
                 tracker = null;
             }
-        });
+        }
 
-        document.addEventListener('mousedown', function(e) {
-            var item = jSuites.findElement(e.target, 'jmodal');
+        var mouseDown = function (e) {
+            var item = Helpers.findElement(e.target, 'jmodal');
             if (item) {
                 // Get target info
                 var rect = item.getBoundingClientRect();
@@ -187,7 +61,7 @@ jSuites.modal = (function(el, options) {
                     if (y - rect.top < 50) {
                         if (document.selection) {
                             document.selection.empty();
-                        } else if ( window.getSelection ) {
+                        } else if (window.getSelection) {
                             window.getSelection().removeAllRanges();
                         }
 
@@ -203,9 +77,9 @@ jSuites.modal = (function(el, options) {
                     }
                 }
             }
-        });
+        }
 
-        document.addEventListener('mousemove', function(e) {
+        var mouseMove = function (e) {
             if (tracker) {
                 e = e || window.event;
                 if (e.buttons) {
@@ -224,40 +98,185 @@ jSuites.modal = (function(el, options) {
                     tracker.element.style.cursor = 'auto';
                 }
             }
-        });
+        }
 
-        jSuites.modal.hasEvents = true;
+        document.addEventListener('keydown', keyDown);
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener('mousedown', mouseDown);
+        document.addEventListener('mousemove', mouseMove);
     }
 
-    if (obj.options.url) {
-        jSuites.ajax({
-            url: obj.options.url,
-            method: 'GET',
-            dataType: 'text/html',
-            success: function(data) {
-                obj.content.innerHTML = data;
+    var Component = (function (el, options) {
+        var obj = {};
+        obj.options = {};
 
-                if (! obj.options.closed) {
-                    obj.open();
-                }
+        // Default configuration
+        var defaults = {
+            url: null,
+            onopen: null,
+            onclose: null,
+            onload: null,
+            closed: false,
+            width: null,
+            height: null,
+            title: null,
+            padding: null,
+            backdrop: true,
+            icon: null,
+        };
 
-                if (typeof(obj.options.onload) === 'function') {
-                    obj.options.onload(obj);
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
+        }
+
+        // Title
+        if (!obj.options.title && el.getAttribute('title')) {
+            obj.options.title = el.getAttribute('title');
+        }
+
+        var temp = document.createElement('div');
+        while (el.children[0]) {
+            temp.appendChild(el.children[0]);
+        }
+
+        obj.title = document.createElement('div');
+        obj.title.className = 'jmodal_title';
+        if (obj.options.icon) {
+            obj.title.setAttribute('data-icon', obj.options.icon);
+        }
+
+        obj.content = document.createElement('div');
+        obj.content.className = 'jmodal_content';
+        obj.content.innerHTML = el.innerHTML;
+
+        while (temp.children[0]) {
+            obj.content.appendChild(temp.children[0]);
+        }
+
+        obj.container = document.createElement('div');
+        obj.container.className = 'jmodal';
+        obj.container.appendChild(obj.title);
+        obj.container.appendChild(obj.content);
+
+        if (obj.options.padding) {
+            obj.content.style.padding = obj.options.padding;
+        }
+        if (obj.options.width) {
+            obj.container.style.width = obj.options.width;
+        }
+        if (obj.options.height) {
+            obj.container.style.height = obj.options.height;
+        }
+        if (obj.options.title) {
+            var title = document.createElement('h4');
+            title.innerText = obj.options.title;
+            obj.title.appendChild(title);
+        }
+
+        el.innerHTML = '';
+        el.style.display = 'none';
+        el.appendChild(obj.container);
+
+        // Backdrop
+        if (obj.options.backdrop) {
+            var backdrop = document.createElement('div');
+            backdrop.className = 'jmodal_backdrop';
+            backdrop.onclick = function () {
+                obj.close();
+            }
+            el.appendChild(backdrop);
+        }
+
+        obj.open = function () {
+            el.style.display = 'block';
+            // Fullscreen
+            var rect = obj.container.getBoundingClientRect();
+            if (Helpers.getWindowWidth() < rect.width) {
+                obj.container.style.top = '';
+                obj.container.style.left = '';
+                obj.container.classList.add('jmodal_fullscreen');
+                Animation.slideBottom(obj.container, 1);
+            } else {
+                if (obj.options.backdrop) {
+                    backdrop.style.display = 'block';
                 }
             }
-        });
-    } else {
-        if (! obj.options.closed) {
-            obj.open();
+            // Event
+            if (typeof (obj.options.onopen) == 'function') {
+                obj.options.onopen(el, obj);
+            }
         }
 
-        if (typeof(obj.options.onload) === 'function') {
-            obj.options.onload(obj);
+        obj.resetPosition = function () {
+            obj.container.style.top = '';
+            obj.container.style.left = '';
         }
-    }
 
-    // Keep object available from the node
-    el.modal = obj;
+        obj.isOpen = function () {
+            return el.style.display != 'none' ? true : false;
+        }
 
-    return obj;
-});
+        obj.close = function () {
+            if (obj.isOpen()) {
+                el.style.display = 'none';
+                if (obj.options.backdrop) {
+                    // Backdrop
+                    backdrop.style.display = '';
+                }
+                // Remove fullscreen class
+                obj.container.classList.remove('jmodal_fullscreen');
+                // Event
+                if (typeof (obj.options.onclose) == 'function') {
+                    obj.options.onclose(el, obj);
+                }
+            }
+        }
+
+        if (obj.options.url) {
+            Ajax({
+                url: obj.options.url,
+                method: 'GET',
+                dataType: 'text/html',
+                success: function (data) {
+                    obj.content.innerHTML = data;
+
+                    if (!obj.options.closed) {
+                        obj.open();
+                    }
+
+                    if (typeof (obj.options.onload) === 'function') {
+                        obj.options.onload(obj);
+                    }
+                }
+            });
+        } else {
+            if (!obj.options.closed) {
+                obj.open();
+            }
+
+            if (typeof (obj.options.onload) === 'function') {
+                obj.options.onload(obj);
+            }
+        }
+
+        // Keep object available from the node
+        el.modal = obj;
+
+        // Create events when the first modal is create only
+        Events();
+
+        // Execute the events only once
+        Events = function() {};
+
+        return obj;
+    });
+
+    return Component;
+}
+
+export default Modal();

@@ -1,3 +1,8 @@
+import Helpers from '../utils/helpers';
+import Tracking from '../utils/tracking';
+import Animation from './animation';
+import Picker from './picker';
+
 export default function Toolbar(el, options) {
     // New instance
     var obj = { type:'toolbar' };
@@ -49,14 +54,14 @@ export default function Toolbar(el, options) {
     }
 
     obj.hide = function() {
-        jSuites.animation.slideBottom(el, 0, function() {
+        Animation.slideBottom(el, 0, function() {
             el.style.display = 'none';
         });
     }
 
     obj.show = function() {
         el.style.display = '';
-        jSuites.animation.slideBottom(el, 1);
+        Animation.slideBottom(el, 1);
     }
 
     obj.get = function() {
@@ -130,7 +135,7 @@ export default function Toolbar(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                jSuites.picker(toolbarItem, items[i]);
+                Picker(toolbarItem, items[i]);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             } else if (items[i].type == 'label') {
@@ -214,13 +219,13 @@ export default function Toolbar(el, options) {
 
         toolbarArrow.children[0].focus();
         // Start tracking
-        jSuites.tracking(obj, true);
+        Tracking(obj, true);
     }
 
     obj.close = function() {
         toolbarArrow.classList.remove('jtoolbar-arrow-selected')
         // End tracking
-        jSuites.tracking(obj, false);
+        Tracking(obj, false);
     }
 
     obj.refresh = function() {
@@ -262,7 +267,7 @@ export default function Toolbar(el, options) {
     }
 
     el.onclick = function(e) {
-        var element = jSuites.findElement(e.target, 'jtoolbar-item');
+        var element = Helpers.findElement(e.target, 'jtoolbar-item');
         if (element) {
             obj.selectItem(element);
         }

@@ -1,3 +1,6 @@
+import Ajax from "./ajax";
+import Sorting from "../utils/sorting";
+
 export default function Tabs(el, options) {
     var obj = {};
     obj.options = {};
@@ -448,7 +451,7 @@ export default function Tabs(el, options) {
         updateControls(0);
 
         if (obj.options.allowChangePosition == true) {
-            jSuites.sorting(obj.headers, {
+            Sorting(obj.headers, {
                 direction: 1,
                 ondrop: function(a,b,c) {
                     obj.updatePosition(b,c);
@@ -486,7 +489,7 @@ export default function Tabs(el, options) {
         // Append children
         for (var i = 0; i < obj.options.data.length; i++) {
             if (obj.options.data[i].url) {
-                jSuites.ajax({
+                Ajax({
                     url: obj.options.data[i].url,
                     type: 'GET',
                     dataType: 'text/html',

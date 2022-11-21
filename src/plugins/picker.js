@@ -1,3 +1,6 @@
+import Helpers from '../utils/helpers';
+import Tracking from '../utils/tracking';
+
 export default function Picker(el, options) {
     // Already created, update options
     if (el.picker) {
@@ -189,7 +192,7 @@ export default function Picker(el, options) {
     obj.open = function() {
         if (! el.classList.contains('jpicker-focus')) {
             // Start tracking the element
-            jSuites.tracking(obj, true);
+            Tracking(obj, true);
 
             // Open picker
             el.classList.add('jpicker-focus');
@@ -235,7 +238,7 @@ export default function Picker(el, options) {
             el.classList.remove('jpicker-focus');
 
             // Start tracking the element
-            jSuites.tracking(obj, false);
+            Tracking(obj, false);
 
             if (typeof obj.options.onclose == 'function') {
                 obj.options.onclose(el, obj);
@@ -264,7 +267,7 @@ export default function Picker(el, options) {
         dropdownContent = document.createElement('div');
         dropdownContent.classList.add('jpicker-content');
         dropdownContent.onclick = function(e) {
-            var item = jSuites.findElement(e.target, 'jpicker-item');
+            var item = Helpers.findElement(e.target, 'jpicker-item');
             if (item) {
                 if (item.parentNode === dropdownContent) {
                     // Update label

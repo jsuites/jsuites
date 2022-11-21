@@ -1,4 +1,4 @@
-jSuites.progressbar = (function(el, options) {
+export default function Progressbar(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -111,4 +111,4 @@ jSuites.progressbar = (function(el, options) {
     el.progressbar = obj;
 
     return obj;
-});
+}

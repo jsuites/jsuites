@@ -1,4 +1,7 @@
-jSuites.image = jSuites.upload = (function(el, options) {
+import Ajax from './ajax';
+import Helpers from '../utils/helpers';
+
+export default function Upload(el, options) {
     var obj = {};
     obj.options = {};
 
@@ -74,7 +77,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
         }
 
         if (data.content) {
-            data.file = jSuites.guid();
+            data.file = Helpers.guid();
         }
 
         // Push content
@@ -134,7 +137,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
                 // Work for cross browsers
                 src = obj.options.remoteParser + src;
                 // Get remove content
-                jSuites.ajax({
+                Ajax({
                     url: src,
                     type: 'GET',
                     dataType: 'blob',
@@ -180,7 +183,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
     el.addEventListener("click", function(e) {
         current = null;
         if (! el.children.length || e.target === el) {
-            jSuites.click(input);
+            Helpers.click(input);
         } else {
             if (e.target.parentNode == el) {
                 current = e.target;
@@ -189,7 +192,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
     });
 
     el.addEventListener("dblclick", function(e) {
-        jSuites.click(input);
+        Helpers.click(input);
     });
 
     el.addEventListener('dragenter', function(e) {
@@ -220,7 +223,7 @@ jSuites.image = jSuites.upload = (function(el, options) {
     });
 
     el.addEventListener('drop', function(e) {
-        e.preventDefault();  
+        e.preventDefault();
         e.stopPropagation();
 
         var html = (e.originalEvent || e).dataTransfer.getData('text/html');
@@ -281,14 +284,4 @@ jSuites.image = jSuites.upload = (function(el, options) {
     el.upload = el.image = obj;
 
     return obj;
-});
-
-jSuites.image.create = function(data) {
-    var img = document.createElement('img');
-    img.setAttribute('src', data.file);
-    img.className = 'jfile';
-    img.setAttribute('tabindex', -1);
-    img.content = data;
-
-    return img;
 }

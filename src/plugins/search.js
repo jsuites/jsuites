@@ -1,3 +1,6 @@
+import Ajax from './ajax';
+import Helpers from '../utils/helpers';
+
 export default function Search(el, options) {
     if (el.search) {
         return el.search;
@@ -111,7 +114,7 @@ export default function Search(el, options) {
                 createList(results);
             } else {
                 // Get remove results
-                jSuites.ajax({
+                Ajax({
                     url: obj.options.data + str,
                     method: 'GET',
                     dataType: 'json',
@@ -227,7 +230,7 @@ export default function Search(el, options) {
             }
         } else {
             // Current node
-            var node = jSuites.getNode();
+            var node = Helpers.getNode();
             if (node) {
                 var terms = node.innerText;
             }

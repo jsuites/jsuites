@@ -1,140 +1,146 @@
-jSuites.floating = (function(el, options) {
-    var obj = {};
-    obj.options = {};
+function Floating() {
+    var Component = (function (el, options) {
+        var obj = {};
+        obj.options = {};
 
-    // Default configuration
-    var defaults = {
-        type: 'big',
-        title: 'Untitled',
-        width: 510,
-        height: 472,
-    }
-
-    // Loop through our object
-    for (var property in defaults) {
-        if (options && options.hasOwnProperty(property)) {
-            obj.options[property] = options[property];
-        } else {
-            obj.options[property] = defaults[property];
-        }
-    }
-
-    // Private methods
-
-    var setContent = function() {
-        var temp = document.createElement('div');
-        while (el.children[0]) {
-            temp.appendChild(el.children[0]);
+        // Default configuration
+        var defaults = {
+            type: 'big',
+            title: 'Untitled',
+            width: 510,
+            height: 472,
         }
 
-        obj.content = document.createElement('div');
-        obj.content.className = 'jfloating_content';
-        obj.content.innerHTML = el.innerHTML;
-
-        while (temp.children[0]) {
-            obj.content.appendChild(temp.children[0]);
+        // Loop through our object
+        for (var property in defaults) {
+            if (options && options.hasOwnProperty(property)) {
+                obj.options[property] = options[property];
+            } else {
+                obj.options[property] = defaults[property];
+            }
         }
 
-        obj.container = document.createElement('div');
-        obj.container.className = 'jfloating';
-        obj.container.appendChild(obj.content);
+        // Private methods
 
-        if (obj.options.title) {
-            obj.container.setAttribute('title', obj.options.title);
-        } else {
-            obj.container.classList.add('no-title');
+        var setContent = function () {
+            var temp = document.createElement('div');
+            while (el.children[0]) {
+                temp.appendChild(el.children[0]);
+            }
+
+            obj.content = document.createElement('div');
+            obj.content.className = 'jfloating_content';
+            obj.content.innerHTML = el.innerHTML;
+
+            while (temp.children[0]) {
+                obj.content.appendChild(temp.children[0]);
+            }
+
+            obj.container = document.createElement('div');
+            obj.container.className = 'jfloating';
+            obj.container.appendChild(obj.content);
+
+            if (obj.options.title) {
+                obj.container.setAttribute('title', obj.options.title);
+            } else {
+                obj.container.classList.add('no-title');
+            }
+
+            // validate element dimensions
+            if (obj.options.width) {
+                obj.container.style.width = parseInt(obj.options.width) + 'px';
+            }
+
+            if (obj.options.height) {
+                obj.container.style.height = parseInt(obj.options.height) + 'px';
+            }
+
+            el.innerHTML = '';
+            el.appendChild(obj.container);
         }
 
-        // validate element dimensions
-        if (obj.options.width) {
-            obj.container.style.width = parseInt(obj.options.width) + 'px';
-        }
+        var setEvents = function () {
+            if (obj.container) {
+                obj.container.addEventListener('click', function (e) {
+                    var rect = e.target.getBoundingClientRect();
 
-        if (obj.options.height) {
-            obj.container.style.height = parseInt(obj.options.height) + 'px';
-        }
+                    if (e.target.classList.contains('jfloating')) {
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            var x = e.changedTouches[0].clientX;
+                            var y = e.changedTouches[0].clientY;
+                        } else {
+                            var x = e.clientX;
+                            var y = e.clientY;
+                        }
 
-        el.innerHTML = '';
-        el.appendChild(obj.container);
-    }
-
-    var setEvents = function() {
-        if (obj.container) {
-            obj.container.addEventListener('click', function(e) {
-                var rect = e.target.getBoundingClientRect();
-
-                if (e.target.classList.contains('jfloating')) {
-                    if (e.changedTouches && e.changedTouches[0]) {
-                        var x = e.changedTouches[0].clientX;
-                        var y = e.changedTouches[0].clientY;
-                    } else {
-                        var x = e.clientX;
-                        var y = e.clientY;
+                        if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
+                            setTimeout(function () {
+                                obj.close();
+                            }, 100);
+                        } else {
+                            obj.setState();
+                        }
                     }
-    
-                    if (rect.width - (x - rect.left) < 50 && (y - rect.top) < 50) {
-                        setTimeout(function() {
-                            obj.close();
-                        }, 100);
-                    } else {
-                        obj.setState();
-                    }
-                }
-            });
+                });
+            }
         }
-    }
 
-    var setType = function() {
-        obj.container.classList.add('jfloating-' + obj.options.type);
-    }
-
-    obj.state = {
-        isMinized: false,
-    }
-
-    obj.setState = function() {
-        if (obj.state.isMinized) {
-            obj.container.classList.remove('jfloating-minimized');
-        } else {
-            obj.container.classList.add('jfloating-minimized');
+        var setType = function () {
+            obj.container.classList.add('jfloating-' + obj.options.type);
         }
-        obj.state.isMinized = ! obj.state.isMinized;
-    }
 
-    obj.close = function() {
-        jSuites.floating.elements.splice(jSuites.floating.elements.indexOf(obj.container), 1);
-        obj.updatePosition();
-        el.remove();
-    }
-
-    obj.updatePosition = function() {
-        for (var i = 0; i < jSuites.floating.elements.length; i ++) {
-            var floating = jSuites.floating.elements[i];
-            var prevFloating = jSuites.floating.elements[i - 1];
-            floating.style.right = i * (prevFloating ? prevFloating.offsetWidth : floating.offsetWidth) * 1.01 + 'px';
+        obj.state = {
+            isMinized: false,
         }
-    }   
 
-    obj.init = function() {
-        // Set content into root
-        setContent();
+        obj.setState = function () {
+            if (obj.state.isMinized) {
+                obj.container.classList.remove('jfloating-minimized');
+            } else {
+                obj.container.classList.add('jfloating-minimized');
+            }
+            obj.state.isMinized = !obj.state.isMinized;
+        }
 
-        // Set dialog events
-        setEvents();
+        obj.close = function () {
+            Components.elements.splice(Component.elements.indexOf(obj.container), 1);
+            obj.updatePosition();
+            el.remove();
+        }
 
-        // Set dialog type
-        setType();
+        obj.updatePosition = function () {
+            for (var i = 0; i < Component.elements.length; i++) {
+                var floating = Component.elements[i];
+                var prevFloating = Component.elements[i - 1];
+                floating.style.right = i * (prevFloating ? prevFloating.offsetWidth : floating.offsetWidth) * 1.01 + 'px';
+            }
+        }
 
-        // Update floating position
-        jSuites.floating.elements.push(obj.container);
-        obj.updatePosition();
+        obj.init = function () {
+            // Set content into root
+            setContent();
 
-        el.floating = obj;
-    }
-    
-    obj.init();
+            // Set dialog events
+            setEvents();
 
-    return obj;
-});
+            // Set dialog type
+            setType();
 
-jSuites.floating.elements = [];
+            // Update floating position
+            Component.elements.push(obj.container);
+            obj.updatePosition();
+
+            el.floating = obj;
+        }
+
+        obj.init();
+
+        return obj;
+    });
+
+    Component.elements = [];
+
+    return Component;
+}
+
+export default Floating();

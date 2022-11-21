@@ -1,4 +1,4 @@
-jSuites.lazyLoading = (function(el, options) {
+export default function LazyLoading(el, options) {
     var obj = {}
 
     // Mandatory options
@@ -63,4 +63,4 @@ jSuites.lazyLoading = (function(el, options) {
     }
 
     return obj;
-});
+}

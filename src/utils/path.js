@@ -1,4 +1,4 @@
-export default function path(str, val) {
+export default function Path(str, val) {
     str = str.split('.');
     if (str.length) {
         var o = this;

@@ -1,4 +1,6 @@
 import Palette from './palette';
+import Tracking from '../utils/tracking';
+import Tabs from './tabs';
 
 export default function Color(el, options) {
     // Already created, update options
@@ -123,7 +125,7 @@ export default function Color(el, options) {
     obj.open = function() {
         if (! container.classList.contains('jcolor-focus')) {
             // Start tracking
-            jSuites.tracking(obj, true);
+            Tracking(obj, true);
 
             // Show color picker
             container.classList.add('jcolor-focus');
@@ -138,12 +140,12 @@ export default function Color(el, options) {
             content.style.marginLeft = '';
 
             var rectContent = content.getBoundingClientRect();
-            var availableWidth = jSuites.getWindowWidth();
-            var availableHeight = jSuites.getWindowHeight();
+            var availableWidth = Helpers.getWindowWidth();
+            var availableHeight = Helpers.getWindowHeight();
 
             if (availableWidth < 800 || obj.options.fullscreen == true) {
                 content.classList.add('jcolor-fullscreen');
-                jSuites.animation.slideBottom(content, 1);
+                Animation.slideBottom(content, 1);
                 backdrop.style.display = 'block';
             } else {
                 if (content.classList.contains('jcolor-fullscreen')) {
@@ -198,7 +200,7 @@ export default function Color(el, options) {
                 obj.options.onclose(el);
             }
             // Stop  the object
-            jSuites.tracking(obj, false);
+            Tracking(obj, false);
         }
 
         return obj.options.value;
@@ -563,7 +565,7 @@ export default function Color(el, options) {
         content.appendChild(tabs);
 
         // Starts the jSuites tabs component
-        jsuitesTabs = jSuites.tabs(tabs, {
+        jsuitesTabs = Tabs(tabs, {
             animation: true,
             data: [
                 {

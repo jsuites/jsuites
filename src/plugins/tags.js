@@ -1,3 +1,6 @@
+import Helpers from '../utils/helpers';
+import Search from './search';
+
 export default function Tags(el, options) {
     // Redefine configuration
     if (el.tags) {
@@ -79,7 +82,7 @@ export default function Tags(el, options) {
                 el.parentNode.insertBefore(searchContainer, el.nextSibling);
 
                 // Create container
-                search = jSuites.search(searchContainer, {
+                search = Search(searchContainer, {
                     data: obj.options.search,
                     onselect: function(a,b,c) {
                         obj.selectIndex(b,c);
@@ -126,7 +129,7 @@ export default function Tags(el, options) {
             }
         } else {
             // Get node
-            var node = jSuites.getNode();
+            var node = Helpers.getNode();
 
             if (node && node.parentNode && node.parentNode.classList.contains('jtags') &&
                 node.nextSibling && (! (node.nextSibling.innerText && node.nextSibling.innerText.trim()))) {
@@ -297,7 +300,7 @@ export default function Tags(el, options) {
      * @param {object} item - Node element in the suggestions container
      */ 
     obj.selectIndex = function(text, value) {
-        var node = jSuites.getNode();
+        var node = Helpers.getNode();
         if (node) {
             // Append text to the caret
             node.innerText = text;
