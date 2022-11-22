@@ -12,8 +12,9 @@ module.exports = {
         library: {
             name: 'jSuites',
             type: 'umd',
-            export: [ 'default' ]
+            export: [ 'default' ],
         },
+        globalObject: 'this',
         filename: '[name].js',
     },
     module: {
@@ -29,11 +30,11 @@ module.exports = {
     },
     plugins: [
         new MiniCssExtractPlugin({ filename: "[name].css" }),
-        new CopyPlugin({
-            patterns: [
-                { from: '**/*.d.ts', context: 'src' }
-            ]
-        })
+        //new CopyPlugin({
+        //    patterns: [
+        //        { from: '**/*.d.ts', context: 'src' }
+        //    ]
+        //})
     ],
     optimization: {
         minimize: false
@@ -51,7 +52,7 @@ module.exports = {
         devMiddleware: {
             publicPath: "https://localhost:3000/dist/",
         },
-        hot: "only",
+        hot: "only"
     },
     stats: { warnings: false },
 }

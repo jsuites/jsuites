@@ -169,7 +169,7 @@ export default function Color(el, options) {
 
 
             if (typeof(obj.options.onopen) == 'function') {
-                obj.options.onopen(el);
+                obj.options.onopen(el, obj);
             }
 
             jsuitesTabs.setBorder(jsuitesTabs.getActive());
@@ -197,7 +197,7 @@ export default function Color(el, options) {
             backdrop.style.display = '';
             // Call related events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
-                obj.options.onclose(el);
+                obj.options.onclose(el, obj);
             }
             // Stop  the object
             Tracking(obj, false);
@@ -223,7 +223,7 @@ export default function Color(el, options) {
 
             // Onchange
             if (typeof(obj.options.onchange) == 'function') {
-                obj.options.onchange(el, color);
+                obj.options.onchange(el, color, obj);
             }
 
             // Changes
