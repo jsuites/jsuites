@@ -3,19 +3,19 @@
  * https://jspreadsheet.com/v9
  */
 
-import { Calendar } from "./calendar";
-import { Color } from "./color";
-import { Contextmenu } from "./contextmenu";
-import { Dropdown } from "./dropdown";
-import { Editor } from "./editor";
+//import { Calendar } from "./calendar";
+//import { Color } from "./color";
+//import { Contextmenu } from "./contextmenu";
+//import { Dropdown } from "./dropdown";
+//import { Editor } from "./editor";
 import { Notification } from "./notification";
 
 export interface JSuites {
-    calendar: Calendar;
-    color: Color;
-    contextmenu: Contextmenu;
-    dropdown: Dropdown;
-    editor: Editor;
+    //calendar: Calendar;
+    //color: Color;
+    //contextmenu: Contextmenu;
+    //dropdown: Dropdown;
+    //editor: Editor;
     notification: Notification;
 
     /** License string. Use setLicense to define the license */
