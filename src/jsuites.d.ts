@@ -3,4 +3,8 @@
  * https://jsuites.net
  */
 
-export {} "./types/notification";
+import { JSuites } from "./types";
+
+declare const jSuites: JSuites;
+
+export default jSuites;

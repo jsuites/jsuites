@@ -1,11 +1,11 @@
 const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
     target: ['web', 'es5'],
     entry: {
         'jsuites': './src/jsuites.js',
-        'jsuites.d': './src/jsuites.d.ts',
     },
     mode: 'production',
     output: {
@@ -25,15 +25,15 @@ module.exports = {
                     'css-loader'
                 ],
             },
-            {
-                test: /\.ts?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
-            },
         ],
     },
     plugins: [
-        new MiniCssExtractPlugin({ filename: "[name].css" })
+        new MiniCssExtractPlugin({ filename: "[name].css" }),
+        new CopyPlugin({
+            patterns: [
+                { from: '**/*.d.ts', context: 'src' }
+            ]
+        })
     ],
     optimization: {
         minimize: false

@@ -20,8 +20,8 @@ interface Options {
 }
 
 /** Toast Plugin */
-export default function notification(options: Options) : {
+export type Notification = (options: Options) => {
     show: () => void;
     hide: () => void;
-    Options;
+    options: Options;
 }
