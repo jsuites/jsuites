@@ -1,6 +1,18 @@
 interface Options {
+    /** Items */
+    items: [];
+    /** Height */
+    height: number
+    /** Height */
+    width: number
+    /** Height */
+    grid: boolean
+    /** Height */
+    onopen: (el: HTMLElement) => void
+    /** Height */
+    onclose: (el: HTMLElement) => void
 }
 
-export type Mask = (el: HTMLElement, options: Options) => {
+export type Slider = (el: HTMLElement, options: Options) => {
 
 }

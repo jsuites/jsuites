@@ -1,4 +1,5 @@
 import Helpers from '../utils/helpers';
+import Dictionary from '../utils/dictionary';
 import Search from './search';
 
 export default function Tags(el, options) {
@@ -36,7 +37,6 @@ export default function Tags(el, options) {
         var defaults = {
             value: '',
             limit: null,
-            limitMessage: null,
             search: null,
             placeholder: null,
             validation: null,
@@ -47,7 +47,6 @@ export default function Tags(el, options) {
             onfocus: null,
             onblur: null,
             onload: null,
-            colors: null,
         }
 
         // Loop through though the default configuration
@@ -124,8 +123,8 @@ export default function Tags(el, options) {
         if (limit()) {
             if (typeof(obj.options.onlimit) == 'function') {
                 obj.options.onlimit(obj, obj.options.limit);
-            } else if (obj.options.limitMessage) {
-                alert(obj.options.limitMessage + ' ' + obj.options.limit);
+            } else {
+                alert(Dictionary.translate('You reach the limit number of entries') + ' ' + obj.options.limit);
             }
         } else {
             // Get node

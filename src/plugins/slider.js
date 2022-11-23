@@ -18,10 +18,10 @@ export default function Slider(el, options) {
         el.classList.add('unselectable');
 
         if (obj.options.height) {
-            el.style.minHeight = obj.options.height;
+            el.style.minHeight = parseInt(obj.options.height) + 'px';
         }
         if (obj.options.width) {
-            el.style.width = obj.options.width;
+            el.style.width = parseInt(obj.options.width) + 'px';
         }
         if (obj.options.grid) {
             el.classList.add('jslider-grid');
