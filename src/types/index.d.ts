@@ -11,11 +11,18 @@ import { Editor } from "./editor";
 import { Floating } from "./floating";
 import { Form } from "./form";
 import { Mask } from "./mask";
-
-
+import { Modal } from "./modal";
+import { Notification } from "./notification";
+import { Picker } from "./picker";
+import { Rating } from "./rating";
+import { Search } from "./search";
+import { Slider } from "./slider";
+import { Tabs } from "./tabs";
+import { Tags } from "./tags";
 import { Toolbar } from "./toolbar";
 import { Upload } from "./upload";
-import { Notification } from "./notification";
+import { Validations } from "./validations";
+
 
 export interface JSuites {
     calendar: Calendar;
@@ -26,10 +33,17 @@ export interface JSuites {
     floating: Floating;
     form: Form;
     mask: Mask;
-
+    modal: Modal;
+    notification: Notification;
+    picker: Picker;
+    rating: Rating;
+    search: Search;
+    slider: Slider;
+    tabs: Tabs;
+    tags: Tags;
     toolbar: Toolbar;
     upload: Upload;
-    notification: Notification;
+    validations: Validations;
 
     /** License string. Use setLicense to define the license */
     version: string;
