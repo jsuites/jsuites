@@ -45,8 +45,7 @@ function Editor() {
             onkeyup: null,
             onkeydown: null,
             onchange: null,
-            extensions: null,
-            type: null,
+            extensions: null
         };
 
         // Loop through our object

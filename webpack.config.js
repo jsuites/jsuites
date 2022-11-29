@@ -25,16 +25,16 @@ module.exports = {
                     MiniCssExtractPlugin.loader,
                     'css-loader'
                 ],
-            },
+            }
         ],
     },
     plugins: [
         new MiniCssExtractPlugin({ filename: "[name].css" }),
-        //new CopyPlugin({
-        //    patterns: [
-        //        { from: '**/*.d.ts', context: 'src' }
-        //    ]
-        //})
+        new CopyPlugin({
+           patterns: [
+               { from: '**/*.d.ts', context: 'src' }
+           ]
+        })
     ],
     optimization: {
         minimize: false
@@ -52,7 +52,7 @@ module.exports = {
         devMiddleware: {
             publicPath: "https://localhost:3000/dist/",
         },
-        hot: "only"
+        hot: "only",
     },
     stats: { warnings: false },
 }

@@ -59,8 +59,6 @@ export default function Picker(el, options) {
             data: null,
             render: null,
             onchange: null,
-            onmouseover: null,
-            onselect: null,
             onopen: null,
             onclose: null,
             onload: null,

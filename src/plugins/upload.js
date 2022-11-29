@@ -1,5 +1,6 @@
 import Ajax from './ajax';
 import Helpers from '../utils/helpers';
+import Dictionary from '../utils/dictionary';
 
 export default function Upload(el, options) {
     var obj = {};
@@ -17,9 +18,6 @@ export default function Upload(el, options) {
         onchange: null,
         multiple: false,
         remoteParser: null,
-        text:{
-            extensionNotAllowed:'The extension is not allowed',
-        }
     };
 
     // Loop through our object
@@ -108,7 +106,7 @@ export default function Upload(el, options) {
 
             readFile.readAsDataURL(file);
         } else {
-            alert(obj.options.text.extensionNotAllowed);
+            alert(Dictionary.translate('This extension is not allowed'));
         }
     }
 
