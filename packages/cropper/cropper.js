@@ -46,7 +46,7 @@
 
         // Canvas editor
         var canvas = document.createElement('canvas');
-        var context = canvas.getContext('2d');
+        var context = canvas.getContext('2d',{ willReadFrequently: true });
         el.appendChild(canvas);
 
         // Image
@@ -116,7 +116,7 @@
         };
 
         var secondCanvas = document.createElement('canvas');
-        var secondContext = secondCanvas.getContext('2d');
+        var secondContext = secondCanvas.getContext('2d',{ willReadFrequently: true });
         var secondImage = document.createElement('img');
 
         // Reload filters
@@ -386,7 +386,7 @@
         obj.getCroppedContent = function() {
             var coordinates = obj.getSelectionCoordinates();
             var canvasCropped = document.createElement('canvas');
-            var contextCropped = canvasCropped.getContext('2d');
+            var contextCropped = canvasCropped.getContext('2d',{ willReadFrequently: true });
             canvasCropped.width = crop.clientWidth;
             canvasCropped.height = crop.clientHeight;
 
@@ -407,7 +407,7 @@
 
             var coordinates = obj.getSelectionCoordinates();
             var canvasCropped = document.createElement('canvas');
-            var contextCropped = canvasCropped.getContext('2d');
+            var contextCropped = canvasCropped.getContext('2d',{ willReadFrequently: true });
             canvasCropped.width = crop.clientWidth;
             canvasCropped.height = crop.clientHeight;
 
