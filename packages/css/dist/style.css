@@ -1112,6 +1112,13 @@ jwarning .navbar {
     height: 24px;
 }
 
+.lines .form-group .jcolor-input {
+    margin: 8px;
+    border: 0px;
+    outline: none;
+    user-select: none;
+}
+
 .lines .form-group .jdropdown {
     width: 100%;
     display: block;
@@ -1495,3 +1502,4 @@ jwarning .navbar {
 :-ms-input-placeholder {
     color: #ccc;
 }
+
