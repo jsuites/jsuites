@@ -1318,6 +1318,8 @@ function Editor() {
 
         return items;
     }
+
+    return Component;
 }
 
 export default Editor();

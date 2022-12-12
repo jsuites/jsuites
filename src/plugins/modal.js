@@ -1,5 +1,6 @@
 import Helpers from '../utils/helpers';
 import Animation from './animation';
+import Ajax from './ajax';
 
 function Modal() {
 

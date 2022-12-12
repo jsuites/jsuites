@@ -2,8 +2,11 @@ import Helpers from '../utils/helpers';
 import Dictionary from '../utils/dictionary';
 import Tracking from '../utils/tracking';
 import Animation from './animation';
+import Ajax from './ajax';
+import lazyLoading from '../utils/lazyloading';
 
 function Dropdown() {
+
     var Component = (function (el, options) {
         // Already created, update options
         if (el.dropdown) {
@@ -426,7 +429,7 @@ function Dropdown() {
                 // Execute only one time
                 Component.hasEvents = true;
                 // Enter and Esc
-                document.addEventListener("keydown", Component.dropdown.keydown);
+                document.addEventListener("keydown", Component.keydown);
             }
 
             // Container
@@ -474,7 +477,7 @@ function Dropdown() {
 
             // Lazyloading
             if (obj.options.lazyLoading == true) {
-                LazyLoading(content, {
+                lazyLoading(content, {
                     loadUp: obj.loadUp,
                     loadDown: obj.loadDown,
                 });

@@ -1,8 +1,9 @@
 import Tracking from '../utils/tracking';
 import Dictionary from '../utils/dictionary';
 
-function Contextmenu(el, options) {
-    var Component = function() {
+function Contextmenu() {
+
+    var Component = function(el, options) {
         // New instance
         var obj = {type: 'contextmenu'};
         obj.options = {};

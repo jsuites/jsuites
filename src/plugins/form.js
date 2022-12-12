@@ -1,5 +1,6 @@
 import Ajax from './ajax';
 import Path from '../utils/path';
+import Validations from './validations';
 
 function Form() {
     var Component = (function(el, options) {

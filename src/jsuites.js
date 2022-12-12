@@ -3,7 +3,7 @@ import tracking from './utils/tracking';
 import helpers from './utils/helpers';
 import path from './utils/path';
 import sorting from './utils/sorting';
-import lazyloading from './utils/lazyloading';
+import lazyLoading from './utils/lazyloading';
 
 import ajax from './plugins/ajax';
 import animation from './plugins/animation';
@@ -31,6 +31,7 @@ import validations from './plugins/validations';
 
 import sha512 from '../packages/sha512';
 
+import './style/core.css';
 import './style/animation.css';
 import './style/calendar.css';
 import './style/color.css';
@@ -67,7 +68,7 @@ var jSuites = {
     ...helpers,
     path,
     sorting,
-    lazyloading,
+    lazyLoading,
     // Plugins
     ajax,
     animation,
@@ -96,6 +97,7 @@ var jSuites = {
 
 // Legacy
 jSuites.image = upload;
+jSuites.tracker = form;
 jSuites.loading = animation.loading;
 jSuites.sha512 = sha512;
 

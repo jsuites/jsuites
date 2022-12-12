@@ -1275,7 +1275,7 @@ function Mask() {
             value = v;
         } else if (type === 'datetime') {
             if (v instanceof Date) {
-                var t = HelpersDate.getDateString(value, options.mask);
+                var t = obj.getDateString(value, options.mask);
             }
 
             var o = obj(v, options, true);
@@ -1354,7 +1354,7 @@ function Mask() {
         var fillWithBlanks = false;
 
         if (type =='datetime' || options.type == 'calendar') {
-            var t = HelpersDate.getDateString(value, options.mask);
+            var t = obj.getDateString(value, options.mask);
             if (t) {
                 value = t;
             }
@@ -1610,17 +1610,17 @@ function Mask() {
                     } else if (t === 'MON') {
                         v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toUpperCase();
                     } else if (t === 'mon') {
-                        v = HelpersDate[calendar.getMonth()].substr(0, 3).toLowerCase();
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toLowerCase();
                     } else if (t === 'MONTH') {
-                        v = HelpersDate[calendar.getMonth()].toUpperCase();
+                        v = HelpersDate.months[calendar.getMonth()].toUpperCase();
                     } else if (t === 'month') {
-                        v = HelpersDate[calendar.getMonth()].toLowerCase();
+                        v = HelpersDate.months[calendar.getMonth()].toLowerCase();
                     } else if (s === 'MMMMM') {
-                        v = HelpersDate[calendar.getMonth()].substr(0, 1);
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 1);
                     } else if (s === 'MMMM' || t === 'Month') {
-                        v = HelpersDate[calendar.getMonth()];
+                        v = HelpersDate.months[calendar.getMonth()];
                     } else if (s === 'MMM' || t == 'Mon') {
-                        v = HelpersDate[calendar.getMonth()].substr(0, 3);
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3);
                     } else if (s === 'MM') {
                         v = Helpers.two(this.data[1]);
                     } else if (s === 'M') {
