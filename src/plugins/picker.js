@@ -59,6 +59,8 @@ export default function Picker(el, options) {
             data: null,
             render: null,
             onchange: null,
+            onmouseover: null,
+            onselect: null,
             onopen: null,
             onclose: null,
             onload: null,
@@ -138,12 +140,12 @@ export default function Picker(el, options) {
         return obj.options.value;
     }
 
-    obj.setValue = function(v) {
+    obj.setValue = function(k, e) {
         // Set label
-        obj.setLabel(v);
+        obj.setLabel(k);
 
         // Update value
-        obj.options.value = String(v);
+        obj.options.value = String(k);
 
         // Lemonade JS
         if (el.value != obj.options.value) {
@@ -157,7 +159,14 @@ export default function Picker(el, options) {
             }
         }
 
-        if (dropdownContent.children[v].getAttribute('type') !== 'generic') {
+        var v = obj.options.data[k];
+
+        // Call method
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange.call(obj, el, obj, v, v, k, e);
+        }
+
+        if (dropdownContent.children[k] && dropdownContent.children[k].getAttribute('type') !== 'generic') {
             obj.close();
         }
     }
@@ -269,15 +278,10 @@ export default function Picker(el, options) {
             if (item) {
                 if (item.parentNode === dropdownContent) {
                     // Update label
-                    obj.setValue(item.k);
-                    // Call method
-                    if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k, e);
-                    }
+                    obj.setValue(item.k, e);
                 }
             }
         }
-
         // Append content and header
         el.appendChild(dropdownHeader);
         el.appendChild(dropdownContent);

@@ -43,29 +43,34 @@ function Mask() {
     }
 
     var extractDate = function() {
-         var v = '';
-         if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-             if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-                 v = parseInt(this.date[3]);
-             } else {
-                 v = parseInt(this.date[3]) % 24;
-             }
-             if (this.date[4]) {
-                 v += parseFloat(this.date[4] / 60);
-             }
-             v /= 24;
-         } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
-             if (this.date[0] && this.date[1] && ! this.date[2]) {
-                 this.date[2] = 1;
-             }
-             var t = HelpersDate.now(this.date);
-             v = HelpersDate.dateToNum(t);
-             if (this.date[4]) {
-                 v += parseFloat(this.date[4] / 60);
-             }
-         }
-         return v;
-     }
+        var v = '';
+        if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
+            if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
+                v = parseInt(this.date[3]);
+            } else {
+                v = parseInt(this.date[3]) % 24;
+            }
+            if (this.date[4]) {
+                v += parseFloat(this.date[4] / 60);
+            }
+            v /= 24;
+        } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
+            if (this.date[0] && this.date[1] && ! this.date[2]) {
+                this.date[2] = 1;
+            }
+            var t = HelpersDate.now(this.date);
+            v = HelpersDate.dateToNum(t);
+            if (this.date[4]) {
+                v += parseFloat(this.date[4] / 60);
+            }
+        }
+
+        if (isNaN(v)) {
+            v = '';
+        }
+
+        return v;
+    }
 
     var isBlank = function(v) {
         return v === null || v === '' || v === undefined ? true : false;
@@ -1234,7 +1239,7 @@ function Mask() {
             return v;
         }
         if (typeof(options) != 'object') {
-            return value;
+            return v;
         } else {
             options = Object.assign({}, options);
 
@@ -1263,6 +1268,8 @@ function Mask() {
         getDecimal.call(options, options.mask);
 
         var type = null;
+        var value = null;
+
         if (options.type == 'percent' || options.options.style == 'percent') {
             type = 'percentage';
         } else if (options.mask) {
@@ -1275,7 +1282,7 @@ function Mask() {
             value = v;
         } else if (type === 'datetime') {
             if (v instanceof Date) {
-                var t = obj.getDateString(value, options.mask);
+                v = obj.getDateString(v, options.mask);
             }
 
             var o = obj(v, options, true);
@@ -1283,10 +1290,10 @@ function Mask() {
             if (Helpers.isNumeric(v)) {
                 value = v;
             } else {
-                var value = extractDate.call(o);
+                value = extractDate.call(o);
             }
         } else {
-            var value = Extract.call(options, v);
+            value = Extract.call(options, v);
             // Percentage
             if (type == 'percentage') {
                 value /= 100;

@@ -1586,7 +1586,7 @@ function Dropdown() {
 
     Component.keydown = function (e) {
         var dropdown = null;
-        if (dropdown = jSuites.dropdown.current) {
+        if (dropdown = Component.current) {
             if (e.which == 13 || e.which == 9) {  // enter or tab
                 if (dropdown.header.value && dropdown.currentIndex == null && dropdown.options.newOptions) {
                     // if they typed something in, but it matched nothing, and newOptions are allowed, start that flow
@@ -1647,7 +1647,7 @@ function Dropdown() {
     }
 
     Component.mouseup = function (e) {
-        var element = jSuites.findElement(e.target, 'jdropdown');
+        var element = Helpers.findElement(e.target, 'jdropdown');
         if (element) {
             var dropdown = element.dropdown;
             if (e.target.classList.contains('jdropdown-header')) {
