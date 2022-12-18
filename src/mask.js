@@ -61,6 +61,9 @@ jSuites.mask = (function() {
                  v += parseFloat(this.date[4] / 60);
              }
          }
+        if (isNaN(v)) {
+            v = '';
+        }
          return v;
      }
 
@@ -1231,7 +1234,7 @@ jSuites.mask = (function() {
             return v;
         }
         if (typeof(options) != 'object') {
-            return value;
+            return v;
         } else {
             options = Object.assign({}, options);
 
@@ -1260,6 +1263,8 @@ jSuites.mask = (function() {
         getDecimal.call(options, options.mask);
 
         var type = null;
+        var value = null;
+
         if (options.type == 'percent' || options.options.style == 'percent') {
             type = 'percentage';
         } else if (options.mask) {
@@ -1272,7 +1277,7 @@ jSuites.mask = (function() {
             value = v;
         } else if (type === 'datetime') {
             if (v instanceof Date) {
-                var t = jSuites.calendar.getDateString(value, options.mask);
+                v = jSuites.calendar.getDateString(v, options.mask);
             }
 
             var o = obj(v, options, true);
@@ -1280,10 +1285,10 @@ jSuites.mask = (function() {
             if (jSuites.isNumeric(v)) {
                 value = v;
             } else {
-                var value = extractDate.call(o);
+                value = extractDate.call(o);
             }
         } else {
-            var value = Extract.call(options, v);
+            value = Extract.call(options, v);
             // Percentage
             if (type == 'percentage') {
                 value /= 100;

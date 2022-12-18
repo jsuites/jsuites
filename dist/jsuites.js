@@ -17,7 +17,7 @@
 
 var jSuites = {};
 
-var Version = '4.17.5';
+var Version = '4.17.6';
 
 var Events = function() {
 
@@ -7591,6 +7591,9 @@ jSuites.mask = (function() {
                  v += parseFloat(this.date[4] / 60);
              }
          }
+        if (isNaN(v)) {
+            v = '';
+        }
          return v;
      }
 
@@ -8761,7 +8764,7 @@ jSuites.mask = (function() {
             return v;
         }
         if (typeof(options) != 'object') {
-            return value;
+            return v;
         } else {
             options = Object.assign({}, options);
 
@@ -8790,6 +8793,8 @@ jSuites.mask = (function() {
         getDecimal.call(options, options.mask);
 
         var type = null;
+        var value = null;
+
         if (options.type == 'percent' || options.options.style == 'percent') {
             type = 'percentage';
         } else if (options.mask) {
@@ -8802,7 +8807,7 @@ jSuites.mask = (function() {
             value = v;
         } else if (type === 'datetime') {
             if (v instanceof Date) {
-                var t = jSuites.calendar.getDateString(value, options.mask);
+                v = jSuites.calendar.getDateString(v, options.mask);
             }
 
             var o = obj(v, options, true);
@@ -8810,10 +8815,10 @@ jSuites.mask = (function() {
             if (jSuites.isNumeric(v)) {
                 value = v;
             } else {
-                var value = extractDate.call(o);
+                value = extractDate.call(o);
             }
         } else {
-            var value = Extract.call(options, v);
+            value = Extract.call(options, v);
             // Percentage
             if (type == 'percentage') {
                 value /= 100;
@@ -9610,12 +9615,12 @@ jSuites.picker = (function(el, options) {
         return obj.options.value;
     }
 
-    obj.setValue = function(v) {
+    obj.setValue = function(k, e) {
         // Set label
-        obj.setLabel(v);
+        obj.setLabel(k);
 
         // Update value
-        obj.options.value = String(v);
+        obj.options.value = String(k);
 
         // Lemonade JS
         if (el.value != obj.options.value) {
@@ -9629,7 +9634,14 @@ jSuites.picker = (function(el, options) {
             }
         }
 
-        if (dropdownContent.children[v].getAttribute('type') !== 'generic') {
+        var v = obj.options.data[k];
+
+        // Call method
+        if (typeof(obj.options.onchange) == 'function') {
+            obj.options.onchange.call(obj, el, obj, v, v, k, e);
+        }
+
+        if (dropdownContent.children[k] && dropdownContent.children[k].getAttribute('type') !== 'generic') {
             obj.close();
         }
     }
@@ -9741,15 +9753,10 @@ jSuites.picker = (function(el, options) {
             if (item) {
                 if (item.parentNode === dropdownContent) {
                     // Update label
-                    obj.setValue(item.k);
-                    // Call method
-                    if (typeof(obj.options.onchange) == 'function') {
-                        obj.options.onchange.call(obj, el, obj, item.v, item.v, item.k, e);
-                    }
+                    obj.setValue(item.k, e);
                 }
             }
         }
-
         // Append content and header
         el.appendChild(dropdownHeader);
         el.appendChild(dropdownContent);
@@ -9784,6 +9791,7 @@ jSuites.picker = (function(el, options) {
 
     return obj;
 });
+
 
 jSuites.progressbar = (function(el, options) {
     var obj = {};
