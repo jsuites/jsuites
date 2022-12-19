@@ -1,4 +1,4 @@
-import Helpers from './helpers';
+import HelpersDate from './helpers.date';
 
 // Update dictionary
 var setDictionary = function(d) {
@@ -14,18 +14,18 @@ var setDictionary = function(d) {
     }
 
     // Translations
-    for (i = 0; i < Helpers.weekdays.length; i++) {
-        t =  translate(Helpers.weekdays[i]);
-        if (Helpers.weekdays[i]) {
-            Helpers.weekdays[i] = t;
-            Helpers.weekdaysShort[i] = t.substr(0,3);
+    for (i = 0; i < HelpersDate.weekdays.length; i++) {
+        t =  translate(HelpersDate.weekdays[i]);
+        if (HelpersDate.weekdays[i]) {
+            HelpersDate.weekdays[i] = t;
+            HelpersDate.weekdaysShort[i] = t.substr(0,3);
         }
     }
-    for (i = 0; i < Helpers.months.length; i++) {
-        t = translate(Helpers.months[i]);
+    for (i = 0; i < HelpersDate.months.length; i++) {
+        t = translate(HelpersDate.months[i]);
         if (t) {
-            Helpers.months[i] = t;
-            Helpers.monthsShort[i] = t.substr(0,3);
+            HelpersDate.months[i] = t;
+            HelpersDate.monthsShort[i] = t.substr(0,3);
         }
     }
 }
