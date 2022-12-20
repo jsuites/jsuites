@@ -2,6 +2,7 @@ import Palette from './palette';
 import Tracking from '../utils/tracking';
 import Tabs from './tabs';
 import Helpers from '../utils/helpers';
+import Animation from './animation';
 
 export default function Color(el, options) {
     // Already created, update options
