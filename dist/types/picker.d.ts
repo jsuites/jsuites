@@ -33,7 +33,7 @@ export type Picker = (el: HTMLElement, options: Options) => {
     /** Get the current selected value */
     getValue: () => void;
     /** Set the current value for the component */
-    setValue: (v) => void;
+    setValue: (v: number, event: MouseEvent | boolean) => void;
     /** Internal method. Get the label */
     getLabel: (v, item) => void;
     /** Internal method. Set the label */

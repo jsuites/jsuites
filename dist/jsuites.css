@@ -2246,6 +2246,7 @@ div[data-before]:before {
     border-radius: 4px;
     width: 280px;
     padding: 8px 0;
+    z-index: 1;
 
     -webkit-box-shadow: 0 2px 4px rgba(0,0,0,0.2);
     box-shadow: 0 2px 4px rgba(0,0,0,0.2);

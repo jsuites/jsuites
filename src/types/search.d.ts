@@ -2,7 +2,7 @@ interface Options {
     data: string[] | null;
     input: HTMLElement | null;
     searchByNode: boolean | null;
-    onselect: ((obj: Search, text: string, value: string, id: string) => void) | null;
+    onselect: ((obj: Search, text: string, value: string, id: string, image: string) => void) | null;
     forceSelect: boolean;
     onbeforesearch: ((obj: Search, terms: string) => void) | null;
 }

@@ -20,6 +20,13 @@ export default function Search(el, options) {
     }
 
     var createList = function(data) {
+        if (typeof(obj.options.onsearch) == 'function') {
+            var ret = obj.options.onsearch(obj, data);
+            if (ret) {
+                data = ret;
+            }
+        }
+
         // Reset container
         container.innerHTML = '';
         // Print results
@@ -148,6 +155,7 @@ export default function Search(el, options) {
         searchByNode: options.searchByNode || null,
         onselect: options.onselect || null,
         forceSelect: options.forceSelect,
+        onsearch: options.onsearch || null,
         onbeforesearch: options.onbeforesearch || null,
     };
 
@@ -155,9 +163,10 @@ export default function Search(el, options) {
         var id = item.getAttribute('id');
         var text = item.getAttribute('data-text');
         var value = item.getAttribute('data-value');
+        var image = item.children[0].src || '';
         // Onselect
         if (typeof(obj.options.onselect) == 'function') {
-            obj.options.onselect(obj, text, value, id);
+            obj.options.onselect(obj, text, value, id, image);
         }
         // Close container
         obj.close();
@@ -250,11 +259,16 @@ export default function Search(el, options) {
 
         obj(terms);
     }
-    
+
+    obj.blur = function(e) {
+        obj.close();
+    }
+
     // Add events
     if (obj.options.input) {
         obj.options.input.addEventListener("keyup", obj.keyup);
         obj.options.input.addEventListener("keydown", obj.keydown);
+        obj.options.input.addEventListener("blur", obj.blur);
     }
 
     // Append element

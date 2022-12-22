@@ -122,8 +122,8 @@ export default function Picker(el, options) {
             }
         }
 
-        if (isNaN(obj.options.value)) {
-            obj.options.value = '0';
+        if (isNaN(parseInt(obj.options.value))) {
+            obj.options.value = 0;
         }
 
         // Create list from data
@@ -159,15 +159,17 @@ export default function Picker(el, options) {
             }
         }
 
-        var v = obj.options.data[k];
-
-        // Call method
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange.call(obj, el, obj, v, v, k, e);
-        }
-
         if (dropdownContent.children[k] && dropdownContent.children[k].getAttribute('type') !== 'generic') {
             obj.close();
+        }
+
+        // Call method
+        if (e) {
+            if (typeof (obj.options.onchange) == 'function') {
+                var v = obj.options.data[k];
+
+                obj.options.onchange(el, obj, v, v, k, e);
+            }
         }
     }
 

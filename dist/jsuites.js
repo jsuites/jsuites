@@ -7642,8 +7642,8 @@ function Picker(el, options) {
             }
         }
 
-        if (isNaN(obj.options.value)) {
-            obj.options.value = '0';
+        if (isNaN(parseInt(obj.options.value))) {
+            obj.options.value = 0;
         }
 
         // Create list from data
@@ -7679,15 +7679,17 @@ function Picker(el, options) {
             }
         }
 
-        var v = obj.options.data[k];
-
-        // Call method
-        if (typeof(obj.options.onchange) == 'function') {
-            obj.options.onchange.call(obj, el, obj, v, v, k, e);
-        }
-
         if (dropdownContent.children[k] && dropdownContent.children[k].getAttribute('type') !== 'generic') {
             obj.close();
+        }
+
+        // Call method
+        if (e) {
+            if (typeof (obj.options.onchange) == 'function') {
+                var v = obj.options.data[k];
+
+                obj.options.onchange(el, obj, v, v, k, e);
+            }
         }
     }
 
@@ -10978,6 +10980,13 @@ function Search(el, options) {
     }
 
     var createList = function(data) {
+        if (typeof(obj.options.onsearch) == 'function') {
+            var ret = obj.options.onsearch(obj, data);
+            if (ret) {
+                data = ret;
+            }
+        }
+
         // Reset container
         container.innerHTML = '';
         // Print results
@@ -11106,6 +11115,7 @@ function Search(el, options) {
         searchByNode: options.searchByNode || null,
         onselect: options.onselect || null,
         forceSelect: options.forceSelect,
+        onsearch: options.onsearch || null,
         onbeforesearch: options.onbeforesearch || null,
     };
 
@@ -11113,9 +11123,10 @@ function Search(el, options) {
         var id = item.getAttribute('id');
         var text = item.getAttribute('data-text');
         var value = item.getAttribute('data-value');
+        var image = item.children[0].src || '';
         // Onselect
         if (typeof(obj.options.onselect) == 'function') {
-            obj.options.onselect(obj, text, value, id);
+            obj.options.onselect(obj, text, value, id, image);
         }
         // Close container
         obj.close();
