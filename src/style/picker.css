@@ -42,7 +42,7 @@
     padding: 4px;
     z-index: 50;
     text-align: left;
-    max-height: 200px;
+    max-height: 250px;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
 }
