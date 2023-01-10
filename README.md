@@ -1,4 +1,4 @@
-![The javascript web components](https://jsuites.net/templates/v4/img/icon.svg)
+![The javascript web components](https://jsuites.net/templates/v4/img/logo.svg)
 
 ## jSuites v4 - Webcomponents and JavaScript plugins. 
 
