@@ -18,16 +18,29 @@
     "keywords": [
         "javascript plugins"
     ],
+    "scripts": {
+        "test": "jest",
+        "build": "npx webpack --config webpack.config.js",
+        "start": "npx webpack serve --history-api-fallback"
+    },
     "main": "dist/jsuites.js",
-    "version": "4.17.6",
+    "types": "dist/jsuites.d.ts",
+    "version": "5.0.0",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "devDependencies": {
-        "jest": "^28.1.1"
-    },
-    "scripts": {
-        "test": "jest"
+        "copy-webpack-plugin": "^11.0.0",
+        "css-loader": "^6.7.2",
+        "css-minimizer-webpack-plugin": "^3.4.1",
+        "jest": "^28.1.1",
+        "mini-css-extract-plugin": "^2.7.0",
+        "style-loader": "^3.3.1",
+        "url-loader": "^4.1.1",
+        "webpack-cli": "^5.0.0",
+        "webpack": "^5.0.0",
+        "ts-loader": "^9.4.1",
+        "typescript": "^4.9.3"
     }
 }

@@ -1,0 +1,171 @@
+:root {
+    --button-color: #298BA8; 
+    --active-color: #007aff;
+    --safe-area-top: env(safe-area-inset-top);
+    --safe-area-bottom: env(safe-area-inset-bottom);
+}
+
+[data-visible="false"] {
+    display: none;
+}
+
+div[data-before]:before {
+    content: attr(data-before);
+}
+
+.unselectable {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.jreadonly {
+    pointer-events: none;
+}
+
+.jdragging {
+    opacity:0.2;
+    filter: alpha(opacity=20);
+}
+
+.jupload.input {
+    position: relative;
+    box-sizing: border-box;
+    background-size: initial;
+    height: 33px;
+    min-height: initial;
+    padding: 6px;
+    padding-right: 30px;
+}
+
+.jupload.input:before {
+    content: "save";
+    font-size: 18px;
+    font-family: "Material Icons";
+    color: #000;
+    position: absolute;
+    right: 5px;
+}
+
+.jupload:empty:before {
+    z-index: 0;
+}
+
+.jupload img {
+    width: 100%;
+} 
+
+.jupload.input img {
+    width: initial;
+    max-width: 100%;
+    height: 100%;
+}
+
+.jupload[data-multiple] {
+    padding: 10px;
+}
+
+.jupload[data-multiple] img {
+    height: 70px;
+    width: 100px;
+    object-fit: cover;
+    margin-right: 5px;
+    margin-bottom: 5px;
+}
+
+.jupload {
+    position: relative;
+    border: 1px dotted #eee;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    max-height: 100%;
+    min-height: 180px;
+}
+
+.jupload:not(.input):before {
+    content: "\e2c3"; 
+    font-family: "Material Icons";
+    font-size: 90px;
+    color: #eee;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    z-index: -1;
+}
+
+.jupload-item {
+    padding-right: 22px;
+    border-radius: 1px;
+    display: inline-block;
+    position: relative;
+}
+
+.jphoto {
+    position: relative;
+    border: 1px dotted #eee;
+    cursor: pointer;
+    box-sizing: border-box;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.jphoto:empty:before {
+    content: "\e2c3";
+    font-family: "Material Icons";
+    font-size: 90px;
+    color: #eee;
+    width: 100%;
+    height: 100%;
+    text-align: center;
+}
+
+.jremove {
+    opacity: 0.2;
+    filter: alpha(opacity=20);
+}
+
+.round img {
+    border-radius: 1000px;
+}
+
+.jtooltip {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+
+    font-family: initial;
+    font-size: 12px;
+    color: #000;
+    background-color: #fff;
+    border: 1px solid black;
+    padding: 8px;
+    margin: 10px;
+
+    display: block;
+    animation: fadeIn 0.5s;
+    pointer-events: none;
+}
+
+.jtooltip:empty {
+    display: none;
+}
+
+@keyframes fadeIn {
+     0% {
+          opacity: 0;
+     }
+     100% {
+          opacity: 1;
+     }
+}

@@ -1,0 +1,105 @@
+.jnotification {
+    position: fixed;
+    z-index: 10000;
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box;
+    padding: 10px;
+    bottom: 0px;
+}
+
+.jnotification-container {
+    -webkit-box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
+    box-shadow: 0px 2px 15px -5px rgba(0, 0, 0, 0.7);
+    padding: 12px;
+    border-radius: 8px;
+
+    background-color: #000;
+    background: rgba(92,92,92,1);
+    background: linear-gradient(0deg, rgba(92,92,92,1) 0%, rgba(77,77,77,1) 100%);
+    color: #fff;
+    width: 320px;
+    margin: 30px;
+    padding: 20px;
+}
+
+.jnotification-close {
+    content: '';
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='white'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+}
+
+.jnotification-title {
+    font-weight: bold;
+}
+
+.jnotification-header {
+    display: flex;
+    padding-bottom: 5px;
+}
+
+.jnotification-header:empty {
+    display: none;
+}
+
+.jnotification-image {
+    margin-right: 5px;
+}
+
+.jnotification-image:empty {
+    display: none;
+}
+
+.jnotification-image img {
+    width: 24px;
+}
+
+.jnotification-name {
+    text-transform: uppercase;
+    font-size: 0.9em;
+    flex: 1;
+    letter-spacing: 0.1em;
+}
+
+.jnotification-error .jnotification-container {
+    background: rgb(182,38,6);
+    background: linear-gradient(0deg, rgba(170,41,13,1) 0%, rgba(149,11,11,1) 100%);
+}
+
+@media (max-width: 800px) {
+    .jnotification {
+        top: calc(0px + var(--safe-area-top));
+        width: 100%;
+    }
+    .jnotification-container {
+        background: rgba(255,255,255,0.95);
+        border: 1px solid #eee;
+        color: #444;
+        margin: 0px;
+        width: initial;
+    }
+    .jnotification-error .jnotification-container {
+        background: rgba(255,255,255,0.95);
+        color: #790909;
+    }
+    .jnotification-close {
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='black'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    }
+}
+
+.jnotification-header {
+    display: -webkit-box;
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-box-pack: start;
+    -webkit-justify-content: flex-start;
+    -ms-flex-pack: start;
+    justify-content: flex-start;
+    -webkit-box-align: center;
+    -webkit-align-items: center;
+    -ms-flex-align: center;
+    align-items: center;
+}
