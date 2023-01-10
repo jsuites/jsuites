@@ -97,6 +97,16 @@ var jSuites = {
 
 // Legacy
 jSuites.image = upload;
+jSuites.image.create = function(data) {
+    var img = document.createElement('img');
+    img.setAttribute('src', data.file);
+    img.className = 'jfile';
+    img.setAttribute('tabindex', -1);
+    img.content = data;
+
+    return img;
+}
+
 jSuites.tracker = form;
 jSuites.loading = animation.loading;
 jSuites.sha512 = sha512;

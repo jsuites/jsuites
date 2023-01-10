@@ -1122,7 +1122,7 @@ div[data-before]:before {
     color: var(--active-color);
     text-transform:uppercase;
     text-align:right;
-    padding:15px;
+    padding:12px;
     font-weight:bold;
 }
 
@@ -1375,7 +1375,7 @@ div[data-before]:before {
     top: 0px;
     left: 0px;
     z-index: 9002;
-    padding:10px;
+    padding: 6px;
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
     width: 100%;
@@ -1383,10 +1383,10 @@ div[data-before]:before {
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header
 {
-    border: 0px;
+    border: 0px !important;
+    background-position-x: 0% !important;
+    background-position-y: 40% !important;
     background-repeat: no-repeat;
-    background-position-x: 0%;
-    background-position-y: 40%;
     background-image: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBkPSJNMTUuNSAxNGgtLjc5bC0uMjgtLjI3QzE1LjQxIDEyLjU5IDE2IDExLjExIDE2IDkuNSAxNiA1LjkxIDEzLjA5IDMgOS41IDNTMyA1LjkxIDMgOS41IDUuOTEgMTYgOS41IDE2YzEuNjEgMCAzLjA5LS41OSA0LjIzLTEuNTdsLjI3LjI4di43OWw1IDQuOTlMMjAuNDkgMTlsLTQuOTktNXptLTYgMEM3LjAxIDE0IDUgMTEuOTkgNSA5LjVTNy4wMSA1IDkuNSA1IDE0IDcuMDEgMTQgOS41IDExLjk5IDE0IDkuNSAxNHoiIGZpbGw9IiNlNmU2ZTgiLz48cGF0aCBkPSJNMCAwaDI0djI0SDB6IiBmaWxsPSJub25lIi8+PC9zdmc+);
     padding-left: 30px !important;
     padding-right: 60px !important;
@@ -2118,7 +2118,7 @@ div[data-before]:before {
     padding: 4px;
     z-index: 50;
     text-align: left;
-    max-height: 200px;
+    max-height: 250px;
     scrollbar-width: thin;
     scrollbar-color: #333 transparent;
 }

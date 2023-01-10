@@ -11219,11 +11219,16 @@ function Search(el, options) {
 
         obj(terms);
     }
-    
+
+    obj.blur = function(e) {
+        obj.close();
+    }
+
     // Add events
     if (obj.options.input) {
         obj.options.input.addEventListener("keyup", obj.keyup);
         obj.options.input.addEventListener("keydown", obj.keydown);
+        obj.options.input.addEventListener("blur", obj.blur);
     }
 
     // Append element
@@ -12542,6 +12547,16 @@ var jSuites = {
 
 // Legacy
 jSuites.image = Upload;
+jSuites.image.create = function(data) {
+    var img = document.createElement('img');
+    img.setAttribute('src', data.file);
+    img.className = 'jfile';
+    img.setAttribute('tabindex', -1);
+    img.content = data;
+
+    return img;
+}
+
 jSuites.tracker = plugins_form;
 jSuites.loading = animation.loading;
 jSuites.sha512 = (sha512_default());
