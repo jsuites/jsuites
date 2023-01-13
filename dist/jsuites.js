@@ -306,7 +306,7 @@ return /******/ (function() { // webpackBootstrap
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -320,14 +320,14 @@ return /******/ (function() { // webpackBootstrap
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
@@ -340,7 +340,7 @@ return /******/ (function() { // webpackBootstrap
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
@@ -352,12 +352,12 @@ return /******/ (function() { // webpackBootstrap
 /******/ 			}
 /******/ 		};
 /******/ 	}();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
-/******/
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
@@ -1247,14 +1247,14 @@ function Animation() {
     var Component = {
         loading: {}
     }
-
+    
     Component.loading.show = function(timeout) {
         if (! Component.loading.element) {
             Component.loading.element = document.createElement('div');
             Component.loading.element.className = 'jloading';
         }
         document.body.appendChild(Component.loading.element);
-
+    
         // Max timeout in seconds
         if (timeout > 0) {
             setTimeout(function() {
@@ -1262,13 +1262,13 @@ function Animation() {
             }, timeout * 1000)
         }
     }
-
+    
     Component.loading.hide = function() {
         if (Component.loading.element && Component.loading.element.parentNode) {
             document.body.removeChild(Component.loading.element);
         }
     }
-
+    
     Component.slideLeft = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('slide-left-in');
@@ -1288,7 +1288,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideRight = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('slide-right-in');
@@ -1308,7 +1308,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideTop = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('slide-top-in');
@@ -1328,7 +1328,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideBottom = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('slide-bottom-in');
@@ -1348,7 +1348,7 @@ function Animation() {
             }, 100);
         }
     }
-
+    
     Component.fadeIn = function (element, done) {
         element.style.display = '';
         element.classList.add('fade-in');
@@ -1359,7 +1359,7 @@ function Animation() {
             }
         }, 2000);
     }
-
+    
     Component.fadeOut = function (element, done) {
         element.classList.add('fade-out');
         setTimeout(function () {
@@ -7946,7 +7946,7 @@ function Toolbar(el, options) {
             toolbarItem.classList.add('jtoolbar-item');
 
             if (items[i].width) {
-                toolbarItem.style.width = parseInt(items[i].width) + 'px';
+                toolbarItem.style.width = parseInt(items[i].width) + 'px'; 
             }
 
             if (items[i].k) {
@@ -8192,7 +8192,8 @@ function Editor() {
             onkeyup: null,
             onkeydown: null,
             onchange: null,
-            extensions: null
+            extensions: null,
+            type: null,
         };
 
         // Loop through our object
@@ -8716,20 +8717,24 @@ function Editor() {
                    } else {
                        // Check if is data
                        element.setAttribute('tabindex', '900');
-                       // Check attributes for persistance
+                       // Check attributes for persistence
                        obj.addImage(element.src);
                    }
                }
                // Remove attributes
                var attr = [];
-               var numAttributes = element.attributes.length - 1;
-               if (numAttributes > 0) {
-                   for (var i = numAttributes; i >= 0 ; i--) {
-                       attr.push(element.attributes[i].name);
-                   }
+               for (var i = 0; i < element.attributes.length; i++) {
+                   attr.push(element.attributes[i].name);
+               }
+               if (attr.length) {
                    attr.forEach(function(v) {
                        if (validProperty.indexOf(v) == -1) {
                            element.removeAttribute(v);
+                       } else {
+                           // Protection XSS
+                           if (element.attributes[i].value.indexOf('<') !== -1) {
+                               element.attributes[i].value.replace('<', '&#60;');
+                           }
                        }
                    });
                }
@@ -9399,19 +9404,18 @@ function Editor() {
             items.push({
                 type: 'select',
                 content: 'table_view',
-                columns: 10,
+                columns: 8,
+                grid: 8,
                 right: true,
                 options: [
-                    '0x0', '1x0', '2x0', '3x0', '4x0', '5x0', '6x0', '7x0', '8x0', '9x0',
-                    '0x1', '1x1', '2x1', '3x1', '4x1', '5x1', '6x1', '7x1', '8x1', '9x1',
-                    '0x2', '1x2', '2x2', '3x2', '4x2', '5x2', '6x2', '7x2', '8x2', '9x2',
-                    '0x3', '1x3', '2x3', '3x3', '4x3', '5x3', '6x3', '7x3', '8x3', '9x3',
-                    '0x4', '1x4', '2x4', '3x4', '4x4', '5x4', '6x4', '7x4', '8x4', '9x4',
-                    '0x5', '1x5', '2x5', '3x5', '4x5', '5x5', '6x5', '7x5', '8x5', '9x5',
-                    '0x6', '1x6', '2x6', '3x6', '4x6', '5x6', '6x6', '7x6', '8x6', '9x6',
-                    '0x7', '1x7', '2x7', '3x7', '4x7', '5x7', '6x7', '7x7', '8x7', '9x7',
-                    '0x8', '1x8', '2x8', '3x8', '4x8', '5x8', '6x8', '7x8', '8x8', '9x8',
-                    '0x9', '1x9', '2x9', '3x9', '4x9', '5x9', '6x9', '7x9', '8x9', '9x9',
+                    '0x0', '1x0', '2x0', '3x0', '4x0', '5x0', '6x0', '7x0',
+                    '0x1', '1x1', '2x1', '3x1', '4x1', '5x1', '6x1', '7x1',
+                    '0x2', '1x2', '2x2', '3x2', '4x2', '5x2', '6x2', '7x2',
+                    '0x3', '1x3', '2x3', '3x3', '4x3', '5x3', '6x3', '7x3',
+                    '0x4', '1x4', '2x4', '3x4', '4x4', '5x4', '6x4', '7x4',
+                    '0x5', '1x5', '2x5', '3x5', '4x5', '5x5', '6x5', '7x5',
+                    '0x6', '1x6', '2x6', '3x6', '4x6', '5x6', '6x6', '7x6',
+                    '0x7', '1x7', '2x7', '3x7', '4x7', '5x7', '6x7', '7x7',
                 ],
                 render: function (e, item) {
                     if (item) {
@@ -9724,7 +9728,7 @@ function Validations() {
         }
         return null;
     }
-
+    
     component.url = function() {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
@@ -9732,9 +9736,9 @@ function Validations() {
 
     component.email = function(data) {
         var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-        return data && pattern.test(data) ? true : false;
+        return data && pattern.test(data) ? true : false; 
     }
-
+    
     component.required = function(data) {
         return data.trim() ? true : false;
     }
@@ -11286,7 +11290,7 @@ function Slider(el, options) {
             // Keep children items
             for (var i = 0; i < el.children.length; i++) {
                 obj.options.items.push(el.children[i]);
-
+                
                 // counter click event
                 var item = document.createElement('div');
                 item.onclick = function() {
@@ -11305,7 +11309,7 @@ function Slider(el, options) {
         var close = document.createElement('div');
         close.className = 'jslider-close';
         close.innerHTML = '';
-
+        
         close.onclick = function() {
             obj.close();
         }
@@ -11411,7 +11415,7 @@ function Slider(el, options) {
             obj.show(obj.currentImage.nextElementSibling);
         }
     }
-
+    
     obj.prev = function() {
         if (obj.currentImage.previousElementSibling) {
             obj.show(obj.currentImage.previousElementSibling);
@@ -11575,7 +11579,7 @@ function Tags(el, options) {
             var ret = obj.options.onbeforechange(el, obj, obj.options.value, value);
             if (ret === false) {
                 return false;
-            } else {
+            } else { 
                 if (ret != null) {
                     value = ret;
                 }
@@ -11764,7 +11768,7 @@ function Tags(el, options) {
     /**
      * Add one element from the suggestions to the element
      * @param {object} item - Node element in the suggestions container
-     */
+     */ 
     obj.selectIndex = function(text, value) {
         var node = helpers.getNode();
         if (node) {
@@ -12502,7 +12506,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.0',
+    version: '5.0.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
