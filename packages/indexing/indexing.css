@@ -1,0 +1,41 @@
+.indexing {
+    border-left: 1px solid #eee;
+}
+
+.indexing ul {
+    font-size: 0.9em;
+    margin-top: 60px;
+    position: fixed;
+    top: 50px;
+}
+
+.indexing a {
+    color: #000;
+}
+
+.indexing li {
+    border-left: 4px solid transparent;
+    padding-left: 10px;
+}
+
+.indexing li.selected {
+    font-weight: bold;
+    border-left-color: var(--button-color);
+}
+
+.indexing ul {
+    list-style: none;
+}
+
+.indexing:empty {
+    display: none;
+}
+
+.indexing .tagH2 {
+    margin-top: 20px;
+}
+
+.indexing .tagH3 {
+    font-size: 0.9em;
+    padding-left: 20px;
+}

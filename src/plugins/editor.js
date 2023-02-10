@@ -1002,7 +1002,7 @@ function Editor() {
         el.appendChild(obj.file);
 
         // Focus to the editor
-        if (obj.editor.innerHTML && obj.options.focus) {
+        if (obj.options.focus) {
             Component.setCursor(obj.editor, obj.options.focus == 'initial' ? true : false);
         }
 

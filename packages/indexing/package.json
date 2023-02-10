@@ -1,0 +1,27 @@
+{
+    "name": "@jsuites/indexing",
+    "title": "JavaScript floating page index",
+    "description": "Create a floating index based on h2 and h3",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript plugins, floating page index"
+    ],
+    "main": "indexing.js",
+    "version": "1.0.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/v5",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
