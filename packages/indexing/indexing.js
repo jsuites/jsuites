@@ -66,8 +66,9 @@
 
         el.classList.add('indexing');
 
-        document.addEventListener('scroll', render);
-
-        render();
+        if (document.body.offsetWidth >= 1280) {
+            document.addEventListener('scroll', render);
+            render();
+        }
     }
 })));

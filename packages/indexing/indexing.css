@@ -16,6 +16,7 @@
 .indexing li {
     border-left: 4px solid transparent;
     padding-left: 10px;
+    margin-bottom: 5px;
 }
 
 .indexing li.selected {
