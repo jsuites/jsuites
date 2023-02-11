@@ -5,7 +5,6 @@ body {
 }
 
 input, select, textarea, button, .input {
-    border-radius: 1px;
     border: 1px solid #ccc;
     padding: 8px;
     box-sizing: border-box;
@@ -131,7 +130,7 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
 }
 
 .logo div {
-    font-family:'Oswald';
+    font-family: 'Oswald';
 }
 
 .logo-title {
@@ -992,24 +991,24 @@ jwarning .navbar {
     }
 }
 
-@media (min-width: 576px)
+@media (min-width: 600px)
 {
     .container {
-        max-width: 540px;
+        max-width: 570px;
     }
 }
 
-@media (min-width: 768px)
+@media (min-width: 800px)
 {
     .container {
-        max-width: 720px;
+        max-width: 760px;
     }
 }
 
-@media (min-width: 992px)
+@media (min-width: 1024px)
 {
     .container {
-        max-width: 960px;
+        max-width: 973px;
     }
 }
 
@@ -1022,7 +1021,13 @@ jwarning .navbar {
 
 @media (min-width: 1440px) {
     .container {
-        max-width: 1320px;
+        max-width: 1368px;
+    }
+}
+
+@media (min-width: 1600px) {
+    .container {
+        max-width: 1520px;
     }
 }
 
@@ -1081,7 +1086,6 @@ jwarning .navbar {
     border: 1px solid transparent;
     font-size: 1em;
     margin: 0px;
-    padding: 0px;
     width: 100%;
     box-sizing:border-box;
     padding: 16px;
@@ -1181,7 +1185,7 @@ jwarning .navbar {
 
 .lines .form-group link:after {
     content:'\e315';
-    font-family: 'material icons';
+    font-family: 'Material icons';
     color:var(--active-color);
     font-size:24px;
     margin-right:10px;
@@ -1315,7 +1319,6 @@ jwarning .navbar {
     text-transform: uppercase;
     color: #6d6d72;
     margin: 25px 15px 10px;
-    line-height: 17px;
     position: relative;
     overflow: hidden;
     white-space: nowrap;
