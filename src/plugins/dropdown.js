@@ -443,12 +443,12 @@ function Dropdown() {
             // Close button
             closeButton = document.createElement('div');
             closeButton.className = 'jdropdown-close';
-            closeButton.innerHTML = 'Done';
+            closeButton.textContent = 'Done';
 
             // Reset button
             resetButton = document.createElement('div');
             resetButton.className = 'jdropdown-reset';
-            resetButton.innerHTML = 'x';
+            resetButton.textContent = 'x';
             resetButton.onclick = function () {
                 obj.reset();
                 obj.close();
@@ -707,7 +707,7 @@ function Dropdown() {
 
             var node = document.createElement('div');
             node.className = 'jdropdown-description';
-            node.innerHTML = text || '&nbsp;';
+            node.textContent = text || '&nbsp;';
 
             // Title
             if (data.title) {
@@ -774,7 +774,7 @@ function Dropdown() {
                         // Group name
                         var groupName = document.createElement('div');
                         groupName.className = 'jdropdown-group-name';
-                        groupName.innerHTML = groupNames[i];
+                        groupName.textContent = groupNames[i];
                         // Group arrow
                         var groupArrow = document.createElement('i');
                         groupArrow.className = 'jdropdown-group-arrow jdropdown-group-arrow-down';
@@ -820,7 +820,7 @@ function Dropdown() {
             resetValue();
 
             // Make sure the content container is blank
-            content.innerHTML = '';
+            content.textContent = '';
 
             // Reset
             obj.header.value = '';
@@ -1037,12 +1037,12 @@ function Dropdown() {
             // Remove nodes from all groups
             if (obj.groups.length) {
                 for (var i = 0; i < obj.groups.length; i++) {
-                    obj.groups[i].lastChild.innerHTML = '';
+                    obj.groups[i].lastChild.textContent = '';
                 }
             }
 
             // Remove all nodes
-            content.innerHTML = '';
+            content.textContent = '';
 
             // Remove current items in the remote search
             if (obj.options.remoteSearch == true) {
@@ -1449,7 +1449,7 @@ function Dropdown() {
             }
 
             // Reset container
-            content.innerHTML = '';
+            content.textContent = '';
 
             // First 200 items
             for (var i = 0; i < number; i++) {
@@ -1483,7 +1483,7 @@ function Dropdown() {
                 number = number - 200;
 
                 // Reset container
-                content.innerHTML = '';
+                content.textContent = '';
 
                 // First 200 items
                 for (var i = number; i < results.length; i++) {
@@ -1738,14 +1738,14 @@ function Dropdown() {
                     for (var i = 0; i < el.children[j].children.length; i++) {
                         options.data.push({
                             value: el.children[j].children[i].value,
-                            text: el.children[j].children[i].innerHTML,
+                            text: el.children[j].children[i].textContent,
                             group: el.children[j].getAttribute('label'),
                         });
                     }
                 } else {
                     options.data.push({
                         value: el.children[j].value,
-                        text: el.children[j].innerHTML,
+                        text: el.children[j].textContent,
                     });
                 }
             }
