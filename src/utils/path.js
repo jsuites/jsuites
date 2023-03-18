@@ -1,8 +1,8 @@
-export default function Path(str, val) {
+export default function Path(str, val, remove) {
     str = str.split('.');
     if (str.length) {
-        var o = this;
-        var p = null;
+        let o = this;
+        let p = null;
         while (str.length > 1) {
             // Get the property
             p = str.shift();
@@ -11,7 +11,7 @@ export default function Path(str, val) {
                 o = o[p];
             } else {
                 // Property does not exists
-                if (val === undefined) {
+                if (typeof(val) === 'undefined') {
                     return undefined;
                 } else {
                     // Create the property
@@ -24,8 +24,12 @@ export default function Path(str, val) {
         // Get the property
         p = str.shift();
         // Set or get the value
-        if (val !== undefined) {
-            o[p] = val;
+        if (typeof(val) !== 'undefined') {
+            if (remove === true) {
+                delete o[p];
+            } else {
+                o[p] = val;
+            }
             // Success
             return true;
         } else {
