@@ -1171,10 +1171,11 @@ function Mask() {
             if (o.input) {
                 var label = null;
                 if (isNumeric(o.type)) {
+                    let v = Value.call(o.input);
                     // Extract the number
-                    o.number = Extract.call(o, Value.call(o.input));
+                    o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage') {
+                    if (o.type == 'percentage' && v.indexOf('%') !== '%') {
                         label = o.number / 100;
                     } else {
                         label = o.number;
@@ -1295,7 +1296,7 @@ function Mask() {
         } else {
             value = Extract.call(options, v);
             // Percentage
-            if (type == 'percentage') {
+            if (type == 'percentage' && v.indexOf('%') !== '%') {
                 value /= 100;
             }
             var o = options;

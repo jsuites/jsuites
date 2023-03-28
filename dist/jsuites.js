@@ -709,11 +709,11 @@ function Tracking(component, state) {
 }
 
 ;// CONCATENATED MODULE: ./src/utils/path.js
-function Path(str, val) {
+function Path(str, val, remove) {
     str = str.split('.');
     if (str.length) {
-        var o = this;
-        var p = null;
+        let o = this;
+        let p = null;
         while (str.length > 1) {
             // Get the property
             p = str.shift();
@@ -722,7 +722,7 @@ function Path(str, val) {
                 o = o[p];
             } else {
                 // Property does not exists
-                if (val === undefined) {
+                if (typeof(val) === 'undefined') {
                     return undefined;
                 } else {
                     // Create the property
@@ -735,8 +735,12 @@ function Path(str, val) {
         // Get the property
         p = str.shift();
         // Set or get the value
-        if (val !== undefined) {
-            o[p] = val;
+        if (typeof(val) !== 'undefined') {
+            if (remove === true) {
+                delete o[p];
+            } else {
+                o[p] = val;
+            }
             // Success
             return true;
         } else {
@@ -2549,10 +2553,11 @@ function Mask() {
             if (o.input) {
                 var label = null;
                 if (isNumeric(o.type)) {
+                    let v = Value.call(o.input);
                     // Extract the number
-                    o.number = Extract.call(o, Value.call(o.input));
+                    o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage') {
+                    if (o.type == 'percentage' && v.indexOf('%') !== '%') {
                         label = o.number / 100;
                     } else {
                         label = o.number;
@@ -2673,7 +2678,7 @@ function Mask() {
         } else {
             value = Extract.call(options, v);
             // Percentage
-            if (type == 'percentage') {
+            if (type == 'percentage' && v.indexOf('%') !== '%') {
                 value /= 100;
             }
             var o = options;
@@ -4324,23 +4329,21 @@ function Tabs(el, options) {
     // Helpers
     var setBorder = function(index) {
         if (obj.options.animation) {
-            setTimeout(function() {
-                var rect = obj.headers.children[index].getBoundingClientRect();
+            var rect = obj.headers.children[index].getBoundingClientRect();
 
-                if (obj.options.palette == 'modern') {
-                    border.style.width = rect.width - 4 + 'px';
-                    border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-                } else {
-                    border.style.width = rect.width + 'px';
-                    border.style.left = obj.headers.children[index].offsetLeft + 'px';
-                }
+            if (obj.options.palette === 'modern') {
+                border.style.width = rect.width - 4 + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+            } else {
+                border.style.width = rect.width + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 'px';
+            }
 
-                if (obj.options.position == 'bottom') {
-                    border.style.top = '0px';
-                } else {
-                    border.style.bottom = '0px';
-                }
-            }, 150);
+            if (obj.options.position === 'bottom') {
+                border.style.top = '0px';
+            } else {
+                border.style.bottom = '0px';
+            }
         }
     }
 
@@ -8029,6 +8032,11 @@ function Toolbar(el, options) {
                         toolbarItem: toolbarItem,
                         closed: true
                     });
+                }
+
+                // Render
+                if (typeof(items[i].render) === 'function') {
+                    items[i].render(toolbarItem, items[i]);
                 }
             }
 
@@ -12506,7 +12514,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.1',
+    version: '5.0.8',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

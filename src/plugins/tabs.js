@@ -44,23 +44,21 @@ export default function Tabs(el, options) {
     // Helpers
     var setBorder = function(index) {
         if (obj.options.animation) {
-            setTimeout(function() {
-                var rect = obj.headers.children[index].getBoundingClientRect();
+            var rect = obj.headers.children[index].getBoundingClientRect();
 
-                if (obj.options.palette == 'modern') {
-                    border.style.width = rect.width - 4 + 'px';
-                    border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
-                } else {
-                    border.style.width = rect.width + 'px';
-                    border.style.left = obj.headers.children[index].offsetLeft + 'px';
-                }
+            if (obj.options.palette === 'modern') {
+                border.style.width = rect.width - 4 + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 2 + 'px';
+            } else {
+                border.style.width = rect.width + 'px';
+                border.style.left = obj.headers.children[index].offsetLeft + 'px';
+            }
 
-                if (obj.options.position == 'bottom') {
-                    border.style.top = '0px';
-                } else {
-                    border.style.bottom = '0px';
-                }
-            }, 150);
+            if (obj.options.position === 'bottom') {
+                border.style.top = '0px';
+            } else {
+                border.style.bottom = '0px';
+            }
         }
     }
 

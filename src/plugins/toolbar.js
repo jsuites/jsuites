@@ -189,6 +189,11 @@ export default function Toolbar(el, options) {
                         closed: true
                     });
                 }
+
+                // Render
+                if (typeof(items[i].render) === 'function') {
+                    items[i].render(toolbarItem, items[i]);
+                }
             }
 
             if (items[i].onclick) {
