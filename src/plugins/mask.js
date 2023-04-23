@@ -504,7 +504,7 @@ function Mask() {
             if (test == true) {
                 var t = parseInt(this.values[this.index]);
                 if (t > 0 && t < 12) {
-                    this.date[2] = this.values[this.index];
+                    this.date[1] = this.values[this.index];
                     this.index++;
                     // Repeat the character
                     this.position--;

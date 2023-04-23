@@ -260,6 +260,7 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
     -webkit-box-align: center;
     align-items: center;
     border-bottom: 1px solid #ddd;
+    line-height: 24px;
 }
 
 .section-divisor .section-number {
@@ -268,7 +269,7 @@ input:disabled, select:disabled, textarea:disabled, button:disabled {
     height: 40px;
     text-align: center;
     font-weight: bold;
-    font-size: 23px;
+    font-size: 24px;
 }
 
 .form-group {

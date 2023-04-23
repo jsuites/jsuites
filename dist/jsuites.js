@@ -1886,7 +1886,7 @@ function Mask() {
             if (test == true) {
                 var t = parseInt(this.values[this.index]);
                 if (t > 0 && t < 12) {
-                    this.date[2] = this.values[this.index];
+                    this.date[1] = this.values[this.index];
                     this.index++;
                     // Repeat the character
                     this.position--;
@@ -4158,6 +4158,10 @@ function Calendar() {
                 xMonthsAgo: '{0} mon ago',
                 xYearsAgo: '{0}y ago',
             }
+        }
+
+        if (d.indexOf('GMT') === -1) {
+            d += ' GMT';
         }
 
         var d1 = new Date();
@@ -12514,7 +12518,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.8',
+    version: '5.0.9',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

@@ -1070,6 +1070,10 @@ function Calendar() {
             }
         }
 
+        if (d.indexOf('GMT') === -1) {
+            d += ' GMT';
+        }
+
         var d1 = new Date();
         var d2 = new Date(d);
         var total = parseInt((d1 - d2) / 1000 / 60);
