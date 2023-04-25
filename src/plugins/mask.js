@@ -1644,7 +1644,7 @@ function Mask() {
                     } else if (s === 'DD') {
                         v = Helpers.two(this.data[2]);
                     } else if (s === 'D') {
-                        v = this.data[2];
+                        v = parseInt(this.data[2]);
                     } else if (s === 'Q') {
                         v = Math.floor((calendar.getMonth() + 3) / 3);
                     } else if (s === 'HH24' || s === 'HH') {

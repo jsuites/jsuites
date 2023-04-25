@@ -1379,6 +1379,7 @@ div[data-before]:before {
     background-color:#fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
     width: 100%;
+    height: 40px;
 }
 
 .jdropdown-searchbar.jdropdown-focus .jdropdown-header
