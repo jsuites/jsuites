@@ -68,6 +68,8 @@ function Calendar() {
                 dataType: null,
                 // Controls
                 controls: true,
+                // Auto select
+                autoSelect: true,
             }
 
             // Loop through our object
@@ -207,6 +209,9 @@ function Calendar() {
         }
 
         obj.close = function (ignoreEvents, update) {
+            if (obj.options.autoSelect !== true && typeof(update) === 'undefined') {
+                update = false;
+            }
             if (calendar.classList.contains('jcalendar-focus')) {
                 if (update !== false) {
                     var element = calendar.querySelector('.jcalendar-selected');
@@ -220,6 +225,12 @@ function Calendar() {
                     }
 
                     obj.setValue(value);
+                } else {
+                    if (obj.options.value) {
+                        let value = obj.options.value;
+                        obj.options.value = '';
+                        obj.setValue(value)
+                    }
                 }
 
                 // Events
