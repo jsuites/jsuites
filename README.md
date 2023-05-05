@@ -113,7 +113,9 @@ contact@jsuites.net
 
 ## Other tools
 
-https://lemonadejs.net<br>
-https://jspreadsheet.com<br>
+- [LemonadeJS v2](https://lemonadejs.net/v2/)<br>
+- [LemonadeJS v3](https://lemonadejs.net/v3/)<br>
+- [Jspreadsheet Pro v9](https://jspreadsheet.com/v9/)<br>
+- [Jspreadsheet Pro v10](https://jspreadsheet.com/v10/)<br>
 
 
