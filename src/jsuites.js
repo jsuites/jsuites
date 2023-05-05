@@ -52,7 +52,7 @@ import './style/toolbar.css';
 
 var jSuites = {
     /** Current version */
-    version: '5.0.11',
+    version: '5.0.14',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

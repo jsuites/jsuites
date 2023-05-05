@@ -3158,6 +3158,8 @@ function Calendar() {
                 dataType: null,
                 // Controls
                 controls: true,
+                // Auto select
+                autoSelect: true,
             }
 
             // Loop through our object
@@ -3297,6 +3299,9 @@ function Calendar() {
         }
 
         obj.close = function (ignoreEvents, update) {
+            if (obj.options.autoSelect !== true && typeof(update) === 'undefined') {
+                update = false;
+            }
             if (calendar.classList.contains('jcalendar-focus')) {
                 if (update !== false) {
                     var element = calendar.querySelector('.jcalendar-selected');
@@ -3310,6 +3315,12 @@ function Calendar() {
                     }
 
                     obj.setValue(value);
+                } else {
+                    if (obj.options.value) {
+                        let value = obj.options.value;
+                        obj.options.value = '';
+                        obj.setValue(value)
+                    }
                 }
 
                 // Events
@@ -3510,7 +3521,7 @@ function Calendar() {
                 }
 
                 if (!obj.options.time) {
-                    obj.close();
+                    obj.close(null, true);
                 } else {
                     obj.date[3] = calendarSelectHour.value;
                     obj.date[4] = calendarSelectMin.value;
@@ -3838,7 +3849,7 @@ function Calendar() {
                         obj.getDays();
                     }
                 } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update' || action == 'jcalendar-close') {
-                    obj.close();
+                    obj.close(null, true);
                 } else if (action == 'jcalendar-backdrop') {
                     obj.close(false, false);
                 } else if (action == 'jcalendar-reset') {
@@ -3847,7 +3858,7 @@ function Calendar() {
                     obj.update(e.target);
                 }
             } else {
-                obj.close();
+                obj.close(false, false);
             }
         }
 
@@ -12518,7 +12529,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.11',
+    version: '5.0.14',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

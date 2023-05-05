@@ -431,7 +431,7 @@ function Calendar() {
                 }
 
                 if (!obj.options.time) {
-                    obj.close();
+                    obj.close(null, true);
                 } else {
                     obj.date[3] = calendarSelectHour.value;
                     obj.date[4] = calendarSelectMin.value;
@@ -759,7 +759,7 @@ function Calendar() {
                         obj.getDays();
                     }
                 } else if (action == 'jcalendar-confirm' || action == 'jcalendar-update' || action == 'jcalendar-close') {
-                    obj.close();
+                    obj.close(null, true);
                 } else if (action == 'jcalendar-backdrop') {
                     obj.close(false, false);
                 } else if (action == 'jcalendar-reset') {
@@ -768,7 +768,7 @@ function Calendar() {
                     obj.update(e.target);
                 }
             } else {
-                obj.close();
+                obj.close(false, false);
             }
         }
 

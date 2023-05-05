@@ -80,4 +80,6 @@ export type Calendar = (el: HTMLElement, options: Options) => {
     type: 'calendar';
     /** Alias for setValue */
     update: () => void;
+    /** Auto select confirms the current date as the new value onblur. Default: true */
+    autoSelect: boolean;
 }

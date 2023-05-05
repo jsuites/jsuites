@@ -61,7 +61,9 @@
                 }
             });
 
-            el.appendChild(ul);
+            if (ul.children.length) {
+                el.appendChild(ul);
+            }
         }
 
         el.classList.add('indexing');
