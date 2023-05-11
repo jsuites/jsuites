@@ -17,61 +17,61 @@ interface DropdownItem {
     color?: string;
 }
 
-interface Options {
-    /** Load the data from a remove server URL */
-    url: string,
-    /** Load data to the dropdown */
-    data: DropdownItem[],
-    /** Legacy format { id: name } or { value: text } */
-    format: number,
-    /** Accept multiple item selection */
-    multiple: boolean,
-    /** Enable the suggestion option */
-    autocomplete: boolean,
-    /** Search for an option remotely */
-    remoteSearch: boolean,
-    /** Enable the lazyloading option when you are dealing with too much options */
-    lazyLoading: boolean,
-    /** Internal type */
-    type: 'dropdown',
-    /** Width of the dropdown */
-    width: number,
-    /** Max width of the dropdown */
-    maxWidth: number,
-    /** Start the dropdown opened */
-    opened: boolean,
-    /** Initial value */
-    value: string,
-    /** Dropdown place holder */
-    placeholder: string,
-    /** Accept the user to add new options */
-    newOptions: boolean,
-    /** Internal position controller. */
-    position: boolean,
-    /** When the value changed */
-    onchange: (el: HTMLElement, obj: Dropdown, oldValue: string, newValue: string) => void,
-    /** When the dropdown is ready */
-    onload: (el: HTMLElement, obj: Dropdown, data: any, val: any) => void,
-    /** When the dropdown is opened */
-    onopen: (el: HTMLElement) => void,
-    /** When the dropdown is closed */
-    onclose: (el: HTMLElement) => void,
-    /** When the dropdown is focused */
-    onfocus: (el: HTMLElement) => void,
-    /** When the dropdown is blur */
-    onblur: (el: HTMLElement) => void,
-    /** When the user add a new option to the dropdown. */
-    oninsert: (obj: Dropdown, item: DropdownItem, newItem: DropdownItem) => void,
-    /** Just before a new option is added to the dropdown */
-    onbeforeinsert: (obj: Dropdown, item: DropdownItem) => void,
-    /** Before the search on autocompletes */
-    onbeforesearch: (obj: Dropdown, ajaxRequest: object) => boolean | null;
-    /** Search result */
-    onsearch: (obj: Dropdown, result: object) => void;
-    /** Sort the elements of the dropdown */
-    sortResults: boolean,
-    /** Focus when the dropdown is created */
-    autofocus: boolean,
+interface DropdownOptions {
+    /** Endpoint to fetch data from a remote server */
+    url?: string;
+    /** Preloaded data items for the dropdown */
+    data?: DropdownItem[];
+    /** Format type of the data, typically { id: name } or { value: text } */
+    format?: number;
+    /** Indicates if multiple item selection is allowed */
+    multiple?: boolean;
+    /** Enables the autocomplete feature for user input */
+    autocomplete?: boolean;
+    /** Allows remote search for options */
+    remoteSearch?: boolean;
+    /** Enables the lazy loading feature for handling a large number of options */
+    lazyLoading?: boolean;
+    /** Rendering style of the dropdown: 'default', 'picker', or 'searchbar' */
+    type?: 'default' | 'picker' | 'searchbar',
+    /** Defines the dropdown's width */
+    width?: number;
+    /** Sets the maximum width of the dropdown */
+    maxWidth?: number;
+    /** Determines if the dropdown is opened when initialized */
+    opened?: boolean;
+    /** The initial value of the dropdown */
+    value?: string;
+    /** Placeholder text for the dropdown */
+    placeholder?: string;
+    /** Allows the user to add new options */
+    newOptions?: boolean;
+    /** Internal controller for the dropdown's position */
+    position?: boolean;
+    /** Event handler for value changes */
+    onchange?: (el: HTMLElement, obj: Dropdown, oldValue: string, newValue: string) => void;
+    /** Event handler for when the dropdown is ready */
+    onload?: (el: HTMLElement, obj: Dropdown, data: any, val: any) => void;
+    /** Event handler for when the dropdown opens */
+    onopen?: (el: HTMLElement) => void;
+    /** Event handler for when the dropdown closes */
+    onclose?: (el: HTMLElement) => void;
+    /** Event handler for when the dropdown receives focus */
+    onfocus?: (el: HTMLElement) => void;
+    /** Event handler for when the dropdown loses focus */
+    onblur?: (el: HTMLElement) => void;
+    /** Event handler for when a new option is added to the dropdown */
+    oninsert?: (obj: Dropdown, item: DropdownItem, newItem: DropdownItem) => void;
+    /** Event handler for just before a new option is added to the dropdown */
+    onbeforeinsert?: (obj: Dropdown, item: DropdownItem) => void;
+    /** Event handler for before a search on autocomplete is performed */
+    onbeforesearch?: (obj: Dropdown, ajaxRequest: object) => boolean | null;
+    /** Event handler for processing search results */
+    onsearch?: (obj: Dropdown, result: object) => void;
+    /** Toggles the sorting of dropdown elements */
+    sortResults?: boolean;
+    /** Indicates if the dropdown should automatically receive focus upon creation */
+    autofocus?: boolean;
 }
 
 interface ItemContainer {
@@ -84,7 +84,7 @@ interface ItemContainer {
 }
 
 /** Toast Plugin */
-export type Dropdown = (el: HTMLElement, options: Options) => {
+export type Dropdown = (el: HTMLElement, options: DropdownOptions) => {
     /** Add a new item to the dropdown */
     add: (title: string, id: string|number) => DropdownItem;
     /** Append new data to the dropdown */
@@ -128,7 +128,7 @@ export type Dropdown = (el: HTMLElement, options: Options) => {
     /** Open the dropdown */
     open: () => void;
     /** Dropdown configuration */
-    options: Options;
+    options: DropdownOptions;
     /** Move index to the previous element in the dropdown */
     prev: () => void;
     /** Reset the value of the dropdown */
@@ -152,7 +152,7 @@ export type Dropdown = (el: HTMLElement, options: Options) => {
     /** Set the id or value for one item */
     setId: (item: number|DropdownItem, newId: number) => void;
     /** Change the dropdown options */
-    setOptions: (newOptions: Options, reset?: boolean) => void;
+    setOptions: (newOptions: DropdownOptions, reset?: boolean) => void;
     /** Change the dropdown data from a URL */
     setUrl: (newUrl: string, callback?: Function) => void;
     /** Set the value for a dropdown */
