@@ -1175,7 +1175,7 @@ function Mask() {
                     // Extract the number
                     o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage' && v.indexOf('%') !== '%') {
+                    if (o.type == 'percentage' && v.indexOf('%') !== -1) {
                         label = o.number / 100;
                     } else {
                         label = o.number;
@@ -1296,7 +1296,7 @@ function Mask() {
         } else {
             value = Extract.call(options, v);
             // Percentage
-            if (type == 'percentage' && v.indexOf('%') !== '%') {
+            if (type === 'percentage' && v.indexOf('%') !== -1) {
                 value /= 100;
             }
             var o = options;

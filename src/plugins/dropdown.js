@@ -239,6 +239,8 @@ function Dropdown() {
                 onblur: null,
                 oninsert: null,
                 onbeforeinsert: null,
+                onsearch: null,
+                onbeforesearch: null,
                 sortResults: false,
                 autofocus: false,
             }
@@ -1049,11 +1051,13 @@ function Dropdown() {
                 // Reset results
                 obj.results = null;
                 // URL
-                var url = obj.options.url + (obj.options.url.indexOf('?') > 0 ? '&' : '?') + 'q=' + str;
-                // Remote search
-                Ajax({
+                var url = obj.options.url;
+
+                // Ajax call
+                let o = {
                     url: url,
                     method: 'GET',
+                    data: { q: str },
                     dataType: 'json',
                     success: function (result) {
                         // Reset items
@@ -1080,8 +1084,24 @@ function Dropdown() {
                         } else {
                             content.style.display = '';
                         }
+
+                        if (typeof(obj.options.onsearch) === 'function') {
+                            obj.options.onsearch(obj, result);
+                        }
                     }
-                });
+                }
+
+                if (typeof(obj.options.onbeforesearch) === 'function') {
+                    let ret = obj.options.onbeforesearch(obj, o);
+                    if (ret === false) {
+                        return;
+                    } else if (typeof(ret) === 'object') {
+                        o = ret;
+                    }
+                }
+
+                // Remote search
+                Ajax(o);
             } else {
                 // Search terms
                 str = new RegExp(str, 'gi');

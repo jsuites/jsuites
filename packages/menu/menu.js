@@ -171,13 +171,15 @@
         el.addEventListener('click', action);
 
         // Add close action
-        var i = document.createElement('i');
-        i.className = 'material-icons small-screen-only close';
-        i.innerText = 'close';
-        i.onclick = function() {
-            obj.hide();
+        if (el.innerText) {
+            var i = document.createElement('i');
+            i.className = 'material-icons small-screen-only close';
+            i.innerText = 'close';
+            i.onclick = function () {
+                obj.hide();
+            }
+            el.appendChild(i);
         }
-        el.appendChild(i);
 
         // Add menu class
         el.classList.add('jmenu');

@@ -1,4 +1,4 @@
-interface Item {
+interface DropdownItem {
     /** Value of the selected item. */
     id?: string | number;
     /** Label for the selected item. */
@@ -21,7 +21,7 @@ interface Options {
     /** Load the data from a remove server URL */
     url: string,
     /** Load data to the dropdown */
-    data: Item[],
+    data: DropdownItem[],
     /** Legacy format { id: name } or { value: text } */
     format: number,
     /** Accept multiple item selection */
@@ -48,22 +48,26 @@ interface Options {
     newOptions: boolean,
     /** Internal position controller. */
     position: boolean,
-    /** When the value chnaged */
-    onchange: () => void,
+    /** When the value changed */
+    onchange: (el: HTMLElement, obj: Dropdown, oldValue: string, newValue: string) => void,
     /** When the dropdown is ready */
-    onload: () => void,
+    onload: (el: HTMLElement, obj: Dropdown, data: any, val: any) => void,
     /** When the dropdown is opened */
-    onopen: () => void,
+    onopen: (el: HTMLElement) => void,
     /** When the dropdown is closed */
-    onclose: () => void,
+    onclose: (el: HTMLElement) => void,
     /** When the dropdown is focused */
-    onfocus: () => void,
+    onfocus: (el: HTMLElement) => void,
     /** When the dropdown is blur */
-    onblur: () => void,
+    onblur: (el: HTMLElement) => void,
     /** When the user add a new option to the dropdown. */
-    oninsert: () => void,
+    oninsert: (obj: Dropdown, item: DropdownItem, newItem: DropdownItem) => void,
     /** Just before a new option is added to the dropdown */
-    onbeforeinsert: () => void,
+    onbeforeinsert: (obj: Dropdown, item: DropdownItem) => void,
+    /** Before the search on autocompletes */
+    onbeforesearch: (obj: Dropdown, ajaxRequest: object) => boolean | null;
+    /** Search result */
+    onsearch: (obj: Dropdown, result: object) => void;
     /** Sort the elements of the dropdown */
     sortResults: boolean,
     /** Focus when the dropdown is created */
@@ -72,7 +76,7 @@ interface Options {
 
 interface ItemContainer {
     /** Data for the item */
-    data: Item;
+    data: DropdownItem;
     /** HTML container for the element */
     element: HTMLElement;
     /** HTML container for the group */
@@ -82,9 +86,9 @@ interface ItemContainer {
 /** Toast Plugin */
 export type Dropdown = (el: HTMLElement, options: Options) => {
     /** Add a new item to the dropdown */
-    add: (title: string, id: string|number) => Item;
+    add: (title: string, id: string|number) => DropdownItem;
     /** Append new data to the dropdown */
-    appendData: (data: Item[]) => void
+    appendData: (data: DropdownItem[]) => void
     /** Close the dropdown picker */
     closeItem: (ignoreEvents?: boolean) => void
     /** Current selectIndex */
@@ -94,7 +98,7 @@ export type Dropdown = (el: HTMLElement, options: Options) => {
     /** Select the first item */
     first: () => void;
     /** Get all data */
-    getData: () => Item[];
+    getData: () => DropdownItem[];
     /** Get the index position of a item by its value */
     getPosition: (value: string) => number | boolean;
     /** Get the text from the selected options */
@@ -134,19 +138,19 @@ export type Dropdown = (el: HTMLElement, options: Options) => {
     /** Set the value to null */
     resetSelected: () => void;
     /** Array of results when filtering */
-    results: Item[];
+    results: DropdownItem[];
     /** Search term */
     search: string;
     /** Select an index */
     selectIndex: (index: number, force?: boolean) => void
     /** Select an item */
-    selectItem: (item: Item) => void;
+    selectItem: (item: DropdownItem) => void;
     /** Set the cursor to a specified element index */
     setCursor: (index: number, setPosition?: boolean) => void
     /** Set new data for the dropdown */
-    setData: (items: Item[]) => void;
+    setData: (items: DropdownItem[]) => void;
     /** Set the id or value for one item */
-    setId: (item: number|Item, newId: number) => void;
+    setId: (item: number|DropdownItem, newId: number) => void;
     /** Change the dropdown options */
     setOptions: (newOptions: Options, reset?: boolean) => void;
     /** Change the dropdown data from a URL */

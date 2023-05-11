@@ -2557,7 +2557,7 @@ function Mask() {
                     // Extract the number
                     o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage' && v.indexOf('%') !== '%') {
+                    if (o.type == 'percentage' && v.indexOf('%') !== -1) {
                         label = o.number / 100;
                     } else {
                         label = o.number;
@@ -2678,7 +2678,7 @@ function Mask() {
         } else {
             value = Extract.call(options, v);
             // Percentage
-            if (type == 'percentage' && v.indexOf('%') !== '%') {
+            if (type === 'percentage' && v.indexOf('%') !== -1) {
                 value /= 100;
             }
             var o = options;
@@ -5998,6 +5998,8 @@ function Dropdown() {
                 onblur: null,
                 oninsert: null,
                 onbeforeinsert: null,
+                onsearch: null,
+                onbeforesearch: null,
                 sortResults: false,
                 autofocus: false,
             }
@@ -6808,11 +6810,13 @@ function Dropdown() {
                 // Reset results
                 obj.results = null;
                 // URL
-                var url = obj.options.url + (obj.options.url.indexOf('?') > 0 ? '&' : '?') + 'q=' + str;
-                // Remote search
-                ajax({
+                var url = obj.options.url;
+
+                // Ajax call
+                let o = {
                     url: url,
                     method: 'GET',
+                    data: { q: str },
                     dataType: 'json',
                     success: function (result) {
                         // Reset items
@@ -6839,8 +6843,24 @@ function Dropdown() {
                         } else {
                             content.style.display = '';
                         }
+
+                        if (typeof(obj.options.onsearch) === 'function') {
+                            obj.options.onsearch(obj, result);
+                        }
                     }
-                });
+                }
+
+                if (typeof(obj.options.onbeforesearch) === 'function') {
+                    let ret = obj.options.onbeforesearch(obj, o);
+                    if (ret === false) {
+                        return;
+                    } else if (typeof(ret) === 'object') {
+                        o = ret;
+                    }
+                }
+
+                // Remote search
+                ajax(o);
             } else {
                 // Search terms
                 str = new RegExp(str, 'gi');
@@ -12529,7 +12549,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.14',
+    version: '5.0.16',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
