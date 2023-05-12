@@ -12549,7 +12549,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 var jSuites = {
     /** Current version */
-    version: '5.0.16',
+    version: '5.0.17',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
