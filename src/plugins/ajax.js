@@ -111,16 +111,16 @@ function Ajax() {
         }
 
         // Headers
-        if (options.method == 'POST') {
+        if (options.method === 'POST') {
             httpRequest.setRequestHeader('Accept', 'application/json');
         } else {
-            if (options.dataType == 'blob') {
+            if (options.dataType === 'blob') {
                 httpRequest.responseType = "blob";
             } else {
                 if (! options.contentType) {
-                    if (options.dataType == 'json') {
+                    if (options.dataType === 'json') {
                         httpRequest.setRequestHeader('Content-Type', 'text/json');
-                    } else if (options.dataType == 'html') {
+                    } else if (options.dataType === 'html') {
                         httpRequest.setRequestHeader('Content-Type', 'text/html');
                     }
                 }
@@ -128,13 +128,13 @@ function Ajax() {
         }
 
         // No cache
-        if (options.cache != true) {
+        if (options.cache !== true) {
             httpRequest.setRequestHeader('pragma', 'no-cache');
             httpRequest.setRequestHeader('cache-control', 'no-cache');
         }
 
         // Authentication
-        if (options.withCredentials == true) {
+        if (options.withCredentials === true) {
             httpRequest.withCredentials = true
         }
 
@@ -153,8 +153,8 @@ function Ajax() {
         }
 
         httpRequest.onload = function() {
-            if (httpRequest.status === 200) {
-                if (options.dataType == 'json') {
+            if (httpRequest.status >= 200 && httpRequest.status < 300) {
+                if (options.dataType === 'json') {
                     try {
                         var result = JSON.parse(httpRequest.responseText);
 
@@ -167,7 +167,7 @@ function Ajax() {
                         }
                     }
                 } else {
-                    if (options.dataType == 'blob') {
+                    if (options.dataType === 'blob') {
                         var result = httpRequest.response;
                     } else {
                         var result = httpRequest.responseText;
@@ -194,7 +194,7 @@ function Ajax() {
                 var index = Component.requests.indexOf(httpRequest);
                 // Remove from the ajax requests container
                 Component.requests.splice(index, 1);
-                // Deprected: Last one?
+                // Deprecated: Last one?
                 if (! Component.requests.length) {
                     // Object event
                     if (options.complete && typeof(options.complete) == 'function') {
@@ -232,7 +232,7 @@ function Ajax() {
         httpRequest.data = data;
 
         // Queue
-        if (options.queue == true && Component.requests.length > 0) {
+        if (options.queue === true && Component.requests.length > 0) {
             Component.queue.push(httpRequest);
         } else {
             Component.send(httpRequest)

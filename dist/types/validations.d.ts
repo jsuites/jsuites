@@ -1,16 +1,25 @@
 interface Options {
-    // Validation type
-    type: 'url' | 'email' | 'required' | 'empty' | 'notEmpty' | 'number' | 'login' | 'list' | 'date' | 'text' | 'textLength'
+    /** Validation type */
+    type: 'number' | 'text' | 'date' | 'list' | 'textLength' | 'empty' | 'notEmpty';
     // Ignore the validation when is blank
     allowBlank?: boolean;
-    // Criteria
-    criteria: string
+    /** Criteria to be match */
+    criteria:
+        | '='
+        | '!='
+        | '>='
+        | '>'
+        | '<='
+        | '<'
+        | 'between'
+        | 'not between'
+        | 'valid date'
+        | 'valid email'
+        | 'valid url'
+        | 'contains'
+        | 'not contains'
+        | 'begins with'
+        | 'ends with'
 }
 
-interface Number {
-    criteria: 'between' | 'not between' | '<' | '<=' | '>' | '>=' | '=' | '!='
-}
-
-export type Validations = (value: string | number, options) => {
-
-}
+export type Validations = (value: string | number, options: Options) => boolean;

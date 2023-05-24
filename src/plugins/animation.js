@@ -1,5 +1,5 @@
 function Animation() {
-    var Component = {
+    const Component = {
         loading: {}
     }
     
@@ -13,7 +13,7 @@ function Animation() {
         // Max timeout in seconds
         if (timeout > 0) {
             setTimeout(function() {
-                obj.hide();
+                Component.loading.hide();
             }, timeout * 1000)
         }
     }
@@ -45,7 +45,7 @@ function Animation() {
     }
     
     Component.slideRight = function (element, direction, done) {
-        if (direction == true) {
+        if (direction === true) {
             element.classList.add('slide-right-in');
             setTimeout(function () {
                 element.classList.remove('slide-right-in');
@@ -65,7 +65,7 @@ function Animation() {
     }
     
     Component.slideTop = function (element, direction, done) {
-        if (direction == true) {
+        if (direction === true) {
             element.classList.add('slide-top-in');
             setTimeout(function () {
                 element.classList.remove('slide-top-in');
@@ -85,7 +85,7 @@ function Animation() {
     }
     
     Component.slideBottom = function (element, direction, done) {
-        if (direction == true) {
+        if (direction === true) {
             element.classList.add('slide-bottom-in');
             setTimeout(function () {
                 element.classList.remove('slide-bottom-in');
