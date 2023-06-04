@@ -51,8 +51,11 @@ import './style/tags.css';
 import './style/toolbar.css';
 
 var jSuites = {
+    // Helpers
+    ...dictionary,
+    ...helpers,
     /** Current version */
-    version: '5.0.18',
+    version: '5.0.20',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -62,37 +65,34 @@ var jSuites = {
             }
         }
     },
-    // Helpers
-    tracking,
-    ...dictionary,
-    ...helpers,
-    path,
-    sorting,
-    lazyLoading,
+    tracking: tracking,
+    path: path,
+    sorting: sorting,
+    lazyLoading: lazyLoading,
     // Plugins
-    ajax,
-    animation,
-    calendar,
-    color,
-    contextmenu,
-    dropdown,
-    editor,
-    floating,
-    form,
-    mask,
-    modal,
-    notification,
-    palette,
-    picker,
-    progressbar,
-    rating,
-    search,
-    slider,
-    tabs,
-    tags,
-    toolbar,
-    upload,
-    validations,
+    ajax: ajax,
+    animation: animation,
+    calendar: calendar,
+    color: color,
+    contextmenu: contextmenu,
+    dropdown: dropdown,
+    editor: editor,
+    floating: floating,
+    form: form,
+    mask: mask,
+    modal: modal,
+    notification: notification,
+    palette: palette,
+    picker: picker,
+    progressbar: progressbar,
+    rating: rating,
+    search: search,
+    slider: slider,
+    tabs: tabs,
+    tags: tags,
+    toolbar: toolbar,
+    upload: upload,
+    validations: validations,
 }
 
 // Legacy
@@ -113,11 +113,11 @@ jSuites.sha512 = sha512;
 
 
 /** Core events */
-var Events = function() {
+const Events = function() {
 
     document.jsuitesComponents = [];
 
-    var find = function(DOMElement, component) {
+    const find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
             return true;
         }
@@ -130,7 +130,7 @@ var Events = function() {
         return false;
     }
 
-    var isOpened = function(e) {
+    const isOpened = function(e) {
         if (document.jsuitesComponents && document.jsuitesComponents.length > 0) {
             for (var i = 0; i < document.jsuitesComponents.length; i++) {
                 if (document.jsuitesComponents[i] && ! find(e, document.jsuitesComponents[i])) {
@@ -141,26 +141,26 @@ var Events = function() {
     }
 
     // Width of the border
-    var cornerSize = 15;
+    let cornerSize = 15;
 
     // Current element
-    var element = null;
+    let element = null;
 
     // Controllers
-    var editorAction = false;
+    let editorAction = false;
 
     // Event state
-    var state = {
+    let state = {
         x: null,
         y: null,
     }
 
     // Tooltip element
-    var tooltip = document.createElement('div')
+    let tooltip = document.createElement('div')
     tooltip.classList.add('jtooltip');
 
     // Events
-    var mouseDown = function(e) {
+    const mouseDown = function(e) {
         // Check if this is the floating
         var item = jSuites.findElement(e.target, 'jpanel');
         // Jfloating found
@@ -233,7 +233,7 @@ var Events = function() {
         isOpened(element);
     }
 
-    var mouseUp = function(e) {
+    const mouseUp = function(e) {
         if (editorAction && editorAction.e) {
             if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
                 editorAction.e.refresh();
@@ -250,7 +250,7 @@ var Events = function() {
         editorAction = false;
     }
 
-    var mouseMove = function(e) {
+    const mouseMove = function(e) {
         if (editorAction) {
             var x = e.clientX || e.pageX;
             var y = e.clientY || e.pageY;
@@ -348,7 +348,7 @@ var Events = function() {
         }
     }
 
-    var mouseOver = function(e) {
+    const mouseOver = function(e) {
         var message = e.target.getAttribute('data-tooltip');
         if (message) {
             // Instructions
@@ -372,7 +372,7 @@ var Events = function() {
         }
     }
 
-    var dblClick = function(e) {
+    const dblClick = function(e) {
         var item = jSuites.findElement(e.target, 'jpanel');
         if (item && typeof(item.dblclick) == 'function') {
             // Create edition
@@ -380,7 +380,7 @@ var Events = function() {
         }
     }
 
-    var contextMenu = function(e) {
+    const contextMenu = function(e) {
         var item = document.activeElement;
         if (item && typeof(item.contextmenu) == 'function') {
             // Create edition
@@ -407,10 +407,10 @@ var Events = function() {
         }
     }
 
-    var keyDown = function(e) {
-        var item = document.activeElement;
+    const keyDown = function(e) {
+        let item = document.activeElement;
         if (item) {
-            if (e.key == "Delete" && typeof(item.delete) == 'function') {
+            if (e.key === "Delete" && typeof(item.delete) == 'function') {
                 item.delete();
                 e.preventDefault();
                 e.stopImmediatePropagation();
@@ -418,8 +418,9 @@ var Events = function() {
         }
 
         if (document.jsuitesComponents && document.jsuitesComponents.length) {
-            if (item = document.jsuitesComponents[document.jsuitesComponents.length - 1]) {
-                if (e.key == "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
+            item = document.jsuitesComponents[document.jsuitesComponents.length - 1]
+            if (item) {
+                if (e.key === "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
                     if (item.isOpened()) {
                         item.close();
                         e.preventDefault();
@@ -430,6 +431,12 @@ var Events = function() {
         }
     }
 
+    const input = function(e) {
+        if (e.target.getAttribute('data-mask') || e.target.mask) {
+            jSuites.mask(e);
+        }
+    }
+
     document.addEventListener('mouseup', mouseUp);
     document.addEventListener("mousedown", mouseDown);
     document.addEventListener('mousemove', mouseMove);
@@ -437,6 +444,7 @@ var Events = function() {
     document.addEventListener('dblclick', dblClick);
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
+    document.addEventListener('input', input);
 }
 
 if (typeof(document) !== "undefined" && ! document.jsuitesComponents) {

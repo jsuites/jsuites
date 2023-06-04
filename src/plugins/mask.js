@@ -13,7 +13,7 @@ function Mask() {
         // Number
         numeric: [ '0{1}(.{1}0+)?' ],
         // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'PM', 'AM', 'MI', 'SS', 'MS', 'Y', 'M' ],
+        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
         general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
     }
@@ -48,10 +48,18 @@ function Mask() {
             if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
                 v = parseInt(this.date[3]);
             } else {
-                v = parseInt(this.date[3]) % 24;
+                let h = parseInt(this.date[3]);
+                if (h < 13 && this.values.indexOf('PM') !== -1) {
+                    v = (h+12) % 24;
+                } else {
+                    v = h % 24;
+                }
             }
             if (this.date[4]) {
                 v += parseFloat(this.date[4] / 60);
+            }
+            if (this.date[5]) {
+                v += parseFloat(this.date[5] / 3600);
             }
             v /= 24;
         } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
@@ -604,7 +612,6 @@ function Mask() {
             }
         },
         'HH24': function(v, two) {
-            var test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (this.values[this.index] == null || this.values[this.index] == '') {
                     if (parseInt(v) > 2 && parseInt(v) < 10) {
@@ -618,9 +625,15 @@ function Mask() {
                     }
                 } else {
                     if (this.values[this.index] == 2 && parseInt(v) < 4) {
+                        if (! two && this.values[this.index] === '0') {
+                            this.values[this.index] = '';
+                        }
                         this.date[3] = this.values[this.index] += v;
                         this.index++;
                     } else if (this.values[this.index] < 2 && parseInt(v) < 10) {
+                        if (! two && this.values[this.index] === '0') {
+                            this.values[this.index] = '';
+                        }
                         this.date[3] = this.values[this.index] += v;
                         this.index++;
                     }
@@ -670,15 +683,20 @@ function Mask() {
             parser.N60.call(this, v, 5);
         },
         'AM/PM': function(v) {
-            this.values[this.index] = '';
-            if (v) {
-                if (this.date[3] > 12) {
-                    this.values[this.index] = 'PM';
-                } else {
-                    this.values[this.index] = 'AM';
-                }
+            if (typeof(this.values[this.index]) === 'undefined') {
+                this.values[this.index] = '';
             }
-            this.index++;
+
+            if (this.values[this.index] === '') {
+                if (v.match(/a/i) && this.date[3] < 13) {
+                    this.values[this.index] += 'A';
+                } else if (v.match(/p/i)) {
+                    this.values[this.index] += 'P';
+                }
+            } else if (this.values[this.index] === 'A' || this.values[this.index] === 'P') {
+                this.values[this.index] += 'M';
+                this.index++;
+            }
         },
         'WD': function(v) {
             if (typeof(this.values[this.index]) === 'undefined') {
@@ -687,7 +705,7 @@ function Mask() {
             if (parseInt(v) >= 0 && parseInt(v) < 7) {
                 this.values[this.index] = v;
             }
-            if (this.value[this.index].length == 1) {
+            if (this.values[this.index].length == 1) {
                 this.index++;
             }
         },
@@ -1092,8 +1110,12 @@ function Mask() {
                 if (o.mask.indexOf('##') !== -1) {
                     var d = o.mask.split(';');
                     if (d[0]) {
+                        if (typeof(e) == 'object') {
+                            d[0] = d[0].replace(new RegExp(/_\)/g), '');
+                            d[0] = d[0].replace(new RegExp(/_\(/g), '');
+                        }
                         d[0] = d[0].replace('*', '\t');
-                        d[0] = d[0].replace(new RegExp(/_-/g), ' ');
+                        d[0] = d[0].replace(new RegExp(/_-/g), '');
                         d[0] = d[0].replace(new RegExp(/_/g), '');
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
@@ -1102,6 +1124,12 @@ function Mask() {
                         d[0] = d[0].replace('##0,##','##0,00');
                         d[0] = d[0].replace('##0,#','##0,0');
                     }
+                    o.mask = d[0];
+                }
+                // Remove back slashes
+                if (o.mask.indexOf('\\') !== -1) {
+                    var d = o.mask.split(';');
+                    d[0] = d[0].replace(new RegExp(/\\/g), '');
                     o.mask = d[0];
                 }
                 // Get type
@@ -1342,6 +1370,10 @@ function Mask() {
         if (options.mask) {
             if (options.mask.indexOf(';') !== -1) {
                 var t = options.mask.split(';');
+                if (! fullMask) {
+                    t[0] = t[0].replace(new RegExp(/_\)/g), '');
+                    t[0] = t[0].replace(new RegExp(/_\(/g), '');
+                }
                 options.mask = t[0];
             }
             options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
@@ -1648,7 +1680,11 @@ function Mask() {
                     } else if (s === 'Q') {
                         v = Math.floor((calendar.getMonth() + 3) / 3);
                     } else if (s === 'HH24' || s === 'HH') {
-                        v = Helpers.two(this.data[3]);
+                        v = this.data[3];
+                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
+                            v -= 12;
+                        }
+                        v = Helpers.two(v);
                     } else if (s === 'HH12') {
                         if (this.data[3] > 12) {
                             v = Helpers.two(this.data[3] - 12);
@@ -1657,6 +1693,10 @@ function Mask() {
                         }
                     } else if (s === 'H') {
                         v = this.data[3];
+                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
+                            v -= 12;
+                            v = Helpers.two(v);
+                        }
                     } else if (s === 'MI') {
                         v = Helpers.two(this.data[4]);
                     } else if (s === 'SS') {
@@ -1691,14 +1731,6 @@ function Mask() {
         }
 
         return value;
-    }
-
-    if (typeof document !== 'undefined') {
-        document.addEventListener('input', function(e) {
-            if (e.target.getAttribute('data-mask') || e.target.mask) {
-                obj(e);
-            }
-        });
     }
 
     return obj;
