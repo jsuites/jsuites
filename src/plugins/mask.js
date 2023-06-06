@@ -85,12 +85,14 @@ function Mask() {
     }
 
     var isFormula = function(value) {
-        return (''+value).chartAt(0) == '=';
+        var v = (''+value)[0];
+        return v == '=' ? true : false;
     }
 
     var isNumeric = function(t) {
         return t === 'currency' || t === 'percentage' || t === 'numeric' ? true : false;
     }
+
     /**
      * Get the decimal defined in the mask configuration
      */
@@ -190,7 +192,7 @@ function Mask() {
     }
 
     var FormatValue = function(v, event) {
-        if (v == '') {
+        if (v === '') {
             return '';
         }
         // Get decimal
@@ -199,25 +201,33 @@ function Mask() {
         var o = this.options;
         // Parse value
         v = ParseValue.call(this, v);
-        if (v == '') {
+        if (v === '') {
             return '';
         }
+        var t = null;
         // Temporary value
         if (v[0]) {
-            var t = parseFloat(v[0] + '.1');
-            if (o.style == 'percent') {
-                t /= 100;
+            if (o.style === 'percent') {
+                t = parseFloat(v[0]) / 100;
+            } else {
+                t = parseFloat(v[0] + '.1');
             }
-        } else {
-            var t = null;
         }
 
-        if ((v[0] == '-' || v[0] == '-00') && ! v[1] && (event && event.inputType == "deleteContentBackward")) {
+        if ((v[0] === '-' || v[0] === '-00') && ! v[1] && (event && event.inputType == "deleteContentBackward")) {
             return '';
         }
 
         var n = new Intl.NumberFormat(this.locale, o).format(t);
         n = n.split(d);
+
+        if (o.style === 'percent') {
+            if (n[0].indexOf('%') !== -1) {
+                n[0] = n[0].replace('%', '');
+                n[2] = '%';
+            }
+        }
+
         if (typeof(n[1]) !== 'undefined') {
             var s = n[1].replace(/[0-9]*/g, '');
             if (s) {
@@ -241,7 +251,6 @@ function Mask() {
         }
 
         // Get decimal
-        var d = getDecimal.call(this);
         var n = FormatValue.call(this, v, event);
         var t = (n.length) - v.length;
         var index = Caret.call(e) + t;
@@ -291,7 +300,7 @@ function Mask() {
             if (adjustNumeric) {
                 var p = null;
                 for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] == '.' || n[i] == ',') {
+                    if (n[i].match(/[\-0-9]/g) || n[i] === '.' || n[i] === ',') {
                         p = i;
                     }
                 }
@@ -974,11 +983,6 @@ function Mask() {
             this.values[this.index] = this.tokens[this.index];
             this.index++;
         }
-    }
-
-    var isFormula = function(value) {
-        var v = (''+value)[0];
-        return v == '=' ? true : false;
     }
 
     var toPlainString = function(num) {
