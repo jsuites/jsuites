@@ -9710,11 +9710,11 @@ function Validations() {
      * Value
      */
 
-    var isNumeric = function(num) {
+    const isNumeric = function(num) {
         return !isNaN(num) && num !== null && num !== '';
     }
 
-    var numberCriterias = {
+    const numberCriterias = {
         'between': function(value, range) {
             return value >= range[0] && value <= range[1];
         },
@@ -9741,12 +9741,15 @@ function Validations() {
         },
     }
 
-    var dateCriterias = {
+    const dateCriterias = {
         'valid date': function() {
             return true;
         },
         '=': function(value, range) {
             return value === range[0];
+        },
+        '!=': function(value, range) {
+            return value !== range[0];
         },
         '<': function(value, range) {
             return value < range[0];
@@ -9768,7 +9771,7 @@ function Validations() {
         },
     }
 
-    var textCriterias = {
+    const textCriterias = {
         'contains': function(value, range) {
             return value.includes(range[0]);
         },
@@ -9784,6 +9787,9 @@ function Validations() {
         '=': function(value, range) {
             return value === range[0];
         },
+        '!=': function(value, range) {
+            return value !== range[0];
+        },
         'valid email': function(value) {
             var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
 
@@ -9797,12 +9803,11 @@ function Validations() {
     }
 
     // Component router
-    var component = function(value, options) {
+    const component = function(value, options) {
         if (typeof(component[options.type]) === 'function') {
             if (options.allowBlank && value === '') {
                 return true;
             }
-
             return component[options.type](value, options);
         }
         return null;
@@ -9815,7 +9820,7 @@ function Validations() {
 
     component.email = function(data) {
         var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-        return data && pattern.test(data) ? true : false; 
+        return data && pattern.test(data) ? true : false;
     }
     
     component.required = function(data) {
@@ -9823,19 +9828,19 @@ function Validations() {
     }
 
     component.exist = function(data, options) {
-        return !!data.toString();
+        return !!data.toString().trim();
     }
 
     component['not exist'] = function(data, options) {
-        return !data.toString();
+        return !data.toString().trim();
     }
 
     component.empty = function(data) {
-        return !data.toString();
+        return !data.toString().trim();
     }
 
     component.notEmpty = function(data) {
-        return !!data.toString();
+        return !!data.toString().trim();
     }
 
     component.number = function(data, options) {
@@ -9851,7 +9856,7 @@ function Validations() {
            return false;
        }
 
-       var values = options.value.map(function(num) {
+       let values = options.value.map(function(num) {
           return parseFloat(num);
        })
 
@@ -9859,27 +9864,77 @@ function Validations() {
    };
 
     component.login = function(data) {
-        var pattern = new RegExp(/^[a-zA-Z0-9\_\-\.\s+]+$/);
+        let pattern = new RegExp(/^[a-zA-Z0-9._-]+$/);
         return data && pattern.test(data) ? true : false;
     }
 
     component.list = function(data, options) {
-        var dataType = typeof data;
+        let dataType = typeof data;
         if (dataType !== 'string' && dataType !== 'number') {
             return false;
         }
+        let list;
         if (typeof(options.value[0]) === 'string') {
-            var list = options.value[0].split(',');
+            list = options.value[0].split(',');
         } else {
-            var list = options.value[0];
+            list = options.value[0];
         }
 
-        var validOption = list.findIndex(function name(item) {
-            return item == data;
-        });
+        if (! Array.isArray(list)) {
+            return false;
+        } else {
+            let validOption = list.findIndex(function (item) {
+                return item == data;
+            });
 
-        return validOption > -1;
+            return validOption > -1;
+        }
     }
+
+    const getCurrentDateWithoutTime = function() {
+        let date = new Date();
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    const relativeDates = {
+        'one year ago': function() {
+            let date = getCurrentDateWithoutTime();
+
+            date.setFullYear(date.getFullYear() - 1);
+
+            return date;
+        },
+        'one month ago': function() {
+            let date = getCurrentDateWithoutTime();
+
+            date.setMonth(date.getMonth() - 1);
+
+            return date;
+        },
+        'one week ago': function() {
+            let date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() - 7);
+
+            return date;
+        },
+        yesterday: function() {
+            let date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() - 1);
+
+            return date;
+        },
+        today: getCurrentDateWithoutTime,
+        tomorrow: function() {
+            let date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() + 1);
+
+            return date;
+        },
+    };
 
     component.date = function(data, options) {
         if (new Date(data) == 'Invalid Date') {
@@ -9894,7 +9949,11 @@ function Validations() {
             return false;
         }
 
-        var values = options.value.map(function(date) {
+        let values = options.value.map(function(date) {
+            if (typeof date === 'string' && relativeDates[date]) {
+                return relativeDates[date]().getTime();
+            }
+
             return new Date(date).getTime();
         });
 
