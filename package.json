@@ -25,7 +25,7 @@
     },
     "main": "dist/jsuites.js",
     "types": "dist/jsuites.d.ts",
-    "version": "5.0.21",
+    "version": "5.0.22",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
