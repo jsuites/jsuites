@@ -1,3 +1,5 @@
+import HelpersDate from '../utils/helpers.date';
+
 function Validations() {
     /**
      * Options: Object,
@@ -234,6 +236,10 @@ function Validations() {
     };
 
     component.date = function(data, options) {
+        if (isNumeric(data) && data > 0 && data < 1000000) {
+            data = HelpersDate.numToDate(data);
+        }
+
         if (new Date(data) == 'Invalid Date') {
             return false;
         }
