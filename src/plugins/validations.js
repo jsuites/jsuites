@@ -45,6 +45,9 @@ function Validations() {
         '=': function(value, range) {
             return value === range[0];
         },
+        '!=': function(value, range) {
+            return value !== range[0];
+        },
         '<': function(value, range) {
             return value < range[0];
         },
@@ -80,6 +83,9 @@ function Validations() {
         },
         '=': function(value, range) {
             return value === range[0];
+        },
+        '!=': function(value, range) {
+            return value !== range[0];
         },
         'valid email': function(value) {
             var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
@@ -178,6 +184,52 @@ function Validations() {
         return validOption > -1;
     }
 
+    var getCurrentDateWithoutTime = function() {
+        var date = new Date();
+        date.setHours(0, 0, 0, 0);
+
+        return date;
+    }
+
+    var relativeDates = {
+        'one year ago': function() {
+            var date = getCurrentDateWithoutTime();
+
+            date.setFullYear(date.getFullYear() - 1);
+
+            return date;
+        },
+        'one month ago': function() {
+            var date = getCurrentDateWithoutTime();
+
+            date.setMonth(date.getMonth() - 1);
+
+            return date;
+        },
+        'one week ago': function() {
+            var date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() - 7);
+
+            return date;
+        },
+        yesterday: function() {
+            var date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() - 1);
+
+            return date;
+        },
+        today: getCurrentDateWithoutTime,
+        tomorrow: function() {
+            var date = getCurrentDateWithoutTime();
+
+            date.setDate(date.getDate() + 1);
+
+            return date;
+        },
+    };
+
     component.date = function(data, options) {
         if (new Date(data) == 'Invalid Date') {
             return false;
@@ -192,6 +244,10 @@ function Validations() {
         }
 
         var values = options.value.map(function(date) {
+            if (typeof date === 'string' && relativeDates[date]) {
+                return relativeDates[date]().getTime();
+            }
+
             return new Date(date).getTime();
         });
 
