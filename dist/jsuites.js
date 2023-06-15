@@ -4207,7 +4207,7 @@ function Calendar() {
             }
         }
 
-        if (d.indexOf('GMT') === -1) {
+        if (d.indexOf('GMT') === -1 && d.indexOf('Z') === -1) {
             d += ' GMT';
         }
 
@@ -9701,6 +9701,8 @@ function Floating() {
 
 /* harmony default export */ var floating = (Floating());
 ;// CONCATENATED MODULE: ./src/plugins/validations.js
+
+
 function Validations() {
     /**
      * Options: Object,
@@ -9937,6 +9939,10 @@ function Validations() {
     };
 
     component.date = function(data, options) {
+        if (isNumeric(data) && data > 0 && data < 1000000) {
+            data = helpers_date.numToDate(data);
+        }
+
         if (new Date(data) == 'Invalid Date') {
             return false;
         }
@@ -12647,7 +12653,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.0.22',
+    version: '5.0.23',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

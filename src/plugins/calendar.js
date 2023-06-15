@@ -1081,7 +1081,7 @@ function Calendar() {
             }
         }
 
-        if (d.indexOf('GMT') === -1) {
+        if (d.indexOf('GMT') === -1 && d.indexOf('Z') === -1) {
             d += ' GMT';
         }
 
