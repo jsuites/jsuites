@@ -2739,14 +2739,13 @@ div[data-before]:before {
     margin: 3px;
     color: #ccc;
     content: attr(data-placeholder);
-    top: 0px;
+    top: 0;
     margin-left: 6px;
 }
 
 .jtags > div {
-    padding: 5px;
-    padding-left: 10px;
-    padding-right: 22px;
+    padding: 0 22px 0 10px;
+    font-size: 0.9em;
     position: relative;
     border-radius: 1px;
     margin: 2px;
@@ -2762,17 +2761,18 @@ div[data-before]:before {
 .jtags > div::after {
     content: 'x';
     position: absolute;
-    top: 6px;
+    top: 7px;
     right: 4px;
     width: 12px;
     height: 12px;
     cursor: pointer;
-    font-size: 11px;
+    font-size: 0.9em;
+    line-height: 1em;
     display: none;
 }
 
 .jtags_label {
-    background-color: #eeeeee !important;
+    background-color: #e4e4e4 !important;
 }
 
 .jtags_label::after {

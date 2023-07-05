@@ -121,8 +121,6 @@ function Modal() {
             width: null,
             height: null,
             title: null,
-            padding: null,
-            backdrop: true,
             icon: null,
         };
 
