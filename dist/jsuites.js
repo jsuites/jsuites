@@ -10434,7 +10434,8 @@ function Modal() {
         }
 
         var mouseUp = function (e) {
-            var item = helpers.findElement(e.target, 'jmodal');
+            let element = e.composedPath();
+            var item = helpers.findElement(element[0], 'jmodal');
             if (item) {
                 // Get target info
                 var rect = item.getBoundingClientRect();
@@ -10459,7 +10460,8 @@ function Modal() {
         }
 
         var mouseDown = function (e) {
-            var item = helpers.findElement(e.target, 'jmodal');
+            let element = e.composedPath();
+            var item = helpers.findElement(element[0], 'jmodal');
             if (item) {
                 // Get target info
                 var rect = item.getBoundingClientRect();
