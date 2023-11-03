@@ -62,7 +62,8 @@
 }
 
 .jcontextmenu > div span {
-    margin-right:10px;
+    margin-right: 10px;
+    font-size: 0.9em;
 }
 
 .jcontextmenu .jcontextmenu-disabled a {

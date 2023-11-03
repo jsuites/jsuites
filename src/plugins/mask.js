@@ -1208,7 +1208,7 @@ function Mask() {
                     o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
                     if (o.type == 'percentage' && v.indexOf('%') !== -1) {
-                        label = o.number / 100;
+                        label = obj.adjustPrecision(o.number / 100);
                     } else {
                         label = o.number;
                     }
@@ -1233,6 +1233,37 @@ function Mask() {
                 }
             }
         }
+    }
+
+    obj.adjustPrecision = function(num) {
+        if (typeof num === 'number' && !Number.isInteger(num)) {
+            const v = num.toString().split('.');
+
+            if (v[1] && v[1].length > 10) {
+                let t0 = 0;
+                const t1 = v[1][v[1].length - 2];
+
+                if (t1 == 0 || t1 == 9) {
+                    for (let i = v[1].length - 2; i > 0; i--) {
+                        if (t0 >= 0 && v[1][i] == t1) {
+                            t0++;
+                            if (t0 > 6) {
+                                break;
+                            }
+                        } else {
+                            t0 = 0;
+                            break;
+                        }
+                    }
+
+                    if (t0) {
+                        return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
+                    }
+                }
+            }
+        }
+
+        return num;
     }
 
     // Get the type of the mask
@@ -1407,8 +1438,8 @@ function Mask() {
             }
         } else {
             // Percentage
-            if (type == 'percentage') {
-                value *= 100;
+            if (type === 'percentage') {
+                value = obj.adjustPrecision(value*100);
             }
             // Number of decimal places
             if (typeof(value) === 'number') {

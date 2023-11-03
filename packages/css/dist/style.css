@@ -1,6 +1,6 @@
 body {
-    margin: 0px;
-    padding: 0px;
+    margin: 0;
+    padding: 0;
     background-color: #fff;
 }
 
@@ -20,13 +20,13 @@ a {
 }
 
 footer {
-    box-shadow: -1px -1px 2px rgba(0,0,0,.1);
+    box-shadow: 0 -1px 2px rgba(0,0,0,.1);
 }
 
 footer ul {
     list-style: none;
-    padding: 0px;
-    margin: 0px;
+    padding: 0;
+    margin: 0;
 }
 
 footer li {
@@ -996,34 +996,34 @@ jwarning .navbar {
 @media (min-width: 600px)
 {
     .container {
-        max-width: 570px;
+        max-width: 600px;
     }
 }
 
 @media (min-width: 800px)
 {
     .container {
-        max-width: 760px;
+        max-width: 800px;
     }
 }
 
 @media (min-width: 1024px)
 {
     .container {
-        max-width: 973px;
+        max-width: 1000px;
     }
 }
 
 @media (min-width: 1200px)
 {
     .container {
-        max-width: 1140px;
+        max-width: 1160px;
     }
 }
 
 @media (min-width: 1440px) {
     .container {
-        max-width: 1368px;
+        max-width: 1380px;
     }
 }
 
@@ -1035,8 +1035,7 @@ jwarning .navbar {
 
 .container {
     width: 100%;
-    margin-right: auto;
-    margin-left: auto;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 

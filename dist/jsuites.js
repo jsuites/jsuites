@@ -2590,7 +2590,7 @@ function Mask() {
                     o.number = Extract.call(o, v);
                     // Keep the raw data as a property of the tag
                     if (o.type == 'percentage' && v.indexOf('%') !== -1) {
-                        label = o.number / 100;
+                        label = obj.adjustPrecision(o.number / 100);
                     } else {
                         label = o.number;
                     }
@@ -2615,6 +2615,37 @@ function Mask() {
                 }
             }
         }
+    }
+
+    obj.adjustPrecision = function(num) {
+        if (typeof num === 'number' && !Number.isInteger(num)) {
+            const v = num.toString().split('.');
+
+            if (v[1] && v[1].length > 10) {
+                let t0 = 0;
+                const t1 = v[1][v[1].length - 2];
+
+                if (t1 == 0 || t1 == 9) {
+                    for (let i = v[1].length - 2; i > 0; i--) {
+                        if (t0 >= 0 && v[1][i] == t1) {
+                            t0++;
+                            if (t0 > 6) {
+                                break;
+                            }
+                        } else {
+                            t0 = 0;
+                            break;
+                        }
+                    }
+
+                    if (t0) {
+                        return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
+                    }
+                }
+            }
+        }
+
+        return num;
     }
 
     // Get the type of the mask
@@ -2789,8 +2820,8 @@ function Mask() {
             }
         } else {
             // Percentage
-            if (type == 'percentage') {
-                value *= 100;
+            if (type === 'percentage') {
+                value = obj.adjustPrecision(value*100);
             }
             // Number of decimal places
             if (typeof(value) === 'number') {
@@ -4552,7 +4583,7 @@ function Tabs(el, options) {
         }
     }
 
-    obj.appendElement = function(title, cb) {
+    obj.appendElement = function(title, cb, openTab) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -4572,8 +4603,12 @@ function Tabs(el, options) {
             if (obj.options.allowChangePosition) {
                 h.setAttribute('draggable', 'true');
             }
+
             // Open new tab
-            obj.selectIndex(h);
+            if (openTab !== false) {
+                // Open new tab
+                obj.selectIndex(h);
+            }
 
             // Callback
             if (typeof(cb) == 'function') {
@@ -4611,7 +4646,7 @@ function Tabs(el, options) {
         setBorder();
     }
 
-    obj.updatePosition = function(f, t) {
+    obj.updatePosition = function(f, t, ignoreEvents) {
         // Ondrop update position of content
         if (f > t) {
             obj.content.insertBefore(obj.content.children[f], obj.content.children[t]);
@@ -4623,19 +4658,19 @@ function Tabs(el, options) {
         obj.open(t);
 
         // Call event
-        if (typeof(obj.options.onchangeposition) == 'function') {
+        if (! ignoreEvents && typeof(obj.options.onchangeposition) == 'function') {
             obj.options.onchangeposition(obj.headers, f, t);
         }
     }
 
-    obj.move = function(f, t) {
+    obj.move = function(f, t, ignoreEvents) {
         if (f > t) {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t]);
         } else {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t].nextSibling);
         }
 
-        obj.updatePosition(f, t);
+        obj.updatePosition(f, t, ignoreEvents);
     }
 
     obj.setBorder = setBorder;
@@ -12655,7 +12690,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.0.24',
+    version: '5.0.27',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

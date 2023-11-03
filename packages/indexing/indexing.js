@@ -17,60 +17,96 @@
     return function(el, options) {
         // Render index content
         const render = function () {
-            // Reset the current content
-            el.innerHTML = '';
             // Before render
-            if (options && options.onbeforecreate) {
-                let ret = options.onbeforecreate();
-                if (ret === false) {
-                    return;
+            if (options) {
+                if (options.onbeforecreate) {
+                    let ret = options.onbeforecreate();
+                    if (ret === false) {
+                        return;
+                    }
+                }
+
+                if (options.source) {
+                    // Reset content
+                    el.innerHTML = '';
+                    // Get all elements h2 and h3 in the page
+                    let elements = options.source.querySelectorAll('h2,h3');
+                    // Create elements
+                    let ul = document.createElement('ul');
+                    let lastUl;
+                    ul.classList.add('indexing');
+                    elements.forEach(function (v, k) {
+                        if (v.tagName && v.textContent) {
+                            let a = document.createElement('a');
+                            a.textContent = v.textContent.replace('¶', '');
+                            a.href = '#content-' + v.textContent.toLowerCase().replace('-', ' ').replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                            
+                            if (v.tagName === 'H2') {
+                                lastUl = document.createElement('ul');
+                                ul.appendChild(a);
+                                ul.appendChild(lastUl);
+                            } else {
+                                let li = document.createElement('li');
+                                li.appendChild(a);
+                                if (lastUl) {
+                                    lastUl.appendChild(li);
+                                } else {
+                                    ul.appendChild(li);
+                                }
+                            }
+                        }
+                    });
+
+                    if (ul.children.length) {
+                        el.appendChild(ul);
+                    }
                 }
             }
+
+            // Items
+            let items = [];
             // Get all elements h2 and h3 in the page
-            let elements = document.getElementById('content').querySelectorAll('h2,h3');
-
-            let selected = null;
-            elements.forEach(function (v, k) {
+            let elements = el.querySelectorAll('a');
+            // Adding events
+            elements.forEach(function (v) {
                 if (v.tagName && v.textContent) {
-                    if (document.documentElement.scrollTop >= v.offsetTop) {
-                        selected = k;
+                    let link = v.href.split('#');
+                    let element = document.querySelector('[href="#'+link[1]+'"]');
+                    let top = element.offsetTop;
+                    let item = {
+                        top: top,
+                        behavior: 'smooth',
+                        element: v,
                     }
-                }
-            });
-
-            let ul = document.createElement('ul');
-            elements.forEach(function (v, k) {
-                if (v.tagName && v.textContent) {
-                    let li = document.createElement('li');
-                    li.classList.add('tag' + v.tagName);
-                    if (selected === k) {
-                        li.classList.add('selected');
-                    }
-                    let a = document.createElement('a');
-                    a.href = '#'
-                    a.textContent = v.textContent;
-                    a.onclick = function () {
-                        window.scrollTo({
-                            top: v.offsetTop,
-                            behavior: 'smooth',
-                        });
+                    items.push(item);
+                    v.addEventListener('mousedown', function(e) {
+                        window.scrollTo(item);
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
                         return false;
-                    }
-                    li.appendChild(a);
-                    ul.appendChild(li);
+                    });
+                    v.setAttribute('href', window.location.pathname + '#' + link[1]);
                 }
             });
 
-            if (ul.children.length) {
-                el.appendChild(ul);
-            }
+            return items;
         }
 
-        el.classList.add('indexing');
-
         if (document.body.offsetWidth >= 1280) {
-            document.addEventListener('scroll', render);
-            render();
+            let items = render();
+
+            document.addEventListener('scroll', function() {
+                let item = null;
+                items.forEach(function(v) {
+                    v.element.classList.remove('selected');
+                    if (document.documentElement.scrollTop >= v.top) {
+                        item = v.element;
+                    }
+                });
+                if (item) {
+                    item.classList.add('selected');
+                }
+            });
         }
     }
 })));

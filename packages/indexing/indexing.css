@@ -1,42 +1,41 @@
 .indexing {
     border-left: 1px solid #eee;
+    font-size: 0.9em;
+    list-style: none;
+    padding: 15px;
+    position: sticky;
+    top: 90px;
+    min-width: 280px;
 }
 
-.indexing ul {
-    font-size: 0.9em;
-    margin-top: 60px;
-    position: fixed;
-    top: 50px;
+.indexing li {
+    margin-bottom: 5px;
+    padding-left: 10px;
 }
 
 .indexing a {
     color: #000;
-}
-
-.indexing li {
     border-left: 4px solid transparent;
     padding-left: 10px;
-    margin-bottom: 5px;
 }
 
-.indexing li.selected {
+.indexing a.selected {
     font-weight: bold;
     border-left-color: var(--button-color);
 }
 
 .indexing ul {
     list-style: none;
+    padding: 1px;
+    margin: 1px;
 }
 
 .indexing:empty {
     display: none;
 }
 
-.indexing .tagH2 {
-    margin-top: 20px;
-}
-
-.indexing .tagH3 {
-    font-size: 0.9em;
-    padding-left: 20px;
+@media (max-width: 1200px) {
+    .indexing {
+        display: none;
+    }
 }

@@ -216,7 +216,7 @@ export default function Tabs(el, options) {
         }
     }
 
-    obj.appendElement = function(title, cb) {
+    obj.appendElement = function(title, cb, openTab) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -236,8 +236,12 @@ export default function Tabs(el, options) {
             if (obj.options.allowChangePosition) {
                 h.setAttribute('draggable', 'true');
             }
+
             // Open new tab
-            obj.selectIndex(h);
+            if (openTab !== false) {
+                // Open new tab
+                obj.selectIndex(h);
+            }
 
             // Callback
             if (typeof(cb) == 'function') {
@@ -275,7 +279,7 @@ export default function Tabs(el, options) {
         setBorder();
     }
 
-    obj.updatePosition = function(f, t) {
+    obj.updatePosition = function(f, t, ignoreEvents) {
         // Ondrop update position of content
         if (f > t) {
             obj.content.insertBefore(obj.content.children[f], obj.content.children[t]);
@@ -287,19 +291,19 @@ export default function Tabs(el, options) {
         obj.open(t);
 
         // Call event
-        if (typeof(obj.options.onchangeposition) == 'function') {
+        if (! ignoreEvents && typeof(obj.options.onchangeposition) == 'function') {
             obj.options.onchangeposition(obj.headers, f, t);
         }
     }
 
-    obj.move = function(f, t) {
+    obj.move = function(f, t, ignoreEvents) {
         if (f > t) {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t]);
         } else {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t].nextSibling);
         }
 
-        obj.updatePosition(f, t);
+        obj.updatePosition(f, t, ignoreEvents);
     }
 
     obj.setBorder = setBorder;

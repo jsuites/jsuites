@@ -4,28 +4,20 @@
     global.menu = factory();
 }(this, (function () {
 
-    var slideLeft = function(element, direction, done) {
-        if (direction == true) {
-            element.classList.add('slide-left-in');
-            setTimeout(function() {
-                element.classList.remove('slide-left-in');
-                if (typeof(done) == 'function') {
-                    done();
-                }
-            }, 400);
+    const slideLeft = function(element, direction, done) {
+        if (direction === true) {
+            if (typeof(done) == 'function') {
+                done();
+            }
         } else {
-            element.classList.add('slide-left-out');
-            setTimeout(function() {
-                element.classList.remove('slide-left-out');
-                if (typeof(done) == 'function') {
-                    done();
-                }
-            }, 400);
+            if (typeof(done) == 'function') {
+                done();
+            }
         }
     }
 
-    var findElement = function(element, condition) {
-        var foundElement = false;
+    const findElement = function(element, condition) {
+        let foundElement = false;
 
         function path (element) {
             if (element && ! foundElement) {
@@ -48,8 +40,8 @@
         return foundElement;
     }
 
-    var getWindowWidth = function() {
-        var w = window,
+    const getWindowWidth = function() {
+        let w = window,
         d = document,
         e = d.documentElement,
         g = d.getElementsByTagName('body')[0],
@@ -57,8 +49,8 @@
         return x;
     }
 
-    var Plugin = (function(el, options) {
-        var obj = {};
+    const Plugin = (function(el, options) {
+        let obj = {};
 
         obj.show = function() {
             el.style.display = 'block';
@@ -77,13 +69,20 @@
             }
         }
 
+        obj.toggle = function() {
+            if (el.offsetWidth) {
+                obj.hide();
+            } else {
+                obj.show();
+            }
+        }
+
         obj.load = function() {
             if (localStorage) {
-                var menu = el.querySelectorAll('nav');
-                var selected = null;
-                for (var i = 0; i < menu.length; i++) {
+                let menu = el.querySelectorAll('nav');
+                for (let i = 0; i < menu.length; i++) {
                     if (menu[i].getAttribute('data-id')) {
-                        var state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
+                        let state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
                         if (state === '1') {
                             menu[i].classList.add('selected');
                         } else if (state === '0') {
@@ -91,42 +90,55 @@
                         }
                     }
                 }
-                var href = window.location.pathname;
+                let href = window.location.pathname;
                 if (href) {
-                    var menu = document.querySelector('.jmenu a[href="'+ href +'"]');
+                    let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
                     if (menu) {
                         menu.classList.add('selected');
+                    }
+                }
+                let a = el.querySelectorAll('a');
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i].nextElementSibling && a[i].nextElementSibling.tagName === 'UL') {
+                        a[i].classList.add('jmenu-subitem');
+                        a[i].addEventListener('mousedown', function() {
+                            if (a[i].classList.contains('opened')) {
+                                a[i].classList.remove('opened');
+                            } else {
+                                a[i].classList.add('opened');
+                            }
+                        })
                     }
                 }
             }
         }
 
         obj.select = function(o, e) {
-            if (o.tagName == 'NAV') {
-                var m = el.querySelectorAll('nav');
-                for (var i = 0; i < m.length; i++) {
+            if (o.tagName === 'NAV') {
+                let m = el.querySelectorAll('nav');
+                for (let i = 0; i < m.length; i++) {
                     m[i].style.display = 'none';
                 }
                 o.style.display = '';
                 o.classList.add('selected');
             } else {
-                var m = el.querySelectorAll('nav a');
-                for (var i = 0; i < m.length; i++) {
+                let m = el.querySelectorAll('nav a');
+                for (let i = 0; i < m.length; i++) {
                     m[i].classList.remove('selected');
                 }
                 o.classList.add('selected');
 
                 // Better navigation
-                if (options && options.collapse == true) {
+                if (options && options.collapse === true) {
                     if (o.classList.contains('show')) {
                         m = el.querySelectorAll('nav');
-                        for (var i = 0; i < m.length; i++) {
+                        for (let i = 0; i < m.length; i++) {
                             m[i].style.display = '';
                         }
                         o.style.display = 'none';
                     } else {
                         m = el.querySelectorAll('nav');
-                        for (var i = 0; i < m.length; i++) {
+                        for (let i = 0; i < m.length; i++) {
                             m[i].style.display = 'none';
                         }
 
@@ -153,8 +165,8 @@
             }
         }
 
-        var action = function(e) {
-            if (e.target.tagName == 'H2') {
+        let action = function(e) {
+            if (e.target.tagName === 'H2') {
                 if (e.target.parentNode.classList.contains('selected')) {
                     e.target.parentNode.classList.remove('selected');
                     localStorage.setItem('jmenu-' + e.target.parentNode.getAttribute('data-id'), 0);
@@ -162,7 +174,7 @@
                     e.target.parentNode.classList.add('selected');
                     localStorage.setItem('jmenu-' + e.target.parentNode.getAttribute('data-id'), 1);
                 }
-            } else if (e.target.tagName == 'A') {
+            } else if (e.target.tagName === 'A') {
                 // Mark link as selected
                 obj.select(e.target, e);
             }
@@ -172,7 +184,7 @@
 
         // Add close action
         if (el.innerText) {
-            var i = document.createElement('i');
+            let i = document.createElement('i');
             i.className = 'material-icons small-screen-only close';
             i.innerText = 'close';
             i.onclick = function () {
@@ -184,17 +196,11 @@
         // Add menu class
         el.classList.add('jmenu');
 
-        if (getWindowWidth() < 800) {
-            el.style.display = 'none';
-        } else {
-            el.style.display = 'block';
-        }
-
         // Load state
         obj.load();
 
         if (options && typeof(options.onload) == 'function') {
-            options.onload(el);
+            options.onload(el, obj);
         }
 
         // Keep reference

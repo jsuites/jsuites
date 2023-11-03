@@ -67,13 +67,13 @@ export type Tabs = (el: HTMLElement, options: Options) => {
     /** Delete tab element */
     deleteElement: () => void;
     /** Append tab element */
-    appendElement: () => void;
+    appendElement: (title?: string, callback?: Function, openTab?: boolean) => void;
     /** Get the active tab index */
     getActive: () => number;
     /** Update the content of a tab */
     updateContent: (index: number, newContent: string) => void;
     /** Update tab position */
-    updatePosition: (from: number, to: number) => void;
+    updatePosition: (from: number, to: number, ignoreEvents?: boolean) => void;
     /** Update DOM position */
-    move: (from: number, to: number) => void;
+    move: (from: number, to: number, ignoreEvents?: boolean) => void;
 }

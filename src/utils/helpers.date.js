@@ -67,11 +67,9 @@ function HelpersDate() {
             jsDate = new Date(jsDate + '  GMT+0');
         }
         var jsDateInMilliseconds = jsDate.getTime();
-
         if (jsDateInMilliseconds >= excelLeapYearBug) {
             jsDateInMilliseconds += millisecondsPerDay;
         }
-
         jsDateInMilliseconds -= excelInitialTime;
 
         return jsDateInMilliseconds / millisecondsPerDay;
@@ -84,7 +82,6 @@ function HelpersDate() {
      */
     Component.numToDate = function (excelSerialNumber) {
         var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
-
         if (jsDateInMilliseconds >= excelLeapYearBug) {
             jsDateInMilliseconds -= millisecondsPerDay;
         }
