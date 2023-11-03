@@ -993,43 +993,61 @@ jwarning .navbar {
     }
 }
 
-@media (min-width: 600px)
+@media (min-width: 1024px)
 {
     .container {
-        max-width: 600px;
+        padding: 0 30px 0 30px;
     }
 }
 
-@media (min-width: 800px)
+@media (min-width: 320px)
 {
     .container {
-        max-width: 800px;
+        padding: 0 20px 0 20px;
     }
 }
 
 @media (min-width: 1024px)
 {
     .container {
-        max-width: 1000px;
+        padding: 0 30px 0 30px;
     }
 }
 
 @media (min-width: 1200px)
 {
     .container {
-        max-width: 1160px;
+        padding: 0 40px 0 40px;
     }
 }
 
 @media (min-width: 1440px) {
     .container {
-        max-width: 1380px;
+        padding: 0 50px 0 50px;
     }
 }
 
 @media (min-width: 1600px) {
     .container {
-        max-width: 1520px;
+        padding: 0 60px 0 60px;
+    }
+}
+
+@media (min-width: 1800px) {
+    .container {
+        padding: 0 100px 0 100px;
+    }
+}
+
+@media (min-width: 2000px) {
+    .container {
+        padding: 0 150px 0 150px;
+    }
+}
+
+@media (min-width: 2400px) {
+    .container {
+        padding: 0 200px 0 200px;
     }
 }
 
@@ -1513,4 +1531,26 @@ jwarning .navbar {
 
 .alert:empty {
     display: none;
+}
+
+.loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    z-index: 9999;
+    animation: loading 2s linear infinite;
+    background: #e0e0e0 repeating-linear-gradient(to right, #3BB94E, #3BB94E 50%, #e0e0e0 50%, #e0e0e0);
+    background-size: 200% 100%;
+}
+
+@keyframes loading {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: 0 0;
+    }
 }
