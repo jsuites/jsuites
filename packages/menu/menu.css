@@ -166,7 +166,7 @@
     display: block;
 }
 
-@media (max-width: 960px) {
+@media (max-width: 1024px) {
     .jmenu {
         height: 100%;
         width: 280px;

@@ -803,7 +803,7 @@ jwarning .navbar {
     text-align: justify
 }
 
-@media (max-width: 600px) {
+@media (max-width: 720px) {
     .application {
         font-size: 16px;
         background-color: #f7f7f7;
@@ -812,13 +812,17 @@ jwarning .navbar {
     .top {
         position: absolute;
         width: 100%;
-        top: 0px;
-        left: 0px;
+        top: 0;
+        left: 0;
     }
 
     .top .users-small {
         width: 24px;
         height: 24px;
+    }
+
+    .top .container {
+        padding: 0;
     }
 
     .pages {
@@ -827,7 +831,7 @@ jwarning .navbar {
         align-items: flex-start;
         height: 100%;
         width: 100%;
-        position: absolute;
+        position: fixed;
         top: 0;
         left: 0;
     }
@@ -987,67 +991,11 @@ jwarning .navbar {
     }
 }
 
-@media (min-width: 1200px) {
-    .pages {
-        max-width: 940px;
-    }
-}
-
-@media (min-width: 1024px)
-{
-    .container {
-        padding: 0 30px 0 30px;
-    }
-}
 
 @media (min-width: 320px)
 {
     .container {
-        padding: 0 20px 0 20px;
-    }
-}
-
-@media (min-width: 1024px)
-{
-    .container {
-        padding: 0 30px 0 30px;
-    }
-}
-
-@media (min-width: 1200px)
-{
-    .container {
-        padding: 0 40px 0 40px;
-    }
-}
-
-@media (min-width: 1440px) {
-    .container {
-        padding: 0 50px 0 50px;
-    }
-}
-
-@media (min-width: 1600px) {
-    .container {
-        padding: 0 60px 0 60px;
-    }
-}
-
-@media (min-width: 1800px) {
-    .container {
-        padding: 0 100px 0 100px;
-    }
-}
-
-@media (min-width: 2000px) {
-    .container {
-        padding: 0 150px 0 150px;
-    }
-}
-
-@media (min-width: 2400px) {
-    .container {
-        padding: 0 200px 0 200px;
+        padding: 0 5% 0 5%;
     }
 }
 
@@ -1058,8 +1006,7 @@ jwarning .navbar {
 }
 
 .lines .option {
-    padding: 16px;
-    padding-right: 0px;
+    padding: 16px 0px 16px 16px;
     cursor: pointer;
 }
 
@@ -1075,9 +1022,8 @@ jwarning .navbar {
     background-color: #fff;
     border-top: 1px solid #ddd;
     border-bottom: 1px solid #ddd;
-    margin: 0px;
-    margin-top: -1px;
-    padding: 0px;
+    margin: -1px 0 0 0;
+    padding: 0;
 }
 
 .lines .form-group label {
@@ -1095,7 +1041,7 @@ jwarning .navbar {
 
 .lines .form-group select {
     margin-right: 15px;
-    border: 0px;
+    border: 0;
     background-color: transparent;
 }
 
@@ -1104,7 +1050,7 @@ jwarning .navbar {
     outline: none;
     border: 1px solid transparent;
     font-size: 1em;
-    margin: 0px;
+    margin: 0;
     width: 100%;
     box-sizing:border-box;
     padding: 16px;
@@ -1148,7 +1094,7 @@ jwarning .navbar {
 }
 
 .lines .form-group .jdropdown .jdropdown-header {
-    border: 0px;
+    border: 0;
     padding-right: 30px;
     text-transform: uppercase;
     outline: none;
@@ -1156,12 +1102,11 @@ jwarning .navbar {
 }
 
 .lines .form-group .jdropdown:last-child .jdropdown-header {
-    border-bottom: 0px;
+    border-bottom: 0;
 }
 
 .lines .form-group .jdropdown-searchbar.jdropdown-focus .jdropdown-header {
-    padding: 8px;
-    padding-left: 30px;
+    padding: 8px 8px 8px 30px;
 }
 
 .lines .form-group .jcalendar-input {
@@ -1203,22 +1148,22 @@ jwarning .navbar {
 }
 
 .lines .form-group link:after {
-    content:'\e315';
+    content: '\e315';
     font-family: 'Material icons';
-    color:var(--active-color);
-    font-size:24px;
-    margin-right:10px;
-    float:right;
-    width:24px;
-    height:24px;
-    line-height:24px;
-    display:block;
+    color: var(--active-color);
+    font-size: 24px;
+    margin-right: 10px;
+    float: right;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    display: block;
 }
 
 .lines .form-group .option-header {
-    padding-left:10px;
-    padding-right:10px;
-    flex-grow:10;
+    padding-left: 10px;
+    padding-right: 10px;
+    flex-grow: 10;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

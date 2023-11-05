@@ -30,6 +30,11 @@
     margin: 1px;
 }
 
+.indexing ul ul {
+    font-size: 0.9em;
+    padding: 6px;
+}
+
 .indexing:empty {
     display: none;
 }
