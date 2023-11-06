@@ -984,6 +984,9 @@ jwarning .navbar {
 
     .pages {
         flex: 1;
+        display: flex;
+        flex-wrap: nowrap;
+        align-items: flex-start;
     }
 
     .small-screen-only {
@@ -1372,31 +1375,6 @@ jwarning .navbar {
 
 .table tfoot td {
     font-size: 14px;
-}
-
-.list {
-    -webkit-font-smoothing: antialiased;
-    font-size: .875rem;
-    letter-spacing: .2px;
-    -webkit-border-radius: 4px;
-    border-radius: 8px;
-    -webkit-box-shadow: 0px 0px 1px 1px rgba(0,0,0,0.14);
-    box-shadow: 0px 0px 1px 1px rgba(0,0,0,0.14);
-    background-color:#fff;
-    margin-top:20px;
-    flex-direction: row;
-}
-
-.list a {
-    color: #000;
-    text-decoration: none;
-}
-
-.list-type {
-    background-color: #f3f3f3;
-    color: #777;
-    padding: 28px;
-    border-radius: 8px 0px 0px 8px;
 }
 
 .error {
