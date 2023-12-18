@@ -112,7 +112,7 @@ function Validations() {
         return null;
     }
     
-    component.url = function() {
+    component.url = function(data) {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
     }
@@ -123,7 +123,7 @@ function Validations() {
     }
     
     component.required = function(data) {
-        return data.trim() ? true : false;
+        return data && data.trim() ? true : false;
     }
 
     component.exist = function(data, options) {
