@@ -2830,6 +2830,17 @@ function Mask() {
                         d = (''+d[1].match(/[0-9]+/g))
                         d = d.length;
                         t = value.toFixed(d);
+                        // TODO: when the number
+                        /*let n = value.toString().split('.');
+                        if (n[1] && n[1].length < 10 && d < 10) {
+                            if (value > 0) {
+                                t = (value + Number.EPSILON).toFixed(d);
+                            } else {
+                                t = (value - Number.EPSILON).toFixed(d);
+                            }
+                        } else {
+                            t = value.toFixed(d);
+                        }*/
                     } else {
                         t = value.toFixed(0);
                     }
@@ -4643,7 +4654,7 @@ function Tabs(el, options) {
         setBorder();
     }
 
-    obj.updatePosition = function(f, t, ignoreEvents) {
+    obj.updatePosition = function(f, t, ignoreEvents, openTab) {
         // Ondrop update position of content
         if (f > t) {
             obj.content.insertBefore(obj.content.children[f], obj.content.children[t]);
@@ -4652,7 +4663,15 @@ function Tabs(el, options) {
         }
 
         // Open destination tab
-        obj.open(t);
+        if (openTab !== false) {
+            obj.open(t);
+        } else {
+            const activeIndex = obj.getActive();
+
+            if (t < activeIndex) {
+                obj.setBorder(activeIndex);
+            }
+        }
 
         // Call event
         if (! ignoreEvents && typeof(obj.options.onchangeposition) == 'function') {
@@ -4660,14 +4679,14 @@ function Tabs(el, options) {
         }
     }
 
-    obj.move = function(f, t, ignoreEvents) {
+    obj.move = function(f, t, ignoreEvents, openTab) {
         if (f > t) {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t]);
         } else {
             obj.headers.insertBefore(obj.headers.children[f], obj.headers.children[t].nextSibling);
         }
 
-        obj.updatePosition(f, t, ignoreEvents);
+        obj.updatePosition(f, t, ignoreEvents, openTab);
     }
 
     obj.setBorder = setBorder;

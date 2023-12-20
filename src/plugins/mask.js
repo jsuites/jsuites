@@ -1451,6 +1451,17 @@ function Mask() {
                         d = (''+d[1].match(/[0-9]+/g))
                         d = d.length;
                         t = value.toFixed(d);
+                        // TODO: when the number
+                        /*let n = value.toString().split('.');
+                        if (n[1] && n[1].length < 10 && d < 10) {
+                            if (value > 0) {
+                                t = (value + Number.EPSILON).toFixed(d);
+                            } else {
+                                t = (value - Number.EPSILON).toFixed(d);
+                            }
+                        } else {
+                            t = value.toFixed(d);
+                        }*/
                     } else {
                         t = value.toFixed(0);
                     }
