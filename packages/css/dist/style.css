@@ -998,20 +998,20 @@ jwarning .navbar {
 
 @media (min-width: 320px) {
     .container {
-        margin-right: 2%;
-        margin-left: 2%;
+        padding: 0 2% 0 2%;
     }
 }
 
-@media (min-width: 1440px) {
+@media (min-width: 1200px)
+{
     .container {
-        margin-right: 5%;
-        margin-left: 5%;
+        padding: 0 5% 0 5%;
     }
 }
 
 .container {
-    width: auto;
+    width: 100%;
+    margin: 0 auto;
     box-sizing: border-box;
 }
 
