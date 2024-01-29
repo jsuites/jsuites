@@ -2830,9 +2830,9 @@ function Mask() {
                         d = (''+d[1].match(/[0-9]+/g))
                         d = d.length;
                         t = value.toFixed(d);
-                        // TODO: when the number
-                        /*let n = value.toString().split('.');
-                        if (n[1] && n[1].length < 10 && d < 10) {
+                        let n = value.toString().split('.');
+                        let fraction = n[1];
+                        if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
                             if (value > 0) {
                                 t = (value + Number.EPSILON).toFixed(d);
                             } else {
@@ -2840,7 +2840,7 @@ function Mask() {
                             }
                         } else {
                             t = value.toFixed(d);
-                        }*/
+                        }
                     } else {
                         t = value.toFixed(0);
                     }
