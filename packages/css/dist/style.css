@@ -834,6 +834,7 @@ jwarning .navbar {
         position: fixed;
         top: 0;
         left: 0;
+        overflow-y: hidden;
     }
 
     .page {
@@ -862,7 +863,7 @@ jwarning .navbar {
     }
 
     .column .form-group {
-        padding: 0px;
+        padding: 0;
     }
 
     .logo img {
@@ -879,12 +880,12 @@ jwarning .navbar {
     }
 
     .section-container {
-        padding: 0px;
+        padding: 0;
     }
 
     .top-search,
     .section-container .list-header {
-        margin: 0px;
+        margin: 0;
         padding: 10px;
         border-bottom: 1px solid #ddd;
     }
@@ -892,7 +893,7 @@ jwarning .navbar {
     .top-search input,
     .section-container .list-header input {
         background-color: #e6e6e6;
-        border: 0px;
+        border: 0;
         border-radius: 4px;
         outline: none;
         background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='gray'%3E%3Cpath d='M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
@@ -904,7 +905,7 @@ jwarning .navbar {
     }
 
     .list-content:empty {
-        padding: 0px;
+        padding: 0;
     }
 
     .list-content:empty::before {
@@ -995,22 +996,27 @@ jwarning .navbar {
     }
 }
 
-
-@media (min-width: 320px)
-{
+@media (min-width: 320px) {
     .container {
-        padding: 0 5% 0 5%;
+        margin-right: 2%;
+        margin-left: 2%;
+    }
+}
+
+@media (min-width: 1440px) {
+    .container {
+        margin-right: 5%;
+        margin-left: 5%;
     }
 }
 
 .container {
-    width: 100%;
-    margin: 0 auto;
+    width: auto;
     box-sizing: border-box;
 }
 
 .lines .option {
-    padding: 16px 0px 16px 16px;
+    padding: 16px 0 16px 16px;
     cursor: pointer;
 }
 

@@ -41,7 +41,7 @@ module.exports = {
     },
     devServer: {
         static : {
-            directory : path.join(__dirname, "/dist")
+            directory : path.join(__dirname, "/public/")
         },
         headers: {
             "Access-Control-Allow-Origin": "*",
