@@ -166,6 +166,12 @@
     display: block;
 }
 
+@media (min-width: 1024px) {
+    .jmenu-icon {
+        display: none;
+    }
+}
+
 @media (max-width: 1024px) {
     .jmenu {
         height: 100%;
@@ -195,6 +201,10 @@
     .jmenu .close {
         display: block;
     }
+
+    .jmenu-icon {
+        display: block;
+    }
 }
 
 .jmenu div::-webkit-scrollbar {
@@ -212,4 +222,3 @@
 .jmenu div:hover::-webkit-scrollbar-thumb {
     background-color: #AAA;
 }
-
