@@ -75,5 +75,5 @@ export type Tabs = (el: HTMLElement, options: Options) => {
     /** Update tab position */
     updatePosition: (from: number, to: number, ignoreEvents?: boolean) => void;
     /** Update DOM position */
-    move: (from: number, to: number, ignoreEvents?: boolean) => void;
+    move: (from: number, to: number, ignoreEvents?: boolean, openTab?: boolean) => void;
 }
