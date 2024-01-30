@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import jSuites from 'jsuites';
-
+import Component from '../../src/plugins/calendar';
 
 // @ts-ignore
 export default React.forwardRef((props, mainReference) => {
@@ -14,15 +13,13 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = jSuites.calendar(Ref.current, options);
+            mainReference.current = Component(Ref.current, options);
         }
     }, []);
 
     useEffect(() => {
-        if (props.value && props.value !== mainReference.current[key].getValue()) {
-           mainReference.current.setValue(props.value)
-        }
-    }, [props])
+        mainReference.current.setValue(props.value)
+    }, [props.value])
 
     let prop = {
         ref: Ref,

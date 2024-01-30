@@ -1,6 +1,7 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import Component from '../../plugins/calendar';
+import Component from '../../src/plugins/contextmenu';
+
 
 // @ts-ignore
 export default React.forwardRef((props, mainReference) => {
@@ -17,9 +18,15 @@ export default React.forwardRef((props, mainReference) => {
         }
     }, []);
 
-    useEffect(() => {
-        mainReference.current.setValue(props.value)
-    }, [props.value])
+    // useEffect(() => {
+    //     for (let key in props) {
+    //         if (props.hasOwnProperty(key) && mainReference.current.hasOwnProperty(key)) {
+    //             if (props[key] !== mainReference.current[key]) {
+    //                 mainReference.current[key] = props[key];
+    //             }
+    //         }
+    //     }
+    // }, [props])
 
     let prop = {
         ref: Ref,

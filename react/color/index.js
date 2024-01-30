@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import Component from '../../plugins/color';
+import Component from '../../src/plugins/color';
 
 
 // @ts-ignore

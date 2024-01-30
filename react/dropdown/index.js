@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import Component from '../../plugins/dropdown';
+import Component from '../../src/plugins/dropdown';
 
 
 // @ts-ignore
