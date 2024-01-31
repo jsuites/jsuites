@@ -4,7 +4,8 @@ const config = {
   testEnvironment: "jsdom",
   testEnvironmentOptions: {
     html: '<div id="component"></div>'
-  }
+  },
+  setupFiles: ["jest-canvas-mock"],
 };
-  
+
 module.exports = config;
