@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import Component from '../../src/plugins/color';
-
+import jSuites from '../../dist/jsuites';
 
 // @ts-ignore
 export default React.forwardRef((props, mainReference) => {
@@ -14,19 +13,13 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = Component(Ref.current, options);
+            mainReference.current = jSuites.color(Ref.current, options);
         }
     }, []);
 
-    // useEffect(() => {
-    //     for (let key in props) {
-    //         if (props.hasOwnProperty(key) && mainReference.current.hasOwnProperty(key)) {
-    //             if (props[key] !== mainReference.current[key]) {
-    //                 mainReference.current[key] = props[key];
-    //             }
-    //         }
-    //     }
-    // }, [props])
+    useEffect(() => {
+        mainReference.current.setValue(props.value)
+    }, [props.value])
 
     let prop = {
         ref: Ref,

@@ -20,6 +20,7 @@
     ],
     "scripts": {
         "test": "jest",
+        "test:watch": "jest --watchAll",
         "build": "npx webpack --config webpack.config.js",
         "start": "npx webpack serve --history-api-fallback"
     },

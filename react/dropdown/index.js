@@ -1,7 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import Component from '../../src/plugins/dropdown';
-
+import jSuites from '../../dist/jsuites';
 
 // @ts-ignore
 export default React.forwardRef((props, mainReference) => {
@@ -14,7 +13,7 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = Component(Ref.current, options);
+            mainReference.current = jSuites.dropdown(Ref.current, options);
         }
     }, []);
 
