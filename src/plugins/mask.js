@@ -1454,11 +1454,7 @@ function Mask() {
                         let n = value.toString().split('.');
                         let fraction = n[1];
                         if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
-                            if (value > 0) {
-                                t = (value + Number.EPSILON).toFixed(d);
-                            } else {
-                                t = (value - Number.EPSILON).toFixed(d);
-                            }
+                            t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
                         } else {
                             t = value.toFixed(d);
                         }
