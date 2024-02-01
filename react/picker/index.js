@@ -13,9 +13,13 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = jSuites.contextmenu(Ref.current, options);
+            mainReference.current = jSuites.picker(Ref.current, options);
         }
     }, []);
+
+    useEffect(() => {
+        mainReference.current.setValue(props.value)
+    }, [props.value])
 
     let prop = {
         ref: Ref,

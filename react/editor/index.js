@@ -13,12 +13,19 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = jSuites.contextmenu(Ref.current, options);
+            mainReference.current = jSuites.editor(Ref.current, options);
         }
     }, []);
 
+    useEffect(() => {
+        if (props.value) {
+            mainReference.current.setData(props.value)
+        }
+    }, [props.value])
+
     let prop = {
         ref: Ref,
+        style: { height: '100%', width: '100%' }
     };
 
     return React.createElement("div", prop);
