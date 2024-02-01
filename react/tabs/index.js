@@ -13,13 +13,12 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = jSuites.dropdown(Ref.current, options);
+            mainReference.current = jSuites.tabs(Ref.current, options);
         }
     }, []);
 
     let prop = {
         ref: Ref,
-        style: { height: '100%', width: '100%' }
     };
 
     return React.createElement("div", prop);
