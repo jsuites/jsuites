@@ -7,6 +7,7 @@ describe('modal', () => {
         let modal = jSuites.modal(div, {
             closed: true
         })
+        
         expect(document.body.innerHTML).toContain("Modal with no title content")
     });
 
@@ -16,7 +17,7 @@ describe('modal', () => {
         let modal = jSuites.modal(div, {
             closed: true
         })
-        console.log(document.body.innerHTML)
+
         expect(document.body.innerHTML).toContain("display: none")
 
         modal.open()
