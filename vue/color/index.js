@@ -33,12 +33,8 @@ export default {
     },
     methods: {
         updateState() {
-            for (let key in this.$attrs) {
-                if (this.$attrs.hasOwnProperty(key) && this.current.hasOwnProperty(key)) {
-                    if (this.$attrs[key] !== this.current[key]) {
-                        this.current[key] = this.$attrs[key];
-                    }
-                }
+            if (this.$attrs["value"] !== this.current["value"]) {
+                this.current.setValue(this.$attrs["value"])
             }
         }
     }

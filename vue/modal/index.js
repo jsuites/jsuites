@@ -1,8 +1,7 @@
 import { h } from 'vue';
 import jSuites from "../../dist/jsuites";
 
-
-export default {
+export const Modal = {
     inheritAttrs: false,
     mounted() {
         let options = {
@@ -13,7 +12,7 @@ export default {
 
         this.current = jSuites.modal(this.$refs.container, options);
     },
-    setup() {
+    setup(_, context) {
         let containerProps = {
             ref: 'container',
             style: {
@@ -21,25 +20,15 @@ export default {
                 height: '100%',
             }
         };
-        return () => h('div', containerProps);
-    },
-    watch: {
-        $attrs: {
-            deep: true,
-            handler() {
-                this.updateState();
-            }
+
+        let vnode = [];
+
+        if (context.slots.default && typeof (context.slots.default) === 'function') {
+            vnode = context.slots.default()
         }
+
+        return () => h('div', containerProps, vnode);
     },
-    methods: {
-        updateState() {
-            for (let key in this.$attrs) {
-                if (this.$attrs.hasOwnProperty(key) && this.current.hasOwnProperty(key)) {
-                    if (this.$attrs[key] !== this.current[key]) {
-                        this.current[key] = this.$attrs[key];
-                    }
-                }
-            }
-        }
-    }
-}
+};
+
+export default Modal;
