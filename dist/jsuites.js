@@ -4414,7 +4414,7 @@ function Tabs(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        if (obj.options.animation) {
+        if (obj.options.animation && (typeof index === 'number')) {
             var rect = obj.headers.children[index].getBoundingClientRect();
 
             if (obj.options.palette === 'modern') {

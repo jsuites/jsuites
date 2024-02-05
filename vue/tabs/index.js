@@ -13,7 +13,7 @@ export default {
 
         this.current = jSuites.tabs(this.$refs.container, options);
     },
-    setup() {
+    setup(_, context) {
         let containerProps = {
             ref: 'container',
             style: {
@@ -21,7 +21,14 @@ export default {
                 height: '100%',
             }
         };
-        return () => h('div', containerProps);
+
+        let vnode = []; 
+
+        if (context.slots.default && typeof(context.slots.default) === 'function') {
+            vnode = context.slots.default()
+        }
+
+        return () =>  h('div', containerProps, vnode);
     },
     watch: {
         $attrs: {

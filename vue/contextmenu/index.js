@@ -16,10 +16,6 @@ export default {
     setup() {
         let containerProps = {
             ref: 'container',
-            style: {
-                width: '100%',
-                height: '100%',
-            }
         };
         return () => h('div', containerProps);
     },

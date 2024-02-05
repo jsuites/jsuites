@@ -23,8 +23,7 @@ export default React.forwardRef((props, mainReference) => {
 
     let prop = {
         ref: Ref,
-        style: { height: '100%', width: '100%' }
     };
 
-    return React.createElement("div", prop);
+    return React.createElement("input", prop);
 })
