@@ -1,8 +1,7 @@
 import { h } from 'vue';
 import jSuites from "../../dist/jsuites";
 
-
-export default {
+export const Modal = {
     inheritAttrs: false,
     mounted() {
         let options = {
@@ -38,15 +37,6 @@ export default {
             }
         }
     },
-    methods: {
-        updateState() {
-            for (let key in this.$attrs) {
-                if (this.$attrs.hasOwnProperty(key) && this.current.hasOwnProperty(key)) {
-                    if (this.$attrs[key] !== this.current[key]) {
-                        this.current[key] = this.$attrs[key];
-                    }
-                }
-            }
-        }
-    }
-}
+};
+
+export default Modal;
