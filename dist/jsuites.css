@@ -2087,6 +2087,7 @@ div[data-before]:before {
     user-select: none;
     outline: none;
     position: relative;
+    min-height: 26px;
 }
 
 .jpicker-header {
@@ -2098,12 +2099,8 @@ div[data-before]:before {
     box-sizing: border-box;
     text-align: left;
     outline: none;
-
     line-height: 24px;
-    padding: 2px;
-    padding-left: 12px;
-    padding-right: 35px;
-    outline: none;
+    padding: 2px 35px 2px 12px;
     border-radius: 4px;
 }
 
