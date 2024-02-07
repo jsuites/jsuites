@@ -1121,6 +1121,7 @@ function Mask() {
                         d[0] = d[0].replace('*', '\t');
                         d[0] = d[0].replace(new RegExp(/_-/g), '');
                         d[0] = d[0].replace(new RegExp(/_/g), '');
+                        d[0] = d[0].replace(new RegExp(/"/g), '');
                         d[0] = d[0].replace('##0.###','##0.000');
                         d[0] = d[0].replace('##0.##','##0.00');
                         d[0] = d[0].replace('##0.#','##0.0');
