@@ -4414,7 +4414,7 @@ function Tabs(el, options) {
 
     // Helpers
     var setBorder = function(index) {
-        if (obj.options.animation && (typeof index === 'number')) {
+        if (obj.options.animation) {
             var rect = obj.headers.children[index].getBoundingClientRect();
 
             if (obj.options.palette === 'modern') {
@@ -12702,7 +12702,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.1.0',
+    version: '5.1.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
