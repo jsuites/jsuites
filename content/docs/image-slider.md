@@ -1,8 +1,8 @@
-title: JavaScript Image Slider
+title: JavaScript Slider
 keywords: JavaScript, Slider, Image Slider, Slider Plugin, JS Image Slider, JavaScript Image Slider
 description: jSuites slider is a lightweight JavaScript image slider plugin that enhances web pages with dynamic photo galleries.
 
-JavaScript Image Slider
+JavaScript Slider
 =======================
 
 The jSuites slider offers a responsive and lightweight solution for embedding dynamic photo galleries in web applications. Its straightforward integration process and versatile options make it ideal for enriching web environments with visually captivating galleries.
@@ -46,7 +46,7 @@ npm install jsuites
 
 ## Examples
 
-### Basic slider example
+### Basic image slider example
 
 ```html
 <html>
@@ -54,9 +54,9 @@ npm install jsuites
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
 <div id="slider">
-    <img src='/templates/default/img/car.jpeg' />
-    <img src='/templates/default/img/car2.jpeg' />
-    <img src='/templates/default/img/car3.jpeg' />
+    <img src="https://jsuites.net/templates/default/img/car.jpeg"/>
+    <img src="https://jsuites.net/templates/default/img/car2.jpeg"/>
+    <img src="https://jsuites.net/templates/default/img/car3.jpeg"/>
 </div>
 
 <br>
@@ -85,9 +85,9 @@ function App() {
     return (
         <div className="App">
             <Slider ref={slider} grid={true}>
-                <img src="https://jsuites.net/templates/v5/img/car.jpeg"/>
-                <img src="https://jsuites.net/templates/v5/img/car2.jpeg"/>
-                <img src="https://jsuites.net/templates/v5/img/car3.jpeg"/>
+                <img src="https://jsuites.net/templates/default/img/car.jpeg"/>
+                <img src="https://jsuites.net/templates/default/img/car2.jpeg"/>
+                <img src="https://jsuites.net/templates/default/img/car3.jpeg"/>
             </Slider>
             <button onClick={() => { slider.current.open() }}>Open the slider</button>
         </div>
@@ -99,9 +99,9 @@ export default App;
 ```vue
 <template>
     <Slider ref="slider" :grid="true">
-        <img src="https://jsuites.net/templates/v5/img/car.jpeg"/>
-        <img src="https://jsuites.net/templates/v5/img/car2.jpeg"/>
-        <img src="https://jsuites.net/templates/v5/img/car3.jpeg"/>
+      <img src="https://jsuites.net/templates/default/img/car.jpeg"/>
+      <img src="https://jsuites.net/templates/default/img/car2.jpeg"/>
+      <img src="https://jsuites.net/templates/default/img/car3.jpeg"/>
     </Slider>
     <button @click="this.$refs.slider.current.open();">Open slider</button>
 </template>

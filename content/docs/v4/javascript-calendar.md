@@ -18,18 +18,14 @@ Introducing our JavaScript Calendar - a lean, responsive web component plugin th
 * Several events and easy integration;
 * JS plugin or web component;
 
-![](img/js-calendar.svg)
-
-  
 
 Examples
 --------
+ 
 
-  
+### Web component Date Picker
 
-### Webcomponent date picker
-
-How to embed a simple webcomponent calendar input in your application.  
+How to embed a simple web component calendar input in your application.  
   
   
   
@@ -54,9 +50,9 @@ document.querySelector('jsuites-calendar').addEventListener('onclose', function(
   
   
 
-### Basic date input
+### How to create an HTML calendar input
 
-Create a basic date and time input using pure JavaScript.  
+Create a basic HTML date and time input using pure JavaScript.  
   
   
   
