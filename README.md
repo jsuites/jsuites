@@ -1,6 +1,6 @@
-![The javascript web components](https://jsuites.net/templates/v4/img/logo.svg)
+![The javascript web components](https://jsuites.net/templates/default/img/logo.svg)
 
-## jSuites v4 - Webcomponents and JavaScript plugins. 
+## jSuites v5 - Webcomponents and JavaScript plugins. 
 
 About
 ---------
@@ -35,8 +35,8 @@ Create a multiple and autocomplete responsive dropdown.
 
 ```html
 <html>
-<script src="https://jsuites.net/v4/jsuites.js"></script>
-<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
 <div id="dropdown1"></div>
 
@@ -56,51 +56,51 @@ jSuites.dropdown(document.getElementById('dropdown1'), {
 </html>
 ```
 The same code can render in different ways, by directive type: default, picker or searchbar\
-![Javascript dropdown](https://jsuites.net/templates/v4/img/dropdown.png)
+![Javascript dropdown](https://jsuites.net/templates/default/img/dropdown.png)
 
 
 Examples
 ---------
 
-* [JavaScript image cropper](https://jsuites.net/v4/image-cropper)\
+* [JavaScript image cropper](https://jsuites.net/docs/)\
 The jSuites.crop is a lightweight JavaScript plugin that allow users load, crop and apply filters to images.
 
-* [Dropdown and autocomplete](https://jsuites.net/v4/dropdown-and-autocomplete)\
+* [Dropdown and autocomplete](https://jsuites.net/docs/dropdown)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Javascript calendar](https://jsuites.net/v4/javascript-calendar)\
+* [Javascript calendar](https://jsuites.net/docs/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
-* [Javascript tags](https://jsuites.net/v4/javascript-tags)\
+* [Javascript tags](https://jsuites.net/docs/javascript-tags)\
 JavaScript tags and keywords managment plugin
 
-* [Javascript tabs](https://jsuites.net/v4/javascript-tabs)\
+* [Javascript tabs](https://jsuites.net/docs/javascript-tabs)\
 JavaScript tabs plugin
 
-* [Javascript mask](https://jsuites.net/v4/javascript-mask)\
+* [Javascript mask](https://jsuites.net/docs/javascript-mask)\
 A simple javascript mask plugin
 
-* [Javascript color picker plugin](https://jsuites.net/v4/color-picker)\
+* [Javascript color picker plugin](https://jsuites.net/docs/color-picker)\
 Javascript color picker plugin
 
-* [Javascript contextmenu plugin](https://jsuites.net/v4/contextmenu)\
+* [Javascript contextmenu plugin](https://jsuites.net/docs/contextmenu)\
 Vanilla javascript contextmenu plugin
 
-* [Tracking the form changes](https://jsuites.net/v4/richform)\
+* [Tracking the form changes](https://jsuites.net/docs/richform)\
 Track changes in a online form, apply validations and manage ajax requests.
 
-* [Javascript modal plugin](https://jsuites.net/v4/modal)\
+* [Javascript modal plugin](https://jsuites.net/docs/modal)\
 Simple vanilla javascript modal plugin
 
-* [JavaSript general toolbar](https://jsuites.net/v4/toolbar)\
+* [JavaSript general toolbar](https://jsuites.net/docs/toolbar)\
 Micro vanilla javascript toolbar plugin
 
-* [Javascript mini HTML editor plugin with filter](https://jsuites.net/v4/text-editor)\
+* [Javascript mini HTML editor plugin with filter](https://jsuites.net/docs/javascript-html-editor)\
 Simple vanilla javascript image slider plugin
 
 
 ## Official website
-- [jSuites Official](https://jsuites.net/v4)
+- [jSuites Official](https://jsuites.net/docs)
 
 ## Community
 - [GitHub](https://github.com/jsuites/jsuites/issues)
@@ -113,9 +113,7 @@ contact@jsuites.net
 
 ## Other tools
 
-- [LemonadeJS v2](https://lemonadejs.net/v2/)<br>
-- [LemonadeJS v3](https://lemonadejs.net/v3/)<br>
-- [Jspreadsheet Pro v9](https://jspreadsheet.com/v9/)<br>
-- [Jspreadsheet Pro v10](https://jspreadsheet.com/v10/)<br>
+- LemonadeJS: [Reactive Library & Two-way data binding](https://lemonadejs.net/)<br>
+- Jspreadsheet: [Data Grid width Spreadsheet Controls](https://jspreadsheet.com/)<br>
 
 
