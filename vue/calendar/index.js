@@ -1,5 +1,5 @@
 import { h } from 'vue';
-import jSuites from "../../src/jsuites.js";
+import jSuites from "../../dist/jsuites.js";
 
 
 export default {
