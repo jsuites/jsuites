@@ -1,6 +1,6 @@
 // @ts-nocheck
 import React, { useRef, useEffect } from "react";
-import cropper from "@jsuites/cropper";
+import organogram from "@jsuites/organogram";
 
 // @ts-ignore
 export default React.forwardRef((props, mainReference) => {
@@ -13,7 +13,7 @@ export default React.forwardRef((props, mainReference) => {
     useEffect(() => {
         // @ts-ignore
         if (!Ref.current.innerHTML) {
-            mainReference.current = cropper(Ref.current, options);
+            mainReference.current = organogram(Ref.current, options);
         }
     }, []);
 
