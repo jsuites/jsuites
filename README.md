@@ -113,7 +113,7 @@ contact@jsuites.net
 
 ## Other tools
 
-- LemonadeJS: [Reactive Library & Two-way data binding](https://lemonadejs.net/)<br>
-- Jspreadsheet: [Data Grid width Spreadsheet Controls](https://jspreadsheet.com/)<br>
+- LemonadeJS: [Reactive Library and Two-way Data Binding](https://lemonadejs.net/)<br>
+- Jspreadsheet: [Data Grid with Spreadsheet Controls](https://jspreadsheet.com/)<br>
 
 
