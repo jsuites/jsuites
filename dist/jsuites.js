@@ -4497,9 +4497,6 @@ function Tabs(el, options) {
         if (obj.options.hideHeaders == true && (obj.headers.children.length < 3 && obj.options.allowCreate == false)) {
             obj.headers.parentNode.style.display = 'none';
         } else {
-            // Set border
-            setBorder(index);
-
             obj.headers.parentNode.style.display = '';
 
             var x1 = obj.headers.children[index].offsetLeft;
@@ -4511,6 +4508,9 @@ function Tabs(el, options) {
                 // Out of the viewport
                 updateControls(x1 - 1);
             }
+
+            // Set border
+            setBorder(index);
         }
     }
 
@@ -4588,7 +4588,7 @@ function Tabs(el, options) {
         }
     }
 
-    obj.appendElement = function(title, cb, openTab) {
+    obj.appendElement = function(title, cb, openTab, position) {
         if (! title) {
             var title = prompt('Title?', '');
         }
@@ -4596,13 +4596,25 @@ function Tabs(el, options) {
         if (title) {
             // Add content
             var div = document.createElement('div');
-            obj.content.appendChild(div);
 
             // Add headers
             var h = document.createElement('div');
             h.innerHTML = title;
             h.content = div;
-            obj.headers.insertBefore(h, obj.headers.lastChild);
+
+            if (typeof(position) === 'undefined') {
+                obj.content.appendChild(div);
+                obj.headers.insertBefore(h, obj.headers.lastChild);
+            } else {
+                let r = obj.content.children[position];
+                if (r) {
+                    obj.content.insertBefore(div, r);
+                } else {
+                    obj.content.appendChild(div);
+                }
+                r = obj.headers.children[position] || obj.headers.lastChild;
+                obj.headers.insertBefore(h, r);
+            }
 
             // Sortable
             if (obj.options.allowChangePosition) {
@@ -12703,7 +12715,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.1.1',
+    version: '5.1.4',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
