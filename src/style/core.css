@@ -154,7 +154,7 @@ div[data-before]:before {
     margin: 10px;
 
     display: block;
-    animation: fadeIn 0.5s;
+    animation: jfadeIn 0.5s;
     pointer-events: none;
 }
 
