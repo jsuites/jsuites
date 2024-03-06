@@ -70,7 +70,7 @@
 
 @media (max-width: 800px) {
     .jnotification {
-        top: calc(0px + var(--safe-area-top));
+        top: calc(0px + var(--jsafe-area-top));
         width: 100%;
     }
     .jnotification-container {

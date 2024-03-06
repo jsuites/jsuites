@@ -95,7 +95,7 @@
 }
 
 .jtoolbar-mobile .jtoolbar-selected a, .jtoolbar-mobile .jtoolbar-selected i, .jtoolbar-mobile .jtoolbar-selected span {
-    color:var(--active-color) !important;
+    color:var(--jactive-color) !important;
     background-color:transparent;
 }
 

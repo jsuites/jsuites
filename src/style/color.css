@@ -40,7 +40,7 @@
 .jcolor-controls div {
     flex: 1;
     font-size: 1em;
-    color: var(--active-color);
+    color: var(--jactive-color);
     text-transform: uppercase;
     font-weight: bold;
     box-sizing: border-box;

@@ -86,7 +86,7 @@
 .jdropdown-close {
     display:none;
     font-size:1em;
-    color: var(--active-color);
+    color: var(--jactive-color);
     text-transform:uppercase;
     text-align:right;
     padding:12px;

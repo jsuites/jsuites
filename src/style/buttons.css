@@ -97,8 +97,8 @@
 }
 
 .jbuttons-group.mobile .jbutton {
-    border-color: var(--active-color);
-    color: var(--active-color);
+    border-color: var(--jactive-color);
+    color: var(--jactive-color);
     padding:4px;
     padding-left:25px;
     padding-right:25px;
@@ -109,7 +109,7 @@
 
 .jbuttons-group .jbutton.selected {
     color: white;
-    background-color: var(--active-color);
+    background-color: var(--jactive-color);
 }
 
 .jbuttons-group .jbutton:first-child {
