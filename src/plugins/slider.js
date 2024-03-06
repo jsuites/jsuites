@@ -15,7 +15,7 @@ export default function Slider(el, options) {
 
     if (! el.classList.contains('jslider')) {
         el.classList.add('jslider');
-        el.classList.add('junselectable');
+        el.classList.add('unselectable');
 
         if (obj.options.height) {
             el.style.minHeight = parseInt(obj.options.height) + 'px';
