@@ -1,4 +1,4 @@
-title: JavaScript basic animations
+title: JavaScript Animations Plugins
 keywords: JavaScript animations, JS animations, slide in, slide out, slide left, slide right, slide bottom, slide top, fade in, fade out
 description: A collection of basic JavaScript animations, slide left, slide right, slide bottom, slide top, fade in, fade out
 

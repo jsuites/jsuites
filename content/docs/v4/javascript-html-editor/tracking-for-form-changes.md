@@ -1,11 +1,11 @@
-title: Getting Started with jSuites JavaScript Rich Forms
-keywords: Javascript rich form plugin, HTML form, validations on a HTML form.
-description: This sections brings more information about the jSuites rich form plugin, including events, methods and other configurations.
+title: Tracking changes in elements from a form
+keywords: Javascript rich form plugin, HTML form, tracking changes, are you sure
+description: This feature of the rich form plugin alerts the user when leaving a page without saving any changes in a HTML form
 
 Tracking changes in the elements of a form
 ==========================================
 
-jSuites.form alert the user for unsaved changes in a form before leaving the page. _Are you sure?_
+Alert the user for unsaved changes in a form before leaving the page. _Are you sure?_
 
 How it works
 ------------
@@ -18,7 +18,7 @@ Examples
 --------
 
 Please consider the following form example. If the user tries to leave the page without saving, the tracking will alert for unsaved changes. If you click save, the tracker will reset and start the tracking again.
-
+  
 ```html
 <html>
 <script src="https://jsuites.net/v4/jsuites.js"></script>
@@ -57,7 +57,7 @@ Please consider the following form example. If the user tries to leave the page 
     <div class='row'>
         <div class='column'>
             <div class='form-group'>
-                <input type='button' value='Save profile' id='btn'>
+                <input type='button' value='Save profile' onclick='myTracker.resetTracker()'>
             </div>
         </div>
     </div>
@@ -67,10 +67,6 @@ Please consider the following form example. If the user tries to leave the page 
 
 <script>
 var myTracker = jSuites.tracker(document.getElementById('myForm'));
-
-btn.addEventListener('click', function () {
-    myTracker.resetTracker()
-})
 </script>
 
 </html>
@@ -79,7 +75,7 @@ btn.addEventListener('click', function () {
 Methods
 -------
 
-|   Method  | Description  |
+| Method  | Description |
 | --- | --- |
 | resetTracker(); | Start tracking again |
 | isChanged(); | Check if the form is changed |

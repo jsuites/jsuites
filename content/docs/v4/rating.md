@@ -1,4 +1,4 @@
-title: JavaScript five star rating plugin
+title: JavaScript Rating
 keywords: Javascript, rating, five star rating plugin
 description: Vanilla JavaScript star rating plugin
 

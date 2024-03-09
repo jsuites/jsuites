@@ -1,4 +1,4 @@
-title: Getting Started with jSuites
+title: Getting Started with jSuites Version 4
 keywords: JavaScript, jSuites, JavaScript plugins, web development tools, spreadsheets, dropdowns, color pickers, cross-platform development, user-friendly JavaScript
 description: Explore jSuites, a free, comprehensive collection of JavaScript plugins. Features include spreadsheets, dropdowns, color pickers, and more, tailored for modern web development with a cross-platform, user-friendly approach.
 
@@ -57,10 +57,10 @@ jSuites includes a range of native and extended libraries, each providing specif
 - [JavaScript Rating](/docs/rating)
 - [JavaScript Rich forms](/docs/rich-form)
 - [JavaScript HTML editor](/docs/javascript-html-editor)
-- [JavaScript Slider](/docs/slider)
+- [JavaScript Slider](/docs/image-slider)
 - [JavaScript Tags](/docs/javascript-tags)
 - [JavaScript Tabs](/docs/javascript-tabs)
-- [JavaScript Toolbars](/docs/toolbars)
+- [JavaScript Toolbars](/docs/toolbar)
 
 ### External extended official libraries
 
@@ -74,6 +74,8 @@ There are many extended solutions that will bring specific installation instruct
 ## Testing jSuites
 
 jSuites employs Jest for testing. Following the cloning of our GitHub project, testing can be initiated using:
+
+- [JavaScript Tests](/docs/tests)
 
 ```bash
 npm run test

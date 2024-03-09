@@ -1,5 +1,5 @@
-title: Vue rating
-keywords: Javascript, rating, five star rating plugin, VueJS
+title: VueJS Five-Star Rating Component
+keywords: Javascript, rating, five-star rating plugin, VueJS
 description: Create a javascript rating component with Vuejs and jSuites
 
 * [Vue Rating](/docs/v4/rating)

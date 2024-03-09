@@ -44,27 +44,27 @@ Libraries
 
 There are many extended solutions that will bring specific installation instructions.  
 
-- [JavaScript Calendar](/docs/v4/calendar)
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
 - [JavaScript Color picker](/docs/v4/color-picker)
 - [JavaScript Context menu](/docs/v4/contextmenu)
-- [JavaScript Dropdown](/docs/v4/dropdown)
-- [JavaScript Mask](/docs/v4/mask)
+- [JavaScript Dropdown](/docs/v4/dropdown-and-autocomplete)
+- [JavaScript Mask](/docs/v4/javascript-mask)
 - [JavaScript Modal](/docs/v4/modal)
 - [JavaScript Picker](/docs/v4/picker)
 - [JavaScript Rating](/docs/v4/rating)
-- [JavaScript Rich forms](/docs/v4/richforms)
-- [JavaScript HTML editor](/docs/v4/html-editor)
-- [JavaScript Slider](/docs/v4/slider)
-- [JavaScript Tags](/docs/v4/tags)
-- [JavaScript Tabs](/docs/v4/tabs)
-- [JavaScript Toolbars](/docs/v4/toolbars)
+- [JavaScript Rich forms](/docs/v4/rich-form)
+- [JavaScript HTML editor](/docs/v4/javascript-html-editor)
+- [JavaScript Slider](/docs/v4/image-slider)
+- [JavaScript Tags](/docs/v4/javascript-tags)
+- [JavaScript Tabs](/docs/v4/javascript-tabs)
+- [JavaScript Toolbars](/docs/v4/toolbar)
 
 ## External extended official libraries
 
 There are many extended solutions that will bring specific installation instructions.
 
-- [JavaScript Cropper](/docs/v4/cropper)
-- [JavaScript Template](/docs/v4/templates)
+- [JavaScript Cropper](/docs/v4/image-cropper)
+- [JavaScript Template](/docs/v4/javascript-template)
 - [JavaScript Organogram](/docs/v4/organogram)
 - [JavaScript Heatmap](/docs/v4/heatmap)
 

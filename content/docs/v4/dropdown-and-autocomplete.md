@@ -18,7 +18,7 @@ The new JavaScript dropdown plugin brings a native autocomplete, multiple option
 7.  Dropdown with image and icons
 8.  Dropdown with group of items and categories
 
-![](img/js-dropdown.jpg)
+![JavaScript Dropdown](img/js-dropdown.svg)
 
   
   

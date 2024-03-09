@@ -1,8 +1,8 @@
-title: JavaScript Image Cropper Plugin
+title: JavaScript Cropper
 keywords: JavaScript, Image Cropper, Cropper Plugin, JS Image Editing, Web Components, Image Manipulation
 description: The jSuites Image Cropper is a JavaScript plugin to create basic image editing functionalities in web applications. It provides features such as crop, brightness and contrast adjustment, rotation, and zoom, enabling direct, efficient and straightforward image manipulation.
 
-![JavaScript Image Cropper](img/js-crop.svg)
+![JavaScript Cropper](img/js-crop.svg)
 
 # JavaScript Image Cropper
 
@@ -12,23 +12,23 @@ The jSuites Image Cropper is a JavaScript plugin to create basic image editing f
 
 ### Methods
 
-| Method                     | Description                                                                        |
-|----------------------------|------------------------------------------------------------------------------------|
-| resetCropSelection();      | Reset the crop selection                                                           |
-| reset();                   | Reset the current image edition and canvas                                         |
-| contrast(double);          | Change the image contrast. Input value as double; Valid range: -1 to 1             |
-| brightness(double);        | Change the image brightness. Input value input as double; Valid range: -1 to 1     |
-| getImageType();            | Get the image type uplodaed to the cropper.                                        |
-| getSelectionCoordinates(); | Get the crop coordinates from the current selection.                               |
-| getCroppedImage();         | Get a new DOM image element based on the crop selection.                           |
-| getCroppedContent();       | Get a new based 64 image code based on the crop selection.                         |
-| getCroppedAsBlob();        | Get a new blob reference based on the crop selection.                              |
-| getImage();                | Get the DOM of the image from the cropper.                                         |
-| getCanvas();               | Get the DOM of the canvas from the cropper.                                        |
-| addFromFile();             | Start the edition of a new imagem from the computer.                               |
-| addFromUrl(string);        | Start the edition of a new imagem from a remote URL. Be aware of CORS limitations. |
-| zoom(double);              | Apply zoom to the image.                                                           |
-| rotate(double);            | Apply rotate to the image.                                                         |
+| Method                     | Description                                                                       |
+|----------------------------|-----------------------------------------------------------------------------------|
+| resetCropSelection();      | Reset the crop selection                                                          |
+| reset();                   | Reset the current image edition and canvas                                        |
+| contrast(double);          | Change the image contrast. Input value as double; Valid range: -1 to 1            |
+| brightness(double);        | Change the image brightness. Input value input as double; Valid range: -1 to 1    |
+| getImageType();            | Get the image type uploaded to the cropper.                                       |
+| getSelectionCoordinates(); | Get the crop coordinates from the current selection.                              |
+| getCroppedImage();         | Get a new DOM image element based on the crop selection.                          |
+| getCroppedContent();       | Get a new based 64 image code based on the crop selection.                        |
+| getCroppedAsBlob();        | Get a new blob reference based on the crop selection.                             |
+| getImage();                | Get the DOM of the image from the cropper.                                        |
+| getCanvas();               | Get the DOM of the canvas from the cropper.                                       |
+| addFromFile();             | Start the edition of a new image from the computer.                               |
+| addFromUrl(string);        | Start the edition of a new image from a remote URL. Be aware of CORS limitations. |
+| zoom(double);              | Apply zoom to the image.                                                          |
+| rotate(double);            | Apply rotate to the image.                                                        |
 
 ### Events
 
@@ -164,7 +164,9 @@ export default {
 
 ### More examples
 
-* [Image cropper example on jsFiddle](https://jsfiddle.net/spreadsheet/1a5mts0u/)
+More examples using our JavaScript Cropper plugin.
+
+* [Image Cropper example on jsFiddle](https://jsfiddle.net/spreadsheet/1a5mts0u/)
 * [Image Brightness and Contrast](/docs/image-cropper/brightness-and-contrast-filters)
 * [Image Rotate and Zoom](/docs/image-cropper/rotate-and-zoom)
 

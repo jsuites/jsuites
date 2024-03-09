@@ -1,4 +1,4 @@
-title: JavaScript drag and drop plugin
+title: JS Drag and Drop with jSuites Version 4
 keywords: JavaScript drag and drop, sortable list
 description: JavaScript drag and drop plugin.
 

@@ -1,6 +1,6 @@
-title: HTML form validations
+title: Pre Validations Scripts
 keywords: Javascript rich form plugin, HTML form, validations on a HTML form.
-description: How to implement HTML form validations using the rich form plugin
+description: This plugin brings several pre-coded validations that can be re-used across different applications.
 
 Data validations
 ================
@@ -46,13 +46,13 @@ For basic use of validators, the value to be tested must be passed as the first 
 Methods
 -------
 
-| Method | Description |
-| --- | --- |
-| jSuites.validations.number(value, options); | Check if the value is a number. |
-| jSuites.validations.date(value, options); | Check if the value is a date. |
-| jSuites.validations.text(value, options); | Check if the value is a text. |
-| jSuites.validations.itemList(value, options); | Check if the value is part of the list. This method does not use any constraint and in its reference property, an array with the allowed values must be passed. |
-| jSuites.validations(value, options); | The name of one of the previous functions must be passed in options as the 'type' property. The function with that name will be called with all arguments passed to the 'validations' function. |
+| Method                                        | Description                                                                                                                                                                                     |
+|-----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| jSuites.validations.number(value, options);   | Check if the value is a number.                                                                                                                                                                 |
+| jSuites.validations.date(value, options);     | Check if the value is a date.                                                                                                                                                                   |
+| jSuites.validations.text(value, options);     | Check if the value is a text.                                                                                                                                                                   |
+| jSuites.validations.itemList(value, options); | Check if the value is part of the list. This method does not use any constraint and in its reference property, an array with the allowed values must be passed.                                 |
+| jSuites.validations(value, options);          | The name of one of the previous functions must be passed in options as the 'type' property. The function with that name will be called with all arguments passed to the 'validations' function. |
 
   
   
@@ -60,18 +60,18 @@ Methods
 Constraints
 -----------
 
-| Constraint | Allowed methods | Description |
-| --- | --- | --- |
-| =   | date | number | text | The validator also checks if the value is equal to the reference value. |
-| >   | date | number | The validator also checks if the value is greater than the reference value. |
-| >=  | date | number | The validator also checks if the value is greater than or equal to the reference value. |
-| <   | date | number | The validator also checks if the value is less than the reference value. |
-| <=  | date | number | The validator also checks if the value is less than or equal to the reference value. |
-| between | date | number | The validator also checks whether the value is between the two reference values. In this case the reference property must be a two-position array. |
-| out | date | number | The validator also checks that the value is not between the two reference values. In this case the reference property must be a two-position array. |
-| contains | text | The validator also checks if the reference value is present within the value. |
-| not contain | text | The validator also checks if the reference value is not present within the value. |
-| email | text | The validator also checks if the value is a valid email. |
+| Constraint  | Allowed methods | Description                                                                       |
+|-------------|-----------------|-----------------------------------------------------------------------------------|
+| =           | date            | number                                                                            | text | The validator also checks if the value is equal to the reference value. |
+| >           | date            | number                                                                            | The validator also checks if the value is greater than the reference value. |
+| >=          | date            | number                                                                            | The validator also checks if the value is greater than or equal to the reference value. |
+| <           | date            | number                                                                            | The validator also checks if the value is less than the reference value. |
+| <=          | date            | number                                                                            | The validator also checks if the value is less than or equal to the reference value. |
+| between     | date            | number                                                                            | The validator also checks whether the value is between the two reference values. In this case the reference property must be a two-position array. |
+| out         | date            | number                                                                            | The validator also checks that the value is not between the two reference values. In this case the reference property must be a two-position array. |
+| contains    | text            | The validator also checks if the reference value is present within the value.     |
+| not contain | text            | The validator also checks if the reference value is not present within the value. |
+| email       | text            | The validator also checks if the value is a valid email.                          |
 
   
   
@@ -97,7 +97,7 @@ jSuites.validations.number(9, { // Returns true
     reference: [11, 40]
 });
 
-### Using the date validator
+// Using the date validator
 
 // Just check if it's a date
 jSuites.validations.date('02-14-2000'); // Returns true
@@ -114,7 +114,7 @@ jSuites.validations.date('07-18-2017', { // Returns true
     reference: ['01-01-2010', '12-31-2020']
 });
 
-### Using the text validator
+// Using the text validator
 
 // Just check if it's a text
 jSuites.validations.text('it is a text'); // Returns true
@@ -130,12 +130,12 @@ jSuites.validations.text('https://jsuites.net', { // Returns true
     constraint: 'url',
 });
 
-### Using the item list validator
+// Using the item list validator
 
 // Check if the item is on the list
 jSuites.validations.itemList('8', [1, 2, 4, 8]); // Returns true
 
-### Using the general validator
+// Using the general validator
 
 // Check if the number is not between 11 and 40
 jSuites.validations(9, { // Returns true

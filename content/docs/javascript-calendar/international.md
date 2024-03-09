@@ -1,4 +1,4 @@
-title: JavaScript Calendar International Options
+title: JavaScript Calendar: International Settings
 keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Examples, International Options, Customizations
 description: Tailor your JavaScript calendar with customizable texts and international settings, ensuring a localized experience for global audiences.
 

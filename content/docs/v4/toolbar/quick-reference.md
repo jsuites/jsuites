@@ -1,4 +1,4 @@
-title: JavaScript toolbar
+title: JavaScript Toolbar Documentation: Settings, Methods, and Events
 keywords: Javascript, toolbar, documentation, reference
 description: Basic methods and properties in the javascript toolbar component.
 

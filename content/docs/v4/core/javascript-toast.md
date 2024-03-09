@@ -1,4 +1,4 @@
-title: JavaScript toast notification
+title: JavaScript Toast Notification
 keywords: JavaScript toast, toast notification, JS toast
 description: Basic responsive JavaScript toast notification
 

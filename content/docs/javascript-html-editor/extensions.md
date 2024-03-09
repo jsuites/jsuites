@@ -1,9 +1,9 @@
 title: JavaScript Editor Extensions
 keywords: JavaScript, Editor, HTML, HTML editor
-description: jSuites HTML editor is a JavaScript-based plugin offering an interface for web content editing. It includes various manipulation tools and filters, extensions, and a customizable toolbar for seamless integration into web applications and projects.
+description: This section brings more information about the HTML editor extensions and add-ons.
 
 
-[JavaScript Editor](/docs/javascript-html-editor)
+[JavaScript Editor Addons](/docs/javascript-html-editor)
 
 JavaScript Editor Extensions
 ==========================

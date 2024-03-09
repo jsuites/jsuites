@@ -1,6 +1,6 @@
 title: HTML editor quick reference
 keywords: Javascript, HTML editor, plugin, wysiwyg editor, quick reference, documentation
-description: A simple HTML editor with several interactive features and easy integration.
+description: Create a simple HTML editor with several interactive features using jSuites Rich Text plugin.
 
 Javascript HTML editor
 ======================

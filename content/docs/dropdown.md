@@ -1,8 +1,8 @@
-title: JavaScript Dropdown and Autocomplete
+title: JavaScript Dropdown
 keywords: JavaScript, Autocomplete, Element Picker, JavaScript Dropdown, JavaScript Select, Select Box
 description: Explore comprehensive examples for managing JavaScript dropdowns, from basic setups to advanced configurations and autocomplete features. Learn to create dynamic select boxes with conditional logic for an enhanced user experience on your web application.
 
-![JavaScript Autocomplete Dropdown](img/js-dropdown.svg)
+![JavaScript Dropdown](img/js-dropdown.svg)
 
 # JavaScript Dropdown
 

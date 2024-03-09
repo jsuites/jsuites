@@ -1,4 +1,4 @@
-title: JavaScript toolbar
+title: JavaScript toolbar Custom Icons
 keywords: Javascript, toolbar, custom icons, images
 description: How to integrate custom icon images to the javascript toolbar.
 

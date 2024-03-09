@@ -1,4 +1,4 @@
-title: JavaScript toolbar
+title: JavaScript Toolbar Plugin
 keywords: Javascript, toolbar, plugin, generic toolbar
 description: Integrate a toolbar to third part javascript component
 

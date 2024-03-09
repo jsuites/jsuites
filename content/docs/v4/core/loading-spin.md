@@ -1,8 +1,8 @@
-title: JavaScript loading spin
+title: JavaScript Loading Spin with Jsuites v4
 keywords: JavaScript loading spin, animations, JS loading, javascript loading component
 description: JavaScript loading spin web component.
 
-Loading spin
+JavaScript Loading Spin
 ============
 
 This script has less than 1 Kbyte

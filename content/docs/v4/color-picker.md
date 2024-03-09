@@ -1,4 +1,4 @@
-title: Javascript color picker
+title: Javascript Color Picker Plugin
 keywords: Javascript, color picker, color picker
 description: Vanilla javascript color picker plugin.
 

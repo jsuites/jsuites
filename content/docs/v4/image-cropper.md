@@ -109,7 +109,6 @@ Quick documentation for the cropper plugin
 Integrations
 ------------
 
-* [With Lemonadejs](/docs/v4/image-cropper/lemonadejs)
 * [With React](/docs/v4/image-cropper/react-component)
 * [With Angular](/docs/v4/image-cropper/image-cropper-angular-example)
 * [With Vue](/docs/v4/image-cropper/image-cropper-vue-example)

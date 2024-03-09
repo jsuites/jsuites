@@ -1,14 +1,14 @@
-title: JavaScript toolbar
-keywords: Javascript, toolbar, custom icons, fontawsome
-description: How to integrate fontawsome to the javascript toolbar.
+title: JavaScript toolbar: Font Awesome Integration
+keywords: Javascript, toolbar, custom icons, font awesome
+description: How to integrate font awesome to the javascript toolbar.
 
 JavaScript toolbar
 ==================
 
-How to integrate with fontawsome
+How to integrate with fontawesome
 --------------------------------
 
-Alternativelly to material icons, you can integrate any webfont iconset to your javascript toolbar. The following example shows how to integrate with fontawsome.
+Alternatively to material icons, you can integrate any webfont icons to your javascript toolbar. The following example shows how to integrate with fontawesome.
 
 ```html
 <html>

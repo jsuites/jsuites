@@ -1,4 +1,4 @@
-title: Responsive javascript calendar
+title: Javascript Calendar: Responsive Rendering
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, responsive calendar, mobile calendar
 description: Responsive javascript calendar. How to load on the calendar on mobile or small screens.
 

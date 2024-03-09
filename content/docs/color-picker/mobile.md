@@ -1,6 +1,6 @@
 title: Responsive JavaScript Color Picker
 keywords: Javascript, color picker, color picker, examples, customize the colors
-description: How to customize the colors on the jSuites javascript color plugin.
+description: Help to understand how the jSuites color plugin responsive configuration works. 
 
 * [JavaScript Color Picker](/docs/color-picker)
 

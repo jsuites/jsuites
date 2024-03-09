@@ -1,4 +1,4 @@
-title: Javascript calendar valid range
+title: Javascript Calendar: Valid Ranges
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, valid range
 description: Learn how to create a valid selectable range of dates in the javascript calendar. Any date out of the range would be gray out.
 

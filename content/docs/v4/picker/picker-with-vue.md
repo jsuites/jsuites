@@ -1,4 +1,4 @@
-title: Vue picker
+title: Vue General Element Picker Component
 keywords: Javascript, picker, picker plugin, JS picker, Javascript picker, example, vuejs, vuejs integration
 description: How to integrate the jsuites picker with Vuejs.
 

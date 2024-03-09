@@ -1,16 +1,16 @@
-title: JavaScript Year-Month Picker
+title: JavaScript Year Month Picker
 keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Examples, Year Picker, Month Picker
 description: Easily select year and month with our JavaScript picker, streamlining date inputs for more efficient user experiences.
 
-[JavaScript Calendar](/docs/javascript-calendar)
+[JavaScript Year Month Picker](/docs/javascript-calendar)
 
-# JavaScript Calendar: Year-Month Picker
+# JavaScript Calendar: Year Month Picker
 
-Enhance your web applications with a JavaScript calendar specialising in year and month-only selections, providing a streamlined experience for users needing to pick broader date ranges without specific days.
+This section covers the process of setting up the jSuites `calendar plugin` to serve as a JavaScript year and month picker selector, thereby excluding daily selection to tailor the calendar more closely to specific application requirements.
 
 ## Example
 
-### JavaScript Year-Month Picker
+### JavaScript Year Month Picker
 
 This feature allows for a simplified interface where users can quickly navigate and select a particular year and month, ideal for reports, archives, and any scenario where the day of the month is secondary.
 

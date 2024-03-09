@@ -1,10 +1,10 @@
-title: Javascript string and number mask
+title: Javascript Input Mask
 keywords: Javascript, mask, input mask, currency mask, money mask, javascript mask
 description: A simple javascript mask plugin. Create mask on HTML input to make sure the data is correctly input on form elements.
 
 ![JavaScript Input Mask](img/js-mask.svg)
 
-# JavaScript Input Mask
+# JavaScript Mask
 
 ## Overview
 

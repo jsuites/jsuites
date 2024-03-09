@@ -45,7 +45,7 @@ The `jSuites.heatmap` is a JavaScript plugin to embed GitHub-style activity heat
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jsuites/heatmap/heatmap.min.css" type="text/css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@jsuites/heatmap/heatmap.min.js"></script>
 
-<div id='root'></div>
+<div id='root' style="padding: 40px;"></div>
 
 <script>
 var initialDate = '2021-01-01';
@@ -72,6 +72,98 @@ jSuites.heatmap(document.getElementById('root'), {
 </script>
 </html>
 ```
+```jsx
+import heatmap from "@jsuites/heatmap";
+import { useRef, useEffect } from "react";
+import "@jsuites/heatmap/heatmap.css";
+
+
+let initialDate = '2021-01-01';
+
+let year = [];
+let date = new Date(initialDate);
+
+while (year.length < 366) {
+    year.push({
+        date: date.toISOString().slice(0, 10),
+        value: Math.random() * 10,
+    });
+
+    date.setDate(date.getDate() + 1);
+}
+
+
+function App() {
+    const heatmapEl = useRef(null);
+
+    useEffect(() => {
+        heatmap(heatmapEl.current, {
+            title: 'Example',
+            data: year,
+            date: initialDate,
+            colors: ['#B2DFDB', '#4DB6AC', '#009688', '#00796B', '#004D40'],
+            tooltip: true,
+        })
+    })
+
+    return (
+        <div className="App">
+            <div ref={heatmapEl}></div>
+        </div>
+    );
+}
+
+export default App;
+```
+```vue
+<template>
+    <div>
+        <div ref="heatmapEl"></div>
+    </div>
+</template>
+  
+<script>
+import heatmap from "@jsuites/heatmap";
+import "@jsuites/heatmap/heatmap.css";
+
+export default {
+    name: "App",
+    data() {
+        return {
+            initialDate: "2021-01-01",
+            year: [],
+        };
+    },
+    mounted() {
+        this.generateYearData();
+        this.initializeHeatmap();
+    },
+    methods: {
+        generateYearData() {
+            let date = new Date(this.initialDate);
+
+            while (this.year.length < 366) {
+                this.year.push({
+                    date: date.toISOString().slice(0, 10),
+                    value: Math.random() * 10,
+                });
+
+                date.setDate(date.getDate() + 1);
+            }
+        },
+        initializeHeatmap() {
+            heatmap(this.$refs.heatmapEl, {
+                title: "Example",
+                data: this.year,
+                date: this.initialDate,
+                colors: ["#B2DFDB", "#4DB6AC", "#009688", "#00796B", "#004D40"],
+                tooltip: true,
+            });
+        },
+    },
+};
+</script>
+```
 
 
 ### Displaying title and showing tooltip
@@ -84,7 +176,7 @@ jSuites.heatmap(document.getElementById('root'), {
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jsuites/heatmap/heatmap.min.css" type="text/css" />
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@jsuites/heatmap/heatmap.min.js"></script>
 
-<div id='root'></div>
+<div id='root' style="padding: 40px;"></div>
 
 <script>
 var initialDate = '2021-07-15';
@@ -109,4 +201,95 @@ jSuites.heatmap(document.getElementById('root'), {
 });
 </script>
 </html>
+```
+```jsx
+import heatmap from "@jsuites/heatmap";
+import { useRef, useEffect } from "react";
+import "@jsuites/heatmap/heatmap.css";
+
+
+let initialDate = '2021-07-15';
+
+let year = [];
+let date = new Date(initialDate);
+
+while (year.length < 366) {
+    year.push({
+        date: date.toISOString().slice(0, 10),
+        value: Math.random() * 10,
+    });
+
+    date.setDate(date.getDate() + 1);
+}
+
+
+function App() {
+    const heatmapEl = useRef(null);
+
+    useEffect(() => {
+        heatmap(heatmapEl.current, {
+            data: year,
+            date: initialDate,
+            title: 'This is the title',
+            tooltip: true,
+        })
+    })
+
+    return (
+        <div className="App">
+            <div ref={heatmapEl}></div>
+        </div>
+    );
+}
+
+
+export default App;
+```
+```vue
+<template>
+    <div>
+        <div ref="heatmapEl"></div>
+    </div>
+</template>
+  
+<script>
+import heatmap from "@jsuites/heatmap";
+import "@jsuites/heatmap/heatmap.css";
+
+export default {
+    name: "App",
+    data() {
+        return {
+            initialDate: "2021-07-15",
+            year: [],
+        };
+    },
+    mounted() {
+        this.generateYearData();
+        this.initializeHeatmap();
+    },
+    methods: {
+        generateYearData() {
+            let date = new Date(this.initialDate);
+
+            while (this.year.length < 366) {
+                this.year.push({
+                    date: date.toISOString().slice(0, 10),
+                    value: Math.random() * 10,
+                });
+
+                date.setDate(date.getDate() + 1);
+            }
+        },
+        initializeHeatmap() {
+            heatmap(this.$refs.heatmapEl, {
+                title: "Example",
+                data: this.year,
+                date: this.initialDate,
+                tooltip: true,
+            });
+        },
+    },
+};
+</script>
 ```

@@ -1,6 +1,6 @@
-title: Responsive javascript dropdown
+title: Responsive Javascript Dropdown | Jsuites v4
 keywords: javascript, autocomplete, javascript dropdown, mobile, responsive dropdown
-description: Create a fully responsive javascript dropdown. Mobile rendering.
+description: Create a fully responsive javascript dropdown using jSuites Version 4.
 
 * [JavaScript autocomplete dropdown plugin](/docs/v4/dropdown-and-autocomplete)
 

@@ -1,5 +1,11 @@
-Simple modal with external content
+title: Remote Content JavaScript Modal
+keywords: JavaScript modal, plugins, modal
+description: How to create a quick JavaScript modal using a remote content.
+
+Simple Modal with Remote Content
 ==================================
+
+The follow example shows how to create a new modal window from an external content.
 
 ```html
 <html>

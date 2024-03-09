@@ -1,3 +1,7 @@
+title: JavaScript Tabs Plugins With Icons
+keywords: JavaScript Tabs
+description: How to add icons to the jSuites JavaScript tabs plugins.
+
 * [JavaScript tabs](/docs/v4/javascript-tabs)
 
 JavaScript Tabs with icons

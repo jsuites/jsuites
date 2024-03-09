@@ -1,13 +1,13 @@
-title: Responsive JavaScript color picker
+title: Responsive JavaScript Color Picker with jSuites Version 4
 keywords: Javascript, color picker, color picker, examples, customize the colors
-description: How to customize the colors on the jsuites javascript color plugin.
+description: jSuites color picker plugin is a responsive plugin that helps improve the user experience on web applications.
 
 * [JavaScript Color Picker](/docs/v4/color-picker)
 
-Reponsive JavaScript color picker
+Responsive JavaScript color picker
 =================================
 
-The fullscreen initiation flag can be used to open the color picke in fullscreen mode. The `jSuites.color` will automatically set this as true for screens lower than 800 pixels.
+The fullscreen initiation flag can be used to open the color picker in fullscreen mode. The `jSuites.color` will automatically set this as true for screens lower than 800 pixels.
 
 
 ```html

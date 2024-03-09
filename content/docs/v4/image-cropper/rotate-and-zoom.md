@@ -1,6 +1,6 @@
 title: JavaScript image cropper controls
 keywords: Javascript, image cropper, cropper plugin, JS cropper, web components, JS crop, rotate and zoom examples.
-description: Example on how to programmatically rotate and zoom the image in the javascript cropper plugin.
+description: How to programmatically rotate and zoom the image in the javascript cropper plugin with jSuites Version 4. 
 
 * [JavaScript Cropper](/docs/v4/image-cropper)
 

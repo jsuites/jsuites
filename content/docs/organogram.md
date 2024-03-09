@@ -88,7 +88,7 @@ function App() {
             Organogram(organogramElement.current, {
                 width: 460,
                 height: 420,
-                url: "https://jsuites.net/v4/plugins/organogram.json",
+                url: "https://jsuites.net/plugins/organogram.json",
                 vertical: true,
             });
         }
@@ -117,7 +117,7 @@ export default {
         Organogram(this.$refs.organogram, {
             width: 460,
             height: 420,
-            url: "https://jsuites.net/v4/plugins/organogram.json",
+            url: "https://jsuites.net/plugins/organogram.json",
             vertical: true,
         });
     }

@@ -1,4 +1,4 @@
-title: Javascript HTML editor plugin with filters
+title: JavaScript HTML Editor and Wysiwyg Plugin
 keywords: Javascript, HTML editor, plugin, wysiwyg editor
 description: A simple HTML editor with several interactive features and easy integration.
 

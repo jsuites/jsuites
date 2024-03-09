@@ -1,10 +1,10 @@
-title: VueJS tags
+title: VueJS Keywords and Tags Component
 keywords: Javascript, tagging, javascript tags, keywords, examples, vuejs
 description: Create a tags javascript component with VueJS and jSuites
 
 * [Vue Tags](/docs/v4/javascript-tags)
 
-Vue Tags
+VueJS Tags
 ========
 
 Take a look at this example in CodeSandbox: [working example](https://codesandbox.io/s/jsuites-vue-tags-c5j2r)

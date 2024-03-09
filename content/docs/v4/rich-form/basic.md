@@ -1,3 +1,8 @@
+title: JavaScript Rich HTML Forms
+keywords: Javascript rich form plugin, HTML form, validations on a HTML form.
+description: The jSuites rich form plugins allow developers to create quick input validations, tracking changes and other features when dealing with HTML forms.
+
+
 JavaScript rich form
 ====================
 

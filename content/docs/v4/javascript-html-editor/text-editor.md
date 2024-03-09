@@ -1,4 +1,8 @@
-Richtext Editor
+title: JavaScript Rich Text Editor
+keywords: JavaScript, WYSIWYG HTML Editor, jSuites Plugin, Content Editing Tools, Web Development Integration
+description: jSuites HTML editor is a JavaScript-based plugin offering an interface for HTML editing. It includes image dropzone, youtube snippets, tag users and other extensions.
+
+Rich Text Editor
 ===============
 
 This is just a simple editor with filters. The HTML tags is filtered in the paste action.
@@ -17,7 +21,7 @@ Data to be uploaded:
 
 <div id="editor1"></div>
 
-<p><input type='button' value='Get data' id='getdatabtn'></p>
+<p><input type='button' value='Get data' id='btn1'></p>
 
 <script>
 let editor = jSuites.editor(document.getElementById('editor1'), {
@@ -25,7 +29,7 @@ let editor = jSuites.editor(document.getElementById('editor1'), {
     value:'<b>This is a basic example...</b>'
 });
 
-getdatabtn.onclick = () => alert(editor.getData())
+btn1.onclick = () => alert(editor.getData())
 </script>
 </html>
 ```
@@ -33,7 +37,7 @@ getdatabtn.onclick = () => alert(editor.getData())
 Methods
 -------
 
-| Method |  Description   |
-| --- | --- |
+| Method     | Description             |
+|------------|-------------------------|
 | getData(); | Get editor HTML content |
 | setData(); | Set editor HTML content |

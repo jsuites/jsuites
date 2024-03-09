@@ -1,7 +1,11 @@
+title: Getting started with the jSuites Javascript string and number mask
+keywords: Javascript, mask, input mask, currency mask, money mask, javascript mask
+description: How to create input mask properties on HTML elements using the jSuites javascript mask plugin
+
 Javascript input mask
 =====================
 
-The jsuites javascript mask plugin is a lightweight script to force certain accepted formats in HTML input fields.
+The jSuites javascript mask plugin is a lightweight script to force certain accepted formats in HTML input fields.
 
 Using the mask plugin, you can easily define Dates, Numbers, Currency, Phone and much other masked strings.
 

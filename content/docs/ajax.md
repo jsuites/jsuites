@@ -16,7 +16,7 @@ The jSuites.ajax component is an abstraction layer that efficiently manages Java
 
 ### Basic request example
 
-{.ignore}
+{.ignore-execution}
 ```html
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
@@ -97,7 +97,7 @@ The jSuites.ajax component provides a robust feature as a `beforesend` event. Th
 
 Here's how you can utilize the `beforesend` event to add an authorization bearer:
 
-{.ignore}
+{.ignore-execution}
 ```html
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
@@ -184,7 +184,7 @@ The `jSuites.ajax` component introduces a queue management system for handling A
 
 ![Ajax request queue](img/ajax-waterfall.png)
 
-{.ignore}
+{.ignore-execution}
 ```html
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
@@ -247,7 +247,7 @@ for (let i = 0; i < 10; i++) {
 
 This example demonstrates executing a series of AJAX POST requests using the `juices.ajax` method and triggering a single event upon completing all these requests. This technique is highly beneficial in scenarios where a batch of asynchronous operations and a collective response are needed after all operations have concluded.
 
-{.ignore}
+{.ignore-execution}
 ```html
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>

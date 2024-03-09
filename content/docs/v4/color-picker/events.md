@@ -1,6 +1,6 @@
-title: Javascript color picker events
+title: Javascript Color Picker | JSuites 4
 keywords: Javascript, color picker, color picker, examples, events
-description: Handling javascript events in your color picker plugin.
+description: Handling javascript events in your jSuites color picker plugin.
 
 * [JavaScript Color Picker](/docs/v4/color-picker)
 
