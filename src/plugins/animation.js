@@ -26,17 +26,17 @@ function Animation() {
     
     Component.slideLeft = function (element, direction, done) {
         if (direction == true) {
-            element.classList.add('slide-left-in');
+            element.classList.add('jslide-left-in');
             setTimeout(function () {
-                element.classList.remove('slide-left-in');
+                element.classList.remove('jslide-left-in');
                 if (typeof (done) == 'function') {
                     done();
                 }
             }, 400);
         } else {
-            element.classList.add('slide-left-out');
+            element.classList.add('jslide-left-out');
             setTimeout(function () {
-                element.classList.remove('slide-left-out');
+                element.classList.remove('jslide-left-out');
                 if (typeof (done) == 'function') {
                     done();
                 }
@@ -46,17 +46,17 @@ function Animation() {
     
     Component.slideRight = function (element, direction, done) {
         if (direction === true) {
-            element.classList.add('slide-right-in');
+            element.classList.add('jslide-right-in');
             setTimeout(function () {
-                element.classList.remove('slide-right-in');
+                element.classList.remove('jslide-right-in');
                 if (typeof (done) == 'function') {
                     done();
                 }
             }, 400);
         } else {
-            element.classList.add('slide-right-out');
+            element.classList.add('jslide-right-out');
             setTimeout(function () {
-                element.classList.remove('slide-right-out');
+                element.classList.remove('jslide-right-out');
                 if (typeof (done) == 'function') {
                     done();
                 }
@@ -66,17 +66,17 @@ function Animation() {
     
     Component.slideTop = function (element, direction, done) {
         if (direction === true) {
-            element.classList.add('slide-top-in');
+            element.classList.add('jslide-top-in');
             setTimeout(function () {
-                element.classList.remove('slide-top-in');
+                element.classList.remove('jslide-top-in');
                 if (typeof (done) == 'function') {
                     done();
                 }
             }, 400);
         } else {
-            element.classList.add('slide-top-out');
+            element.classList.add('jslide-top-out');
             setTimeout(function () {
-                element.classList.remove('slide-top-out');
+                element.classList.remove('jslide-top-out');
                 if (typeof (done) == 'function') {
                     done();
                 }
@@ -86,17 +86,17 @@ function Animation() {
     
     Component.slideBottom = function (element, direction, done) {
         if (direction === true) {
-            element.classList.add('slide-bottom-in');
+            element.classList.add('jslide-bottom-in');
             setTimeout(function () {
-                element.classList.remove('slide-bottom-in');
+                element.classList.remove('jslide-bottom-in');
                 if (typeof (done) == 'function') {
                     done();
                 }
             }, 400);
         } else {
-            element.classList.add('slide-bottom-out');
+            element.classList.add('jslide-bottom-out');
             setTimeout(function () {
-                element.classList.remove('slide-bottom-out');
+                element.classList.remove('jslide-bottom-out');
                 if (typeof (done) == 'function') {
                     done();
                 }
@@ -106,9 +106,9 @@ function Animation() {
     
     Component.fadeIn = function (element, done) {
         element.style.display = '';
-        element.classList.add('fade-in');
+        element.classList.add('jfade-in');
         setTimeout(function () {
-            element.classList.remove('fade-in');
+            element.classList.remove('jfade-in');
             if (typeof (done) == 'function') {
                 done();
             }
@@ -116,10 +116,10 @@ function Animation() {
     }
     
     Component.fadeOut = function (element, done) {
-        element.classList.add('fade-out');
+        element.classList.add('jfade-out');
         setTimeout(function () {
             element.style.display = 'none';
-            element.classList.remove('fade-out');
+            element.classList.remove('jfade-out');
             if (typeof (done) == 'function') {
                 done();
             }

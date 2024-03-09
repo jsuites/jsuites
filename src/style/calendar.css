@@ -157,7 +157,7 @@
 .jcalendar-reset, .jcalendar-confirm {
     text-transform:uppercase;
     cursor:pointer;
-    color: var(--active-color);
+    color: var(--jactive-color);
 }
 
 .jcalendar-controls {
