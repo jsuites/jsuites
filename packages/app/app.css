@@ -53,7 +53,7 @@ japp.jwarning .page {
     backface-visibility: hidden;
     box-sizing: border-box;
     transform: translate3d(0,0,0);
-    height: calc(44px + var(--safe-area-top));
+    height: calc(44px + var(--jsafe-area-top));
     background-color: #fff;
     box-shadow: 0 1px 2px rgba(0,0,0,.1);
 }
@@ -118,7 +118,7 @@ japp.jwarning .page {
 }
 
 .japp .jtoolbar {
-    height: calc(36px + var(--safe-area-bottom));
+    height: calc(36px + var(--jsafe-area-bottom));
 }
 
 .japp .jtoolbar > div {
@@ -126,7 +126,7 @@ japp.jwarning .page {
 }
 
 .japp .jtoolbar {
-    height: calc(44px + var(--safe-area-bottom));
+    height: calc(44px + var(--jsafe-area-bottom));
 }
 
 .japp .title {
@@ -193,7 +193,7 @@ japp.jwarning .page {
 
 .japp .page {
     padding-top: 0px;
-    padding-bottom: calc(44px + var(--safe-area-bottom));
+    padding-bottom: calc(44px + var(--jsafe-area-bottom));
     min-height: 100%;
     min-width: 100%;
     box-sizing: border-box;
@@ -206,7 +206,7 @@ japp.jwarning .page {
 }
 
 .japp .page.with-navbar {
-    padding-top: calc(45px + var(--safe-area-top));
+    padding-top: calc(45px + var(--jsafe-area-top));
 }
 
 .japp div.panel {

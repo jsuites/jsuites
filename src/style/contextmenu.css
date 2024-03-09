@@ -112,7 +112,7 @@
         width: 100vw;
         height: 260px;
         overflow: scroll;
-        animation: slide-bottom-in 0.4s forwards;
+        animation: jslide-bottom-in 0.4s forwards;
         padding-top: 0px;
     }
     .jcontextmenu div {

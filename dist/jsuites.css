@@ -2645,6 +2645,7 @@ div[data-before]:before {
     transition: all .2s cubic-bezier(0.4,0,0.2,1);
     transition-property: color,left,transform;
     display: none;
+    pointer-events: none;
 }
 
 .jtabs-animation .jtabs-border {
