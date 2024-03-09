@@ -1,8 +1,8 @@
 :root {
-    --button-color: #298BA8; 
-    --active-color: #007aff;
-    --safe-area-top: env(safe-area-inset-top);
-    --safe-area-bottom: env(safe-area-inset-bottom);
+    --jbutton-color: #298BA8; 
+    --jactive-color: #007aff;
+    --jsafe-area-top: env(safe-area-inset-top);
+    --jsafe-area-bottom: env(safe-area-inset-bottom);
 }
 
 [data-visible="false"], .row[data-visible="false"] {
@@ -154,7 +154,7 @@ div[data-before]:before {
     margin: 10px;
 
     display: block;
-    animation: fadeIn 0.5s;
+    animation: jfadeIn 0.5s;
     pointer-events: none;
 }
 
@@ -162,7 +162,7 @@ div[data-before]:before {
     display: none;
 }
 
-@keyframes fadeIn {
+@keyframes jfadeIn {
      0% {
           opacity: 0;
      }
