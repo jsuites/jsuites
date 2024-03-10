@@ -55,7 +55,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.2.0',
+    version: '5.2.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

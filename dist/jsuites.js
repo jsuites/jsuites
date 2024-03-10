@@ -2959,7 +2959,11 @@ function Mask() {
 
         // Labels
         if (options && typeof (options) == 'object') {
-            var format = options.format;
+            if (options.format) {
+                var format = options.format;
+            } else if (options.mask) {
+                var format = options.mask;
+            }
         } else {
             var format = options;
         }
@@ -12715,7 +12719,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.2.0',
+    version: '5.2.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
