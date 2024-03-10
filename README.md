@@ -62,13 +62,13 @@ The same code can render in different ways, by directive type: default, picker o
 Examples
 ---------
 
-* [JavaScript image cropper](https://jsuites.net/docs/)\
+* [JavaScript Image Cropper](https://jsuites.net/docs/image-cropper)\
 The jSuites.crop is a lightweight JavaScript plugin that allow users load, crop and apply filters to images.
 
-* [Dropdown and autocomplete](https://jsuites.net/docs/dropdown)\
+* [JavaScript Dropdown](https://jsuites.net/docs/dropdown)\
 Full examples on how to handle simple, advanced, autocomplete and conditional dropdowns.
 
-* [Javascript calendar](https://jsuites.net/docs/javascript-calendar)\
+* [Javascript Calendar](https://jsuites.net/docs/javascript-calendar)\
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
 * [Javascript tags](https://jsuites.net/docs/javascript-tags)\
