@@ -1,9 +1,9 @@
 /**
- * (c) jSuites Javascript Plugins and Web Components (v4)
+ * (c) jSuites Javascript Plugins and Web Components
  *
  * Website: https://jsuites.net
  * Description: Create amazing web based applications.
- * Plugin: Signature pad
+ * Plugin: Indexing
  *
  * MIT License
  */
@@ -69,44 +69,50 @@
             let elements = el.querySelectorAll('a');
             // Adding events
             elements.forEach(function (v) {
-                if (v.tagName && v.textContent) {
-                    let link = v.href.split('#');
-                    let element = document.querySelector('[href="#'+link[1]+'"]');
-                    let top = element.offsetTop;
-                    let item = {
-                        top: top,
-                        behavior: 'smooth',
-                        element: v,
-                    }
-                    items.push(item);
-                    v.addEventListener('mousedown', function(e) {
-                        window.scrollTo(item);
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                        return false;
-                    });
-                    v.setAttribute('href', window.location.pathname + '#' + link[1]);
-                }
+               if (v.tagName && v.textContent) {
+                   let link = v.href.split('#');
+                   let element = document.querySelector('[href="#'+link[1]+'"]');
+                   element.removeAttribute('href');
+                   let top = element.offsetTop;
+                   let item = {
+                       top: top - offset,
+                       behavior: 'smooth',
+                       element: v,
+                   }
+                   items.push(item);
+                   v.addEventListener('click', function(e) {
+                       window.scrollTo(item);
+                       e.preventDefault();
+                       e.stopImmediatePropagation();
+                       return false;
+                   });
+                   v.setAttribute('href', window.location.pathname + '#' + link[1]);
+               }
             });
 
             return items;
         }
 
-        if (document.body.offsetWidth >= 1280) {
-            let items = render();
+        let offset = 0;
+        if (options && options.offset) {
+            offset = options.offset;
+        }
 
-            document.addEventListener('scroll', function() {
+        let items = render();
+
+        document.addEventListener('scroll', function() {
+            if (items && items.length) {
                 let item = null;
-                items.forEach(function(v) {
+                items.forEach(function (v) {
                     v.element.classList.remove('selected');
-                    if (document.documentElement.scrollTop >= v.top) {
+                    if (document.documentElement.scrollTop >= v.top - offset) {
                         item = v.element;
                     }
                 });
                 if (item) {
                     item.classList.add('selected');
                 }
-            });
-        }
+            }
+        });
     }
 })));
