@@ -12719,7 +12719,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.2.1',
+    version: '5.3.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -12825,49 +12825,6 @@ const Events = function() {
 
     // Events
     const mouseDown = function(e) {
-        // Check if this is the floating
-        var item = jSuites.findElement(e.target, 'jpanel');
-        // Jfloating found
-        if (item && ! item.classList.contains("readonly")) {
-            // Add focus to the chart container
-            item.focus();
-            // Keep the tracking information
-            var rect = e.target.getBoundingClientRect();
-            editorAction = {
-                e: item,
-                x: e.clientX,
-                y: e.clientY,
-                w: rect.width,
-                h: rect.height,
-                d: item.style.cursor,
-                resizing: item.style.cursor ? true : false,
-                actioned: false,
-            }
-
-            // Make sure width and height styling is OK
-            if (! item.style.width) {
-                item.style.width = rect.width + 'px';
-            }
-
-            if (! item.style.height) {
-                item.style.height = rect.height + 'px';
-            }
-
-            // Remove any selection from the page
-            var s = window.getSelection();
-            if (s.rangeCount) {
-                for (var i = 0; i < s.rangeCount; i++) {
-                    s.removeRange(s.getRangeAt(i));
-                }
-            }
-
-            e.preventDefault();
-            e.stopPropagation();
-        } else {
-            // No floating action found
-            editorAction = false;
-        }
-
         // Verify current components tracking
         if (e.changedTouches && e.changedTouches[0]) {
             var x = e.changedTouches[0].clientX;
@@ -12875,6 +12832,58 @@ const Events = function() {
         } else {
             var x = e.clientX;
             var y = e.clientY;
+        }
+
+        // Editable
+        let editable = e.target && e.target.tagName === 'DIV' && e.target.getAttribute('contentEditable');
+        // Check if this is the floating
+        let item = jSuites.findElement(e.target, 'jpanel');
+        // Jfloating found
+        if (item && ! item.classList.contains("readonly") && ! editable) {
+            // Keep the tracking information
+            let rect = item.getBoundingClientRect();
+            let angle = 0;
+            if (item.style.rotate) {
+                // Extract the angle value from the match and convert it to a number
+                angle = parseFloat(item.style.rotate);
+            }
+            let action = 'move';
+            if (e.target.getAttribute('data-action')) {
+                action = e.target.getAttribute('data-action');
+            } else {
+                if (item.style.cursor) {
+                    action = 'resize';
+                } else {
+                    item.style.cursor = 'move';
+                }
+            }
+
+            // Action
+            editorAction = {
+                action: action,
+                a: angle,
+                e: item,
+                x: x,
+                y: y,
+                l: rect.left,
+                t: rect.top,
+                b: rect.bottom,
+                r: rect.right,
+                w: rect.width,
+                h: rect.height,
+                d: item.style.cursor,
+                actioned: false,
+            }
+            // Make sure width and height styling is OK
+            if (! item.style.width) {
+                item.style.width = rect.width + 'px';
+            }
+            if (! item.style.height) {
+                item.style.height = rect.height + 'px';
+            }
+        } else {
+            // No floating action found
+            editorAction = false;
         }
 
         // Which component I am clicking
@@ -12897,6 +12906,28 @@ const Events = function() {
         isOpened(element);
     }
 
+    const calculateAngle = function(x1, y1, x2, y2, x3, y3) {
+        // Calculate dx and dy for the first line
+        const dx1 = x2 - x1;
+        const dy1 = y2 - y1;
+        // Calculate dx and dy for the second line
+        const dx2 = x3 - x1;
+        const dy2 = y3 - y1;
+        // Calculate the angle for the first line
+        let angle1 = Math.atan2(dy1, dx1);
+        // Calculate the angle for the second line
+        let angle2 = Math.atan2(dy2, dx2);
+        // Calculate the angle difference in radians
+        let angleDifference = angle2 - angle1;
+        // Convert the angle difference to degrees
+        angleDifference = angleDifference * (180 / Math.PI);
+        // Normalize the angle difference to be within [0, 360) degrees
+        if (angleDifference < 0) {
+            angleDifference += 360;
+        }
+        return angleDifference;
+    }
+
     const mouseUp = function(e) {
         if (editorAction && editorAction.e) {
             if (typeof(editorAction.e.refresh) == 'function' && state.actioned) {
@@ -12916,16 +12947,16 @@ const Events = function() {
 
     const mouseMove = function(e) {
         if (editorAction) {
-            var x = e.clientX || e.pageX;
-            var y = e.clientY || e.pageY;
+            let x = e.clientX || e.pageX;
+            let y = e.clientY || e.pageY;
+
+            if (state.x == null && state.y == null) {
+                state.x = x;
+                state.y = y;
+            }
 
             // Action on going
-            if (! editorAction.resizing) {
-                if (state.x == null && state.y == null) {
-                    state.x = x;
-                    state.y = y;
-                }
-
+            if (editorAction.action === 'move') {
                 var dx = x - state.x;
                 var dy = y - state.y;
                 var top = editorAction.e.offsetTop + dy;
@@ -12934,41 +12965,65 @@ const Events = function() {
                 // Update position
                 editorAction.e.style.top = top + 'px';
                 editorAction.e.style.left = left + 'px';
-                editorAction.e.style.cursor = "move";
-
-                state.x = x;
-                state.y = y;
-
 
                 // Update element
-                if (typeof(editorAction.e.refresh) == 'function') {
+                if (typeof (editorAction.e.refresh) == 'function') {
                     state.actioned = true;
                     editorAction.e.refresh('position', top, left);
                 }
-            } else {
-                var width = null;
-                var height = null;
+            } else if (editorAction.action === 'rotate') {
+                let ox = editorAction.l+editorAction.w/2;
+                let oy = editorAction.t+editorAction.h/2;
+                let angle = calculateAngle(ox, oy, editorAction.x, editorAction.y, x, y);
+                angle = angle + editorAction.a % 360;
+                angle = Math.round(angle / 2) * 2;
+                editorAction.e.style.rotate = `${angle}deg`;
+                // Update element
+                if (typeof (editorAction.e.refresh) == 'function') {
+                    state.actioned = true;
+                    editorAction.e.refresh('rotate', angle);
+                }
+            } else if (editorAction.action === 'resize') {
+                let top = null;
+                let left = null;
+                let width = null;
+                let height = null;
 
                 if (editorAction.d == 'e-resize' || editorAction.d == 'ne-resize' || editorAction.d == 'se-resize') {
-                    // Update width
-                    width = editorAction.w + (x - editorAction.x);
-                    editorAction.e.style.width = width + 'px';
+                    width = editorAction.e.offsetWidth + (x - state.x);
 
-                    // Update Height
                     if (e.shiftKey) {
-                        var newHeight = (x - editorAction.x) * (editorAction.h / editorAction.w);
-                        height = editorAction.h + newHeight;
-                        editorAction.e.style.height = height + 'px';
-                    } else {
-                        var newHeight = false;
+                        height = editorAction.e.offsetHeight + (x - state.x) * (editorAction.e.offsetHeight / editorAction.e.offsetWidth);
+                    }
+                } else if (editorAction.d === 'w-resize' || editorAction.d == 'nw-resize'|| editorAction.d == 'sw-resize') {
+                    left = editorAction.e.offsetLeft + (x - state.x);
+                    width = editorAction.e.offsetLeft + editorAction.e.offsetWidth - left;
+
+                    if (e.shiftKey) {
+                        height = editorAction.e.offsetHeight - (x - state.x) * (editorAction.e.offsetHeight / editorAction.e.offsetWidth);
                     }
                 }
 
-                if (! newHeight) {
-                    if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
-                        height = editorAction.h + (y - editorAction.y);
-                        editorAction.e.style.height = height + 'px';
+                if (editorAction.d == 's-resize' || editorAction.d == 'se-resize' || editorAction.d == 'sw-resize') {
+                    if (! height) {
+                        height = editorAction.e.offsetHeight + (y - state.y);
                     }
+                } else if (editorAction.d === 'n-resize' || editorAction.d == 'ne-resize' || editorAction.d == 'nw-resize') {
+                    top = editorAction.e.offsetTop + (y - state.y);
+                    height = editorAction.e.offsetTop + editorAction.e.offsetHeight - top;
+                }
+
+                if (top) {
+                    editorAction.e.style.top = top + 'px';
+                }
+                if (left) {
+                    editorAction.e.style.left = left + 'px';
+                }
+                if (width) {
+                    editorAction.e.style.width = width + 'px';
+                }
+                if (height) {
+                    editorAction.e.style.height = height + 'px';
                 }
 
                 // Update element
@@ -12977,13 +13032,26 @@ const Events = function() {
                     editorAction.e.refresh('dimensions', width, height);
                 }
             }
+
+            state.x = x;
+            state.y = y;
         } else {
-            // Resizing action
-            var item = jSuites.findElement(e.target, 'jpanel');
+            // Resize action
+            let item = jSuites.findElement(e.target, 'jpanel');
             // Found eligible component
             if (item) {
-                if (item.getAttribute('tabindex')) {
-                    var rect = item.getBoundingClientRect();
+                // Resizing action
+                let controls = item.classList.contains('jpanel-controls');
+                if (controls) {
+                    let position = e.target.getAttribute('data-position');
+                    if (position) {
+                        item.style.cursor = position;
+                    } else {
+                        item.style.cursor = '';
+                    }
+                } else if (item.getAttribute('tabindex')) {
+                    let rect = item.getBoundingClientRect();
+                    //console.log(e.clientY - rect.top, rect.width - (e.clientX - rect.left), cornerSize)
                     if (e.clientY - rect.top < cornerSize) {
                         if (rect.width - (e.clientX - rect.left) < cornerSize) {
                             item.style.cursor = 'ne-resize';
@@ -13012,6 +13080,40 @@ const Events = function() {
         }
     }
 
+    let position = ['n','ne','e','se','s','sw','w','nw','rotate'];
+    position.forEach(function(v, k) {
+        position[k] = document.createElement('div');
+        position[k].classList.add('jpanel-action');
+        if (v === 'rotate') {
+            position[k].setAttribute('data-action', 'rotate');
+        } else {
+            position[k].setAttribute('data-action', 'resize');
+            position[k].setAttribute('data-position', v + '-resize');
+        }
+    });
+
+    const focus = function(e) {
+        // Check if this is the floating
+        let item = jSuites.findElement(e.target, 'jpanel');
+        if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
+            item.append(...position);
+
+            if (! item.classList.contains('jpanel-rotate')) {
+                position[position.length-1].remove();
+            }
+        }
+    }
+
+    const blur = function(e) {
+        // Check if this is the floating
+        let item = jSuites.findElement(e.target, 'jpanel');
+        if (item && item.classList.contains('jpanel-controls')) {
+            position.forEach(function(v) {
+                v.remove();
+            });
+        }
+    }
+
     const mouseOver = function(e) {
         var message = e.target.getAttribute('data-tooltip');
         if (message) {
@@ -13033,14 +13135,6 @@ const Events = function() {
         } else if (tooltip.innerText) {
             tooltip.innerText = '';
             document.body.removeChild(tooltip);
-        }
-    }
-
-    const dblClick = function(e) {
-        var item = jSuites.findElement(e.target, 'jpanel');
-        if (item && typeof(item.dblclick) == 'function') {
-            // Create edition
-            item.dblclick(e);
         }
     }
 
@@ -13101,11 +13195,12 @@ const Events = function() {
         }
     }
 
+    document.addEventListener('focusin', focus);
+    document.addEventListener('focusout', blur);
     document.addEventListener('mouseup', mouseUp);
     document.addEventListener("mousedown", mouseDown);
     document.addEventListener('mousemove', mouseMove);
     document.addEventListener('mouseover', mouseOver);
-    document.addEventListener('dblclick', dblClick);
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
     document.addEventListener('input', input);
