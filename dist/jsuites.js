@@ -4473,6 +4473,10 @@ function Tabs(el, options) {
 
     // Set value
     obj.open = function(index) {
+        if (! obj.content.children[index]) {
+            return;
+        }
+
         var previous = null;
         for (var i = 0; i < obj.headers.children.length; i++) {
             if (obj.headers.children[i].classList.contains('jtabs-selected')) {
@@ -4644,10 +4648,10 @@ function Tabs(el, options) {
     obj.getActive = function() {
         for (var i = 0; i < obj.headers.children.length; i++) {
             if (obj.headers.children[i].classList.contains('jtabs-selected')) {
-                return i
+                return i;
             }
         }
-        return 0;
+        return false;
     }
 
     obj.updateContent = function(position, newContent) {
@@ -12719,7 +12723,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.3.0',
+    version: '5.3.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
