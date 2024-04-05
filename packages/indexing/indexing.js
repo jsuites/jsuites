@@ -72,7 +72,6 @@
                if (v.tagName && v.textContent) {
                    let link = v.href.split('#');
                    let element = document.querySelector('[href="#'+link[1]+'"]');
-                   element.removeAttribute('href');
                    let top = element.offsetTop;
                    let item = {
                        top: top - offset,
