@@ -113,6 +113,21 @@
             }
         }
 
+        obj.update = function() {
+            let m = el.querySelectorAll('nav a');
+            for (let i = 0; i < m.length; i++) {
+                m[i].classList.remove('selected');
+            }
+
+            let href = window.location.pathname;
+            if (href) {
+                let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
+                if (menu) {
+                    menu.classList.add('selected');
+                }
+            }
+        }
+
         obj.select = function(o, e) {
             if (o.tagName === 'NAV') {
                 let m = el.querySelectorAll('nav');
