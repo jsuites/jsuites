@@ -24,37 +24,54 @@ export default function Sorting(el, options) {
     el.classList.add('jsorting');
 
     el.addEventListener('dragstart', function(e) {
-        var position = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
-        dragElement = {
-            element: e.target,
-            o: position,
-            d: position
+        let target = e.target;
+        if (target.nodeType === 3) {
+            if (target.parentNode.getAttribute('draggable') === 'true') {
+                target = target.parentNode;
+            } else {
+                e.preventDefault();
+                e.stopPropagation();
+                return;
+            }
         }
-        e.target.style.opacity = '0.25';
 
-        if (typeof(obj.options.ondragstart) == 'function') {
-            obj.options.ondragstart(el, e.target, e);
+        if (target.getAttribute('draggable') === 'true') {
+            let position = Array.prototype.indexOf.call(target.parentNode.children, target);
+            dragElement = {
+                element: target,
+                o: position,
+                d: position
+            }
+            target.style.opacity = '0.25';
+
+            if (typeof (obj.options.ondragstart) == 'function') {
+                obj.options.ondragstart(el, target, e);
+            }
+
+            e.dataTransfer.setDragImage(target,0,0);
         }
     });
 
     el.addEventListener('dragover', function(e) {
         e.preventDefault();
 
-        if (getElement(e.target) && dragElement) {
-            if (e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
-                if (! obj.options.direction) {
-                    var condition = e.target.clientHeight / 2 > e.offsetY;
-                } else {
-                    var condition = e.target.clientWidth / 2 > e.offsetX;
-                }
+        if (dragElement) {
+            if (getElement(e.target)) {
+                if (e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
+                    if (!obj.options.direction) {
+                        var condition = e.target.clientHeight / 2 > e.offsetY;
+                    } else {
+                        var condition = e.target.clientWidth / 2 > e.offsetX;
+                    }
 
-                if (condition) {
-                    e.target.parentNode.insertBefore(dragElement.element, e.target);
-                } else {
-                    e.target.parentNode.insertBefore(dragElement.element, e.target.nextSibling);
-                }
+                    if (condition) {
+                        e.target.parentNode.insertBefore(dragElement.element, e.target);
+                    } else {
+                        e.target.parentNode.insertBefore(dragElement.element, e.target.nextSibling);
+                    }
 
-                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
+                    dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
+                }
             }
         }
     });
@@ -86,14 +103,16 @@ export default function Sorting(el, options) {
     el.addEventListener('drop', function(e) {
         e.preventDefault();
 
-        if (dragElement && (dragElement.o != dragElement.d)) {
-            if (typeof(obj.options.ondrop) == 'function') {
-                obj.options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
+        if (dragElement) {
+            if (dragElement.o !== dragElement.d) {
+                if (typeof (obj.options.ondrop) == 'function') {
+                    obj.options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
+                }
             }
-        }
 
-        dragElement.element.style.opacity = '';
-        dragElement = null;
+            dragElement.element.style.opacity = '';
+            dragElement = null;
+        }
     });
 
     var getElement = function(element) {
