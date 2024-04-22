@@ -11,7 +11,7 @@
 return /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 794:
+/***/ 195:
 /***/ (function(module) {
 
 /**
@@ -12680,7 +12680,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(794);
+var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 
@@ -12740,7 +12740,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.3.2',
+    version: '5.3.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
