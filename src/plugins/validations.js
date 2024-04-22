@@ -10,7 +10,7 @@ function Validations() {
      */
 
     const isNumeric = function(num) {
-        return !isNaN(num) && num !== null && (typeof num !== 'string' || num.trim() !== '');
+        return !isNaN(num) && num !== null && num !== '';
     }
 
     const numberCriterias = {
@@ -126,22 +126,28 @@ function Validations() {
         return data && data.trim() ? true : false;
     }
 
-    component.empty = function(data) {
-        return typeof data === 'undefined' || data === null || (typeof data === 'string' && !data.toString().trim());
+    component.exist = function(data, options) {
+        return !!data.toString().trim();
     }
 
-    component['not exist'] = component.empty;
+    component['not exist'] = function(data, options) {
+        return !data.toString().trim();
+    }
+
+    component.empty = function(data) {
+        return !data.toString().trim();
+    }
 
     component.notEmpty = function(data) {
-        return !component.empty(data);
+        return !!data.toString().trim();
     }
-
-    component.exist = component.notEmpty;
 
     component.number = function(data, options) {
        if (! isNumeric(data)) {
            return false;
        }
+
+       data = parseFloat(data)
 
        if (!options || !options.criteria) {
            return true;
