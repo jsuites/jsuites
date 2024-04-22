@@ -10,7 +10,7 @@ function Validations() {
      */
 
     const isNumeric = function(num) {
-        return !isNaN(num) && num !== null && num !== '';
+        return !isNaN(num) && num !== null && (typeof num !== 'string' || num.trim() !== '');
     }
 
     const numberCriterias = {
@@ -104,7 +104,7 @@ function Validations() {
     // Component router
     const component = function(value, options) {
         if (typeof(component[options.type]) === 'function') {
-            if (options.allowBlank && value === '') {
+            if (options.allowBlank && (typeof value === 'undefined' || value === '' || value === null)) {
                 return true;
             }
             return component[options.type](value, options);
@@ -126,21 +126,17 @@ function Validations() {
         return data && data.trim() ? true : false;
     }
 
-    component.exist = function(data, options) {
-        return !!data.toString().trim();
-    }
-
-    component['not exist'] = function(data, options) {
-        return !data.toString().trim();
-    }
-
     component.empty = function(data) {
-        return !data.toString().trim();
+        return typeof data === 'undefined' || data === null || (typeof data === 'string' && !data.toString().trim());
     }
+
+    component['not exist'] = component.empty;
 
     component.notEmpty = function(data) {
-        return !!data.toString().trim();
+        return !component.empty(data);
     }
+
+    component.exist = component.notEmpty;
 
     component.number = function(data, options) {
        if (! isNumeric(data)) {
@@ -264,7 +260,9 @@ function Validations() {
     }
 
     component.text = function(data, options) {
-        if (typeof data !== 'string') {
+        if (typeof data === 'undefined' || data === null) {
+            data = '';
+        } else if (typeof data !== 'string') {
             return false;
         }
 

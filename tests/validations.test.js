@@ -52,5 +52,42 @@ describe('Validations', () => {
     expect(jSuites.validations.date('invalid-date')).toBe(false);
   });
 
+  test('should return true for undefined if the allowBlank option is true', () => {
+    expect(jSuites.validations(undefined, {
+      type: 'text',
+      allowBlank: true
+    })).toBe(true);
+  });
+
+  test('should return true for null if the allowBlank option is true', () => {
+    expect(jSuites.validations(null, {
+      type: 'text',
+      allowBlank: true
+    })).toBe(true);
+  });
+
+  test('should return false for a string filled with spaces in numeric validation', () => {
+    expect(jSuites.validations.number('  ')).toBe(false);
+  });
+
+  test('should consider null and undefined as empty strings in text validation', () => {
+    expect(jSuites.validations.text(null, { criteria: 'not contains', value: ['a'] })).toBe(true);
+    expect(jSuites.validations.text(undefined, { criteria: 'not contains', value: ['a'] })).toBe(true);
+  });
+
+  test('should consider null and undefined as empty in the "empty", "not exist", "notEmpty" and "exist" validations', () => {
+    expect(jSuites.validations.empty(null)).toBe(true);
+    expect(jSuites.validations.empty(undefined)).toBe(true);
+
+    expect(jSuites.validations['not exist'](null)).toBe(true);
+    expect(jSuites.validations['not exist'](undefined)).toBe(true);
+
+    expect(jSuites.validations.notEmpty(null)).toBe(false);
+    expect(jSuites.validations.notEmpty(undefined)).toBe(false);
+
+    expect(jSuites.validations.exist(null)).toBe(false);
+    expect(jSuites.validations.exist(undefined)).toBe(false);
+  });
+
   // Add more tests as needed
 });
