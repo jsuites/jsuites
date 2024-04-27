@@ -85,8 +85,10 @@
                         let state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
                         if (state === '1') {
                             menu[i].classList.add('selected');
-                        } else if (state === '0') {
-                            menu[i].classList.remove('selected');
+                        } else {
+                            if (state === '0' || ! menu[i].classList.contains('selected')) {
+                                menu[i].classList.remove('selected');
+                            }
                         }
                     }
                 }

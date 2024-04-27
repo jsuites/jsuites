@@ -2,6 +2,37 @@ const path = require('path');
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const CopyPlugin = require("copy-webpack-plugin");
 
+class MyPlugin {
+    apply(compiler) {
+        compiler.hooks.emit.tap('MyPlugin', (compilation) => {
+            // Get the bundled file name
+            const fileName = Object.keys(compilation.assets)[1];
+
+            // Get the bundled file content
+            const fileContent = compilation.assets[fileName].source();
+
+            const header = `
+;(function (global, factory) {
+    typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
+    typeof define === 'function' && define.amd ? define(factory) :
+    global.jSuites = factory();
+}(this, (function () {`;
+
+            const footer = `    return jSuites;
+})));`;
+
+            // Updated file content with custom content added
+            const updatedFileContent = header + '\n\n' + fileContent + '\n\n' + footer;
+
+            // Replace the bundled file content with updated content
+            compilation.assets[fileName] = {
+                source: () => updatedFileContent,
+                size: () => updatedFileContent.length,
+            };
+        });
+    }
+}
+
 module.exports = {
     target: ['web', 'es5'],
     entry: {
@@ -9,12 +40,9 @@ module.exports = {
     },
     mode: 'production',
     output: {
-        library: {
-            name: 'jSuites',
-            type: 'umd',
-            export: [ 'default' ],
-        },
-        globalObject: 'this',
+        library: 'jSuites',
+        path: path.resolve(__dirname, 'dist'),
+        libraryExport: 'default',
         filename: '[name].js',
     },
     module: {
@@ -34,10 +62,11 @@ module.exports = {
            patterns: [
                { from: '**/*.d.ts', context: 'src' }
            ]
-        })
+        }),
+        new MyPlugin(),
     ],
     optimization: {
-        minimize: false
+        minimize: true
     },
     devServer: {
         static : {
