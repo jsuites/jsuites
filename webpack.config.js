@@ -66,7 +66,7 @@ module.exports = {
         new MyPlugin(),
     ],
     optimization: {
-        minimize: false
+        minimize: true
     },
     devServer: {
         static : {
