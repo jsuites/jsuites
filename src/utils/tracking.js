@@ -1,18 +1,20 @@
-export default function Tracking(component, state) {
-    if (state == true) {
-        document.jsuitesComponents = document.jsuitesComponents.filter(function(v) {
+ const Tracking = function(component, state) {
+    if (state === true) {
+        Tracking.state = Tracking.state.filter(function(v) {
             return v !== null;
         });
 
         // Start after all events
         setTimeout(function() {
-            document.jsuitesComponents.push(component);
+            Tracking.state.push(component);
         }, 0);
 
     } else {
-        var index = document.jsuitesComponents.indexOf(component);
+        var index = Tracking.state.indexOf(component);
         if (index >= 0) {
-            document.jsuitesComponents.splice(index, 1);
+            Tracking.state.splice(index, 1);
         }
     }
 }
+
+export default Tracking;
