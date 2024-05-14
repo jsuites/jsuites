@@ -1360,7 +1360,7 @@ function Mask() {
         } else {
             value = Extract.call(options, v);
             // Percentage
-            if (type === 'percentage' && v.indexOf('%') !== -1) {
+            if (type === 'percentage' && typeof v === 'string' && v.indexOf('%') !== -1) {
                 value /= 100;
             }
             var o = options;
