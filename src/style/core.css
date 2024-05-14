@@ -88,8 +88,8 @@ div[data-before]:before {
     min-height: 180px;
 }
 
-.jupload:not(.input):before {
-    content: "\e2c3"; 
+.jupload:not(.input):empty:before {
+    content: "\e2c3";
     font-family: "Material Icons";
     font-size: 90px;
     color: #eee;
@@ -99,7 +99,6 @@ div[data-before]:before {
     align-items: center;
     justify-content: center;
     position: absolute;
-    z-index: -1;
 }
 
 .jupload-item {

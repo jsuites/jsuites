@@ -1557,7 +1557,7 @@ function Mask() {
 
         var complete = false;
 
-        if (o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
+        if (o.values && o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
             complete = true;
         }
 

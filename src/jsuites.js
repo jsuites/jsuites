@@ -55,7 +55,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.3.3',
+    version: '5.4.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -115,7 +115,7 @@ jSuites.sha512 = sha512;
 /** Core events */
 const Events = function() {
 
-    document.jsuitesComponents = [];
+    tracking.state = [];
 
     const find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -131,10 +131,10 @@ const Events = function() {
     }
 
     const isOpened = function(e) {
-        if (document.jsuitesComponents && document.jsuitesComponents.length > 0) {
-            for (var i = 0; i < document.jsuitesComponents.length; i++) {
-                if (document.jsuitesComponents[i] && ! find(e, document.jsuitesComponents[i])) {
-                    document.jsuitesComponents[i].close();
+        if (tracking.state && tracking.state.length > 0) {
+            for (var i = 0; i < tracking.state.length; i++) {
+                if (tracking.state[i] && ! find(e, tracking.state[i])) {
+                    tracking.state[i].close();
                 }
             }
         }
@@ -159,6 +159,36 @@ const Events = function() {
     let tooltip = document.createElement('div')
     tooltip.classList.add('jtooltip');
 
+    const isWebcomponent = function(e) {
+        return e.shadowRoot || e.tagName.includes('-');
+    }
+
+    const getElement = function(e) {
+        let d;
+        let element;
+        // Which component I am clicking
+        let path = e.path || (e.composedPath && e.composedPath());
+
+        // If path available get the first element in the chain
+        if (path) {
+            element = path[0];
+            // Adjustment sales force
+            if (element && isWebcomponent(element) && ! element.shadowRoot && e.toElement) {
+                element = e.toElement;
+            }
+        } else {
+            // Try to guess using the coordinates
+            if (e.target && isWebcomponent(e.target)) {
+                d = e.target.shadowRoot;
+            } else {
+                d = document;
+            }
+            // Get the first target element
+            element = d.elementFromPoint(x, y);
+        }
+        return element;
+    }
+
     // Events
     const mouseDown = function(e) {
         // Verify current components tracking
@@ -170,10 +200,11 @@ const Events = function() {
             var y = e.clientY;
         }
 
+        let element = getElement(e);
         // Editable
-        let editable = e.target && e.target.tagName === 'DIV' && e.target.getAttribute('contentEditable');
+        let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jSuites.findElement(e.target, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -184,8 +215,8 @@ const Events = function() {
                 angle = parseFloat(item.style.rotate);
             }
             let action = 'move';
-            if (e.target.getAttribute('data-action')) {
-                action = e.target.getAttribute('data-action');
+            if (element.getAttribute('data-action')) {
+                action = element.getAttribute('data-action');
             } else {
                 if (item.style.cursor) {
                     action = 'resize';
@@ -222,24 +253,9 @@ const Events = function() {
             editorAction = false;
         }
 
-        // Which component I am clicking
-        var path = e.path || (e.composedPath && e.composedPath());
-
-        // If path available get the first element in the chain
-        if (path) {
-            element = path[0];
-        } else {
-            // Try to guess using the coordinates
-            if (e.target && e.target.shadowRoot) {
-                var d = e.target.shadowRoot;
-            } else {
-                var d = document;
-            }
-            // Get the first target element
-            element = d.elementFromPoint(x, y);
-        }
-
         isOpened(element);
+
+        focus(e);
     }
 
     const calculateAngle = function(x1, y1, x2, y2, x3, y3) {
@@ -372,14 +388,15 @@ const Events = function() {
             state.x = x;
             state.y = y;
         } else {
+            let element = getElement(e);
             // Resize action
-            let item = jSuites.findElement(e.target, 'jpanel');
+            let item = jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
                 let controls = item.classList.contains('jpanel-controls');
                 if (controls) {
-                    let position = e.target.getAttribute('data-position');
+                    let position = element.getAttribute('data-position');
                     if (position) {
                         item.style.cursor = position;
                     } else {
@@ -428,30 +445,37 @@ const Events = function() {
         }
     });
 
+    let currentElement;
+
     const focus = function(e) {
+        let element = getElement(e);
         // Check if this is the floating
-        let item = jSuites.findElement(e.target, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
             if (! item.classList.contains('jpanel-rotate')) {
                 position[position.length-1].remove();
             }
+
+            currentElement = item;
+        } else {
+            blur(e);
         }
     }
 
     const blur = function(e) {
-        // Check if this is the floating
-        let item = jSuites.findElement(e.target, 'jpanel');
-        if (item && item.classList.contains('jpanel-controls')) {
+        if (currentElement) {
             position.forEach(function(v) {
                 v.remove();
             });
+            currentElement = null;
         }
     }
 
     const mouseOver = function(e) {
-        var message = e.target.getAttribute('data-tooltip');
+        let element = getElement(e);
+        var message = element.getAttribute('data-tooltip');
         if (message) {
             // Instructions
             tooltip.innerText = message;
@@ -511,8 +535,8 @@ const Events = function() {
             }
         }
 
-        if (document.jsuitesComponents && document.jsuitesComponents.length) {
-            item = document.jsuitesComponents[document.jsuitesComponents.length - 1]
+        if (tracking.state && tracking.state.length) {
+            item = tracking.state[tracking.state.length - 1]
             if (item) {
                 if (e.key === "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
                     if (item.isOpened()) {
@@ -532,7 +556,6 @@ const Events = function() {
     }
 
     document.addEventListener('focusin', focus);
-    document.addEventListener('focusout', blur);
     document.addEventListener('mouseup', mouseUp);
     document.addEventListener("mousedown", mouseDown);
     document.addEventListener('mousemove', mouseMove);
@@ -542,7 +565,7 @@ const Events = function() {
     document.addEventListener('input', input);
 }
 
-if (typeof(document) !== "undefined" && ! document.jsuitesComponents) {
+if (typeof(document) !== "undefined" && ! tracking.state) {
     Events();
 }
 
