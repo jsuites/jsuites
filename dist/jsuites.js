@@ -4556,7 +4556,7 @@ function Tabs(el, options) {
             title = prompt('New title', obj.headers.children[i].innerText);
         }
         obj.headers.children[i].innerText = title;
-        obj.open(i);
+        setBorder(obj.getActive());
     }
 
     obj.create = function(title, url) {
@@ -4575,7 +4575,7 @@ function Tabs(el, options) {
             obj.options.oncreate(el, div)
         }
 
-        setBorder();
+        setBorder(obj.getActive());
 
         return div;
     }
@@ -4602,6 +4602,8 @@ function Tabs(el, options) {
     }
 
     obj.deleteElement = function(index) {
+        let current = obj.getActive();
+
         if (! obj.headers.children[index]) {
             return false;
         } else {
@@ -4609,7 +4611,12 @@ function Tabs(el, options) {
             obj.content.removeChild(obj.content.children[index]);
         }
 
-        obj.open(0);
+        if (current === index) {
+            obj.open(0);
+        } else {
+            let current = obj.getActive() || 0;
+            setBorder(current);
+        }
 
         if (typeof(obj.options.ondelete) == 'function') {
             obj.options.ondelete(el, index)
@@ -12741,7 +12748,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.4.1',
+    version: '5.4.2',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

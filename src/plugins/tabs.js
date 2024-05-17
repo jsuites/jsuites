@@ -162,7 +162,7 @@ export default function Tabs(el, options) {
             title = prompt('New title', obj.headers.children[i].innerText);
         }
         obj.headers.children[i].innerText = title;
-        obj.open(i);
+        setBorder(obj.getActive());
     }
 
     obj.create = function(title, url) {
@@ -181,7 +181,7 @@ export default function Tabs(el, options) {
             obj.options.oncreate(el, div)
         }
 
-        setBorder();
+        setBorder(obj.getActive());
 
         return div;
     }
@@ -208,6 +208,8 @@ export default function Tabs(el, options) {
     }
 
     obj.deleteElement = function(index) {
+        let current = obj.getActive();
+
         if (! obj.headers.children[index]) {
             return false;
         } else {
@@ -215,7 +217,12 @@ export default function Tabs(el, options) {
             obj.content.removeChild(obj.content.children[index]);
         }
 
-        obj.open(0);
+        if (current === index) {
+            obj.open(0);
+        } else {
+            let current = obj.getActive() || 0;
+            setBorder(current);
+        }
 
         if (typeof(obj.options.ondelete) == 'function') {
             obj.options.ondelete(el, index)
