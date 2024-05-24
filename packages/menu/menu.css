@@ -2,7 +2,7 @@
     max-width: 320px;
 }
 
-.jmenu:not(empty) {
+.jmenu:not(:empty) {
     min-width: 280px;
 }
 
@@ -175,7 +175,6 @@
 @media (max-width: 1024px) {
     .jmenu {
         height: 100%;
-        width: 280px;
         position: fixed;
         top: 0;
         left: 0;

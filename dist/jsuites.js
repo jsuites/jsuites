@@ -9905,7 +9905,7 @@ function Validations() {
             if (options.allowBlank && (typeof value === 'undefined' || value === '' || value === null)) {
                 return true;
             }
-            return component[options.type](value, options);
+            return component[options.type].call(this, value, options);
         }
         return null;
     }
