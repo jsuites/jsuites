@@ -164,12 +164,12 @@ if (! jSuites) {
                 el.classList.remove('fullscreen-mode');
                 document.body.classList.remove('jorg-hide-scrollbars');
                 el.style.top = '0px';
-                e.target.innerText ='slideshow';
+                e.target.innerText ='fullscreen';
             } else {
                 el.classList.add('fullscreen-mode');
                 document.body.classList.add('jorg-hide-scrollbars');
                 el.style.top = windowScrollTop + 'px';
-                e.target.innerText ='close_fullscreen';
+                e.target.innerText ='fullscreen_exit';
             }
         }
 
@@ -594,6 +594,7 @@ if (! jSuites) {
             el.classList.add('jorg');
             el.classList.add('jorg-tf-tree');
             el.classList.add('jorg-unselectable');
+            el.classList.add('jss_object');
             ul.classList.add('jorg-disable-scrollbars');
 
             // Append elements
@@ -603,6 +604,7 @@ if (! jSuites) {
             search = document.createElement('input');
             search.type = 'text';
             search.classList.add('jorg-search');
+            search.classList.add('jss_object');
             search.onkeyup = function(e) {
                 obj.search(e.target.value);
             }
