@@ -3405,7 +3405,7 @@ function Calendar() {
                     } else if (!element || element.classList.contains('jcalendar-disabled')) {
                         var value = obj.options.value
                     } else {
-                        var value = obj.getValue();
+                        var value = obj.getValue(true);
                     }
 
                     obj.setValue(value);
@@ -3582,15 +3582,23 @@ function Calendar() {
             }
         }
 
-        obj.getValue = function () {
-            if (obj.date) {
-                if (obj.options.time) {
-                    return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(obj.date[3]) + ':' + helpers.two(obj.date[4]) + ':' + helpers.two(0);
+        obj.getValue = function (internal) {
+            if (internal) {
+                if (obj.date) {
+                    if (obj.options.time) {
+                        return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(obj.date[3]) + ':' + helpers.two(obj.date[4]) + ':' + helpers.two(0);
+                    } else {
+                        return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(0) + ':' + helpers.two(0) + ':' + helpers.two(0);
+                    }
                 } else {
-                    return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(0) + ':' + helpers.two(0) + ':' + helpers.two(0);
+                    return "";
                 }
             } else {
-                return "";
+                if (obj.options.value) {
+                    return obj.options.value;
+                } else {
+                    return "";
+                }
             }
         }
 
@@ -3981,7 +3989,7 @@ function Calendar() {
 
             // Event
             if (typeof (obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue());
+                obj.options.onupdate(el, obj.getValue(true));
             }
         }
 
@@ -4089,7 +4097,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue());
+                    obj.options.onupdate(el, obj.getValue(true));
                 }
             }
 
@@ -4107,7 +4115,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue());
+                    obj.options.onupdate(el, obj.getValue(true));
                 }
             }
 
@@ -4197,7 +4205,7 @@ function Calendar() {
                 // Element
                 el.classList.add('jcalendar-input');
                 // Value
-                el.value = obj.setLabel(obj.getValue(), obj.options);
+                el.value = obj.setLabel(obj.getValue(true), obj.options);
             } else {
                 // Get days
                 obj.getDays();
@@ -12748,7 +12756,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.4.2',
+    version: '5.4.4',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

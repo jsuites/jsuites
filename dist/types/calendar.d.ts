@@ -60,8 +60,8 @@ export type Calendar = (el: HTMLElement, options: Options) => {
     getMonths: () => void;
     /** Show the calendar in year picker mode */
     getYears: () => void;
-    /** Get the current date */
-    getValue: () => string;
+    /** Get the current date. Get the internal value or the real component value */
+    getValue: (internal?: boolean) => string;
     /** Advance to the next month, year or group of years depending on the current view mode */
     next: () => void;
     /** Previous month, year or group of years depending on the current view mode */
@@ -73,7 +73,7 @@ export type Calendar = (el: HTMLElement, options: Options) => {
     /** Reset date */
     reset: () => void;
     /** Change the configurations */
-    setOptions
+    setOptions: () => void;
     /** Change the date for today */
     setToday: () => void;
     /** Change the value for a given date */

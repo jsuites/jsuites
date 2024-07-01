@@ -221,7 +221,7 @@ function Calendar() {
                     } else if (!element || element.classList.contains('jcalendar-disabled')) {
                         var value = obj.options.value
                     } else {
-                        var value = obj.getValue();
+                        var value = obj.getValue(true);
                     }
 
                     obj.setValue(value);
@@ -398,15 +398,23 @@ function Calendar() {
             }
         }
 
-        obj.getValue = function () {
-            if (obj.date) {
-                if (obj.options.time) {
-                    return Helpers.two(obj.date[0]) + '-' + Helpers.two(obj.date[1]) + '-' + Helpers.two(obj.date[2]) + ' ' + Helpers.two(obj.date[3]) + ':' + Helpers.two(obj.date[4]) + ':' + Helpers.two(0);
+        obj.getValue = function (internal) {
+            if (internal) {
+                if (obj.date) {
+                    if (obj.options.time) {
+                        return Helpers.two(obj.date[0]) + '-' + Helpers.two(obj.date[1]) + '-' + Helpers.two(obj.date[2]) + ' ' + Helpers.two(obj.date[3]) + ':' + Helpers.two(obj.date[4]) + ':' + Helpers.two(0);
+                    } else {
+                        return Helpers.two(obj.date[0]) + '-' + Helpers.two(obj.date[1]) + '-' + Helpers.two(obj.date[2]) + ' ' + Helpers.two(0) + ':' + Helpers.two(0) + ':' + Helpers.two(0);
+                    }
                 } else {
-                    return Helpers.two(obj.date[0]) + '-' + Helpers.two(obj.date[1]) + '-' + Helpers.two(obj.date[2]) + ' ' + Helpers.two(0) + ':' + Helpers.two(0) + ':' + Helpers.two(0);
+                    return "";
                 }
             } else {
-                return "";
+                if (obj.options.value) {
+                    return obj.options.value;
+                } else {
+                    return "";
+                }
             }
         }
 
@@ -797,7 +805,7 @@ function Calendar() {
 
             // Event
             if (typeof (obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue());
+                obj.options.onupdate(el, obj.getValue(true));
             }
         }
 
@@ -905,7 +913,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue());
+                    obj.options.onupdate(el, obj.getValue(true));
                 }
             }
 
@@ -923,7 +931,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue());
+                    obj.options.onupdate(el, obj.getValue(true));
                 }
             }
 
@@ -1013,7 +1021,7 @@ function Calendar() {
                 // Element
                 el.classList.add('jcalendar-input');
                 // Value
-                el.value = obj.setLabel(obj.getValue(), obj.options);
+                el.value = obj.setLabel(obj.getValue(true), obj.options);
             } else {
                 // Get days
                 obj.getDays();
