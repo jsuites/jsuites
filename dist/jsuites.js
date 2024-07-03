@@ -3408,16 +3408,14 @@ function Calendar() {
                     } else if (!element || element.classList.contains('jcalendar-disabled')) {
                         var value = obj.options.value
                     } else {
-                        var value = obj.getValue(true);
+                        var value = obj.getValue();
                     }
 
                     obj.setValue(value);
                 } else {
-                    if (obj.options.value) {
-                        let value = obj.options.value;
-                        obj.options.value = '';
-                        obj.setValue(value)
-                    }
+                    let value = obj.options.value || '';
+                    obj.options.value = null;
+                    obj.setValue(value)
                 }
 
                 // Events
@@ -3578,30 +3576,24 @@ function Calendar() {
                 }
             }
 
-            obj.getDays();
-            // Render months
-            if (obj.options.type == 'year-month-picker') {
-                obj.getMonths();
+            if (obj.date) {
+                obj.getDays();
+                // Render months
+                if (obj.options.type == 'year-month-picker') {
+                    obj.getMonths();
+                }
             }
         }
 
-        obj.getValue = function (internal) {
-            if (internal) {
-                if (obj.date) {
-                    if (obj.options.time) {
-                        return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(obj.date[3]) + ':' + helpers.two(obj.date[4]) + ':' + helpers.two(0);
-                    } else {
-                        return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(0) + ':' + helpers.two(0) + ':' + helpers.two(0);
-                    }
+        obj.getValue = function () {
+            if (obj.date) {
+                if (obj.options.time) {
+                    return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(obj.date[3]) + ':' + helpers.two(obj.date[4]) + ':' + helpers.two(0);
                 } else {
-                    return "";
+                    return helpers.two(obj.date[0]) + '-' + helpers.two(obj.date[1]) + '-' + helpers.two(obj.date[2]) + ' ' + helpers.two(0) + ':' + helpers.two(0) + ':' + helpers.two(0);
                 }
             } else {
-                if (obj.options.value) {
-                    return obj.options.value;
-                } else {
-                    return "";
-                }
+                return "";
             }
         }
 
@@ -3992,7 +3984,7 @@ function Calendar() {
 
             // Event
             if (typeof (obj.options.onupdate) == 'function') {
-                obj.options.onupdate(el, obj.getValue(true));
+                obj.options.onupdate(el, obj.getValue());
             }
         }
 
@@ -4100,7 +4092,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue(true));
+                    obj.options.onupdate(el, obj.getValue());
                 }
             }
 
@@ -4118,7 +4110,7 @@ function Calendar() {
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
-                    obj.options.onupdate(el, obj.getValue(true));
+                    obj.options.onupdate(el, obj.getValue());
                 }
             }
 
@@ -4208,7 +4200,7 @@ function Calendar() {
                 // Element
                 el.classList.add('jcalendar-input');
                 // Value
-                el.value = obj.setLabel(obj.getValue(true), obj.options);
+                el.value = obj.setLabel(obj.getValue(), obj.options);
             } else {
                 // Get days
                 obj.getDays();

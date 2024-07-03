@@ -11,12 +11,11 @@ describe('Calendar', () => {
         calendar.setValue('2020-06-05 00:00:00')
         expect(calendar.getValue()).toBe('2020-06-05 00:00:00')
 
-        // Internal value
         calendar.next()
-        expect(calendar.getValue(true)).toBe('2020-07-05 00:00:00')
+        expect(calendar.getValue()).toBe('2020-07-05 00:00:00')
 
         calendar.prev()
-        expect(calendar.getValue(true)).toBe('2020-06-05 00:00:00')
+        expect(calendar.getValue()).toBe('2020-06-05 00:00:00')
 
         calendar.reset()
         expect(calendar.getValue()).toBe('')
