@@ -10,3 +10,6 @@ webpack.config.js
 tsconfig.json
 package-lock.json
 TODO.md
+content
+jest.config.js
+public

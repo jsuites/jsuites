@@ -3064,7 +3064,9 @@ function Mask() {
 
             d = d[0].split('-');
 
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] < 32) {
+            let day = new Date(d[0], d[1], 0).getDate();
+
+            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
 
                 // Data
                 o.data = [d[0], d[1], d[2], h, m, s];
@@ -3181,6 +3183,7 @@ function Mask() {
 }
 
 /* harmony default export */ var mask = (Mask());
+
 ;// CONCATENATED MODULE: ./src/plugins/calendar.js
 
 
@@ -8726,6 +8729,10 @@ function Editor() {
         }
 
         obj.addImage = function(src, asSnippet) {
+            if (! obj.options.acceptImages) {
+                return;
+            }
+
             if (! src) {
                 src = '';
             }
@@ -9656,6 +9663,7 @@ function Editor() {
 }
 
 /* harmony default export */ var editor = (Editor());
+
 ;// CONCATENATED MODULE: ./src/plugins/floating.js
 function Floating() {
     var Component = (function (el, options) {

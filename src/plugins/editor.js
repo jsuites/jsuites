@@ -397,7 +397,9 @@ function Editor() {
         }
 
         obj.addImage = function(src, asSnippet) {
-            if (!obj.options.acceptImages) return;
+            if (! obj.options.acceptImages) {
+                return;
+            }
 
             if (! src) {
                 src = '';

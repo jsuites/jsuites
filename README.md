@@ -1,6 +1,6 @@
 ![The javascript web components](https://jsuites.net/templates/default/img/logo.svg)
 
-## jSuites v5 - Webcomponents and JavaScript plugins. 
+## jSuites v5 - Web components and JavaScript plugins. 
 
 About
 ---------
@@ -72,7 +72,7 @@ Full examples on how to handle simple, advanced, autocomplete and conditional dr
 A lightweight javascript calendar, date and datetime picker full responsive and easy integration.
 
 * [Javascript tags](https://jsuites.net/docs/javascript-tags)\
-JavaScript tags and keywords managment plugin
+JavaScript tags and keywords management plugin
 
 * [Javascript tabs](https://jsuites.net/docs/javascript-tabs)\
 JavaScript tabs plugin

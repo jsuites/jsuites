@@ -1667,7 +1667,9 @@ function Mask() {
 
             d = d[0].split('-');
 
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= new Date(d[0], d[1], 0).getDate()) {
+            let day = new Date(d[0], d[1], 0).getDate();
+
+            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
 
                 // Data
                 o.data = [d[0], d[1], d[2], h, m, s];
