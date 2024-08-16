@@ -22,7 +22,7 @@
         "jsuites": "^4.6.3"
     },
     "main": "player.js",
-    "version": "1.0.2",
+    "version": "1.0.4",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",

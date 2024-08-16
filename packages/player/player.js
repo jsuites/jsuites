@@ -29,70 +29,74 @@
     }
 
     return (function(el, options) {
-        var obj = {};
+        const obj = {};
         obj.options = options || {};
 
-        var shuffled = false;
-        var unshuffledData = obj.options.data.map(function(music) {
+        let shuffled = false;
+        let unshuffledData = obj.options.data.map(function(music) {
             return music;
         });
 
-        var defaults = {
+        const defaults = {
             data: null,
             position: 'bottom',
             autoplay: true,
         }
 
-        var state = {
+        const state = {
             // stores the current K
             current: null,
             previousVolume: null,
         }
 
-        for (var property in defaults) {
+        for (let property in defaults) {
             if (! obj.options[property]) {
                 obj.options[property] = defaults[property];
             }
         }
 
         // Element reference
-        var player_container = null;
-        var extraControls = null;
-        var optionsContainer = null;
-        var audioEl = null;
-        var sourceEl = null;
-        var volume = null;
-        var queue = null;
-        var volumeWrapper = null;
-        var timerProgress = null;
-        var timerTotal = null;
-        var progressBar_percent = null;
-        var progressBar = null;
-        var songImage = null;
-        var songTitle = null;
-        var songArtist = null;
-        var timerContainer = null;
-        var playButton = null;
-        var closeButton = null;
+        let player_container = null;
+        let extraControls = null;
+        let optionsContainer = null;
+        let audioEl = null;
+        let sourceEl = null;
+        let volume = null;
+        let queue = null;
+        let volumeWrapper = null;
+        let timerProgress = null;
+        let timerTotal = null;
+        let progressBar_percent = null;
+        let progressBar = null;
+        let songImage = null;
+        let songTitle = null;
+        let songArtist = null;
+        let timerContainer = null;
+        let playButton = null;
+        let closeButton = null;
 
         // Private methods
-        var init = function() {
+
+        /**
+         * Create the HTML elements and assign the events
+         */
+        const init = function() {
             player_container = document.createElement('div');
             player_container.classList.add('jplayer-player');
             player_container.style.display = 'none';
             
             // Inner component
-            var leftContainer = document.createElement('div');
-            var contentContainer = document.createElement('div');
-            var rightContainer = document.createElement('div');
+            const leftContainer = document.createElement('div');
+            const contentContainer = document.createElement('div');
+            const rightContainer = document.createElement('div');
 
             // Left container content
-            var songInfoWrapper = document.createElement('div');
+            const songInfoWrapper = document.createElement('div');
             songInfoWrapper.classList.add('jplayer-info-wrapper');
 
-            var songImageWrapper = document.createElement('div');
+            const songImageWrapper = document.createElement('div');
             songImage = document.createElement('img');
-            var songLabelWrapper = document.createElement('div');
+            const songLabelWrapper = document.createElement('div');
             songTitle = document.createElement('a');
             songArtist = document.createElement('span');
 
@@ -121,18 +125,18 @@
             })
 
             // Create main container
-            var playerMainContainer = document.createElement('div');
+            const playerMainContainer = document.createElement('div');
             playerMainContainer.classList.add('jplayer-main-options');
 
             optionsContainer = document.createElement('div');
             optionsContainer.classList.add('jplayer-options-container');
 
             // options container content
-            var iconNames = ['shuffle', 'arrow_left', 'play_arrow', 'arrow_right', 'replay'];
-            var ariaLabels = ['Active random order', 'Return', 'Play/Pause', 'Next', 'Replay']
+            const iconNames = ['shuffle', 'arrow_left', 'play_arrow', 'arrow_right', 'replay'];
+            const ariaLabels = ['Active random order', 'Return', 'Play/Pause', 'Next', 'Replay']
 
-            for (var i = 0; i < 5; i ++) {
-                var button = document.createElement('button');
+            for (let i = 0; i < 5; i ++) {
+                const button = document.createElement('button');
                 button.setAttribute('title', ariaLabels[i]);
                 button.classList.add('jplayer-options-button');
                 button.innerHTML = '<i class="material-icons secondary">' + iconNames[i] + '</i>';
@@ -245,7 +249,10 @@
             }
         }
 
-        var applyResponsiveComportamment = function(event) {
+        /**
+         * Handles the responsiveness of the player
+         */
+        const applyResponsiveComportamment = function(event) {
             if (jSuites.getWindowWidth() < 576) {
                 optionsContainer.parentNode.insertBefore(timerContainer, optionsContainer);
                 if (! optionsContainer.parentNode.classList.contains('mobile')) {
@@ -259,7 +266,10 @@
             }
         }
 
-        var getCurrentAudio = function() {
+        /**
+         * Returns the current song object
+         */
+        const getCurrentAudio = function() {
             if (! obj.options.data || (! obj.options.data.length)) {
                 return null;
             } else {
@@ -270,7 +280,10 @@
             }
         }
 
-        var changePlayIcon = function() {
+        /**
+         * Toggles the icon between pause and play
+         */
+        const changePlayIcon = function() {
             if (! audioEl.paused) {
                 playButton.setAttribute('action', 'pause');
                 playButton.children[0].innerHTML = 'pause';
@@ -280,7 +293,10 @@
             }
         }
 
-        var playEvent = function(event) {  
+        /**
+         * Handles the play toggle event
+         */
+        const playEvent = function(event) {  
             if (playButton.getAttribute('action') == 'play') {
                 obj.play();
             } else if (playButton.getAttribute('action') == 'pause') {
@@ -290,8 +306,11 @@
             changePlayIcon();
         }
 
-        var muteEvent = function(e) {
-            var volumeIcon = volume.children[0].children[0];
+        /**
+         * Handles the mute toggle event
+         */
+        const muteEvent = function(e) {
+            const volumeIcon = volume.children[0].children[0];
 
             if (audioEl.muted) {
                 audioEl.muted = false;
@@ -305,7 +324,10 @@
             }
         }
 
-        var setVolume = function(e) {
+        /**
+         * Handles the volume change event
+         */
+        const setVolume = function(e) {
             audioEl.volume = (volumeWrapper.value / 100); 
 
             if (! audioEl.volume) {
@@ -317,10 +339,13 @@
             }
         }
 
-        var timeUpdate = function(e) {
-            var currentTime = parseInt(audioEl.currentTime);
-            var min = parseInt(currentTime / 60);
-            var seconds = parseInt(currentTime - min * 60);
+        /**
+         * Handles the song time change event
+         */
+        const timeUpdate = function(e) {
+            const currentTime = parseInt(audioEl.currentTime);
+            const min = parseInt(currentTime / 60);
+            const seconds = parseInt(currentTime - min * 60);
 
             timerProgress.textContent = (jSuites.two(min) + ':' + jSuites.two(seconds));
 
@@ -328,47 +353,68 @@
             progressBar_percent.style.width = (currentTime / audioEl.duration) * 100 + '%';
         }
 
-        var setProgressbarPosition = function(e) {
-            var rect = progressBar.getBoundingClientRect();
-            var clickedX = e.clientX - rect.left;
-            var percent = (clickedX / progressBar.offsetWidth) * 100;
+        /**
+         * Handles the progress bar change event
+         */
+        const setProgressbarPosition = function(e) {
+            const rect = progressBar.getBoundingClientRect();
+            const clickedX = e.clientX - rect.left;
+            const percent = (clickedX / progressBar.offsetWidth) * 100;
             progressBar_percent.style.width = percent + '%';
 
             // Set current time in the player
             audioEl.currentTime = percent * audioEl.duration / 100;
         }
 
-        var hasNextSong = function() {
+        /**
+         * Returns true if there is a song after the current
+         */
+        const hasNextSong = function() {
             if (obj.options.data[state.current + 1]) {
                 return true;
             }
             return false;
         }
 
-        var hasPreviousSong = function() {
+        /**
+         * Returns true if there is a song before the current
+         */
+        const hasPreviousSong = function() {
             if (obj.options.data[state.current - 1]) {
                 return true;
             }
             return false;
         }
 
-        var nextSongEvent = function(e) {
+        /**
+         * Handles the jump to the next song
+         */
+        const nextSongEvent = function(e) {
             if (hasNextSong()) {
                 obj.next();
             }
         }
 
-        var previousSongEvent = function(e) {
+        /**
+         * Handles the jump to the previous song
+         */
+        const previousSongEvent = function(e) {
             if (hasPreviousSong()) {
                 obj.previous();
             }
         }
 
-        var replaySongEvent = function(e) {
+        /**
+         * Handles the replay of the current song
+         */
+        const replaySongEvent = function(e) {
             obj.restart();
         }
 
-        var songEnd = function(e) {
+        /**
+         * Handles the end of a song
+         */
+        const songEnd = function(e) {
             if (hasNextSong()) {
                 obj.next();
             } else {
@@ -377,18 +423,30 @@
             }
         }
 
-        var close = function(e) {
+        /**
+         * Hides the player and resets the audio
+         */
+        const close = function(e) {
             obj.close();
         }
 
+        /**
+         * Makes the player_container visible
+         */
         obj.show = function() {
             player_container.style.display = '';
         }
 
+        /**
+         * Makes the player_container non-visible
+         */
         obj.hide = function() {
             player_container.style.display = 'none';
         }
 
+        /**
+         * Hides the player and resets the audio
+         */
         obj.close = function() {
             if (player_container) {
                 obj.hide();
@@ -396,12 +454,18 @@
             }
         }
 
+        /**
+         * Set a new value for the queue
+         */
         obj.setQueue = function(queueRedirect) {
             obj.options.queueRedirect = queueRedirect;
         }
 
+        /**
+         * Load the song object 
+         */
         obj.loadSong = function() {
-            var audioObj = getCurrentAudio();
+            const audioObj = getCurrentAudio();
             if (audioObj) {
                 audioEl.src = audioObj.file || '';
                 audioEl.load();
@@ -412,9 +476,9 @@
                         audioEl.play();
                     }
 
-                    var total = parseInt(audioEl.duration);
-                    var totalMin = parseInt(total / 60);
-                    var totalSeconds = parseInt(total - totalMin * 60);
+                    const total = parseInt(audioEl.duration);
+                    const totalMin = parseInt(total / 60);
+                    const totalSeconds = parseInt(total - totalMin * 60);
 
                     timerTotal.textContent = (jSuites.two(totalMin) + ':' + jSuites.two(totalSeconds));
                 }
@@ -428,6 +492,9 @@
             queue.href = obj.options.queueRedirect;
         }
 
+        /**
+         * Set the value of songs data
+         */
         obj.setData = function(data) {
             obj.options.data = data;
             shuffled = false;
@@ -435,7 +502,7 @@
                 return music;
             });
 
-            var randomButton = optionsContainer.children[0];
+            const randomButton = optionsContainer.children[0];
             randomButton.children[0].style.removeProperty('color');
 
             playButton.setAttribute('action', 'pause');
@@ -444,6 +511,9 @@
             obj.loadSong();
         }
 
+        /**
+         * Triggers the play in audio
+         */
         obj.play = function() {
             // Show player
             obj.show();
@@ -452,35 +522,50 @@
             changePlayIcon();
         }
 
+        /**
+         * Triggers the pause in audio
+         */
         obj.stop = function() {
             audioEl.pause();
         }
 
+        /**
+         * Set the time of the current audio to zero
+         */
         obj.restart = function() {
             if (audioEl.currentTime) {
                 audioEl.currentTime = 0;
             }
         }
-
+        
+        /**
+         * Changes the state to the next song
+         */
         obj.next = function() {
             state.current = state.current + 1;
             // obj.setPosition();
             obj.loadSong();
         }
-
+        
+        /**
+         * Changes the state to the previous song
+         */
         obj.previous = function() {
             state.current = state.current - 1;
             // obj.setPosition();
             obj.loadSong();
         }
 
+        /**
+         * Changes the state to X position
+         */
         obj.setAlbumMusic = function(position) {
             if (position >= 0) {
                 state.current = position;
             }
         }
 
-        var shuffleController = function() {
+        const shuffleController = function() {
             if (shuffled) {
                 obj.unshuffle();
             } else {
@@ -490,30 +575,36 @@
             shuffled = !shuffled;
         }
 
+        /**
+         * Randomizes the position of the songs
+         */
         obj.shuffle = function() {
             if (!shuffled) {
-                var randomButton = optionsContainer.children[0];
+                const randomButton = optionsContainer.children[0];
                 randomButton.children[0].style.color = '#4bce4b';
             }
 
-            var temp = obj.options.data[state.current];
+            let temp = obj.options.data[state.current];
             obj.options.data[state.current] = obj.options.data[0];
             obj.options.data[0] = temp;
 
-            for (var index = 1; index < obj.options.data.length; index++) {
-                var ramdomPosition = Math.floor(Math.random() * (obj.options.data.length - 1)) + 1;
+            for (let index = 1; index < obj.options.data.length; index++) {
+                const randomPosition = Math.floor(Math.random() * (obj.options.data.length - 1)) + 1;
 
-                var temp = obj.options.data[index];
-                obj.options.data[index] = obj.options.data[ramdomPosition];
-                obj.options.data[ramdomPosition] = temp;
+                temp = obj.options.data[index];
+                obj.options.data[index] = obj.options.data[randomPosition];
+                obj.options.data[randomPosition] = temp;
             }
 
             state.current = 0;
         }
 
+        /**
+         * Makes the song positions go back to original order
+         */
         obj.unshuffle = function() {
             if (shuffled && unshuffledData) {
-                var randomButton = optionsContainer.children[0];
+                const randomButton = optionsContainer.children[0];
                 randomButton.children[0].style.removeProperty('color');
 
                 state.current = unshuffledData.indexOf(obj.options.data[state.current]);
@@ -521,6 +612,24 @@
                 obj.options.data = unshuffledData.map(function(music) {
                     return music;
                 });
+            }
+        }
+
+        /**
+         * Add a song to the end of the queue
+         */
+        obj.addSong = function(audioObj) {
+            if (obj.options.data && obj.options.data.length) {
+                obj.options.data.push(audioObj);
+            }
+        }
+
+        /**
+         * Remove a song from the given index
+         */
+        obj.removeSong = function(index) {
+            if (obj.options.data && obj.options.data.length && (obj.options.data.length > index)) {
+                obj.options.data.splice(index, 1)
             }
         }
 
