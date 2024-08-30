@@ -30,7 +30,12 @@
 
     return (function(el, options) {
         const obj = {};
-        obj.options = options || {};
+
+        if (options && !options.data) {
+            options.data = [];
+        }
+
+        obj.options = options || { data: [] };
 
         let shuffled = false;
         let unshuffledData = obj.options.data.map(function(music) {
@@ -76,6 +81,20 @@
         let closeButton = null;
 
         // Private methods
+
+
+        /**
+         * Call an event if exists in the configuration object
+         */
+        const invokeEventIfExists = function(eventName, ...params) {
+            if (obj.options[eventName] && typeof obj.options[eventName] == 'function') {
+                obj.options[eventName](...params)
+            }
+
+            if (obj[eventName] && typeof obj[eventName] == 'function') {
+                obj[eventName](...params)
+            }
+        }
 
         /**
          * Create the HTML elements and assign the events
@@ -165,7 +184,7 @@
 
             // player progress content
             timerProgress = document.createElement('div');
-            var progressBarWrapper = document.createElement('div');
+            const progressBarWrapper = document.createElement('div');
             progressBar = document.createElement('div');
             progressBar_percent = document.createElement('div');
             timerTotal = document.createElement('div');
@@ -194,7 +213,7 @@
             queue = document.createElement('a');
             volume = document.createElement('div');
 
-            var volumeIcon = document.createElement('div');
+            const volumeIcon = document.createElement('div');
             volumeIcon.innerHTML = '<i class="material-icons">volume_up</i>'
 
             volumeWrapper = document.createElement('input');
@@ -316,11 +335,13 @@
                 audioEl.muted = false;
                 volumeIcon.innerHTML = 'volume_up';
                 volumeWrapper.value = state.previousVolume;
+                invokeEventIfExists('onunmute', e);
             } else {
                 state.previousVolume = volumeWrapper.value;
                 volumeWrapper.value = 0;
                 volumeIcon.innerHTML = 'volume_mute';
                 audioEl.muted = true;
+                invokeEventIfExists('onmute', e);
             }
         }
 
@@ -337,6 +358,8 @@
                 audioEl.muted = false;
                 volume.children[0].children[0].innerHTML = 'volume_up';
             }
+
+            invokeEventIfExists('onvolumechange', e, audioEl.volume);
         }
 
         /**
@@ -392,6 +415,9 @@
         const nextSongEvent = function(e) {
             if (hasNextSong()) {
                 obj.next();
+            } else {
+                state.current = 0;
+                obj.loadSong();
             }
         }
 
@@ -401,6 +427,9 @@
         const previousSongEvent = function(e) {
             if (hasPreviousSong()) {
                 obj.previous();
+            } else {
+                state.current = obj.options.data.length - 1;
+                obj.loadSong();
             }
         }
 
@@ -435,6 +464,8 @@
          */
         obj.show = function() {
             player_container.style.display = '';
+
+            invokeEventIfExists('onopen');
         }
 
         /**
@@ -442,6 +473,8 @@
          */
         obj.hide = function() {
             player_container.style.display = 'none';
+
+            invokeEventIfExists('onclose');
         }
 
         /**
@@ -466,9 +499,13 @@
          */
         obj.loadSong = function() {
             const audioObj = getCurrentAudio();
+
             if (audioObj) {
                 audioEl.src = audioObj.file || '';
-                audioEl.load();
+
+                if (typeof audioObj.file === 'string') {
+                    audioEl.load();
+                }
 
                 audioEl.onloadeddata = function() {
 
@@ -518,8 +555,14 @@
             // Show player
             obj.show();
 
+            if (!audioEl.src) {
+                obj.loadSong();
+            }
+
             audioEl.play();
             changePlayIcon();
+
+            invokeEventIfExists('onplay');
         }
 
         /**
@@ -527,6 +570,8 @@
          */
         obj.stop = function() {
             audioEl.pause();
+
+            invokeEventIfExists('onpause');
         }
 
         /**
@@ -544,7 +589,9 @@
         obj.next = function() {
             state.current = state.current + 1;
             // obj.setPosition();
+
             obj.loadSong();
+            invokeEventIfExists('onsongchange', obj.options.data[state.current]);
         }
         
         /**
@@ -554,6 +601,7 @@
             state.current = state.current - 1;
             // obj.setPosition();
             obj.loadSong();
+            invokeEventIfExists('onsongchange', obj.options.data[state.current]);
         }
 
         /**
@@ -619,8 +667,12 @@
          * Add a song to the end of the queue
          */
         obj.addSong = function(audioObj) {
-            if (obj.options.data && obj.options.data.length) {
+            if (obj.options.data && Array.isArray(obj.options.data)) {
                 obj.options.data.push(audioObj);
+
+                if (obj.options.data.length === 1) {
+                    obj.loadSong();
+                }
             }
         }
 
@@ -644,6 +696,10 @@
                 extraControls.appendChild(playButton);
                 playButton = extraControls.children[2];
             }
+        }
+
+        obj.getQueue = function() {
+            return obj.options.data;
         }
 
         init();
