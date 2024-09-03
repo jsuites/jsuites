@@ -238,6 +238,7 @@ function Dropdown() {
                 onfocus: null,
                 onblur: null,
                 oninsert: null,
+                onbeforeprompt: null,
                 onbeforeinsert: null,
                 onsearch: null,
                 onbeforesearch: null,
@@ -557,7 +558,16 @@ function Dropdown() {
          * @param {string} title - title of the new item
          * @param {string} id - value/id of the new item
          */
-        obj.add = function (title, id) {
+        obj.add = async function (title, id) {
+            if (typeof (obj.options.onbeforeprompt) == 'function') {
+                let ret = await obj.options.onbeforeprompt(obj);
+                if (ret === false) {
+                    return false;
+                } else if (ret) {
+                    title = ret;
+                }
+            }
+
             if (!title) {
                 var current = obj.options.autocomplete == true ? obj.header.value : '';
                 var title = prompt(Dictionary.translate('Add A New Option'), current);
@@ -586,7 +596,7 @@ function Dropdown() {
 
             // Callback
             if (typeof (obj.options.onbeforeinsert) == 'function') {
-                var ret = obj.options.onbeforeinsert(obj, item);
+                let ret = obj.options.onbeforeinsert(obj, item);
                 if (ret === false) {
                     return false;
                 } else if (ret) {

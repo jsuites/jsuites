@@ -39,6 +39,8 @@ function Calendar() {
                 today: false,
                 // Show timepicker
                 time: false,
+                // Use 24 hour format on time picker
+                is24HourFormat: true,
                 // Show the reset button
                 resetButton: true,
                 // Placeholder
@@ -817,6 +819,7 @@ function Calendar() {
         var calendarControlsUpdateButton = null;
         var calendarSelectHour = null;
         var calendarSelectMin = null;
+        var calendarSelectAMPM = null;
 
         var init = function () {
             // Get value from initial element if that is an input
@@ -901,7 +904,17 @@ function Calendar() {
             calendarSelectHour = document.createElement('select');
             calendarSelectHour.className = 'jcalendar-select';
             calendarSelectHour.onchange = function () {
-                obj.date[3] = this.value;
+                let val = this.value;
+
+                if (val == 12) {
+                    val = 0;
+                }
+
+                if (calendarSelectAMPM && (calendarSelectAMPM.value === 'PM')) {
+                    obj.date[3] = parseInt(val) + 12;
+                } else {
+                    obj.date[3] = val;
+                }
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
@@ -909,12 +922,28 @@ function Calendar() {
                 }
             }
 
-            for (var i = 0; i < 24; i++) {
+            if (options.is24HourFormat !== false) {
+                for (var i = 0; i < 24; i++) {
+                    var element = document.createElement('option');
+                    element.value = i;
+                    element.innerHTML = Helpers.two(i);
+                    calendarSelectHour.appendChild(element);
+                }
+            } else {
                 var element = document.createElement('option');
-                element.value = i;
-                element.innerHTML = Helpers.two(i);
+                element.value = 0;
+                element.innerHTML = Helpers.two(12);
                 calendarSelectHour.appendChild(element);
+
+                for (var i = 1; i <= 11; i++) {
+                    var element = document.createElement('option');
+                    element.value = i;
+                    element.innerHTML = Helpers.two(i);
+                    calendarSelectHour.appendChild(element);
+                }
             }
+
+            
 
             calendarSelectMin = document.createElement('select');
             calendarSelectMin.className = 'jcalendar-select';
@@ -934,6 +963,33 @@ function Calendar() {
                 calendarSelectMin.appendChild(element);
             }
 
+            if (options.is24HourFormat === false) {
+                calendarSelectAMPM = document.createElement('select');
+                calendarSelectAMPM.className = 'jcalendar-select';
+                calendarSelectAMPM.onchange = function () {
+                    if (this.value === 'PM') {
+                        obj.date[3] = parseInt(obj.date[3]) + 12;
+                    } else {
+                        obj.date[3] = parseInt(obj.date[3]) - 12;
+                    }
+
+                    // Event
+                    if (typeof (obj.options.onupdate) == 'function') {
+                        obj.options.onupdate(el, obj.getValue());
+                    }
+                }
+
+                var amOption = document.createElement('option');
+                amOption.value = 'AM';
+                amOption.innerHTML = Helpers.two('AM');
+                calendarSelectAMPM.appendChild(amOption);
+
+                var pmOption = document.createElement('option');
+                pmOption.value = 'PM';
+                pmOption.innerHTML = Helpers.two('PM');
+                calendarSelectAMPM.appendChild(pmOption);
+            }
+
             // Footer controls
             var calendarControlsFooter = document.createElement('div');
             calendarControlsFooter.className = 'jcalendar-controls';
@@ -943,6 +999,10 @@ function Calendar() {
             calendarControlsTime.style.maxWidth = '140px';
             calendarControlsTime.appendChild(calendarSelectHour);
             calendarControlsTime.appendChild(calendarSelectMin);
+
+            if (calendarSelectAMPM) {
+                calendarControlsTime.appendChild(calendarSelectAMPM);
+            }
 
             calendarControlsUpdateButton = document.createElement('button');
             calendarControlsUpdateButton.setAttribute('type', 'button');
@@ -1019,20 +1079,26 @@ function Calendar() {
                 obj.getDays();
                 // Hour
                 if (obj.options.time) {
-                    calendarSelectHour.value = obj.date[3];
+                    if ((options.is24HourFormat === false) && (obj.date[3] > 11)) {
+                        calendarSelectHour.value = parseInt(obj.date[3]) - 12;
+                        calendarSelectAMPM.value = 'PM';
+                    } else {
+                        calendarSelectHour.value = obj.date[3];
+                    }
                     calendarSelectMin.value = obj.date[4];
                 }
-            }
-
-            // Default opened
-            if (obj.options.opened == true) {
-                obj.open();
             }
 
             // Controls
             if (obj.options.controls == false) {
                 calendarContainer.classList.add('jcalendar-hide-controls');
             }
+            
+            // Default opened
+            if (obj.options.opened == true) {
+                obj.open();
+            }
+
 
             // Change method
             el.change = obj.setValue;

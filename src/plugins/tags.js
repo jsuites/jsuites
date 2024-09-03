@@ -184,6 +184,12 @@ export default function Tags(el, options) {
     obj.remove = function(node) {
         // Remove node
         node.parentNode.removeChild(node);
+
+        // Event
+        if (typeof (options.onremoveitem) == 'function') {
+            options.onremoveitem(node.innerHTML, node);
+        }
+
         // Make sure element is not blank
         if (! el.children.length) {
             obj.add('', true);
