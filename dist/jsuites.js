@@ -6202,7 +6202,7 @@ function Dropdown() {
                 onfocus: null,
                 onblur: null,
                 oninsert: null,
-                onbeforeprompt: null,
+                onbeforeinput: null,
                 onbeforeinsert: null,
                 onsearch: null,
                 onbeforesearch: null,
@@ -6523,8 +6523,8 @@ function Dropdown() {
          * @param {string} id - value/id of the new item
          */
         obj.add = async function (title, id) {
-            if (typeof (obj.options.onbeforeprompt) == 'function') {
-                let ret = await obj.options.onbeforeprompt(obj);
+            if (typeof (obj.options.onbeforeinput) == 'function') {
+                let ret = await obj.options.onbeforeinput(obj);
                 if (ret === false) {
                     return false;
                 } else if (ret) {

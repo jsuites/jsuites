@@ -74,4 +74,31 @@ describe('dropdown', () => {
         expect(dd.getPosition('Kensington and Chelsea')).toBe(2)
         expect(dd.getPosition('Hammersmith and Fulham')).toBe(3)
     })
+
+    test('dropdown onbeforeinput', async () => {
+        document.body.innerHTML = '<div id="myDiv"></div>';
+        let div = document.getElementById('myDiv');
+
+        let executedEvent = false;
+
+        let dd = jSuites.dropdown(div, {
+            data: [
+                { value:'1', text: 'Tomatoes' },
+            ],
+            newOptions: true,
+            onbeforeinput: async function() {
+                executedEvent = true;
+                return 'Apples';
+            }
+        })
+
+        expect(executedEvent).toBe(false)
+        expect(dd.items.length).toEqual(1)
+
+        await dd.add();
+
+        expect(executedEvent).toBe(true)
+        expect(dd.items.length).toEqual(2)
+        expect(dd.items.find((item) => item.data.text === 'Apples')).toBeTruthy();
+    })
 });
