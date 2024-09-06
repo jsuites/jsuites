@@ -1548,12 +1548,11 @@ function Mask() {
     // Helper to extract date from a string
     obj.extractDateFromString = function (date, format) {
         var o = obj(date, { mask: format }, true);
-        let d = o.date
 
         // Check if in format Excel (Need difference with format date or type detected is numeric)
         if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
-            var dt = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return dt.getFullYear() + "-" + Helpers.two(dt.getMonth()) + "-" + Helpers.two(dt.getDate()) + ' 00:00:00';
+            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
+            return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
         }
 
         var complete = false;
@@ -1562,16 +1561,12 @@ function Mask() {
             complete = true;
         }
 
-        if (d[0] && d[1] && (d[2] || complete)) {
-            if (!d[2]) {
-                d[2] = 1;
+        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
+            if (!o.date[2]) {
+                o.date[2] = 1;
             }
 
-            let day = new Date(d[0], d[1], 0).getDate();
-
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
-                return d[0] + '-' + Helpers.two(d[1]) + '-' + Helpers.two(d[2]) + ' ' + Helpers.two(d[3]) + ':' + Helpers.two(d[4]) + ':' + Helpers.two(d[5]);
-            }
+            return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
         }
 
         return '';

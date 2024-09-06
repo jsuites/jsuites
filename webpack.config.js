@@ -79,7 +79,7 @@ module.exports = {
         },
         port: 3007,
         devMiddleware: {
-            publicPath: "https://localhost:3000/dist/",
+            publicPath: "https://localhost:3000/",
         },
         hot: "only",
     },

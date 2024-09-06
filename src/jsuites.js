@@ -55,7 +55,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.4.4',
+    version: '5.5.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -563,10 +563,15 @@ const Events = function() {
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
     document.addEventListener('input', input);
+
+    // Block same events twice
+    window['jSuitesEvents'] = true;
 }
 
 if (typeof(document) !== "undefined" && ! tracking.state) {
-    Events();
+    if (typeof(window['jSuitesEvents']) === "undefined") {
+        Events();
+    }
 }
 
 export default jSuites;

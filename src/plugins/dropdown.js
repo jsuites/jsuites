@@ -560,15 +560,24 @@ function Dropdown() {
          */
         obj.add = async function (title, id) {
             if (typeof (obj.options.onbeforeinput) == 'function') {
-                let ret = await obj.options.onbeforeinput(obj);
+                let ret = await obj.options.onbeforeinput(obj, title);
                 if (ret === false) {
                     return false;
                 } else if (ret) {
-                    title = ret;
+                    if (typeof(ret) === 'object') {
+                        if (ret.title) {
+                            title = ret.title;
+                        }
+                        if (ret.id) {
+                            id = ret.id;
+                        }
+                    } else {
+                        title = ret;
+                    }
                 }
             }
 
-            if (!title) {
+            if (! title) {
                 var current = obj.options.autocomplete == true ? obj.header.value : '';
                 var title = prompt(Dictionary.translate('Add A New Option'), current);
                 if (!title) {
@@ -577,7 +586,7 @@ function Dropdown() {
             }
 
             // Id
-            if (!id) {
+            if (! id) {
                 id = Helpers.guid();
             }
 

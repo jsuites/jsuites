@@ -17,6 +17,13 @@ interface DropdownItem {
     color?: string;
 }
 
+interface Item {
+    /** Value of the selected item. */
+    id?: string | number;
+    /** Description of the item */
+    title?: string;
+}
+
 interface DropdownOptions {
     /** Endpoint to fetch data from a remote server */
     url?: string;
@@ -68,6 +75,8 @@ interface DropdownOptions {
     onbeforesearch?: (obj: Dropdown, ajaxRequest: object) => boolean | null;
     /** Event handler for processing search results */
     onsearch?: (obj: Dropdown, result: object) => void;
+    /** Before adding a new element to the dropdown. This is async method */
+    onbeforeinput?: (obj: Dropdown, title: string) => string | Item;
     /** Toggles the sorting of dropdown elements */
     sortResults?: boolean;
     /** Indicates if the dropdown should automatically receive focus upon creation */
@@ -85,7 +94,7 @@ interface ItemContainer {
 
 /** Toast Plugin */
 export type Dropdown = (el: HTMLElement, options: DropdownOptions) => {
-    /** Add a new item to the dropdown */
+    /** Add a new item to the dropdown. */
     add: (title: string, id: string|number) => DropdownItem;
     /** Append new data to the dropdown */
     appendData: (data: DropdownItem[]) => void

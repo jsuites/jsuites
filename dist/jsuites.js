@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 794:
+/***/ 195:
 /***/ (function(module) {
 
 /**
@@ -2945,12 +2945,11 @@ function Mask() {
     // Helper to extract date from a string
     obj.extractDateFromString = function (date, format) {
         var o = obj(date, { mask: format }, true);
-        let d = o.date
 
         // Check if in format Excel (Need difference with format date or type detected is numeric)
         if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
-            var dt = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return dt.getFullYear() + "-" + helpers.two(dt.getMonth()) + "-" + helpers.two(dt.getDate()) + ' 00:00:00';
+            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
+            return d.getFullYear() + "-" + helpers.two(d.getMonth()) + "-" + helpers.two(d.getDate()) + ' 00:00:00';
         }
 
         var complete = false;
@@ -2959,16 +2958,12 @@ function Mask() {
             complete = true;
         }
 
-        if (d[0] && d[1] && (d[2] || complete)) {
-            if (!d[2]) {
-                d[2] = 1;
+        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
+            if (!o.date[2]) {
+                o.date[2] = 1;
             }
 
-            let day = new Date(d[0], d[1], 0).getDate();
-
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
-                return d[0] + '-' + helpers.two(d[1]) + '-' + helpers.two(d[2]) + ' ' + helpers.two(d[3]) + ':' + helpers.two(d[4]) + ':' + helpers.two(d[5]);
-            }
+            return o.date[0] + '-' + helpers.two(o.date[1]) + '-' + helpers.two(o.date[2]) + ' ' + helpers.two(o.date[3]) + ':' + helpers.two(o.date[4]) + ':' + helpers.two(o.date[5]);
         }
 
         return '';
@@ -3231,8 +3226,6 @@ function Calendar() {
                 today: false,
                 // Show timepicker
                 time: false,
-                // Use 24 hour format on time picker
-                is24HourFormat: true,
                 // Show the reset button
                 resetButton: true,
                 // Placeholder
@@ -4011,7 +4004,6 @@ function Calendar() {
         var calendarControlsUpdateButton = null;
         var calendarSelectHour = null;
         var calendarSelectMin = null;
-        var calendarSelectAMPM = null;
 
         var init = function () {
             // Get value from initial element if that is an input
@@ -4096,17 +4088,7 @@ function Calendar() {
             calendarSelectHour = document.createElement('select');
             calendarSelectHour.className = 'jcalendar-select';
             calendarSelectHour.onchange = function () {
-                let val = this.value;
-
-                if (val == 12) {
-                    val = 0;
-                }
-
-                if (calendarSelectAMPM && (calendarSelectAMPM.value === 'PM')) {
-                    obj.date[3] = parseInt(val) + 12;
-                } else {
-                    obj.date[3] = val;
-                }
+                obj.date[3] = this.value;
 
                 // Event
                 if (typeof (obj.options.onupdate) == 'function') {
@@ -4114,28 +4096,12 @@ function Calendar() {
                 }
             }
 
-            if (options.is24HourFormat !== false) {
                 for (var i = 0; i < 24; i++) {
                     var element = document.createElement('option');
                     element.value = i;
                     element.innerHTML = helpers.two(i);
                     calendarSelectHour.appendChild(element);
                 }
-            } else {
-                var element = document.createElement('option');
-                element.value = 0;
-                element.innerHTML = helpers.two(12);
-                calendarSelectHour.appendChild(element);
-
-                for (var i = 1; i <= 11; i++) {
-                    var element = document.createElement('option');
-                    element.value = i;
-                    element.innerHTML = helpers.two(i);
-                    calendarSelectHour.appendChild(element);
-                }
-            }
-
-            
 
             calendarSelectMin = document.createElement('select');
             calendarSelectMin.className = 'jcalendar-select';
@@ -4155,33 +4121,6 @@ function Calendar() {
                 calendarSelectMin.appendChild(element);
             }
 
-            if (options.is24HourFormat === false) {
-                calendarSelectAMPM = document.createElement('select');
-                calendarSelectAMPM.className = 'jcalendar-select';
-                calendarSelectAMPM.onchange = function () {
-                    if (this.value === 'PM') {
-                        obj.date[3] = parseInt(obj.date[3]) + 12;
-                    } else {
-                        obj.date[3] = parseInt(obj.date[3]) - 12;
-                    }
-
-                    // Event
-                    if (typeof (obj.options.onupdate) == 'function') {
-                        obj.options.onupdate(el, obj.getValue());
-                    }
-                }
-
-                var amOption = document.createElement('option');
-                amOption.value = 'AM';
-                amOption.innerHTML = helpers.two('AM');
-                calendarSelectAMPM.appendChild(amOption);
-
-                var pmOption = document.createElement('option');
-                pmOption.value = 'PM';
-                pmOption.innerHTML = helpers.two('PM');
-                calendarSelectAMPM.appendChild(pmOption);
-            }
-
             // Footer controls
             var calendarControlsFooter = document.createElement('div');
             calendarControlsFooter.className = 'jcalendar-controls';
@@ -4191,10 +4130,6 @@ function Calendar() {
             calendarControlsTime.style.maxWidth = '140px';
             calendarControlsTime.appendChild(calendarSelectHour);
             calendarControlsTime.appendChild(calendarSelectMin);
-
-            if (calendarSelectAMPM) {
-                calendarControlsTime.appendChild(calendarSelectAMPM);
-            }
 
             calendarControlsUpdateButton = document.createElement('button');
             calendarControlsUpdateButton.setAttribute('type', 'button');
@@ -4271,26 +4206,20 @@ function Calendar() {
                 obj.getDays();
                 // Hour
                 if (obj.options.time) {
-                    if ((options.is24HourFormat === false) && (obj.date[3] > 11)) {
-                        calendarSelectHour.value = parseInt(obj.date[3]) - 12;
-                        calendarSelectAMPM.value = 'PM';
-                    } else {
-                        calendarSelectHour.value = obj.date[3];
-                    }
+                    calendarSelectHour.value = obj.date[3];
                     calendarSelectMin.value = obj.date[4];
                 }
+            }
+
+            // Default opened
+            if (obj.options.opened == true) {
+                obj.open();
             }
 
             // Controls
             if (obj.options.controls == false) {
                 calendarContainer.classList.add('jcalendar-hide-controls');
             }
-            
-            // Default opened
-            if (obj.options.opened == true) {
-                obj.open();
-            }
-
 
             // Change method
             el.change = obj.setValue;
@@ -6524,15 +6453,24 @@ function Dropdown() {
          */
         obj.add = async function (title, id) {
             if (typeof (obj.options.onbeforeinput) == 'function') {
-                let ret = await obj.options.onbeforeinput(obj);
+                let ret = await obj.options.onbeforeinput(obj, title);
                 if (ret === false) {
                     return false;
                 } else if (ret) {
-                    title = ret;
+                    if (typeof(ret) === 'object') {
+                        if (ret.title) {
+                            title = ret.title;
+                        }
+                        if (ret.id) {
+                            id = ret.id;
+                        }
+                    } else {
+                        title = ret;
+                    }
                 }
             }
 
-            if (!title) {
+            if (! title) {
                 var current = obj.options.autocomplete == true ? obj.header.value : '';
                 var title = prompt(dictionary.translate('Add A New Option'), current);
                 if (!title) {
@@ -6541,7 +6479,7 @@ function Dropdown() {
             }
 
             // Id
-            if (!id) {
+            if (! id) {
                 id = helpers.guid();
             }
 
@@ -11841,6 +11779,7 @@ function Tags(el, options) {
             validation: null,
             onbeforepaste: null,
             onbeforechange: null,
+            onremoveitem: null,
             onlimit: null,
             onchange: null,
             onfocus: null,
@@ -11983,17 +11922,15 @@ function Tags(el, options) {
     obj.remove = function(node) {
         // Remove node
         node.parentNode.removeChild(node);
-
-        // Event
-        if (typeof (options.onremoveitem) == 'function') {
-            options.onremoveitem(node.innerHTML, node);
-        }
-
         // Make sure element is not blank
         if (! el.children.length) {
             obj.add('', true);
         } else {
             change();
+        }
+
+        if (typeof(obj.options.onremoveitem) == 'function') {
+            obj.options.onremoveitem(el, obj, node);
         }
     }
 
@@ -12783,7 +12720,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(794);
+var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 
@@ -12843,7 +12780,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.4.4',
+    version: '5.5.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -13351,10 +13288,15 @@ const Events = function() {
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
     document.addEventListener('input', input);
+
+    // Block same events twice
+    window['jSuitesEvents'] = true;
 }
 
 if (typeof(document) !== "undefined" && ! tracking.state) {
-    Events();
+    if (typeof(window['jSuitesEvents']) === "undefined") {
+        Events();
+    }
 }
 
 /* harmony default export */ var jsuites = (jSuites);

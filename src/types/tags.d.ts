@@ -13,6 +13,8 @@ interface Options {
     onbeforepaste?: (el: HTMLElement, instance: Tags, data: string[]) => string[];
     /** Method to be execute after any changes on the element */
     onbeforechange?: (el: HTMLElement, instance: Tags, currentValue: string, value: string) => string | string[] | boolean;
+    /** On remove item */
+    onremoveitem?: (el: HTMLElement, instance: Tags, node: object) => void;
     /** Method to be execute when the user reach the limit number entries */
     onlimit?: (instance: Tags, limit: number) => void;
     /** Method to be execute when on changed */
