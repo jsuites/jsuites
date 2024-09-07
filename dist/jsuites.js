@@ -12780,7 +12780,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.5.0',
+    version: '5.5.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -12841,6 +12841,12 @@ jSuites.sha512 = (sha512_default());
 const Events = function() {
 
     tracking.state = [];
+
+    // Block event to run twice
+    if (window['jSuitesEvents'] === true) {
+        return;
+    }
+    window['jSuitesEvents'] = true;
 
     const find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -13288,15 +13294,10 @@ const Events = function() {
     document.addEventListener('keydown', keyDown);
     document.addEventListener('contextmenu', contextMenu);
     document.addEventListener('input', input);
-
-    // Block same events twice
-    window['jSuitesEvents'] = true;
 }
 
 if (typeof(document) !== "undefined" && ! tracking.state) {
-    if (typeof(window['jSuitesEvents']) === "undefined") {
-        Events();
-    }
+    Events();
 }
 
 /* harmony default export */ var jsuites = (jSuites);
