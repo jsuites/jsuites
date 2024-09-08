@@ -6131,12 +6131,12 @@ function Dropdown() {
                 onfocus: null,
                 onblur: null,
                 oninsert: null,
-                onbeforeinput: null,
                 onbeforeinsert: null,
                 onsearch: null,
                 onbeforesearch: null,
                 sortResults: false,
                 autofocus: false,
+                prompt: null,
             }
 
             // Loop through our object
@@ -6446,34 +6446,11 @@ function Dropdown() {
             }
         }
 
-        /**
-         * Add a new item
-         * @param {string} title - title of the new item
-         * @param {string} id - value/id of the new item
-         */
-        obj.add = async function (title, id) {
-            if (typeof (obj.options.onbeforeinput) == 'function') {
-                let ret = await obj.options.onbeforeinput(obj, title);
-                if (ret === false) {
-                    return false;
-                } else if (ret) {
-                    if (typeof(ret) === 'object') {
-                        if (ret.title) {
-                            title = ret.title;
-                        }
-                        if (ret.id) {
-                            id = ret.id;
-                        }
-                    } else {
-                        title = ret;
-                    }
-                }
-            }
-
+        const add = function(title, id) {
             if (! title) {
-                var current = obj.options.autocomplete == true ? obj.header.value : '';
-                var title = prompt(dictionary.translate('Add A New Option'), current);
-                if (!title) {
+                let current = obj.options.autocomplete == true ? obj.header.value : '';
+                title = prompt(dictionary.translate('Add A New Option'), current);
+                if (! title) {
                     return false;
                 }
             }
@@ -6531,6 +6508,18 @@ function Dropdown() {
             }
 
             return item;
+        }
+
+        /**
+         * Add a new item
+         * @param {string} title - title of the new item
+         * @param {string} id - value/id of the new item
+         */
+        obj.add = function (title, id) {
+            if (typeof (obj.options.prompt) == 'function') {
+                return obj.options.prompt.call(obj, add);
+            }
+            return add(title, id);
         }
 
         /**
@@ -12780,7 +12769,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.5.1',
+    version: '5.5.2',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

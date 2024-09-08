@@ -75,12 +75,12 @@ interface DropdownOptions {
     onbeforesearch?: (obj: Dropdown, ajaxRequest: object) => boolean | null;
     /** Event handler for processing search results */
     onsearch?: (obj: Dropdown, result: object) => void;
-    /** Before adding a new element to the dropdown. This is async method */
-    onbeforeinput?: (obj: Dropdown, title: string) => string | Item;
     /** Toggles the sorting of dropdown elements */
     sortResults?: boolean;
     /** Indicates if the dropdown should automatically receive focus upon creation */
     autofocus?: boolean;
+    /** Custom prompt on insert new items */
+    prompt?: (addNewRow: (title: string, id: any) => void) => boolean;
 }
 
 interface ItemContainer {
