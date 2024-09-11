@@ -75,7 +75,7 @@ describe('dropdown', () => {
         expect(dd.getPosition('Hammersmith and Fulham')).toBe(3)
     })
 
-    test('dropdown onbeforeinput', async () => {
+    test('dropdown prompt', async () => {
         document.body.innerHTML = '<div id="myDiv"></div>';
         let div = document.getElementById('myDiv');
 
@@ -86,9 +86,10 @@ describe('dropdown', () => {
                 { value:'1', text: 'Tomatoes' },
             ],
             newOptions: true,
-            onbeforeinput: async function() {
+            prompt: function(addNewItem) {
+                addNewItem('Apples', 1000);
+
                 executedEvent = true;
-                return 'Apples';
             }
         })
 

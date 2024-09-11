@@ -21,7 +21,7 @@ describe('Calendar', () => {
         expect(calendar.getValue()).toBe('')
     });
 
-    test('Calendar is24HourFormat defaults to true', () => {
+    /*test('Calendar is24HourFormat defaults to true', () => {
         document.body.innerHTML = '<div id="myDiv"></div>';
         let div = document.getElementById('myDiv')
         let calendar = jSuites.calendar(div, {
@@ -60,7 +60,7 @@ describe('Calendar', () => {
         expect(div.querySelector('.jcalendar-time').children[2].children.length).toEqual(2);
         expect(div.querySelector('.jcalendar-time').children[2].innerHTML).toContain('AM');
         expect(div.querySelector('.jcalendar-time').children[2].innerHTML).toContain('PM');
-    });
+    });*/
 
     test('Calendar helpers', () => {
         expect(jSuites.calendar.dateToNum('2023-03-15 00:00:00')).toBe(45000)

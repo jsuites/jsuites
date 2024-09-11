@@ -1405,6 +1405,8 @@ function Mask() {
         text: [ '@' ],
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
+        // Scientific
+        scientific: [ '0{1}(.{1}0+)?E{1}\\+0+' ],
         // Percentage
         percentage: [ '0{1}(.{1}0+)?%' ],
         // Number
@@ -1487,7 +1489,7 @@ function Mask() {
     }
 
     var isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === 'numeric' ? true : false;
+        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
     }
 
     /**
@@ -2160,6 +2162,9 @@ function Mask() {
                 this.values[this.index] = '-' + this.values[this.index];
             }
         },
+        '0{1}(.{1}0+)?E{1}\\+0+': function(v) {
+            parser['0{1}(.{1}0+)?'].call(this, v);
+        },
         '0{1}(.{1}0+)?%': function(v) {
             parser['0{1}(.{1}0+)?'].call(this, v);
 
@@ -2271,7 +2276,7 @@ function Mask() {
         if (this.type == 'general') {
             var t = [].concat(tokens.general);
         } else {
-            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.numeric, tokens.text, tokens.general);
+            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
         }
         // Expression to extract all tokens from the string
         var e = new RegExp(t.join('|'), 'gi');
@@ -2292,7 +2297,7 @@ function Mask() {
         } else if (this.type == 'datetime') {
             var types = [ 'numeric', 'datetime', 'general' ];
         } else {
-            var types = [ 'currency', 'percentage', 'numeric', 'general' ];
+            var types = [ 'currency', 'percentage', 'scientific', 'numeric', 'general' ];
         }
 
         // Found
@@ -2754,6 +2759,12 @@ function Mask() {
             } else {
                 value = extractDate.call(o);
             }
+        } else if (type === 'scientific') {
+            value = v;
+            if (typeof(v) === 'string') {
+                value = Number(value);
+            }
+            var o = options;
         } else {
             value = Extract.call(options, v);
             // Percentage
@@ -2835,29 +2846,49 @@ function Mask() {
                 fillWithBlanks = true;
             }
         } else {
+            // Parse number
+            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
+                value = Number(value);
+            }
             // Percentage
             if (type === 'percentage') {
                 value = obj.adjustPrecision(value*100);
             }
+
             // Number of decimal places
             if (typeof(value) === 'number') {
                 var t = null;
-                if (options.mask && fullMask && ((''+value).indexOf('e') === -1)) {
+                if (options.mask && fullMask) {
                     var d = getDecimal.call(options, options.mask);
-                    if (options.mask.indexOf(d) !== -1) {
-                        d = options.mask.split(d);
-                        d = (''+d[1].match(/[0-9]+/g))
-                        d = d.length;
-                        t = value.toFixed(d);
-                        let n = value.toString().split('.');
-                        let fraction = n[1];
-                        if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
-                            t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
+                    if (type === 'scientific') {
+                        if (options.mask.indexOf(d) !== -1) {
+                            let exp = options.mask.split('E');
+                            exp = exp[0].split(d);
+                            exp = ('' + exp[1].match(/[0-9]+/g))
+                            exp = exp.length;
+                            t = value.toExponential(exp);
                         } else {
-                            t = value.toFixed(d);
+                            t = value.toExponential(0);
                         }
                     } else {
-                        t = value.toFixed(0);
+                        if (options.mask.indexOf(d) !== -1) {
+                            d = options.mask.split(d);
+                            d = (''+d[1].match(/[0-9]+/g))
+                            d = d.length;
+                            t = value.toFixed(d);
+                            let n = value.toString().split('.');
+                            let fraction = n[1];
+                            if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
+                                t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
+                            }
+                        } else {
+                            t = value.toFixed(0);
+                        }
+
+                        // Handle scientific notation
+                        if ((''+t).indexOf('e') !== -1) {
+                            t = toPlainString(t);
+                        }
                     }
                 } else if (options.locale && fullMask) {
                     // Append zeros
@@ -2908,6 +2939,14 @@ function Mask() {
                 for (var i = 0; i < s; i++) {
                     value += ' ';
                 }
+            }
+        }
+
+        if (type === 'scientific') {
+            if (! fullMask) {
+                value = toPlainString(value);
+            } else {
+                return value;
             }
         }
 
@@ -12764,18 +12803,18 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jSuites = {
+var jsuites_jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.5.2',
+    version: '5.6.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jSuites[k[i]] = o[k[i]];
+                jsuites_jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -12810,8 +12849,8 @@ var jSuites = {
 }
 
 // Legacy
-jSuites.image = Upload;
-jSuites.image.create = function(data) {
+jsuites_jSuites.image = Upload;
+jsuites_jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -12821,9 +12860,9 @@ jSuites.image.create = function(data) {
     return img;
 }
 
-jSuites.tracker = plugins_form;
-jSuites.loading = animation.loading;
-jSuites.sha512 = (sha512_default());
+jsuites_jSuites.tracker = plugins_form;
+jsuites_jSuites.loading = animation.loading;
+jsuites_jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -12924,7 +12963,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -13110,7 +13149,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jSuites.findElement(element, 'jpanel');
+            let item = jsuites_jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -13170,7 +13209,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -13228,7 +13267,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jSuites.findElement(e.target, function(o) {
+            item = jsuites_jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -13271,7 +13310,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jSuites.mask(e);
+            jsuites_jSuites.mask(e);
         }
     }
 
@@ -13289,7 +13328,7 @@ if (typeof(document) !== "undefined" && ! tracking.state) {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jSuites);
+/* harmony default export */ var jsuites = (jsuites_jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()
