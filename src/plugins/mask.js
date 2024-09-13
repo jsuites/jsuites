@@ -1485,7 +1485,9 @@ function Mask() {
                                 t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
                             }
                         } else {
-                            t = value.toFixed(0);
+                            if (value.toString().indexOf(d) !== -1) {
+                                t = value.toFixed(0);
+                            }
                         }
 
                         // Handle scientific notation
