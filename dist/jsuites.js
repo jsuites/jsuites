@@ -4537,6 +4537,8 @@ function Tabs(el, options) {
 
     // Set value
     obj.open = function(index) {
+        // This is to force safari to update the children
+        const items = Array.from(obj.content.children);
         if (! obj.content.children[index]) {
             return;
         }
@@ -12810,7 +12812,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.6.0',
+    version: '5.6.2',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
