@@ -4,15 +4,23 @@
     global.menu = factory();
 }(this, (function () {
 
-    const slideLeft = function(element, direction, done) {
-        if (direction === true) {
-            if (typeof(done) == 'function') {
-                done();
-            }
+    const slideLeft = function (element, direction, done) {
+        if (direction) {
+            element.classList.add('jslide-left-in');
+            setTimeout(function () {
+                element.classList.remove('jslide-left-in');
+                if (typeof (done) == 'function') {
+                    done();
+                }
+            }, 400);
         } else {
-            if (typeof(done) == 'function') {
-                done();
-            }
+            element.classList.add('jslide-left-out');
+            setTimeout(function () {
+                element.classList.remove('jslide-left-out');
+                if (typeof (done) == 'function') {
+                    done();
+                }
+            }, 400);
         }
     }
 
@@ -194,21 +202,27 @@
             } else if (e.target.tagName === 'A') {
                 // Mark link as selected
                 obj.select(e.target, e);
+            } else {
+                // Get target info
+                let rect = el.getBoundingClientRect();
+                let x;
+                let y;
+
+                if (e.changedTouches && e.changedTouches[0]) {
+                    x = e.changedTouches[0].clientX;
+                    y = e.changedTouches[0].clientY;
+                } else {
+                    x = e.clientX;
+                    y = e.clientY;
+                }
+
+                if (rect.width - (x - rect.left) < 45 && (y - rect.top) < 45) {
+                    obj.hide();
+                }
             }
         }
 
         el.addEventListener('click', action);
-
-        // Add close action
-        if (el.innerText) {
-            let i = document.createElement('i');
-            i.className = 'material-icons small-screen-only close';
-            i.innerText = 'close';
-            i.onclick = function () {
-                obj.hide();
-            }
-            el.appendChild(i);
-        }
 
         // Add menu class
         el.classList.add('jmenu');
