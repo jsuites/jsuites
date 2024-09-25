@@ -1,18 +1,18 @@
  const Tracking = function(component, state) {
     if (state === true) {
-        Tracking.state = Tracking.state.filter(function(v) {
+        window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
             return v !== null;
         });
 
         // Start after all events
         setTimeout(function() {
-            Tracking.state.push(component);
+            window['jSuitesStateControl'].push(component);
         }, 0);
 
     } else {
-        var index = Tracking.state.indexOf(component);
+        var index = window['jSuitesStateControl'].indexOf(component);
         if (index >= 0) {
-            Tracking.state.splice(index, 1);
+            window['jSuitesStateControl'].splice(index, 1);
         }
     }
 }

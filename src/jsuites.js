@@ -55,7 +55,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.6.2',
+    version: '5.6.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -115,13 +115,12 @@ jSuites.sha512 = sha512;
 /** Core events */
 const Events = function() {
 
-    tracking.state = [];
-
-    // Block event to run twice
-    if (window['jSuitesEvents'] === true) {
+    if (typeof(window['jSuitesStateControl']) === 'undefined') {
+        window['jSuitesStateControl'] = [];
+    } else {
+        // Do nothing
         return;
     }
-    window['jSuitesEvents'] = true;
 
     const find = function(DOMElement, component) {
         if (DOMElement[component.type] && DOMElement[component.type] == component) {
@@ -137,10 +136,11 @@ const Events = function() {
     }
 
     const isOpened = function(e) {
-        if (tracking.state && tracking.state.length > 0) {
-            for (var i = 0; i < tracking.state.length; i++) {
-                if (tracking.state[i] && ! find(e, tracking.state[i])) {
-                    tracking.state[i].close();
+        let state = window['jSuitesStateControl'];
+        if (state && state.length > 0) {
+            for (let i = 0; i < state.length; i++) {
+                if (state[i] && ! find(e, state[i])) {
+                    state[i].close();
                 }
             }
         }
@@ -541,8 +541,9 @@ const Events = function() {
             }
         }
 
-        if (tracking.state && tracking.state.length) {
-            item = tracking.state[tracking.state.length - 1]
+        let state = window['jSuitesStateControl'];
+        if (state && state.length > 0) {
+            item = state[state.length - 1];
             if (item) {
                 if (e.key === "Escape" && typeof(item.isOpened) == 'function' && typeof(item.close) == 'function') {
                     if (item.isOpened()) {
@@ -571,7 +572,7 @@ const Events = function() {
     document.addEventListener('input', input);
 }
 
-if (typeof(document) !== "undefined" && ! tracking.state) {
+if (typeof(document) !== "undefined") {
     Events();
 }
 
