@@ -33,12 +33,12 @@ class MyPlugin {
     }
 }
 
-module.exports = {
+let isProduction = process.env.NODE_ENV === 'production';
+
+const webpack = {
     target: ['web', 'es5'],
-    entry: {
-        'jsuites': './src/jsuites.js',
-    },
-    mode: 'production',
+    entry: { jsuites: isProduction ? './src/jsuites.js' : './src/index.js' },
+    mode: isProduction ? 'production' : 'development',
     output: {
         library: 'jSuites',
         path: path.resolve(__dirname, 'dist'),
@@ -50,23 +50,20 @@ module.exports = {
             {
                 test: /\.css$/,
                 use: [
-                    MiniCssExtractPlugin.loader,
-                    'css-loader'
+                    isProduction ? MiniCssExtractPlugin.loader : "style-loader",
+                    "css-loader"
                 ],
             }
         ],
     },
-    plugins: [
-        new MiniCssExtractPlugin({ filename: "[name].css" }),
-        new CopyPlugin({
-           patterns: [
-               { from: '**/*.d.ts', context: 'src' }
-           ]
-        }),
-        new MyPlugin(),
-    ],
+    plugins: [],
     optimization: {
         minimize: false
+    },
+    performance: {
+        hints: false, // Disable all performance hints (warnings)
+        maxAssetSize: 512000, // Customize asset size limit (in bytes)
+        maxEntrypointSize: 512000, // Customize entrypoint size limit (in bytes)
     },
     devServer: {
         static : {
@@ -85,3 +82,19 @@ module.exports = {
     },
     stats: { warnings: false },
 }
+
+if (isProduction) {
+    webpack.plugins.push(
+        new CopyPlugin({
+            patterns: [
+                { from: '**/*.d.ts', context: 'src' }
+            ]
+        })
+    );
+    webpack.plugins.push(
+        new MiniCssExtractPlugin({ filename: "[name].css" })
+    );
+    webpack.plugins.push(new MyPlugin());
+}
+
+module.exports = webpack;
