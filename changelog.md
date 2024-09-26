@@ -1,3 +1,7 @@
+# 5.6.4
+
+- Sanitize HTML from paste on editor and tags plugins;
+
 # 5.5.2
 
 - Replace onbeforeinput to prompt;
