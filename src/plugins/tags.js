@@ -361,7 +361,7 @@ export default function Tags(el, options) {
 
     var createElement = function(label, value, node) {
         var div = document.createElement('div');
-        div.innerHTML = label ? label : '';
+        div.textContent = label ? label : '';
         if (value) {
             div.setAttribute('data-value', value);
         }
