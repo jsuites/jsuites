@@ -8906,86 +8906,85 @@ function Editor() {
             helpers.click(obj.file);
         }
 
-        // Elements to be removed
-        var remove = [
-            HTMLUnknownElement,
-            HTMLAudioElement,
-            HTMLEmbedElement,
-            HTMLIFrameElement,
-            HTMLTextAreaElement,
-            HTMLInputElement,
-            HTMLScriptElement
+        // Valid tags
+        const validTags = [
+            'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+            'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
+            'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+            'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
+            'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
+            'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
+            'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
         ];
-
         // Valid properties
-        var validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
-
+        const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
         // Valid CSS attributes
-        var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
+        const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
 
-        var parse = function(element) {
-           // Remove attributes
-           if (element.attributes && element.attributes.length) {
-               var image = null;
-               var style = null;
-               // Process style attribute
-               var elementStyle = element.getAttribute('style');
-               if (elementStyle) {
-                   style = [];
-                   var t = elementStyle.split(';');
-                   for (var j = 0; j < t.length; j++) {
-                       var v = t[j].trim().split(':');
-                       if (validStyle.indexOf(v[0].trim()) >= 0) {
-                           var k = v.shift();
-                           var v = v.join(':');
-                           style.push(k + ':' + v);
-                       }
-                   }
-               }
-               // Process image
-               if (element.tagName.toUpperCase() == 'IMG') {
-                   if (! obj.options.acceptImages || ! element.src) {
-                       element.parentNode.removeChild(element);
-                   } else {
-                       // Check if is data
-                       element.setAttribute('tabindex', '900');
-                       // Check attributes for persistence
-                       obj.addImage(element.src);
-                   }
-               }
-               // Remove attributes
-               var attr = [];
-               for (var i = 0; i < element.attributes.length; i++) {
-                   attr.push(element.attributes[i].name);
-               }
-               if (attr.length) {
-                   attr.forEach(function(v) {
-                       if (validProperty.indexOf(v) == -1) {
-                           element.removeAttribute(v);
-                       } else {
-                           // Protection XSS
-                           if (element.attributes[i].value.indexOf('<') !== -1) {
-                               element.attributes[i].value.replace('<', '&#60;');
-                           }
-                       }
-                   });
-               }
-               element.style = '';
-               // Add valid style
-               if (style && style.length) {
-                   element.setAttribute('style', style.join(';'));
-               }
-           }
-           // Parse children
-           if (element.children.length) {
-               for (var i = 0; i < element.children.length; i++) {
-                   parse(element.children[i]);
-               }
-           }
-
-           if (remove.indexOf(element.constructor) >= 0) {
-               element.remove();
-           }
+        const parse = function(element) {
+            // Remove elements that are not white-listed
+            if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
+                if (element.innerText) {
+                    element.innerHTML = element.innerText;
+                }
+            }
+            // Remove attributes
+            if (element.attributes && element.attributes.length) {
+                let style = null;
+                // Process style attribute
+                let elementStyle = element.getAttribute('style');
+                if (elementStyle) {
+                    style = [];
+                    let t = elementStyle.split(';');
+                    for (let j = 0; j < t.length; j++) {
+                        let v = t[j].trim().split(':');
+                        if (validStyle.indexOf(v[0].trim()) >= 0) {
+                            let k = v.shift();
+                            v = v.join(':');
+                            style.push(k + ':' + v);
+                        }
+                    }
+                }
+                // Process image
+                if (element.tagName.toUpperCase() === 'IMG') {
+                    if (! obj.options.acceptImages || !element.src) {
+                        element.parentNode.removeChild(element);
+                    } else {
+                        // Check if is data
+                        element.setAttribute('tabindex', '900');
+                        // Check attributes for persistence
+                        obj.addImage(element.src);
+                    }
+                }
+                // Remove attributes
+                let attr = [];
+                for (let i = 0; i < element.attributes.length; i++) {
+                    attr.push(element.attributes[i].name);
+                }
+                if (attr.length) {
+                    attr.forEach(function (v) {
+                        if (validProperty.indexOf(v) === -1) {
+                            element.removeAttribute(v);
+                        } else {
+                            // Protection XSS
+                            if (element.attributes && element.attributes[i] && element.attributes[i].value.indexOf('<') !== -1) {
+                                element.attributes[i].value.replace('<', '&#60;');
+                            }
+                        }
+                    });
+                }
+                element.style = '';
+                // Add valid style
+                if (style && style.length) {
+                    element.setAttribute('style', style.join(';'));
+                }
+            }
+            // Parse children
+            if (element.children.length) {
+                for (let i = element.children.length; i > 0; i--) {
+                    parse(element.children[i - 1]);
+                }
+            }
         }
 
         var select = function(e) {
@@ -9002,9 +9001,9 @@ function Editor() {
             var parser = new DOMParser();
             var d = parser.parseFromString(data, "text/html");
             parse(d);
-            var span = document.createElement('span');
-            span.innerHTML = d.firstChild.innerHTML;
-            return span;
+            var div = document.createElement('div');
+            div.innerHTML = d.firstChild.innerHTML;
+            return div;
         }
 
         var editorPaste = function(e) {
@@ -9035,7 +9034,7 @@ function Editor() {
                             html = html.map(function(v) {
                                 return '<div>' + v + '</div>';
                             });
-                            document.execCommand('insertHtml', false, html.join(''));
+                            document.execCommand('insertText', false, html.join(''));
                         }
                     } else {
                         var d = filter(html);
@@ -12130,7 +12129,7 @@ function Tags(el, options) {
 
     var createElement = function(label, value, node) {
         var div = document.createElement('div');
-        div.innerHTML = label ? label : '';
+        div.textContent = label ? label : '';
         if (value) {
             div.setAttribute('data-value', value);
         }
@@ -12812,7 +12811,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.6.3',
+    version: '5.6.4',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

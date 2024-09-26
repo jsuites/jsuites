@@ -531,19 +531,6 @@ function Editor() {
             Helpers.click(obj.file);
         }
 
-        // Elements to be removed
-        var remove = [
-            HTMLUnknownElement,
-            HTMLAudioElement,
-            HTMLEmbedElement,
-            HTMLIFrameElement,
-            HTMLTextAreaElement,
-            HTMLInputElement,
-            HTMLScriptElement
-        ];
-
-
-
         // Valid tags
         const validTags = [
             'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
