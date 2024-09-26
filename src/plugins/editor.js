@@ -542,75 +542,88 @@ function Editor() {
             HTMLScriptElement
         ];
 
-        // Valid properties
-        var validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
 
+
+        // Valid tags
+        const validTags = [
+            'html','body','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+            'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
+            'figure', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+            'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
+            'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
+            'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
+            'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary'
+        ];
+        // Valid properties
+        const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
         // Valid CSS attributes
-        var validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
+        const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
 
         var parse = function(element) {
-           // Remove attributes
-           if (element.attributes && element.attributes.length) {
-               var image = null;
-               var style = null;
-               // Process style attribute
-               var elementStyle = element.getAttribute('style');
-               if (elementStyle) {
-                   style = [];
-                   var t = elementStyle.split(';');
-                   for (var j = 0; j < t.length; j++) {
-                       var v = t[j].trim().split(':');
-                       if (validStyle.indexOf(v[0].trim()) >= 0) {
-                           var k = v.shift();
-                           var v = v.join(':');
-                           style.push(k + ':' + v);
-                       }
-                   }
-               }
-               // Process image
-               if (element.tagName.toUpperCase() == 'IMG') {
-                   if (! obj.options.acceptImages || ! element.src) {
-                       element.parentNode.removeChild(element);
-                   } else {
-                       // Check if is data
-                       element.setAttribute('tabindex', '900');
-                       // Check attributes for persistence
-                       obj.addImage(element.src);
-                   }
-               }
-               // Remove attributes
-               var attr = [];
-               for (var i = 0; i < element.attributes.length; i++) {
-                   attr.push(element.attributes[i].name);
-               }
-               if (attr.length) {
-                   attr.forEach(function(v) {
-                       if (validProperty.indexOf(v) == -1) {
-                           element.removeAttribute(v);
-                       } else {
-                           // Protection XSS
-                           if (element.attributes[i].value.indexOf('<') !== -1) {
-                               element.attributes[i].value.replace('<', '&#60;');
-                           }
-                       }
-                   });
-               }
-               element.style = '';
-               // Add valid style
-               if (style && style.length) {
-                   element.setAttribute('style', style.join(';'));
-               }
-           }
-           // Parse children
-           if (element.children.length) {
-               for (var i = 0; i < element.children.length; i++) {
-                   parse(element.children[i]);
-               }
-           }
-
-           if (remove.indexOf(element.constructor) >= 0) {
-               element.remove();
-           }
+            console.log(element)
+            // Remove DOM
+            if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
+                element.remove();
+            } else {
+                // Remove attributes
+                if (element.attributes && element.attributes.length) {
+                    var image = null;
+                    var style = null;
+                    // Process style attribute
+                    var elementStyle = element.getAttribute('style');
+                    if (elementStyle) {
+                        style = [];
+                        var t = elementStyle.split(';');
+                        for (var j = 0; j < t.length; j++) {
+                            var v = t[j].trim().split(':');
+                            if (validStyle.indexOf(v[0].trim()) >= 0) {
+                                var k = v.shift();
+                                var v = v.join(':');
+                                style.push(k + ':' + v);
+                            }
+                        }
+                    }
+                    // Process image
+                    if (element.tagName.toUpperCase() == 'IMG') {
+                        if (!obj.options.acceptImages || !element.src) {
+                            element.parentNode.removeChild(element);
+                        } else {
+                            // Check if is data
+                            element.setAttribute('tabindex', '900');
+                            // Check attributes for persistence
+                            obj.addImage(element.src);
+                        }
+                    }
+                    // Remove attributes
+                    var attr = [];
+                    for (var i = 0; i < element.attributes.length; i++) {
+                        attr.push(element.attributes[i].name);
+                    }
+                    if (attr.length) {
+                        attr.forEach(function (v) {
+                            if (validProperty.indexOf(v) == -1) {
+                                element.removeAttribute(v);
+                            } else {
+                                // Protection XSS
+                                if (element.attributes && element.attributes[i] && element.attributes[i].value.indexOf('<') !== -1) {
+                                    element.attributes[i].value.replace('<', '&#60;');
+                                }
+                            }
+                        });
+                    }
+                    element.style = '';
+                    // Add valid style
+                    if (style && style.length) {
+                        element.setAttribute('style', style.join(';'));
+                    }
+                }
+                // Parse children
+                if (element.children.length) {
+                    for (var i = 0; i < element.children.length; i++) {
+                        parse(element.children[i]);
+                    }
+                }
+            }
         }
 
         var select = function(e) {
@@ -660,7 +673,7 @@ function Editor() {
                             html = html.map(function(v) {
                                 return '<div>' + v + '</div>';
                             });
-                            document.execCommand('insertHtml', false, html.join(''));
+                            document.execCommand('insertText', false, html.join(''));
                         }
                     } else {
                         var d = filter(html);
