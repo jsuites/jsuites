@@ -560,7 +560,6 @@ function Editor() {
         const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
 
         var parse = function(element) {
-            console.log(element)
             // Remove DOM
             if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
                 element.remove();
@@ -619,8 +618,8 @@ function Editor() {
                 }
                 // Parse children
                 if (element.children.length) {
-                    for (var i = 0; i < element.children.length; i++) {
-                        parse(element.children[i]);
+                    for (let i = element.children.length; i > 0; i--) {
+                        parse(element.children[i - 1]);
                     }
                 }
             }
