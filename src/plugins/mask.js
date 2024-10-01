@@ -47,7 +47,7 @@ function Mask() {
                 }
             }
             if (this.values[this.index].length == s) {
-                if (s == 2) {
+                if (s === 2) {
                     y = y.substr(0,2) + this.values[this.index];
                 } else if (s == 3) {
                     y = y.substr(0,1) + this.values[this.index];
@@ -75,30 +75,29 @@ function Mask() {
                 this.values[this.index] += v;
                 return;
             }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < a.length; i++) {
-                if (a[i].toLowerCase().indexOf(value) == 0) {
+            let pos = 0;
+            let count = 0;
+            let value = (this.values[this.index] + v).toLowerCase();
+            for (let i = 0; i < a.length; i++) {
+                if (a[i].toLowerCase().indexOf(value) === 0) {
                     pos = i;
                     count++;
                 }
             }
             if (count > 1) {
                 this.values[this.index] += v;
-            } else if (count == 1) {
-                // Jump number of chars
-                var t = (a[pos].length - this.values[this.index].length) - 1;
+            } else if (count === 1) {
+                // Jump a number of chars
+                let t = (a[pos].length - this.values[this.index].length) - 1;
                 this.position += t;
-
                 this.values[this.index] = a[pos];
                 this.index++;
                 return pos;
             }
         },
         'MMM': function(v) {
-            var ret = parseMethods.FIND.call(this, v, months);
-            if (ret !== undefined) {
+            let ret = parseMethods.FIND.call(this, v, months);
+            if (typeof(ret) !== 'undefined') {
                 this.date[1] = ret + 1;
             }
         },
@@ -106,8 +105,8 @@ function Mask() {
             parseMethods['MMM'].call(this, v);
         },
         'MMMM': function(v) {
-            var ret = parseMethods.FIND.call(this, v, monthsFull);
-            if (ret !== undefined) {
+            let ret = parseMethods.FIND.call(this, v, monthsFull);
+            if (typeof(ret) !== 'undefined') {
                 this.date[1] = ret + 1;
             }
         },
