@@ -1,3 +1,7 @@
+# 5.6.5
+
+- Translate calendar strings;
+
 # 5.6.4
 
 - Sanitize HTML from paste on editor and tags plugins;

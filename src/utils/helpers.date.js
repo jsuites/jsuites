@@ -1,4 +1,5 @@
 import Helpers from "./helpers";
+import Dictionary from '../utils/dictionary';
 
 function HelpersDate() {
     var Component = {};
@@ -100,11 +101,40 @@ function HelpersDate() {
         return Component.now(date);
     }
 
-    // Jsuites calendar labels
-    Component.weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    Component.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    Component.weekdaysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    Component.monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    Object.defineProperty(Component, 'weekdays', {
+        get: function () {
+            return weekdays.map(function(v) {
+                return Dictionary.translate(v);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'weekdaysShort', {
+        get: function () {
+            return weekdays.map(function(v) {
+                return Dictionary.translate(v).substring(0,3);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'months', {
+        get: function () {
+            return months.map(function(v) {
+                return Dictionary.translate(v);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'monthsShort', {
+        get: function () {
+            return months.map(function(v) {
+                return Dictionary.translate(v).substring(0,3);
+            });
+        },
+    });
 
     return Component;
 }

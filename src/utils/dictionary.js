@@ -1,5 +1,3 @@
-import HelpersDate from './helpers.date';
-
 // Update dictionary
 var setDictionary = function(d) {
     if (! document.dictionary) {
@@ -11,22 +9,6 @@ var setDictionary = function(d) {
     var k = Object.keys(d);
     for (i = 0; i < k.length; i++) {
         document.dictionary[k[i]] = d[k[i]];
-    }
-
-    // Translations
-    for (i = 0; i < HelpersDate.weekdays.length; i++) {
-        t =  translate(HelpersDate.weekdays[i]);
-        if (HelpersDate.weekdays[i]) {
-            HelpersDate.weekdays[i] = t;
-            HelpersDate.weekdaysShort[i] = t.substr(0,3);
-        }
-    }
-    for (i = 0; i < HelpersDate.months.length; i++) {
-        t = translate(HelpersDate.months[i]);
-        if (t) {
-            HelpersDate.months[i] = t;
-            HelpersDate.monthsShort[i] = t.substr(0,3);
-        }
     }
 }
 

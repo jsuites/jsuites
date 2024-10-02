@@ -367,6 +367,53 @@ __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ jsuites; }
 });
 
+;// CONCATENATED MODULE: ./src/utils/dictionary.js
+// Update dictionary
+var setDictionary = function(d) {
+    if (! document.dictionary) {
+        document.dictionary = {}
+    }
+    // Replace the key into the dictionary and append the new ones
+    var t = null;
+    var i = null;
+    var k = Object.keys(d);
+    for (i = 0; i < k.length; i++) {
+        document.dictionary[k[i]] = d[k[i]];
+    }
+}
+
+// Translate
+var translate = function(t) {
+    if (typeof(document) !== "undefined" && document.dictionary) {
+        return document.dictionary[t] || t;
+    } else {
+        return t;
+    }
+}
+
+
+/* harmony default export */ var dictionary = ({ setDictionary, translate });
+;// CONCATENATED MODULE: ./src/utils/tracking.js
+ const Tracking = function(component, state) {
+    if (state === true) {
+        window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
+            return v !== null;
+        });
+
+        // Start after all events
+        setTimeout(function() {
+            window['jSuitesStateControl'].push(component);
+        }, 0);
+
+    } else {
+        var index = window['jSuitesStateControl'].indexOf(component);
+        if (index >= 0) {
+            window['jSuitesStateControl'].splice(index, 1);
+        }
+    }
+}
+
+/* harmony default export */ var tracking = (Tracking);
 ;// CONCATENATED MODULE: ./src/utils/helpers.js
 var Helpers = {};
 
@@ -526,184 +573,6 @@ Helpers.findElement = function(element, condition) {
 }
 
 /* harmony default export */ var helpers = (Helpers);
-;// CONCATENATED MODULE: ./src/utils/helpers.date.js
-
-
-function HelpersDate() {
-    var Component = {};
-
-    Component.now = function (date, dateOnly) {
-        var y = null;
-        var m = null;
-        var d = null;
-        var h = null;
-        var i = null;
-        var s = null;
-
-        if (Array.isArray(date)) {
-            y = date[0];
-            m = date[1];
-            d = date[2];
-            h = date[3];
-            i = date[4];
-            s = date[5];
-        } else {
-            if (! date) {
-                date = new Date();
-            }
-            y = date.getFullYear();
-            m = date.getMonth() + 1;
-            d = date.getDate();
-            h = date.getHours();
-            i = date.getMinutes();
-            s = date.getSeconds();
-        }
-
-        if (dateOnly == true) {
-            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d);
-        } else {
-            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d) + ' ' + helpers.two(h) + ':' + helpers.two(i) + ':' + helpers.two(s);
-        }
-    }
-
-    Component.toArray = function (value) {
-        var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
-        var time = date[1];
-        var date = date[0].split('-');
-        var y = parseInt(date[0]);
-        var m = parseInt(date[1]);
-        var d = parseInt(date[2]);
-        var h = 0;
-        var i = 0;
-
-        if (time) {
-            time = time.split(':');
-            h = parseInt(time[0]);
-            i = parseInt(time[1]);
-        }
-        return [y, m, d, h, i, 0];
-    }
-
-    var excelInitialTime = Date.UTC(1900, 0, 0);
-    var excelLeapYearBug = Date.UTC(1900, 1, 29);
-    var millisecondsPerDay = 86400000;
-
-    /**
-     * Date to number
-     */
-    Component.dateToNum = function (jsDate) {
-        if (typeof (jsDate) === 'string') {
-            jsDate = new Date(jsDate + '  GMT+0');
-        }
-        var jsDateInMilliseconds = jsDate.getTime();
-        if (jsDateInMilliseconds >= excelLeapYearBug) {
-            jsDateInMilliseconds += millisecondsPerDay;
-        }
-        jsDateInMilliseconds -= excelInitialTime;
-
-        return jsDateInMilliseconds / millisecondsPerDay;
-    }
-
-    /**
-     * Number to date
-     *
-     * IMPORTANT: Excel incorrectly considers 1900 to be a leap year
-     */
-    Component.numToDate = function (excelSerialNumber) {
-        var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
-        if (jsDateInMilliseconds >= excelLeapYearBug) {
-            jsDateInMilliseconds -= millisecondsPerDay;
-        }
-
-        const d = new Date(jsDateInMilliseconds);
-
-        var date = [
-            d.getUTCFullYear(),
-            d.getUTCMonth() + 1,
-            d.getUTCDate(),
-            d.getUTCHours(),
-            d.getUTCMinutes(),
-            d.getUTCSeconds(),
-        ];
-
-        return Component.now(date);
-    }
-
-    // Jsuites calendar labels
-    Component.weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    Component.months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-    Component.weekdaysShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-    Component.monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-
-    return Component;
-}
-
-/* harmony default export */ var helpers_date = (HelpersDate());
-;// CONCATENATED MODULE: ./src/utils/dictionary.js
-
-
-// Update dictionary
-var setDictionary = function(d) {
-    if (! document.dictionary) {
-        document.dictionary = {}
-    }
-    // Replace the key into the dictionary and append the new ones
-    var t = null;
-    var i = null;
-    var k = Object.keys(d);
-    for (i = 0; i < k.length; i++) {
-        document.dictionary[k[i]] = d[k[i]];
-    }
-
-    // Translations
-    for (i = 0; i < helpers_date.weekdays.length; i++) {
-        t =  translate(helpers_date.weekdays[i]);
-        if (helpers_date.weekdays[i]) {
-            helpers_date.weekdays[i] = t;
-            helpers_date.weekdaysShort[i] = t.substr(0,3);
-        }
-    }
-    for (i = 0; i < helpers_date.months.length; i++) {
-        t = translate(helpers_date.months[i]);
-        if (t) {
-            helpers_date.months[i] = t;
-            helpers_date.monthsShort[i] = t.substr(0,3);
-        }
-    }
-}
-
-// Translate
-var translate = function(t) {
-    if (typeof(document) !== "undefined" && document.dictionary) {
-        return document.dictionary[t] || t;
-    } else {
-        return t;
-    }
-}
-
-
-/* harmony default export */ var dictionary = ({ setDictionary, translate });
-;// CONCATENATED MODULE: ./src/utils/tracking.js
- const Tracking = function(component, state) {
-    if (state === true) {
-        window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
-            return v !== null;
-        });
-
-        // Start after all events
-        setTimeout(function() {
-            window['jSuitesStateControl'].push(component);
-        }, 0);
-
-    } else {
-        var index = window['jSuitesStateControl'].indexOf(component);
-        if (index >= 0) {
-            window['jSuitesStateControl'].splice(index, 1);
-        }
-    }
-}
-
-/* harmony default export */ var tracking = (Tracking);
 ;// CONCATENATED MODULE: ./src/utils/path.js
 function Path(str, val, remove) {
     str = str.split('.');
@@ -1394,6 +1263,149 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
+;// CONCATENATED MODULE: ./src/utils/helpers.date.js
+
+
+
+function HelpersDate() {
+    var Component = {};
+
+    Component.now = function (date, dateOnly) {
+        var y = null;
+        var m = null;
+        var d = null;
+        var h = null;
+        var i = null;
+        var s = null;
+
+        if (Array.isArray(date)) {
+            y = date[0];
+            m = date[1];
+            d = date[2];
+            h = date[3];
+            i = date[4];
+            s = date[5];
+        } else {
+            if (! date) {
+                date = new Date();
+            }
+            y = date.getFullYear();
+            m = date.getMonth() + 1;
+            d = date.getDate();
+            h = date.getHours();
+            i = date.getMinutes();
+            s = date.getSeconds();
+        }
+
+        if (dateOnly == true) {
+            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d);
+        } else {
+            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d) + ' ' + helpers.two(h) + ':' + helpers.two(i) + ':' + helpers.two(s);
+        }
+    }
+
+    Component.toArray = function (value) {
+        var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
+        var time = date[1];
+        var date = date[0].split('-');
+        var y = parseInt(date[0]);
+        var m = parseInt(date[1]);
+        var d = parseInt(date[2]);
+        var h = 0;
+        var i = 0;
+
+        if (time) {
+            time = time.split(':');
+            h = parseInt(time[0]);
+            i = parseInt(time[1]);
+        }
+        return [y, m, d, h, i, 0];
+    }
+
+    var excelInitialTime = Date.UTC(1900, 0, 0);
+    var excelLeapYearBug = Date.UTC(1900, 1, 29);
+    var millisecondsPerDay = 86400000;
+
+    /**
+     * Date to number
+     */
+    Component.dateToNum = function (jsDate) {
+        if (typeof (jsDate) === 'string') {
+            jsDate = new Date(jsDate + '  GMT+0');
+        }
+        var jsDateInMilliseconds = jsDate.getTime();
+        if (jsDateInMilliseconds >= excelLeapYearBug) {
+            jsDateInMilliseconds += millisecondsPerDay;
+        }
+        jsDateInMilliseconds -= excelInitialTime;
+
+        return jsDateInMilliseconds / millisecondsPerDay;
+    }
+
+    /**
+     * Number to date
+     *
+     * IMPORTANT: Excel incorrectly considers 1900 to be a leap year
+     */
+    Component.numToDate = function (excelSerialNumber) {
+        var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
+        if (jsDateInMilliseconds >= excelLeapYearBug) {
+            jsDateInMilliseconds -= millisecondsPerDay;
+        }
+
+        const d = new Date(jsDateInMilliseconds);
+
+        var date = [
+            d.getUTCFullYear(),
+            d.getUTCMonth() + 1,
+            d.getUTCDate(),
+            d.getUTCHours(),
+            d.getUTCMinutes(),
+            d.getUTCSeconds(),
+        ];
+
+        return Component.now(date);
+    }
+
+    let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    Object.defineProperty(Component, 'weekdays', {
+        get: function () {
+            return weekdays.map(function(v) {
+                return dictionary.translate(v);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'weekdaysShort', {
+        get: function () {
+            return weekdays.map(function(v) {
+                return dictionary.translate(v).substring(0,3);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'months', {
+        get: function () {
+            return months.map(function(v) {
+                return dictionary.translate(v);
+            });
+        },
+    });
+
+    Object.defineProperty(Component, 'monthsShort', {
+        get: function () {
+            return months.map(function(v) {
+                return dictionary.translate(v).substring(0,3);
+            });
+        },
+    });
+
+    return Component;
+}
+
+/* harmony default export */ var helpers_date = (HelpersDate());
 ;// CONCATENATED MODULE: ./src/plugins/mask.js
 
 
@@ -12811,7 +12823,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.6.4',
+    version: '5.6.5',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
