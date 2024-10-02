@@ -121,9 +121,9 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
+            let pos = 0;
+            let count = 0;
+            let value = (this.values[this.index] + v).toLowerCase();
             for (var i = 0; i < monthsFull.length; i++) {
                 if (monthsFull[i][0].toLowerCase().indexOf(value) == 0) {
                     this.values[this.index] = monthsFull[i][0];
@@ -152,7 +152,7 @@ function Mask() {
             }
         },
         'M': function(v) {
-            var test = false;
+            let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (isBlank(this.values[this.index])) {
                     this.values[this.index] = v;
@@ -168,16 +168,16 @@ function Mask() {
                         this.date[1] = this.values[this.index] += v;
                         this.index++;
                     } else {
-                        var test = true;
+                        test = true;
                     }
                 }
             } else {
-                var test = true;
+                test = true;
             }
 
             // Re-test
             if (test == true) {
-                var t = parseInt(this.values[this.index]);
+                const t = parseInt(this.values[this.index]);
                 if (t > 0 && t < 12) {
                     this.date[1] = this.values[this.index];
                     this.index++;
@@ -187,7 +187,7 @@ function Mask() {
             }
         },
         'D': function(v) {
-            var test = false;
+            let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (isBlank(this.values[this.index])) {
                     this.values[this.index] = v;
@@ -206,11 +206,11 @@ function Mask() {
                         this.date[2] = this.values[this.index] += v;
                         this.index++;
                     } else {
-                        var test = true;
+                        test = true;
                     }
                 }
             } else {
-                var test = true;
+                test = true;
             }
 
             // Re-test
@@ -377,8 +377,38 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '0+(\\.{1}0+)?': function() {
+        '0+(\\.{1}0+)?': function(v) {
+            // For now im assuming the separator is always this one, but finding the separator correct is key
+            const decimalSeparator = '.';
+            const exceptions = ['-', decimalSeparator];
+            let negative = false;
 
+            if (isBlank(this.values[this.index])) {
+                this.values[this.index] = '';
+            };
+
+            if (this.values[this.index].includes('-')) {
+                if (v === '-') {
+                    return;
+                }
+
+                negative = true;
+            } else if (v === '-') {
+                negative = true;
+            }
+
+            // Exits in case separator repeats
+            if (v === decimalSeparator && this.values[this.index].includes(decimalSeparator)) {
+                return;
+            }
+            
+            // Exits in case v has an invalid value
+            if (!exceptions.includes(v) && isNaN(v)) {
+                return;
+            }
+
+            // Add value to the values if it is a valid entry
+            this.values[this.index] += v;
         },
         // General Methods
         '0': function(v) {
@@ -391,9 +421,9 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            var t = this.tokens[this.index];
-            var s = this.values[this.index];
-            var i = s.length;
+            const t = this.tokens[this.index];
+            const s = this.values[this.index];
+            const i = s.length;
 
             if (t[i] == v) {
                 this.values[this.index] += v;
@@ -543,8 +573,6 @@ function Mask() {
                 }
                 control.position++;
             }
-
-            console.log(control)
         }
 
         return control;
