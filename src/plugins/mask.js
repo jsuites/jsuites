@@ -1,13 +1,15 @@
 import Helpers from '../utils/helpers';
 import HelpersDate from '../utils/helpers.date';
 
+
+
 function Mask() {
     // Currency
     const tokens = {
         // Text
         text: [ '@' ],
         // Currency tokens
-        currency: [ '#(\\.{1})##0?(\\.{1}0+)?( ?;(.*)?)?', '#' ],
+        currency: [ '#(\\.{1})##0?(\\.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
         scientific: [ '0+(\\.{1}0+)?E{1}\\+0+' ],
         // Percentage
@@ -35,6 +37,7 @@ function Mask() {
      * Methods to deal with different types of data
      */
     const parseMethods = {
+        // Methods related to date mask
         'YEAR': function(v, s) {
             let y = new Date().getFullYear().toString();
 
@@ -71,6 +74,7 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
+            // TODO: tratar eventos
             if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
                 this.values[this.index] += v;
                 return;
@@ -372,6 +376,11 @@ function Mask() {
                 this.index++;
             }
         },
+        // Numeric Methods
+        '0+(\\.{1}0+)?': function() {
+
+        },
+        // General Methods
         '0': function(v) {
             if (v.match(/[0-9]/g)) {
                 this.values[this.index] = v;
@@ -525,18 +534,17 @@ function Mask() {
             control.methods = getMethodsFromTokens(control.tokens);
             // Walk every character on the value
             // Go through all tokes
-            while (control.position < control.value.length && typeof(control.tokens[control.index]) !== 'undefined') {
+            while (control.position < control.value.length) {
                 // Get the method name to handle the current token
                 let methodName = control.methods[control.index];
                 // If that is a function
                 if (typeof(parseMethods[methodName]) == 'function') {
                     parseMethods[methodName].call(control, control.value[control.position]);
-                    control.position++;
-                } else {
-                    control.values[control.index] = control.tokens[control.index];
-                    control.index++;
                 }
+                control.position++;
             }
+
+            console.log(control)
         }
 
         return control;
