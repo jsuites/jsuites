@@ -33,6 +33,56 @@ function Mask() {
         return v === null || v === '' || typeof(v) === 'undefined';
     }
 
+
+    /**
+     * Get the decimal defined in the mask configuration
+     */
+    const getDecimal = function(v) {
+        if (v && Number(v) == v) {
+            return '.';
+        } else {
+            if (this.options.decimal) {
+                return this.options.decimal;
+            } else {
+                if (this.locale) {
+                    var t = Intl.NumberFormat(this.locale).format(1.1);
+                    return this.options.decimal = t[1];
+                } else {
+                    if (! v) {
+                        v  = this.mask;
+                    }
+                    var e = new RegExp('0{1}(.{1})0+', 'ig');
+                    var t = e.exec(v);
+                    if (t && t[1] && t[1].length == 1) {
+                        // Save decimal
+                        this.options.decimal = t[1];
+                        // Return decimal
+                        return t[1];
+                    } else {
+                        // Did not find any decimal last resort the default
+                        var e = new RegExp('#{1}(.{1})#+', 'ig');
+                        var t = e.exec(v);
+                        if (t && t[1] && t[1].length == 1) {
+                            if (t[1] === ',') {
+                                this.options.decimal = '.';
+                            } else {
+                                this.options.decimal = ',';
+                            }
+                        } else {
+                            this.options.decimal = '1.1'.toLocaleString().substring(1,2);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (this.options.decimal) {
+            return this.options.decimal;
+        } else {
+            return null;
+        }
+    }
+
     /**
      * Methods to deal with different types of data
      */
@@ -378,37 +428,54 @@ function Mask() {
         },
         // Numeric Methods
         '0+(\\.{1}0+)?': function(v) {
-            // For now im assuming the separator is always this one, but finding the separator correct is key
-            const decimalSeparator = '.';
-            const exceptions = ['-', decimalSeparator];
-            let negative = false;
+            let decimal = getDecimal.call(this);
 
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
-            };
-
-            if (this.values[this.index].includes('-')) {
-                if (v === '-') {
-                    return;
-                }
-
-                negative = true;
-            } else if (v === '-') {
-                negative = true;
-            }
-
-            // Exits in case separator repeats
-            if (v === decimalSeparator && this.values[this.index].includes(decimalSeparator)) {
-                return;
             }
             
-            // Exits in case v has an invalid value
-            if (!exceptions.includes(v) && isNaN(v)) {
-                return;
-            }
+            if (v === '-') {
+                // Transform the number into negative if it is not already
+                if (this.values[this.index][0] !== '-') {
+                    this.values[this.index] = '-' + this.values[this.index];
+                }
+            } else if (v === '+') {
+                // Transform the number into positive if it is negative
+                if (this.values[this.index][0] === '-') {
+                    this.values[this.index] = this.values[this.index].replace('-', '');
+                }
+            } else if (v === '0') {
+                // Only adds zero if theres a non-zero number before
+                if (this.values[this.index] != '0') {
+                    this.values[this.index] += v;
+                }
+            } else if (v > 0 && v < 10) {
+                // Verify if theres a zero to remove it, avoiding left zeros
+                if (this.values[this.index] == '0') {
+                    this.values[this.index] = this.values[this.index].replace('0', '');
+                }
 
-            // Add value to the values if it is a valid entry
-            this.values[this.index] += v;
+                this.values[this.index] += v;
+            } else if (v === decimal) {
+                // Only adds decimal when theres a number value on its left
+                if (! this.values[this.index].includes(decimal) && this.values[this.index].replace('-', '').length > 0) {
+                    this.values[this.index] += v;
+                }
+            }
+        },
+        '0+(\\.{1}0+)?%': function(v) {
+            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+
+            // Adds the % only if it has a number value
+            if (this.values[this.index].match(/[\-0-9]/g)) {
+                if (this.values[this.index].indexOf('%') != -1) {
+                    this.values[this.index] = this.values[this.index].replaceAll('%', '');
+                }
+
+                this.values[this.index] += '%';
+            } else {
+                this.values[this.index] = '';
+            }
         },
         // General Methods
         '0': function(v) {
