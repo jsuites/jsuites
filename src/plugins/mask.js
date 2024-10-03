@@ -473,8 +473,9 @@ function Mask() {
 
             const decimal = getDecimal.call(this);
             const separator = this.tokens[this.index].substr(1,1);
+            const negative = this.values[this.index][0] === '-' ? true : false;
 
-            this.values[this.index] = this.values[this.index].replaceAll(separator, '');
+            this.values[this.index] = this.values[this.index].replaceAll(separator, '').replace('-', '');
 
             let val = this.values[this.index].split(decimal);
 
@@ -485,7 +486,7 @@ function Mask() {
                 }
             }
 
-            this.values[this.index] = val.join(decimal);
+            this.values[this.index] = (negative ? '-' : '') + val.join(decimal);
         },
         // General Methods
         '0': function(v) {
@@ -494,7 +495,7 @@ function Mask() {
                 this.index++;
             }
         },
-        '[0-9a-zA-Z$]+': function(v) {
+        '[0-9a-zA-Z\\$]+': function(v) {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
@@ -525,7 +526,7 @@ function Mask() {
             }
         },
         '.': function(v) {
-            parseMethods['[0-9a-zA-Z$]+'].call(this, v);
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
         },
         '@': function(v) {
             if (isBlank(this.values[this.index])) {
