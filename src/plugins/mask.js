@@ -9,7 +9,7 @@ function Mask() {
         // Text
         text: [ '@' ],
         // Currency tokens
-        currency: [ '#(\\.{1})##0?(\\.{1}0+)?( ?;(.*)?)?' ],
+        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
         // Scientific
         scientific: [ '0+(\\.{1}0+)?E{1}\\+0+' ],
         // Percentage
@@ -51,26 +51,14 @@ function Mask() {
                     if (! v) {
                         v  = this.mask;
                     }
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var t = e.exec(v);
-                    if (t && t[1] && t[1].length == 1) {
+                    var t = v.match(/[.,٫](?=\d{1,14})/g)
+                    if (t) {
                         // Save decimal
-                        this.options.decimal = t[1];
+                        this.options.decimal = t[0];
                         // Return decimal
-                        return t[1];
+                        return t[0];
                     } else {
-                        // Did not find any decimal last resort the default
-                        var e = new RegExp('#{1}(.{1})#+', 'ig');
-                        var t = e.exec(v);
-                        if (t && t[1] && t[1].length == 1) {
-                            if (t[1] === ',') {
-                                this.options.decimal = '.';
-                            } else {
-                                this.options.decimal = ',';
-                            }
-                        } else {
-                            this.options.decimal = '1.1'.toLocaleString().substring(1,2);
-                        }
+                        this.options.decimal = '1.1'.toLocaleString().substring(1,2);
                     }
                 }
             }
@@ -476,6 +464,28 @@ function Mask() {
             } else {
                 this.values[this.index] = '';
             }
+        },
+        '0+(\\.{1}0+)?E{1}\\+0+': function(v) {
+            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+        },
+        '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
+            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+
+            const decimal = getDecimal.call(this);
+            const separator = this.tokens[this.index].substr(1,1);
+
+            this.values[this.index] = this.values[this.index].replaceAll(separator, '');
+
+            let val = this.values[this.index].split(decimal);
+
+            // Add the separator
+            if (val[0].length > 3) {
+                for (let i = val[0].length - 3; i > 0; i -= 3) {
+                    val[0] = val[0].slice(0, i) + separator + val[0].slice(i, val[0].length);
+                }
+            }
+
+            this.values[this.index] = val.join(decimal);
         },
         // General Methods
         '0': function(v) {
