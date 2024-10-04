@@ -572,28 +572,20 @@ function Mask() {
             }
         },
         '[0-9a-zA-Z\\$]+': function(v) {
-            console.log(v)
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
+            // Token to be added to the value
+            let word = this.tokens[this.index];
+            // Only if caret is before the change
+            if (this.caret > this.values.join('').length) {
+                this.caret += word.length;
             }
-            const t = this.tokens[this.index];
-            const s = this.values[this.index];
-            const i = s.length;
-
-            if (t[i] == v) {
-                this.values[this.index] += v;
-
-                if (this.values[this.index] == t) {
-                    this.index++;
-                }
-            } else {
-                this.values[this.index] = t;
-                this.index++;
-
-                if (v.match(/[\-0-9]/g)) {
-                    // Repeat the character
-                    this.position--;
-                }
+            // Add token to the values
+            this.values[this.index] = word;
+            // Next token to process
+            this.index++;
+            // Repeat if is a number
+            if (v.match(/[\-0-9]/g)) {
+                // Repeat the character
+                this.position--;
             }
         },
         'A': function(v) {
@@ -649,7 +641,7 @@ function Mask() {
         for (let i = 0; i < t.length; i++) {
             var m = getMethod.call(this, t[i]);
             if (m) {
-                result.push(m.method);
+                result.push(m);
             } else {
                 result.push(null);
             }
@@ -719,23 +711,28 @@ function Mask() {
             // Walk every character on the value
             while (control.position < control.value.length) {
                 // Get the method name to handle the current token
-                let methodName = control.methods[control.index];
+                let methodName = control.methods[control.index].method;
                 // If that is a function
                 if (typeof(parseMethods[methodName]) == 'function') {
                     parseMethods[methodName].call(control, control.value[control.position]);
                 }
                 control.position++;
             }
-            // Check next token that for any reason has not been processed
-            control.index++
-            // Complement things in the end of the mask
-            while (typeof(control.tokens[control.index]) !== 'undefined') {
 
-                control.values[control.index] = control.tokens[control.index];
-                control.index++;
+            let value = control.values.join('').trim();
+            if (value) {
+                // Complement things in the end of the mask
+                do {
+                    if (control.tokens[control.index]) {
+                        // Get the method name to handle the current token
+                        let methodType = control.methods[control.index].type;
+                        if (methodType === 'general') {
+                            control.values[control.index] = control.tokens[control.index];
+                        }
+                    }
+                    control.index++;
+                } while (control.tokens.length >= control.index);
             }
-
-            console.log(control)
         }
 
         return control;
@@ -759,20 +756,14 @@ function Mask() {
         // Run mask
         let result = Component(value, { mask: mask, caret: caret });
         // New value
-        let newValue = result.values.join('')
+        let newValue = result.values.join('');
         // Apply the result back to the element
-<<<<<<< HEAD
         if (newValue !== value && ! e.inputType.includes('delete')) {
             // Apply value
             element[property] = newValue;
             // Set the caret to the position before transformation
             setCaret.call(element, result.caret, true)
         }
-=======
-        element[property] = result.values.join('');
-        // Set the caret to the checkpoint position
-        setCaret.call(element, caretCheckpoint, true)
->>>>>>> 04d6bb1 (mask)
     }
 
     return Component;
