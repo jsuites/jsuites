@@ -9,7 +9,7 @@ function Mask() {
         // Text
         text: [ '@' ],
         // Currency tokens
-        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
+        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
         scientific: [ '0+(\\.{1}0+)?E{1}\\+0+' ],
         // Percentage
@@ -32,7 +32,6 @@ function Mask() {
     const isBlank = function(v) {
         return v === null || v === '' || typeof(v) === 'undefined';
     }
-
 
     /**
      * Get the decimal defined in the mask configuration
@@ -68,6 +67,83 @@ function Mask() {
             return this.options.decimal;
         } else {
             return null;
+        }
+    }
+
+    /**
+     * Caret position getter
+     * `this` in this function should be the element with a caret
+     */
+    const getCaret = function() {
+        if (this.tagName == 'DIV') {
+            let s = this.getSelection();
+            if (s) {
+                if (s.rangeCount !== 0) {
+                    let r = s.getRangeAt(0);
+                    let p = r.cloneRange();
+                    p.selectNodeContents(e);
+                    p.setEnd(r.endContainer, r.endOffset);
+                    p = p.toString();
+                    if (p) {
+                        pos = p.length;
+                    } else {
+                        pos = e.textContent.length;
+                    }
+                }
+            }
+            return pos;
+        } else {
+            return this.selectionStart;
+        }
+    }
+
+    /**
+     * Caret position setter
+     * `this` in this function should be the element with a caret
+     */
+    const setCaret = function(index, adjustNumeric) {
+        // Get the current value
+        var n = this.value;
+
+        // Review the position
+        if (adjustNumeric) {
+            var p = null;
+            for (var i = 0; i < n.length; i++) {
+                if (n[i].match(/[\-0-9]/g) || n[i] === '.' || n[i] === ',') {
+                    p = i;
+                }
+            }
+        
+            // If the string has no numbers
+            if (p === null) {
+                p = n.indexOf(' ');
+            }
+        
+            if (index >= p) {
+                index = p + 1;
+            }
+        }
+        
+        // Do not update caret
+        if (index > n.length) {
+            index = n.length;
+        }
+        
+        if (!isNaN(index) && index >= 0) {
+            // Set caret
+            if (this.tagName == 'DIV') {
+                var s = window.getSelection();
+                var r = document.createRange();
+        
+                if (this.childNodes[0]) {
+                    r.setStart(this.childNodes[0], index);
+                    s.removeAllRanges();
+                    s.addRange(r);
+                }
+            } else {
+                this.selectionStart = index;
+                this.selectionEnd = index;
+            }
         }
     }
 
@@ -598,7 +674,6 @@ function Mask() {
     }
 
     const Component = function(str, config, returnObject) {
-
         // Internal default control of the mask system
         const control = {
             // Current raw value to be masked
@@ -670,10 +745,14 @@ function Mask() {
         let value = element[property];
         // Get the mask
         let mask = element.getAttribute('data-mask');
+        // Keep the current caret position
+        let caretCheckpoint = getCaret.call(element);
         // Run mask
         let result = Component(value, { mask: mask });
         // Apply the result back to the element
         element[property] = result.values.join('');
+        // Set the caret to the position before transformation
+        setCaret.call(element, caretCheckpoint, true)
     }
 
     return Component;
