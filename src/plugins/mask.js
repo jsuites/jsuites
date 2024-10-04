@@ -572,6 +572,7 @@ function Mask() {
             }
         },
         '[0-9a-zA-Z\\$]+': function(v) {
+            console.log(v)
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
@@ -716,7 +717,6 @@ function Mask() {
             // Get methods from the tokens
             control.methods = getMethodsFromTokens(control.tokens);
             // Walk every character on the value
-            // Go through all tokes
             while (control.position < control.value.length) {
                 // Get the method name to handle the current token
                 let methodName = control.methods[control.index];
@@ -726,11 +726,20 @@ function Mask() {
                 }
                 control.position++;
             }
+            // Check next token that for any reason has not been processed
+            control.index++
+            // Complement things in the end of the mask
+            while (typeof(control.tokens[control.index]) !== 'undefined') {
+
+                control.values[control.index] = control.tokens[control.index];
+                control.index++;
+            }
+
+            console.log(control)
         }
 
         return control;
     }
-
 
     Component.onkeydown = function(e) {
         // Element
@@ -746,13 +755,18 @@ function Mask() {
         // Get the mask
         let mask = element.getAttribute('data-mask');
         // Keep the current caret position
-        let caretCheckpoint = getCaret.call(element);
+        let caret = getCaret.call(element);
         // Run mask
-        let result = Component(value, { mask: mask });
+        let result = Component(value, { mask: mask, caret: caret });
+        // New value
+        let newValue = result.values.join('')
         // Apply the result back to the element
-        element[property] = result.values.join('');
-        // Set the caret to the position before transformation
-        setCaret.call(element, caretCheckpoint, true)
+        if (newValue !== value && ! e.inputType.includes('delete')) {
+            // Apply value
+            element[property] = newValue;
+            // Set the caret to the position before transformation
+            setCaret.call(element, result.caret, true)
+        }
     }
 
     return Component;
