@@ -761,12 +761,18 @@ function Mask() {
         // New value
         let newValue = result.values.join('')
         // Apply the result back to the element
+<<<<<<< HEAD
         if (newValue !== value && ! e.inputType.includes('delete')) {
             // Apply value
             element[property] = newValue;
             // Set the caret to the position before transformation
             setCaret.call(element, result.caret, true)
         }
+=======
+        element[property] = result.values.join('');
+        // Set the caret to the checkpoint position
+        setCaret.call(element, caretCheckpoint, true)
+>>>>>>> 04d6bb1 (mask)
     }
 
     return Component;
