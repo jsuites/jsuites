@@ -19,7 +19,7 @@
         "javascript plugins, image cropper, javascript image cropper, javascript image editor, rotate, zoom, crop, brightness, contract."
     ],
     "dependencies": {
-        "jsuites": "^4.9.33"
+        "jsuites": "^5.6.5"
     },
     "main": "timeline.js",
     "version": "1.0.1",

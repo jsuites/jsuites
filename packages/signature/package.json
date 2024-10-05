@@ -19,7 +19,7 @@
         "javascript plugins, signature pad, javascript signature"
     ],
     "dependencies": {
-        "jsuites": "^4.9.28"
+        "jsuites": "^5.6.5"
     },
     "main": "signature.js",
     "version": "1.2.0",

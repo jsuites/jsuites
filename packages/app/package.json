@@ -19,7 +19,7 @@
         "javascript plugins, mobile extension, jSuites SPA builder"
     ],
     "dependencies": {
-        "jsuites": "^4.9.24"
+        "jsuites": "^5.6.5"
     },
     "main": "app.js",
     "version": "1.2.2",

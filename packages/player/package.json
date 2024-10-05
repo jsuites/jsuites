@@ -19,7 +19,7 @@
         "javascript plugins, audio player, javascript player plugin, javascript mp3 player"
     ],
     "dependencies": {
-        "jsuites": "^4.6.3"
+        "jsuites": "^5.6.5"
     },
     "main": "player.js",
     "version": "1.1.0",

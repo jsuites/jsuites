@@ -19,7 +19,7 @@
         "javascript plugins, heatmap, javascript heatmap plugin, github-like activity heatmap chart"
     ],
     "dependencies": {
-        "jsuites": "^4.2.0"
+        "jsuites": "^5.6.5"
     },
     "main": "heatmap.js",
     "version": "1.0.0",
