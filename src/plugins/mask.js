@@ -103,27 +103,8 @@ function Mask() {
      */
     const setCaret = function(index, adjustNumeric) {
         // Get the current value
-        var n = this.value;
+        const n = this.value;
 
-        // Review the position
-        if (adjustNumeric) {
-            var p = null;
-            for (var i = 0; i < n.length; i++) {
-                if (n[i].match(/[\-0-9]/g) || n[i] === '.' || n[i] === ',') {
-                    p = i;
-                }
-            }
-        
-            // If the string has no numbers
-            if (p === null) {
-                p = n.indexOf(' ');
-            }
-        
-            if (index >= p) {
-                index = p + 1;
-            }
-        }
-        
         // Do not update caret
         if (index > n.length) {
             index = n.length;
@@ -132,8 +113,8 @@ function Mask() {
         if (!isNaN(index) && index >= 0) {
             // Set caret
             if (this.tagName == 'DIV') {
-                var s = window.getSelection();
-                var r = document.createRange();
+                const s = window.getSelection();
+                const r = document.createRange();
         
                 if (this.childNodes[0]) {
                     r.setStart(this.childNodes[0], index);
@@ -563,6 +544,10 @@ function Mask() {
             }
 
             this.values[this.index] = (negative ? '-' : '') + val.join(decimal);
+
+            if (this.value.split(separator).length < this.values[this.index].split(separator).length) {
+                this.caret++;
+            }
         },
         // General Methods
         '0': function(v) {
