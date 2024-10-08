@@ -15,7 +15,7 @@ function Mask() {
         // Percentage
         percentage: [ '0+(\\.{1}0+)?%' ],
         // Number
-        numeric: [ '0+(\\.{1}0+)?' ],
+        numeric: [ '0{1}([.,]{1}0+)?' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
@@ -101,7 +101,7 @@ function Mask() {
      * Caret position setter
      * `this` in this function should be the element with a caret
      */
-    const setCaret = function(index, adjustNumeric) {
+    const setCaret = function(index) {
         // Get the current value
         const n = this.value;
 
@@ -472,7 +472,7 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '0+(\\.{1}0+)?': function(v) {
+        '0{1}([.,]{1}0+)?': function(v) {
             let decimal = getDecimal.call(this);
 
             if (isBlank(this.values[this.index])) {
@@ -500,6 +500,7 @@ function Mask() {
                     this.values[this.index] = this.values[this.index].replace('0', '');
                 }
 
+                this.changed = true;
                 this.values[this.index] += v;
             } else if (v === decimal) {
                 // Only adds decimal when theres a number value on its left
@@ -509,7 +510,7 @@ function Mask() {
             }
         },
         '0+(\\.{1}0+)?%': function(v) {
-            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
 
             // Adds the % only if it has a number value
             if (this.values[this.index].match(/[\-0-9]/g)) {
@@ -523,10 +524,10 @@ function Mask() {
             }
         },
         '0+(\\.{1}0+)?E{1}\\+0+': function(v) {
-            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
         },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            parseMethods['0+(\\.{1}0+)?'].call(this, v);
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
 
             const decimal = getDecimal.call(this);
             const separator = this.tokens[this.index].substr(1,1);
@@ -560,7 +561,7 @@ function Mask() {
             // Token to be added to the value
             let word = this.tokens[this.index];
             // Only if caret is before the change
-            if (this.caret > this.values.join('').length) {
+            if (this.caret > this.values.join('').length && !this.value.includes(word)) {
                 this.caret += word.length;
             }
             // Add token to the values
@@ -740,6 +741,8 @@ function Mask() {
         let caret = getCaret.call(element);
         // Run mask
         let result = Component(value, { mask: mask, caret: caret });
+
+        console.log(result)
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
@@ -747,7 +750,7 @@ function Mask() {
             // Apply value
             element[property] = newValue;
             // Set the caret to the position before transformation
-            setCaret.call(element, result.caret, true)
+            setCaret.call(element, result.caret)
         }
     }
 
