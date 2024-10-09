@@ -500,7 +500,6 @@ function Mask() {
                     this.values[this.index] = this.values[this.index].replace('0', '');
                 }
 
-                this.changed = true;
                 this.values[this.index] += v;
             } else if (v === decimal) {
                 // Only adds decimal when theres a number value on its left
@@ -547,7 +546,7 @@ function Mask() {
             this.values[this.index] = (negative ? '-' : '') + val.join(decimal);
 
             if (this.value.split(separator).length < this.values[this.index].split(separator).length) {
-                this.caret++;
+                this.signal = true;
             }
         },
         // General Methods
@@ -697,7 +696,11 @@ function Mask() {
             // Walk every character on the value
             while (control.position < control.value.length) {
                 // Get the method name to handle the current token
-                let methodName = control.methods[control.index].method;
+                let methodName;
+
+                if (control.methods[control.index]) {
+                    methodName = control.methods[control.index].method;
+                }
                 // If that is a function
                 if (typeof(parseMethods[methodName]) == 'function') {
                     parseMethods[methodName].call(control, control.value[control.position]);
@@ -741,8 +744,6 @@ function Mask() {
         let caret = getCaret.call(element);
         // Run mask
         let result = Component(value, { mask: mask, caret: caret });
-
-        console.log(result)
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
