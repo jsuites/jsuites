@@ -15,11 +15,11 @@ function Mask() {
         // Percentage
         percentage: [ '0+(\\.{1}0+)?%' ],
         // Number
-        numeric: [ '0{1}([.,]{1}0+)?' ],
+        numeric: [ '#', '0{1}([.,]{1}0+)?', '0' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
-        general: [ 'A', '0', '[0-9a-zA-Z\\$]+', '.']
+        general: [ 'A', '[0-9a-zA-Z\\$]+', '.']
     }
 
     // Labels
@@ -556,6 +556,12 @@ function Mask() {
                 this.index++;
             }
         },
+        '9': function(v) {
+            parseMethods['0'].call(this, v);
+        },
+        '#': function(v) {
+            parseMethods['0'].call(this, v);
+        },
         '[0-9a-zA-Z\\$]+': function(v) {
             // Token to be added to the value
             let word = this.tokens[this.index];
@@ -573,14 +579,32 @@ function Mask() {
                 this.position--;
             }
         },
-        'A': function(v) {
+        'L': function(v) {
             if (v.match(/[a-zA-Z]/gi)) {
                 this.values[this.index] = v;
                 this.index++;
             }
         },
+        '?': function(v) {
+            parseMethods['L'].call(this, v);
+        },
+        'A': function(v) {
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        'a': function(v) {
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
         '.': function(v) {
             parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        '&': function(v) {
+            if (v.match(/^[a-zA-Z ]+$/)) {
+                this.values[this.index] = v;
+                this.index++;
+            }
+        },
+        'C': function(v) {
+            parseMethods['&'].call(this, v);
         },
         '@': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -626,6 +650,7 @@ function Mask() {
         for (let i = 0; i < t.length; i++) {
             var m = getMethod.call(this, t[i]);
             if (m) {
+                m.token = t[i];
                 result.push(m);
             } else {
                 result.push(null);
@@ -697,7 +722,6 @@ function Mask() {
             while (control.position < control.value.length) {
                 // Get the method name to handle the current token
                 let methodName;
-
                 if (control.methods[control.index]) {
                     methodName = control.methods[control.index].method;
                 }
@@ -753,6 +777,39 @@ function Mask() {
             // Set the caret to the position before transformation
             setCaret.call(element, result.caret)
         }
+    }
+
+    Component.parse = function(value, options) {
+        const tokens = getTokens(options.mask);
+        const methods = getMethodsFromTokens(tokens);
+
+        let result = ''; 
+        let size = 0;
+        
+        for (let i = 0; i < methods.length; i++) {
+            if (methods[i].type === 'general') {
+                result += value.slice(size, size + tokens[i].length);
+                size += tokens[i].length;
+            } else if (methods[i].type === 'datetime') {
+                // if (['DD', 'MM', 'YYYY', 'YYY', 'YYY', 'HH', 'MI', 'SS'].includes(tokens[i].toUpperCase())) {
+                //     result += value.slice(size, size + tokens[i].length);
+                //     size += tokens[i].length;
+                // } else if (['WD', 'MMM', 'MMMM', 'MON', 'MONTH', 'DAY'].includes(tokens[i].toUpperCase())) {
+                //     let l = [...weekDays, ...weekDaysFull, ...months, ...monthsFull].find((v) => {
+                //         value.slice(size, value.length - 1).includes(v);
+                //     })
+                //     result += value.slice(size, size + l);
+                //     size += l;
+                // }
+            } else if (methods[i].type === 'text') {
+                
+            } else {
+                // numeric-like
+                getDecimal.call(options, options.mask)
+            }
+        }
+
+        return result;
     }
 
     return Component;

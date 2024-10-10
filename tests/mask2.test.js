@@ -1,7 +1,7 @@
 const jSuites = require('../dist/jsuites');
 
 describe('jSuites mask', () => {
-    describe('keydown events', () => {
+    describe('keydown events with a single token', () => {
         test('0.00', () => {
             document.body.innerHTML = '<input id="test-input" type="text" data-mask="0.00">';
             let input = document.getElementById('test-input')
@@ -268,89 +268,6 @@ describe('jSuites mask', () => {
             input.dispatchEvent(event);
             expect(input.value).toEqual('');
         });  
-
-        test('$ #,##0.00', () => {
-            document.body.innerHTML = '<input id="test-input" type="text" data-mask="$ #,##0.00">';
-            let input = document.getElementById('test-input')
-            const event = new InputEvent('input', { bubbles: true, cancelable: true });
-
-            input.value = '7581003';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 7,581,003');
-            input.value = '75810.03';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 75,810.03');
-            input.value = '9876543210';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 9,876,543,210');
-            input.value = '1234567890.99';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 1,234,567,890.99');
-            input.value = '1234';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 1,234');
-            input.value = '100';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 100');
-            input.value = '100.5';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 100.5');
-            input.value = '';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('');
-            input.value = '0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 0');
-            input.value = '-5000';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ -5,000');
-            input.value = '-5000.75';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ -5,000.75');
-            input.value = '!@#$%^&*';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ ');
-        });
-
-        test('$ #.##0,00', () => {
-            document.body.innerHTML = '<input id="test-input" type="text" data-mask="$ #.##0,00">';
-            let input = document.getElementById('test-input');
-            const event = new InputEvent('input', { bubbles: true, cancelable: true });
-        
-            input.value = '7581003';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 7.581.003');
-            input.value = '75810,03';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 75.810,03');
-            input.value = '9876543210';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 9.876.543.210');
-            input.value = '1234567890,99';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 1.234.567.890,99');
-            input.value = '1234';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 1.234');
-            input.value = '100,5';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 100,5');
-            input.value = '';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('');
-            input.value = '0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ 0');
-            input.value = '-5000';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ -5.000');
-            input.value = '-5000,75';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ -5.000,75');
-            input.value = '!@#$%^&*';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('$ ');
-        });
 
         test('D', () => {
             document.body.innerHTML = '<input id="test-input" type="text" data-mask="dd">';
@@ -1806,6 +1723,116 @@ describe('jSuites mask', () => {
             input.value = 'M';
             input.dispatchEvent(event);
             expect(input.value).toEqual('');
+        });
+    });
+
+    describe('keydown events with mixed tokens', () => {
+        test('$ #,##0.00', () => {
+            document.body.innerHTML = '<input id="test-input" type="text" data-mask="$ #,##0.00">';
+            let input = document.getElementById('test-input')
+            const event = new InputEvent('input', { bubbles: true, cancelable: true });
+
+            input.value = '7581003';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 7,581,003');
+            input.value = '75810.03';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 75,810.03');
+            input.value = '9876543210';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 9,876,543,210');
+            input.value = '1234567890.99';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 1,234,567,890.99');
+            input.value = '1234';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 1,234');
+            input.value = '100';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 100');
+            input.value = '100.5';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 100.5');
+            input.value = '';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('');
+            input.value = '0';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 0');
+            input.value = '-5000';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ -5,000');
+            input.value = '-5000.75';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ -5,000.75');
+            input.value = '!@#$%^&*';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ ');
+        });
+
+        test('$ #.##0,00', () => {
+            document.body.innerHTML = '<input id="test-input" type="text" data-mask="$ #.##0,00">';
+            let input = document.getElementById('test-input');
+            const event = new InputEvent('input', { bubbles: true, cancelable: true });
+        
+            input.value = '7581003';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 7.581.003');
+            input.value = '75810,03';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 75.810,03');
+            input.value = '9876543210';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 9.876.543.210');
+            input.value = '1234567890,99';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 1.234.567.890,99');
+            input.value = '1234';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 1.234');
+            input.value = '100,5';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 100,5');
+            input.value = '';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('');
+            input.value = '0';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ 0');
+            input.value = '-5000';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ -5.000');
+            input.value = '-5000,75';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ -5.000,75');
+            input.value = '!@#$%^&*';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('$ ');
+        });
+
+        test('dd/mm/yyyy', () => {
+            document.body.innerHTML = '<input id="test-input" type="text" data-mask="dd/mm/yyyy">';
+            let input = document.getElementById('test-input');
+            const event = new InputEvent('input', { bubbles: true, cancelable: true });
+        
+            input.value = '20091999';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('20/09/1999');
+            input.value = '992003';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('09/09/2003');
+            input.value = '9122003';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('09/12/2003');
+            input.value = '3192003';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('31/09/2003');
+            input.value = '31022005';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('31/02/2005');
+            input.value = '20091';
+            input.dispatchEvent(event);
+            expect(input.value).toEqual('20/09/1');
         });
     });
 
