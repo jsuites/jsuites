@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 195:
+/***/ 794:
 /***/ (function(module) {
 
 /**
@@ -1398,104 +1398,46 @@ function Animation() {
 
 
 
+
+
 function Mask() {
     // Currency
-    var tokens = {
+    const tokens = {
         // Text
         text: [ '@' ],
         // Currency tokens
-        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
+        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
-        scientific: [ '0{1}(.{1}0+)?E{1}\\+0+' ],
+        scientific: [ '0+(\\.{1}0+)?E{1}\\+0+' ],
         // Percentage
-        percentage: [ '0{1}(.{1}0+)?%' ],
+        percentage: [ '0+(\\.{1}0+)?%' ],
         // Number
-        numeric: [ '0{1}(.{1}0+)?' ],
+        numeric: [ '#', '0{1}([.,]{1}0+)?', '0' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
-        general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
+        general: [ 'A', '[0-9a-zA-Z\\$]+', '.']
     }
 
-    var getDate = function() {
-        if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-            var m = 0;
-            if (this.date[4]) {
-                m = parseFloat(this.date[4] / 60);
-            }
-            var v = parseInt(this.date[3]) + m;
-            v /= 24;
-        } else if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            v = helpers.two(this.date[3]) + ':' + helpers.two(this.date[4]) + ':' + helpers.two(this.date[5])
-        } else {
-            if (this.date[0] && this.date[1] && ! this.date[2]) {
-                this.date[2] = 1;
-            }
-            v = helpers.two(this.date[0]) + '-' + helpers.two(this.date[1]) + '-' + helpers.two(this.date[2]);
+    // Labels
+    const weekDaysFull = helpers_date.weekdays;
+    const weekDays = helpers_date.weekdaysShort;
+    const monthsFull = helpers_date.months;
+    const months = helpers_date.monthsShort;
 
-            if (this.date[3] || this.date[4] || this.date[5]) {
-                v += ' ' + helpers.two(this.date[3]) + ':' + helpers.two(this.date[4]) + ':' + helpers.two(this.date[5]);
-            }
-        }
-
-        return v;
+    // Helpers
+    const isBlank = function(v) {
+        return v === null || v === '' || typeof(v) === 'undefined';
     }
 
-    var extractDate = function() {
-        var v = '';
-        if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-                v = parseInt(this.date[3]);
-            } else {
-                let h = parseInt(this.date[3]);
-                if (h < 13 && this.values.indexOf('PM') !== -1) {
-                    v = (h+12) % 24;
-                } else {
-                    v = h % 24;
-                }
-            }
-            if (this.date[4]) {
-                v += parseFloat(this.date[4] / 60);
-            }
-            if (this.date[5]) {
-                v += parseFloat(this.date[5] / 3600);
-            }
-            v /= 24;
-        } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
-            if (this.date[0] && this.date[1] && ! this.date[2]) {
-                this.date[2] = 1;
-            }
-            var t = helpers_date.now(this.date);
-            v = helpers_date.dateToNum(t);
-            if (this.date[4]) {
-                v += parseFloat(this.date[4] / 60);
-            }
-        }
-
-        if (isNaN(v)) {
-            v = '';
-        }
-
-        return v;
-    }
-
-    var isBlank = function(v) {
-        return v === null || v === '' || v === undefined ? true : false;
-    }
-
-    var isFormula = function(value) {
-        var v = (''+value)[0];
-        return v == '=' ? true : false;
-    }
-
-    var isNumeric = function(t) {
+    const isNumeric = function(t) {
         return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
     }
 
     /**
      * Get the decimal defined in the mask configuration
      */
-    var getDecimal = function(v) {
+    const getDecimal = function(v) {
         if (v && Number(v) == v) {
             return '.';
         } else {
@@ -1509,26 +1451,14 @@ function Mask() {
                     if (! v) {
                         v  = this.mask;
                     }
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var t = e.exec(v);
-                    if (t && t[1] && t[1].length == 1) {
+                    var t = v.match(/[.,٫](?=\d{1,14})/g)
+                    if (t) {
                         // Save decimal
-                        this.options.decimal = t[1];
+                        this.options.decimal = t[0];
                         // Return decimal
-                        return t[1];
+                        return t[0];
                     } else {
-                        // Did not find any decimal last resort the default
-                        var e = new RegExp('#{1}(.{1})#+', 'ig');
-                        var t = e.exec(v);
-                        if (t && t[1] && t[1].length == 1) {
-                            if (t[1] === ',') {
-                                this.options.decimal = '.';
-                            } else {
-                                this.options.decimal = ',';
-                            }
-                        } else {
-                            this.options.decimal = '1.1'.toLocaleString().substring(1,2);
-                        }
+                        this.options.decimal = '1.1'.toLocaleString().substring(1,2);
                     }
                 }
             }
@@ -1541,246 +1471,71 @@ function Mask() {
         }
     }
 
-    var ParseValue = function(v, decimal) {
-        if (v == '') {
-            return '';
-        }
-
-        // Get decimal
-        if (! decimal) {
-            decimal = getDecimal.call(this);
-        }
-
-        // New value
-        v = (''+v).split(decimal);
-
-        // Signal
-        var signal = v[0].match(/[-]+/g);
-        if (signal && signal.length) {
-            signal = true;
-        } else {
-            signal = false;
-        }
-
-        v[0] = v[0].match(/[0-9]+/g);
-
-        if (v[0]) {
-            if (signal) {
-                v[0].unshift('-');
-            }
-            v[0] = v[0].join('');
-        } else {
-            if (signal) {
-                v[0] = '-';
-            }
-        }
-
-        if (v[0] || v[1]) {
-            if (v[1] !== undefined) {
-                v[1] = v[1].match(/[0-9]+/g);
-                if (v[1]) {
-                    v[1] = v[1].join('');
-                } else {
-                    v[1] = '';
-                }
-            }
-        } else {
-            return '';
-        }
-        return v;
-    }
-
-    var FormatValue = function(v, event) {
-        if (v === '') {
-            return '';
-        }
-        // Get decimal
-        var d = getDecimal.call(this);
-        // Convert value
-        var o = this.options;
-        // Parse value
-        v = ParseValue.call(this, v);
-        if (v === '') {
-            return '';
-        }
-        var t = null;
-        // Temporary value
-        if (v[0]) {
-            if (o.style === 'percent') {
-                t = parseFloat(v[0]) / 100;
-            } else {
-                t = parseFloat(v[0] + '.1');
-            }
-        }
-
-        if ((v[0] === '-' || v[0] === '-00') && ! v[1] && (event && event.inputType == "deleteContentBackward")) {
-            return '';
-        }
-
-        var n = new Intl.NumberFormat(this.locale, o).format(t);
-        n = n.split(d);
-
-        if (o.style === 'percent') {
-            if (n[0].indexOf('%') !== -1) {
-                n[0] = n[0].replace('%', '');
-                n[2] = '%';
-            }
-        }
-
-        if (typeof(n[1]) !== 'undefined') {
-            var s = n[1].replace(/[0-9]*/g, '');
-            if (s) {
-                n[2] = s;
-            }
-        }
-
-        if (v[1] !== undefined) {
-            n[1] = d + v[1];
-        } else {
-            n[1] = '';
-        }
-
-        return n.join('');
-    }
-
-    var Format = function(e, event) {
-        var v = Value.call(e);
-        if (! v) {
-            return;
-        }
-
-        // Get decimal
-        var n = FormatValue.call(this, v, event);
-        var t = (n.length) - v.length;
-        var index = Caret.call(e) + t;
-        // Set value and update caret
-        Value.call(e, n, index, true);
-    }
-
-    var Extract = function(v) {
-        // Keep the raw value
-        var current = ParseValue.call(this, v);
-        if (current) {
-            // Negative values
-            if (current[0] === '-') {
-                current[0] = '-0';
-            }
-            return parseFloat(current.join('.'));
-        }
-        return null;
-    }
-
     /**
-     * Caret getter and setter methods
+     * Caret position getter
+     * `this` in this function should be the element with a caret
      */
-    var Caret = function(index, adjustNumeric) {
-        if (index === undefined) {
-            if (this.tagName == 'DIV') {
-                var pos = 0;
-                var s = window.getSelection();
-                if (s) {
-                    if (s.rangeCount !== 0) {
-                        var r = s.getRangeAt(0);
-                        var p = r.cloneRange();
-                        p.selectNodeContents(this);
-                        p.setEnd(r.endContainer, r.endOffset);
-                        pos = p.toString().length;
-                    }
-                }
-                return pos;
-            } else {
-                return this.selectionStart;
-            }
-        } else {
-            // Get the current value
-            var n = Value.call(this);
-
-            // Review the position
-            if (adjustNumeric) {
-                var p = null;
-                for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] === '.' || n[i] === ',') {
-                        p = i;
-                    }
-                }
-
-                // If the string has no numbers
-                if (p === null) {
-                    p = n.indexOf(' ');
-                }
-
-                if (index >= p) {
-                    index = p + 1;
-                }
-            }
-
-            // Do not update caret
-            if (index > n.length) {
-                index = n.length;
-            }
-
-            if (index) {
-                // Set caret
-                if (this.tagName == 'DIV') {
-                    var s = window.getSelection();
-                    var r = document.createRange();
-
-                    if (this.childNodes[0]) {
-                        r.setStart(this.childNodes[0], index);
-                        s.removeAllRanges();
-                        s.addRange(r);
-                    }
-                } else {
-                    this.selectionStart = index;
-                    this.selectionEnd = index;
-                }
-            }
-        }
-    }
-
-    /**
-     * Value getter and setter method
-     */
-    var Value = function(v, updateCaret, adjustNumeric) {
+    const getCaret = function() {
         if (this.tagName == 'DIV') {
-            if (v === undefined) {
-                var v = this.innerText;
-                if (this.value && this.value.length > v.length) {
-                    v = this.value;
-                }
-                return v;
-            } else {
-                if (this.innerText !== v) {
-                    this.innerText = v;
-
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
+            let s = this.getSelection();
+            if (s) {
+                if (s.rangeCount !== 0) {
+                    let r = s.getRangeAt(0);
+                    let p = r.cloneRange();
+                    p.selectNodeContents(e);
+                    p.setEnd(r.endContainer, r.endOffset);
+                    p = p.toString();
+                    if (p) {
+                        pos = p.length;
+                    } else {
+                        pos = e.textContent.length;
                     }
                 }
             }
+            return pos;
         } else {
-            if (v === undefined) {
-                return this.value;
-            } else {
-                if (this.value !== v) {
-                    this.value = v;
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
-                    }
+            return this.selectionStart;
+        }
+    }
+
+    /**
+     * Caret position setter
+     * `this` in this function should be the element with a caret
+     */
+    const setCaret = function(index) {
+        // Get the current value
+        const n = this.value;
+
+        // Do not update caret
+        if (index > n.length) {
+            index = n.length;
+        }
+        
+        if (!isNaN(index) && index >= 0) {
+            // Set caret
+            if (this.tagName == 'DIV') {
+                const s = window.getSelection();
+                const r = document.createRange();
+        
+                if (this.childNodes[0]) {
+                    r.setStart(this.childNodes[0], index);
+                    s.removeAllRanges();
+                    s.addRange(r);
                 }
+            } else {
+                this.selectionStart = index;
+                this.selectionEnd = index;
             }
         }
     }
 
-    // Labels
-    var weekDaysFull = helpers_date.weekdays;
-    var weekDays = helpers_date.weekdaysShort;
-    var monthsFull = helpers_date.months;
-    var months = helpers_date.monthsShort;
-
-    var parser = {
+    /**
+     * Methods to deal with different types of data
+     */
+    const parseMethods = {
+        // Methods related to date mask
         'YEAR': function(v, s) {
-            var y = ''+new Date().getFullYear();
+            let y = new Date().getFullYear().toString();
 
             if (typeof(this.values[this.index]) === 'undefined') {
                 this.values[this.index] = '';
@@ -1791,80 +1546,80 @@ function Mask() {
                 }
             }
             if (this.values[this.index].length == s) {
-                if (s == 2) {
-                    var y = y.substr(0,2) + this.values[this.index];
+                if (s === 2) {
+                    y = y.substr(0,2) + this.values[this.index];
                 } else if (s == 3) {
-                    var y = y.substr(0,1) + this.values[this.index];
+                    y = y.substr(0,1) + this.values[this.index];
                 } else if (s == 4) {
-                    var y = this.values[this.index];
+                    y = this.values[this.index];
                 }
                 this.date[0] = y;
                 this.index++;
             }
         },
         'YYYY': function(v) {
-            parser.YEAR.call(this, v, 4);
+            parseMethods.YEAR.call(this, v, 4);
         },
         'YYY': function(v) {
-            parser.YEAR.call(this, v, 3);
+            parseMethods.YEAR.call(this, v, 3);
         },
         'YY': function(v) {
-            parser.YEAR.call(this, v, 2);
+            parseMethods.YEAR.call(this, v, 2);
         },
         'FIND': function(v, a) {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
+            // TODO: tratar eventos
             if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
                 this.values[this.index] += v;
                 return;
             }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < a.length; i++) {
-                if (a[i].toLowerCase().indexOf(value) == 0) {
+            let pos = 0;
+            let count = 0;
+            let value = (this.values[this.index] + v).toLowerCase();
+            for (let i = 0; i < a.length; i++) {
+                if (a[i].toLowerCase().indexOf(value) === 0) {
                     pos = i;
                     count++;
                 }
             }
             if (count > 1) {
                 this.values[this.index] += v;
-            } else if (count == 1) {
-                // Jump number of chars
-                var t = (a[pos].length - this.values[this.index].length) - 1;
+            } else if (count === 1) {
+                // Jump a number of chars
+                let t = (a[pos].length - this.values[this.index].length) - 1;
                 this.position += t;
-
                 this.values[this.index] = a[pos];
                 this.index++;
                 return pos;
             }
         },
         'MMM': function(v) {
-            var ret = parser.FIND.call(this, v, months);
-            if (ret !== undefined) {
+            let ret = parseMethods.FIND.call(this, v, months);
+            if (typeof(ret) !== 'undefined') {
                 this.date[1] = ret + 1;
             }
         },
         'MON': function(v) {
-            parser['MMM'].call(this, v);
+            parseMethods['MMM'].call(this, v);
         },
         'MMMM': function(v) {
-            var ret = parser.FIND.call(this, v, monthsFull);
-            if (ret !== undefined) {
+            let ret = parseMethods.FIND.call(this, v, monthsFull);
+            if (typeof(ret) !== 'undefined') {
                 this.date[1] = ret + 1;
             }
         },
         'MONTH': function(v) {
-            parser['MMMM'].call(this, v);
+            parseMethods['MMMM'].call(this, v);
         },
         'MMMMM': function(v) {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
+            let pos = 0;
+            let count = 0;
+            let value = (this.values[this.index] + v).toLowerCase();
             for (var i = 0; i < monthsFull.length; i++) {
                 if (monthsFull[i][0].toLowerCase().indexOf(value) == 0) {
                     this.values[this.index] = monthsFull[i][0];
@@ -1893,7 +1648,7 @@ function Mask() {
             }
         },
         'M': function(v) {
-            var test = false;
+            let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (isBlank(this.values[this.index])) {
                     this.values[this.index] = v;
@@ -1909,16 +1664,16 @@ function Mask() {
                         this.date[1] = this.values[this.index] += v;
                         this.index++;
                     } else {
-                        var test = true;
+                        test = true;
                     }
                 }
             } else {
-                var test = true;
+                test = true;
             }
 
             // Re-test
             if (test == true) {
-                var t = parseInt(this.values[this.index]);
+                const t = parseInt(this.values[this.index]);
                 if (t > 0 && t < 12) {
                     this.date[1] = this.values[this.index];
                     this.index++;
@@ -1928,7 +1683,7 @@ function Mask() {
             }
         },
         'D': function(v) {
-            var test = false;
+            let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (isBlank(this.values[this.index])) {
                     this.values[this.index] = v;
@@ -1947,11 +1702,11 @@ function Mask() {
                         this.date[2] = this.values[this.index] += v;
                         this.index++;
                     } else {
-                        var test = true;
+                        test = true;
                     }
                 }
             } else {
-                var test = true;
+                test = true;
             }
 
             // Re-test
@@ -1987,16 +1742,16 @@ function Mask() {
             }
         },
         'DDD': function(v) {
-            parser.FIND.call(this, v, weekDays);
+            parseMethods.FIND.call(this, v, weekDays);
         },
         'DY': function(v) {
-            parser['DDD'].call(this, v);
+            parseMethods['DDD'].call(this, v);
         },
         'DDDD': function(v) {
-            parser.FIND.call(this, v, weekDaysFull);
+            parseMethods.FIND.call(this, v, weekDaysFull);
         },
         'DAY': function(v) {
-            parser['DDDD'].call(this, v);
+            parseMethods['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
             if (isBlank(this.values[this.index])) {
@@ -2049,10 +1804,10 @@ function Mask() {
             }
         },
         'HH': function(v) {
-            parser['HH24'].call(this, v, 1);
+            parseMethods['HH24'].call(this, v, 1);
         },
         'H': function(v) {
-            parser['HH24'].call(this, v, 0);
+            parseMethods['HH24'].call(this, v, 0);
         },
         '\\[H\\]': function(v) {
             if (this.values[this.index] == undefined) {
@@ -2081,14 +1836,14 @@ function Mask() {
                 if (parseInt(v) < 10) {
                     this.date[i] = this.values[this.index] += v;
                     this.index++;
-                 }
+                }
             }
         },
         'MI': function(v) {
-            parser.N60.call(this, v, 4);
+            parseMethods.N60.call(this, v, 4);
         },
         'SS': function(v) {
-            parser.N60.call(this, v, 5);
+            parseMethods.N60.call(this, v, 5);
         },
         'AM/PM': function(v) {
             if (typeof(this.values[this.index]) === 'undefined') {
@@ -2117,149 +1872,140 @@ function Mask() {
                 this.index++;
             }
         },
-        '0{1}(.{1}0+)?': function(v) {
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Negative number
-            var neg = false;
-            // Create if is blank
+        // Numeric Methods
+        '0{1}([.,]{1}0+)?': function(v) {
+            let decimal = getDecimal.call(this);
+
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
-            } else {
-                if (this.values[this.index] == '-') {
-                    neg = true;
-                }
             }
-            var current = ParseValue.call(this, this.values[this.index], decimal);
-            if (current) {
-                this.values[this.index] = current.join(decimal);
-            }
-            // New entry
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                // Replace the zero for a number
-                if (this.values[this.index] == '0' && v > 0) {
-                    this.values[this.index] = '';
-                } else if (this.values[this.index] == '-0' && v > 0) {
-                    this.values[this.index] = '-';
+            
+            if (v === '-') {
+                // Transform the number into negative if it is not already
+                if (this.values[this.index][0] !== '-') {
+                    this.values[this.index] = '-' + this.values[this.index];
                 }
-                // Don't add up zeros because does not mean anything here
-                if ((this.values[this.index] != '0' && this.values[this.index] != '-0') || v == decimal) {
+            } else if (v === '+') {
+                // Transform the number into positive if it is negative
+                if (this.values[this.index][0] === '-') {
+                    this.values[this.index] = this.values[this.index].replace('-', '');
+                }
+            } else if (v === '0') {
+                // Only adds zero if theres a non-zero number before
+                if (this.values[this.index] != '0') {
                     this.values[this.index] += v;
                 }
-            } else if (decimal && v == decimal) {
-                if (this.values[this.index].indexOf(decimal) == -1) {
-                    if (! this.values[this.index]) {
-                        this.values[this.index] = '0';
-                    }
+            } else if (v > 0 && v < 10) {
+                // Verify if theres a zero to remove it, avoiding left zeros
+                if (this.values[this.index] == '0') {
+                    this.values[this.index] = this.values[this.index].replace('0', '');
+                }
+
+                this.values[this.index] += v;
+            } else if (v === decimal) {
+                // Only adds decimal when theres a number value on its left
+                if (! this.values[this.index].includes(decimal) && this.values[this.index].replace('-', '').length > 0) {
                     this.values[this.index] += v;
                 }
-            } else if (v == '-') {
-                // Negative signed
-                neg = true;
-            }
-
-            if (neg === true && this.values[this.index][0] !== '-') {
-                this.values[this.index] = '-' + this.values[this.index];
             }
         },
-        '0{1}(.{1}0+)?E{1}\\+0+': function(v) {
-            parser['0{1}(.{1}0+)?'].call(this, v);
-        },
-        '0{1}(.{1}0+)?%': function(v) {
-            parser['0{1}(.{1}0+)?'].call(this, v);
+        '0+(\\.{1}0+)?%': function(v) {
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
 
+            // Adds the % only if it has a number value
             if (this.values[this.index].match(/[\-0-9]/g)) {
-                if (this.values[this.index] && this.values[this.index].indexOf('%') == -1) {
-                    this.values[this.index] += '%';
+                if (this.values[this.index].indexOf('%') != -1) {
+                    this.values[this.index] = this.values[this.index].replaceAll('%', '');
                 }
+
+                this.values[this.index] += '%';
             } else {
                 this.values[this.index] = '';
             }
         },
+        '0+(\\.{1}0+)?E{1}\\+0+': function(v) {
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
+        },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            // Parse number
-            parser['0{1}(.{1}0+)?'].call(this, v);
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Get separator
-            var separator = this.tokens[this.index].substr(1,1);
-            // Negative
-            var negative = this.values[this.index][0] === '-' ? true : false;
-            // Current value
-            var current = ParseValue.call(this, this.values[this.index], decimal);
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
 
-            // Get main and decimal parts
-            if (current !== '') {
-                // Format number
-                var n = current[0].match(/[0-9]/g);
-                if (n) {
-                    // Format
-                    n = n.join('');
-                    var t = [];
-                    var s = 0;
-                    for (var j = n.length - 1; j >= 0 ; j--) {
-                        t.push(n[j]);
-                        s++;
-                        if (! (s % 3)) {
-                            t.push(separator);
-                        }
-                    }
-                    t = t.reverse();
-                    current[0] = t.join('');
-                    if (current[0].substr(0,1) == separator) {
-                        current[0] = current[0].substr(1);
-                    }
-                } else {
-                    current[0] = '';
-                }
+            const decimal = getDecimal.call(this);
+            const separator = this.tokens[this.index].substr(1,1);
+            const negative = this.values[this.index][0] === '-' ? true : false;
 
-                // Value
-                this.values[this.index] = current.join(decimal);
+            this.values[this.index] = this.values[this.index].replaceAll(separator, '').replace('-', '');
 
-                // Negative
-                if (negative) {
-                    this.values[this.index] = '-' + this.values[this.index];
+            let val = this.values[this.index].split(decimal);
+
+            // Add the separator
+            if (val[0].length > 3) {
+                for (let i = val[0].length - 3; i > 0; i -= 3) {
+                    val[0] = val[0].slice(0, i) + separator + val[0].slice(i, val[0].length);
                 }
             }
+
+            this.values[this.index] = (negative ? '-' : '') + val.join(decimal);
+
+            if (this.value.split(separator).length < this.values[this.index].split(separator).length) {
+                this.signal = true;
+            }
         },
+        // General Methods
         '0': function(v) {
             if (v.match(/[0-9]/g)) {
                 this.values[this.index] = v;
                 this.index++;
             }
         },
-        '[0-9a-zA-Z$]+': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
+        '9': function(v) {
+            parseMethods['0'].call(this, v);
+        },
+        '#': function(v) {
+            parseMethods['0'].call(this, v);
+        },
+        '[0-9a-zA-Z\\$]+': function(v) {
+            // Token to be added to the value
+            let word = this.tokens[this.index];
+            // Only if caret is before the change
+            if (this.caret > this.values.join('').length && !this.value.includes(word)) {
+                this.caret += word.length;
             }
-            var t = this.tokens[this.index];
-            var s = this.values[this.index];
-            var i = s.length;
-
-            if (t[i] == v) {
-                this.values[this.index] += v;
-
-                if (this.values[this.index] == t) {
-                    this.index++;
-                }
-            } else {
-                this.values[this.index] = t;
-                this.index++;
-
-                if (v.match(/[\-0-9]/g)) {
-                    // Repeat the character
-                    this.position--;
-                }
+            // Add token to the values
+            this.values[this.index] = word;
+            // Next token to process
+            this.index++;
+            // Repeat if is a number
+            if (v.match(/[\-0-9]/g)) {
+                // Repeat the character
+                this.position--;
             }
         },
-        'A': function(v) {
+        'L': function(v) {
             if (v.match(/[a-zA-Z]/gi)) {
                 this.values[this.index] = v;
                 this.index++;
             }
         },
+        '?': function(v) {
+            parseMethods['L'].call(this, v);
+        },
+        'A': function(v) {
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        'a': function(v) {
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
         '.': function(v) {
-            parser['[0-9a-zA-Z$]+'].call(this, v);
+            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        '&': function(v) {
+            if (v.match(/^[a-zA-Z ]+$/)) {
+                this.values[this.index] = v;
+                this.index++;
+            }
+        },
+        'C': function(v) {
+            parseMethods['&'].call(this, v);
         },
         '@': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -2269,39 +2015,23 @@ function Mask() {
         }
     }
 
-    /**
-     * Get the tokens in the mask string
-     */
-    var getTokens = function(str) {
-        if (this.type == 'general') {
-            var t = [].concat(tokens.general);
-        } else {
-            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
-        }
+    const getTokens = function(str) {
+        // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
+        const expressions = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
         // Expression to extract all tokens from the string
-        var e = new RegExp(t.join('|'), 'gi');
+        const methods = str.match(new RegExp(expressions.join('|'), 'gi'));
         // Extract
-        return str.match(e);
+        return methods;
     }
 
     /**
      * Get the method of one given token
      */
-    var getMethod = function(str) {
-        if (! this.type) {
-            var types = Object.keys(tokens);
-        } else if (this.type == 'text') {
-            var types = [ 'text' ];
-        } else if (this.type == 'general') {
-            var types = [ 'general' ];
-        } else if (this.type == 'datetime') {
-            var types = [ 'numeric', 'datetime', 'general' ];
-        } else {
-            var types = [ 'currency', 'percentage', 'scientific', 'numeric', 'general' ];
-        }
+    const getMethod = function(str) {
+        const types = Object.keys(tokens);
 
         // Found
-        for (var i = 0; i < types.length; i++) {
+        for (let i = 0; i < types.length; i++) {
             var type = types[i];
             for (var j = 0; j < tokens[type].length; j++) {
                 var e = new RegExp(tokens[type][j], 'gi');
@@ -2316,20 +2046,21 @@ function Mask() {
     /**
      * Identify each method for each token
      */
-    var getMethods = function(t) {
-        var result = [];
-        for (var i = 0; i < t.length; i++) {
+    const getMethodsFromTokens = function(t) {
+        let result = [];
+        for (let i = 0; i < t.length; i++) {
             var m = getMethod.call(this, t[i]);
             if (m) {
-                result.push(m.method);
+                m.token = t[i].toUpperCase();
+                result.push(m);
             } else {
                 result.push(null);
             }
         }
 
-        // Compatibility with excel
-        for (var i = 0; i < result.length; i++) {
-            if (result[i] == 'MM') {
+        // Compatibility with Excel
+        for (let i = 0; i < result.length; i++) {
+            if (result[i] === 'MM') {
                 // Not a month, correct to minutes
                 if (result[i-1] && result[i-1].indexOf('H') >= 0) {
                     result[i] = 'MI';
@@ -2346,70 +2077,11 @@ function Mask() {
         return result;
     }
 
-    /**
-     * Get the type for one given token
-     */
-    var getType = function(str) {
-        var m = getMethod.call(this, str);
-        if (m) {
-            var type = m.type;
-        }
-
-        if (type) {
-            var numeric = 0;
-            // Make sure the correct type
-            var t = getTokens.call(this, str);
-            for (var i = 0; i < t.length; i++) {
-                m = getMethod.call(this, t[i]);
-                if (m && isNumeric(m.type)) {
-                    numeric++;
-                }
-            }
-            if (numeric > 1) {
-                type = 'general';
-            }
-        }
-
-        return type;
-    }
-
-    /**
-     * Parse character per character using the detected tokens in the mask
-     */
-    var parse = function() {
-        // Parser method for this position
-        if (typeof(parser[this.methods[this.index]]) == 'function') {
-            parser[this.methods[this.index]].call(this, this.value[this.position]);
-            this.position++;
-        } else {
-            this.values[this.index] = this.tokens[this.index];
-            this.index++;
-        }
-    }
-
-    var toPlainString = function(num) {
-        return (''+ +num).replace(/(-?)(\d*)\.?(\d*)e([+-]\d+)/,
-          function(a,b,c,d,e) {
-            return e < 0
-              ? b + '0.' + Array(1-e-c.length).join(0) + c + d
-              : b + c + d + Array(e-d.length+1).join(0);
-          });
-    }
-
-    /**
-     * Mask function
-     * @param {mixed|string} JS input or a string to be parsed
-     * @param {object|string} When the first param is a string, the second is the mask or object with the mask options
-     */
-    var obj = function(e, config, returnObject) {
-        // Options
-        var r = null;
-        var t = null;
-        var o = {
-            // Element
-            input: null,
-            // Current value
-            value: null,
+    const Component = function(str, config, returnObject) {
+        // Internal default control of the mask system
+        const control = {
+            // Current raw value to be masked
+            value: str,
             // Mask options
             options: {},
             // New values for each token found
@@ -2424,803 +2096,210 @@ function Mask() {
             number: 0,
         }
 
-        // This is a JavaScript Event
-        if (typeof(e) == 'object') {
-            // Element
-            o.input = e.target;
-            // Current value
-            o.value = Value.call(e.target);
-            // Current caret position
-            o.caret = Caret.call(e.target);
+        // Options defined by the user
+        if (typeof(config) == 'string') {
             // Mask
-            if (t = e.target.getAttribute('data-mask')) {
-                o.mask = t;
-            }
-            // Type
-            if (t = e.target.getAttribute('data-type')) {
-                o.type = t;
-            }
-            // Options
-            if (e.target.mask) {
-                if (e.target.mask.options) {
-                    o.options = e.target.mask.options;
-                }
-                if (e.target.mask.locale) {
-                    o.locale = e.target.mask.locale;
-                }
-            } else {
-                // Locale
-                if (t = e.target.getAttribute('data-locale')) {
-                    o.locale = t;
-                    if (o.mask) {
-                        o.options.style = o.mask;
-                    }
-                }
-            }
-            // Extra configuration
-            if (e.target.attributes && e.target.attributes.length) {
-                for (var i = 0; i < e.target.attributes.length; i++) {
-                    var k = e.target.attributes[i].name;
-                    var v = e.target.attributes[i].value;
-                    if (k.substr(0,4) == 'data') {
-                        o.options[k.substr(5)] = v;
-                    }
-                }
-            }
+            control.mask = config;
         } else {
-            // Options
-            if (typeof(config) == 'string') {
-                // Mask
-                o.mask = config;
-            } else {
-                // Mask
-                var k = Object.keys(config);
-                for (var i = 0; i < k.length; i++) {
-                    o[k[i]] = config[k[i]];
-                }
-            }
-
-            if (typeof(e) === 'number') {
-                // Get decimal
-                getDecimal.call(o, o.mask);
-                // Replace to the correct decimal
-                e = (''+e).replace('.', o.options.decimal);
-            }
-
-            // Current
-            o.value = e;
-
-            if (o.input) {
-                // Value
-                Value.call(o.input, e);
-                // Focus
-                helpers.focus(o.input);
-                // Caret
-                o.caret = Caret.call(o.input);
+            // Mask
+            var k = Object.keys(config);
+            for (var i = 0; i < k.length; i++) {
+                control[k[i]] = config[k[i]];
             }
         }
 
-        // Mask detected start the process
-        if (! isFormula(o.value) && (o.mask || o.locale)) {
-            // Compatibility fixes
-            if (o.mask) {
-                // Remove []
-                o.mask = o.mask.replace(new RegExp(/\[h]/),'|h|');
-                o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
-                o.mask = o.mask.replace(new RegExp(/\|h\|/),'[h]');
-                if (o.mask.indexOf(';') !== -1) {
-                    var t = o.mask.split(';');
-                    o.mask = t[0];
+        if (control.locale) {
+            // Process the locale
+        } else if (control.mask) {
+            // Controls of Excel that should be ignore
+            let d = control.mask.split(';');
+            // Get only the first mask for now
+            control.mask = d[0];
+            // Get tokens which are the methods for parsing
+            control.tokens = getTokens(control.mask);
+            // Get methods from the tokens
+            control.methods = getMethodsFromTokens(control.tokens);
+            // Walk every character on the value
+            while (control.position < control.value.length) {
+                // Get the method name to handle the current token
+                let methodName;
+                if (control.methods[control.index]) {
+                    methodName = control.methods[control.index].method;
                 }
-                // Excel mask TODO: Improve
-                if (o.mask.indexOf('##') !== -1) {
-                    var d = o.mask.split(';');
-                    if (d[0]) {
-                        if (typeof(e) == 'object') {
-                            d[0] = d[0].replace(new RegExp(/_\)/g), '');
-                            d[0] = d[0].replace(new RegExp(/_\(/g), '');
-                        }
-                        d[0] = d[0].replace('*', '\t');
-                        d[0] = d[0].replace(new RegExp(/_-/g), '');
-                        d[0] = d[0].replace(new RegExp(/_/g), '');
-                        d[0] = d[0].replace(new RegExp(/"/g), '');
-                        d[0] = d[0].replace('##0.###','##0.000');
-                        d[0] = d[0].replace('##0.##','##0.00');
-                        d[0] = d[0].replace('##0.#','##0.0');
-                        d[0] = d[0].replace('##0,###','##0,000');
-                        d[0] = d[0].replace('##0,##','##0,00');
-                        d[0] = d[0].replace('##0,#','##0,0');
-                    }
-                    o.mask = d[0];
+                // If that is a function
+                if (typeof(parseMethods[methodName]) == 'function') {
+                    parseMethods[methodName].call(control, control.value[control.position]);
                 }
-                // Remove back slashes
-                if (o.mask.indexOf('\\') !== -1) {
-                    var d = o.mask.split(';');
-                    d[0] = d[0].replace(new RegExp(/\\/g), '');
-                    o.mask = d[0];
-                }
-                // Get type
-                if (! o.type) {
-                    o.type = getType.call(o, o.mask);
-                }
-                // Get tokens
-                o.tokens = getTokens.call(o, o.mask);
+                control.position++;
             }
 
-            // On new input
-            if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
-                // Start transformation
-                if (o.locale) {
-                    if (o.input) {
-                        Format.call(o, o.input, e);
-                    } else {
-                        var newValue = FormatValue.call(o, o.value);
-                    }
-                } else {
-                    // Get tokens
-                    o.methods = getMethods.call(o, o.tokens);
-                    o.event = e;
-
-                    // Go through all tokes
-                    while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
-                        // Get the appropriate parser
-                        parse.call(o);
-                    }
-
-                    // New value
-                    var newValue = o.values.join('');
-
-                    // Add tokens to the end of string only if string is not empty
-                    if (isNumeric(o.type) && newValue !== '') {
-                        // Complement things in the end of the mask
-                        while (typeof(o.tokens[o.index]) !== 'undefined') {
-                            var t = getMethod.call(o, o.tokens[o.index]);
-                            if (t && t.type == 'general') {
-                                o.values[o.index] = o.tokens[o.index];
-                            }
-                            o.index++;
-                        }
-
-                        var adjustNumeric = true;
-                    } else {
-                        var adjustNumeric = false;
-                    }
-
-                    // New value
-                    newValue = o.values.join('');
-
-                    // Reset value
-                    if (o.input) {
-                        t = newValue.length - o.value.length;
-                        if (t > 0) {
-                            var caret = o.caret + t;
-                        } else {
-                            var caret = o.caret;
-                        }
-                        Value.call(o.input, newValue, caret, adjustNumeric);
-                    }
-                }
-            }
-
-            // Update raw data
-            if (o.input) {
-                var label = null;
-                if (isNumeric(o.type)) {
-                    let v = Value.call(o.input);
-                    // Extract the number
-                    o.number = Extract.call(o, v);
-                    // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage' && (''+v).indexOf('%') !== -1) {
-                        label = obj.adjustPrecision(o.number / 100);
-                    } else {
-                        label = o.number;
-                    }
-                } else if (o.type == 'datetime') {
-                    label = getDate.call(o);
-
-                    if (o.date[0] && o.date[1] && o.date[2]) {
-                        o.input.setAttribute('data-completed', true);
-                    }
-                }
-
-                if (label) {
-                    o.input.setAttribute('data-value', label);
-                }
-            }
-
-            if (newValue !== undefined) {
-                if (returnObject) {
-                    return o;
-                } else {
-                    return newValue;
-                }
-            }
-        }
-    }
-
-    obj.adjustPrecision = function(num) {
-        if (typeof num === 'number' && !Number.isInteger(num)) {
-            const v = num.toString().split('.');
-
-            if (v[1] && v[1].length > 10) {
-                let t0 = 0;
-                const t1 = v[1][v[1].length - 2];
-
-                if (t1 == 0 || t1 == 9) {
-                    for (let i = v[1].length - 2; i > 0; i--) {
-                        if (t0 >= 0 && v[1][i] == t1) {
-                            t0++;
-                            if (t0 > 6) {
-                                break;
-                            }
-                        } else {
-                            t0 = 0;
-                            break;
+            let value = control.values.join('').trim();
+            if (value) {
+                // Complement things in the end of the mask
+                do {
+                    if (control.tokens[control.index]) {
+                        // Get the method name to handle the current token
+                        let methodType = control.methods[control.index].type;
+                        if (methodType === 'general') {
+                            control.values[control.index] = control.tokens[control.index];
                         }
                     }
-
-                    if (t0) {
-                        return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
-                    }
-                }
+                    control.index++;
+                } while (control.tokens.length >= control.index);
             }
         }
 
-        return num;
+        return control;
     }
 
-    // Get the type of the mask
-    obj.getType = getType;
-
-    // Extract the tokens from a mask
-    obj.prepare = function(str, o) {
-        if (! o) {
-            o = {};
+    Component.onkeydown = function(e) {
+        // Element
+        let element = e.target;
+        // Property
+        let property = 'value';
+        // Get the value of the input
+        if (element.tagName !== 'INPUT') {
+            property = 'textContent';
         }
-        return getTokens.call(o, str);
-    }
-
-    /**
-     * Apply the mask to a element (legacy)
-     */
-    obj.apply = function(e) {
-        var v = Value.call(e.target);
-        if (e.key.length == 1) {
-            v += e.key;
-        }
-        Value.call(e.target, obj(v, e.target.getAttribute('data-mask')));
-    }
-
-    /**
-     * Legacy support
-     */
-    obj.run = function(value, mask, decimal) {
-        return obj(value, { mask: mask, decimal: decimal });
-    }
-
-    /**
-     * Extract number from masked string
-     */
-    obj.extract = function(v, options, returnObject) {
-        if (isBlank(v)) {
-            return v;
-        }
-        if (typeof(options) != 'object') {
-            return v;
-        } else {
-            options = Object.assign({}, options);
-
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
-        }
-
-        // Get decimal
-        getDecimal.call(options, options.mask);
-
-        var type = null;
-        var value = null;
-
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        }
-
-        if (type === 'general') {
-            var o = obj(v, options, true);
-
-            value = v;
-        } else if (type === 'datetime') {
-            if (v instanceof Date) {
-                v = obj.getDateString(v, options.mask);
-            }
-
-            var o = obj(v, options, true);
-
-            if (helpers.isNumeric(v)) {
-                value = v;
-            } else {
-                value = extractDate.call(o);
-            }
-        } else if (type === 'scientific') {
-            value = v;
-            if (typeof(v) === 'string') {
-                value = Number(value);
-            }
-            var o = options;
-        } else {
-            value = Extract.call(options, v);
-            // Percentage
-            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
-                value /= 100;
-            }
-            var o = options;
-        }
-
-        o.value = value;
-
-        if (! o.type && type) {
-            o.type = type;
-        }
-
-        if (returnObject) {
-            return o;
-        } else {
-            return value;
-        }
-    }
-
-    /**
-     * Render
-     */
-    obj.render = function(value, options, fullMask) {
-        if (isBlank(value)) {
-            return value;
-        }
-
-        if (typeof(options) != 'object') {
-            return value;
-        } else {
-            options = Object.assign({}, options);
-
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                if (! fullMask) {
-                    t[0] = t[0].replace(new RegExp(/_\)/g), '');
-                    t[0] = t[0].replace(new RegExp(/_\(/g), '');
-                }
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
-        }
-
-        var type = null;
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        } else if (value instanceof Date) {
-            type = 'datetime';
-        }
-
-        // Fill with blanks
-        var fillWithBlanks = false;
-
-        if (type =='datetime' || options.type == 'calendar') {
-            var t = obj.getDateString(value, options.mask);
-            if (t) {
-                value = t;
-            }
-            if (options.mask && fullMask) {
-                fillWithBlanks = true;
-            }
-        } else {
-            // Parse number
-            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
-                value = Number(value);
-            }
-            // Percentage
-            if (type === 'percentage') {
-                value = obj.adjustPrecision(value*100);
-            }
-
-            // Number of decimal places
-            if (typeof(value) === 'number') {
-                var t = null;
-                if (options.mask && fullMask) {
-                    var d = getDecimal.call(options, options.mask);
-                    if (type === 'scientific') {
-                        if (options.mask.indexOf(d) !== -1) {
-                            let exp = options.mask.split('E');
-                            exp = exp[0].split(d);
-                            exp = ('' + exp[1].match(/[0-9]+/g))
-                            exp = exp.length;
-                            t = value.toExponential(exp);
-                        } else {
-                            t = value.toExponential(0);
-                        }
-                    } else {
-                        if (options.mask.indexOf(d) !== -1) {
-                            d = options.mask.split(d);
-                            d = (''+d[1].match(/[0-9]+/g))
-                            d = d.length;
-                            t = value.toFixed(d);
-                            let n = value.toString().split('.');
-                            let fraction = n[1];
-                            if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
-                                t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
-                            }
-                        } else {
-                            if (value.toString().indexOf(d) !== -1) {
-                                t = value.toFixed(0);
-                            }
-                        }
-
-                        // Handle scientific notation
-                        if ((''+t).indexOf('e') !== -1) {
-                            t = toPlainString(t);
-                        }
-                    }
-                } else if (options.locale && fullMask) {
-                    // Append zeros
-                    var d = (''+value).split('.');
-                    if (options.options) {
-                        if (typeof(d[1]) === 'undefined') {
-                            d[1] = '';
-                        }
-                        var len = d[1].length;
-                        if (options.options.minimumFractionDigits > len) {
-                            for (var i = 0; i < options.options.minimumFractionDigits - len; i++) {
-                                d[1] += '0';
-                            }
-                        }
-                    }
-                    if (! d[1].length) {
-                        t = d[0]
-                    } else {
-                        t = d.join('.');
-                    }
-                    var len = d[1].length;
-                    if (options.options && options.options.maximumFractionDigits < len) {
-                        t = parseFloat(t).toFixed(options.options.maximumFractionDigits);
-                    }
-                } else {
-                    t = toPlainString(value);
-                }
-
-                if (t !== null) {
-                    value = t;
-                    // Get decimal
-                    getDecimal.call(options, options.mask);
-                    // Replace to the correct decimal
-                    if (options.options.decimal) {
-                        value = value.replace('.', options.options.decimal);
-                    }
-                }
-            } else {
-                if (options.mask && fullMask) {
-                    fillWithBlanks = true;
-                }
-            }
-        }
-
-        if (fillWithBlanks) {
-            var s = options.mask.length - value.length;
-            if (s > 0) {
-                for (var i = 0; i < s; i++) {
-                    value += ' ';
-                }
-            }
-        }
-
-        if (type === 'scientific') {
-            if (! fullMask) {
-                value = toPlainString(value);
-            } else {
-                return value;
-            }
-        }
-
-        value = obj(value, options);
-
-        // Numeric mask, number of zeros
-        if (fullMask && type === 'numeric') {
-            var maskZeros = options.mask.match(new RegExp(/^[0]+$/gm));
-            if (maskZeros && maskZeros.length === 1) {
-                var maskLength = maskZeros[0].length;
-                if (maskLength > 3) {
-                    value = '' + value;
-                    while (value.length < maskLength) {
-                        value = '0' + value;
-                    }
-                }
-            }
-        }
-
-        return value;
-    }
-
-    obj.set = function(e, m) {
-        if (m) {
-            e.setAttribute('data-mask', m);
-            // Reset the value
-            var event = new Event('input', {
-                bubbles: true,
-                cancelable: true,
-            });
-            e.dispatchEvent(event);
-        }
-    }
-
-    // Helper to extract date from a string
-    obj.extractDateFromString = function (date, format) {
-        var o = obj(date, { mask: format }, true);
-
-        // Check if in format Excel (Need difference with format date or type detected is numeric)
-        if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
-            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return d.getFullYear() + "-" + helpers.two(d.getMonth()) + "-" + helpers.two(d.getDate()) + ' 00:00:00';
-        }
-
-        var complete = false;
-
-        if (o.values && o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
-            complete = true;
-        }
-
-        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
-            if (!o.date[2]) {
-                o.date[2] = 1;
-            }
-
-            return o.date[0] + '-' + helpers.two(o.date[1]) + '-' + helpers.two(o.date[2]) + ' ' + helpers.two(o.date[3]) + ':' + helpers.two(o.date[4]) + ':' + helpers.two(o.date[5]);
-        }
-
-        return '';
-    }
-
-    // Helper to convert date into string
-    obj.getDateString = function (value, options) {
-        if (!options) {
-            var options = {};
-        }
-
-        // Labels
-        if (options && typeof (options) == 'object') {
-            if (options.format) {
-                var format = options.format;
-            } else if (options.mask) {
-                var format = options.mask;
-            }
-        } else {
-            var format = options;
-        }
-
-        if (!format) {
-            format = 'YYYY-MM-DD';
-        }
-
-        // Convert to number of hours
-        if (format.indexOf('[h]') >= 0) {
-            var result = 0;
-            if (value && helpers.isNumeric(value)) {
-                result = parseFloat(24 * Number(value));
-                if (format.indexOf('mm') >= 0) {
-                    var h = ('' + result).split('.');
-                    if (h[1]) {
-                        var d = 60 * parseFloat('0.' + h[1])
-                        d = parseFloat(d.toFixed(2));
-                    } else {
-                        var d = 0;
-                    }
-                    result = parseInt(h[0]) + ':' + helpers.two(d);
-                }
-            }
-            return result;
-        }
-
-        // Date instance
-        if (value instanceof Date) {
-            value = helpers_date.now(value);
-        } else if (value && helpers.isNumeric(value)) {
-            value = helpers_date.numToDate(value);
-        }
-
-        // Tokens
-        var tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
-
-        // Expression to extract all tokens from the string
-        var e = new RegExp(tokens.join('|'), 'gi');
-        // Extract
-        var t = format.match(e);
-
-        // Compatibility with excel
-        for (var i = 0; i < t.length; i++) {
-            if (t[i].toUpperCase() == 'MM') {
-                // Not a month, correct to minutes
-                if (t[i - 1] && t[i - 1].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i - 2] && t[i - 2].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 1] && t[i + 1].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 2] && t[i + 2].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                }
-            }
-        }
-
-        // Object
-        var o = {
-            tokens: t
-        }
-
         // Value
-        if (value) {
-            var d = '' + value;
-            var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
-            d = d.split(splitStr);
+        let value = element[property];
+        // Get the mask
+        let mask = element.getAttribute('data-mask');
+        // Keep the current caret position
+        let caret = getCaret.call(element);
+        // Run mask
+        let result = Component(value, { mask: mask, caret: caret });
+        // New value
+        let newValue = result.values.join('');
+        // Apply the result back to the element
+        if (newValue !== value && ! e.inputType.includes('delete')) {
+            // Apply value
+            element[property] = newValue;
+            // Set the caret to the position before transformation
+            setCaret.call(element, result.caret)
+        }
+    }
 
-            var h = 0;
-            var m = 0;
-            var s = 0;
+    Component.parse = function(value, options) {
+        const tokens = getTokens(options.mask);
+        const methods = getMethodsFromTokens(tokens);
 
-            if (d[1]) {
-                h = d[1].split(':');
-                m = h[1] ? h[1] : 0;
-                s = h[2] ? h[2] : 0;
-                h = h[0] ? h[0] : 0;
-            }
+        let result = ''; 
+        let currentIndex = 0;
+        let isDate = false;
 
-            d = d[0].split('-');
+        const datetime = { dd: '01', mm: '01', yy: '1900', hh: '00', mi: '00', ss: '00' }
+        
+        for (let i = 0; i < methods.length; i++) {
+            if (methods[i].type === 'general') {
+                currentIndex += tokens[i].length;
+            } else if (methods[i].type === 'datetime') {
+                let tokLength;
+                isDate = true;
 
-            let day = new Date(d[0], d[1], 0).getDate();
+                // Find the currentIndex and the data about the datetime tokens
+                if (methods[i].token === 'D') {
+                    let day = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = day.length;
+                    datetime.dd = day.padStart(2, 0);
+                } else if (methods[i].token === 'DD') {
+                    tokLength = 2;
+                    datetime.dd = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (methods[i].token === 'M') {
+                    let month = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = month.length;
+                    datetime.mm = month.padStart(2, 0);
+                } else if (methods[i].token === 'MM') {
+                    tokLength = 2;
+                    datetime.mm = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (['MMM', 'MON'].includes(methods[i].token)) {
+                    tokLength = 3;
+                    datetime.mm = `${months.indexOf(value.slice(currentIndex, currentIndex+tokLength)) + 1}`.padStart(2, 0);
+                } else if (['MMMM', 'MONTH'].includes(methods[i].token)) {
+                    let month = value.slice(currentIndex, value.length).match(/^[A-Za-z]+/)[0];
+                    datetime.mm = `${monthsFull.indexOf(month) + 1}`.padStart(2, 0);
+                    tokLength = month.length;
+                } else if (methods[i].token === 'MMMMM') {
+                    tokLength = 1;
+                    let month = months.findIndex((month) => month[0] === value[currentIndex].toUpperCase());
+                    datetime.mm = `${month + 1}`.padStart(2, 0);
+                } else if (methods[i].token === 'YYYY') {
+                    tokLength = 4;
+                    datetime.yy = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (methods[i].token === 'YYY') {
+                    tokLength = 3;
+                    let year = value.slice(currentIndex, currentIndex + tokLength);
+                    datetime.yy = 1 + year
+                } else if (methods[i].token === 'YY') {
+                    tokLength = 2;
+                    let year = value.slice(currentIndex, currentIndex + tokLength);
 
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
-
-                // Data
-                o.data = [d[0], d[1], d[2], h, m, s];
-
-                // Value
-                o.value = [];
-
-                // Calendar instance
-                var calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
-
-                // Get method
-                var get = function (i) {
-                    // Token
-                    var t = this.tokens[i];
-                    // Case token
-                    var s = t.toUpperCase();
-                    var v = null;
-
-                    if (s === 'YYYY') {
-                        v = this.data[0];
-                    } else if (s === 'YYY') {
-                        v = this.data[0].substring(1, 4);
-                    } else if (s === 'YY') {
-                        v = this.data[0].substring(2, 4);
-                    } else if (s === 'Y') {
-                        v = this.data[0].substring(3, 4);
-                    } else if (t === 'MON') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3).toUpperCase();
-                    } else if (t === 'mon') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3).toLowerCase();
-                    } else if (t === 'MONTH') {
-                        v = helpers_date.months[calendar.getMonth()].toUpperCase();
-                    } else if (t === 'month') {
-                        v = helpers_date.months[calendar.getMonth()].toLowerCase();
-                    } else if (s === 'MMMMM') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 1);
-                    } else if (s === 'MMMM' || t === 'Month') {
-                        v = helpers_date.months[calendar.getMonth()];
-                    } else if (s === 'MMM' || t == 'Mon') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3);
-                    } else if (s === 'MM') {
-                        v = helpers.two(this.data[1]);
-                    } else if (s === 'M') {
-                        v = calendar.getMonth() + 1;
-                    } else if (t === 'DAY') {
-                        v = helpers_date.weekdays[calendar.getDay()].toUpperCase();
-                    } else if (t === 'day') {
-                        v = helpers_date.weekdays[calendar.getDay()].toLowerCase();
-                    } else if (s === 'DDDD' || t == 'Day') {
-                        v = helpers_date.weekdays[calendar.getDay()];
-                    } else if (s === 'DDD') {
-                        v = helpers_date.weekdays[calendar.getDay()].substr(0, 3);
-                    } else if (s === 'DD') {
-                        v = helpers.two(this.data[2]);
-                    } else if (s === 'D') {
-                        v = parseInt(this.data[2]);
-                    } else if (s === 'Q') {
-                        v = Math.floor((calendar.getMonth() + 3) / 3);
-                    } else if (s === 'HH24' || s === 'HH') {
-                        v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
-                        }
-                        v = helpers.two(v);
-                    } else if (s === 'HH12') {
-                        if (this.data[3] > 12) {
-                            v = helpers.two(this.data[3] - 12);
-                        } else {
-                            v = helpers.two(this.data[3]);
-                        }
-                    } else if (s === 'H') {
-                        v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
-                            v = helpers.two(v);
-                        }
-                    } else if (s === 'MI') {
-                        v = helpers.two(this.data[4]);
-                    } else if (s === 'SS') {
-                        v = helpers.two(this.data[5]);
-                    } else if (s === 'MS') {
-                        v = calendar.getMilliseconds();
-                    } else if (s === 'AM/PM') {
-                        if (this.data[3] >= 12) {
-                            v = 'PM';
-                        } else {
-                            v = 'AM';
-                        }
-                    } else if (s === 'WD') {
-                        v = helpers_date.weekdays[calendar.getDay()];
-                    }
-
-                    if (v === null) {
-                        this.value[i] = this.tokens[i];
+                    if (year >= 40) {
+                        datetime.yy = 19 + year
                     } else {
-                        this.value[i] = v;
+                        datetime.yy = 20 + year
+                    }
+                } else if (['H', 'HH12'].includes(methods[i].token)) {
+                    let hour = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = hour.length;
+                    datetime.hh = hour.padStart(2, 0);
+                } else if (['HH', 'HH24'].includes(methods[i].token)) {
+                    tokLength = 2;
+                    datetime.hh = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'MI') {
+                    tokLength = 2;
+                    datetime.mi = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'SS') {
+                    tokLength = 2;
+                    datetime.ss = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'AM/PM') {
+                    tokLength = 2;
+                    let v = value.slice(currentIndex, value.length);
+                    if (v === 'PM') {
+                        datetime.hh = `${parseInt(datetime.hh) + 12}`; 
                     }
                 }
 
-                for (var i = 0; i < o.tokens.length; i++) {
-                    get.call(o, i);
+                currentIndex += tokLength
+            } else if (isNumeric(methods[i].type)) {
+                // TODO: Scientific Token Coverage
+
+                let decimal = getDecimal.call({ options }, options.mask);
+                let num, exp;
+
+                
+                if (decimal === '.') {
+                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
+                    currentIndex += num.length;
+                    result += num.replace(/,/g, '');
+                } else if (decimal === ',') {
+                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(\.\d{3})*(,\d+)?/)[0];
+                    currentIndex += num.length;
+                    result += num.replace(/\./g, '').replace(decimal, '.');
                 }
-                // Put pieces together
-                value = o.value.join('');
-            } else {
-                value = '';
+
+                if (methods[i].type === 'percentage') {
+                    result /= 100;
+                } else if (methods[i].type === 'scientific') {
+                    currentIndex += 1;
+                    exp = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
+                    result = Number(result) * (10 ** Number(exp));
+                }
+
+                result = Number(result);
             }
         }
 
-        return value;
+        // If date tokens are present, return in date 'yyyy-mm-dd hh:mi:ss' format 
+        // TODO: Receive the format from options.format
+        if (isDate) {
+            result = `${datetime.yy}-${datetime.mm}-${datetime.dd} ${datetime.hh}:${datetime.mi}:${datetime.ss}`;
+        }
+
+        return result;
     }
 
-    return obj;
+    return Component;
 }
 
 /* harmony default export */ var mask = (Mask());
@@ -12751,7 +11830,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(195);
+var sha512 = __webpack_require__(794);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 
@@ -12806,7 +11885,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jsuites_jSuites = {
+var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
@@ -12817,7 +11896,7 @@ var jsuites_jSuites = {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jsuites_jSuites[k[i]] = o[k[i]];
+                jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -12852,8 +11931,8 @@ var jsuites_jSuites = {
 }
 
 // Legacy
-jsuites_jSuites.image = Upload;
-jsuites_jSuites.image.create = function(data) {
+jSuites.image = Upload;
+jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -12863,9 +11942,9 @@ jsuites_jSuites.image.create = function(data) {
     return img;
 }
 
-jsuites_jSuites.tracker = plugins_form;
-jsuites_jSuites.loading = animation.loading;
-jsuites_jSuites.sha512 = (sha512_default());
+jSuites.tracker = plugins_form;
+jSuites.loading = animation.loading;
+jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -12966,7 +12045,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -13152,7 +12231,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jsuites_jSuites.findElement(element, 'jpanel');
+            let item = jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -13212,7 +12291,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -13270,7 +12349,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jsuites_jSuites.findElement(e.target, function(o) {
+            item = jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -13314,7 +12393,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jsuites_jSuites.mask(e);
+            jSuites.mask.onkeydown(e);
         }
     }
 
@@ -13332,7 +12411,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jsuites_jSuites);
+/* harmony default export */ var jsuites = (jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()

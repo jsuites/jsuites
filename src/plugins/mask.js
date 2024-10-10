@@ -33,6 +33,10 @@ function Mask() {
         return v === null || v === '' || typeof(v) === 'undefined';
     }
 
+    const isNumeric = function(t) {
+        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
+    }
+
     /**
      * Get the decimal defined in the mask configuration
      */
@@ -650,7 +654,7 @@ function Mask() {
         for (let i = 0; i < t.length; i++) {
             var m = getMethod.call(this, t[i]);
             if (m) {
-                m.token = t[i];
+                m.token = t[i].toUpperCase();
                 result.push(m);
             } else {
                 result.push(null);
@@ -784,29 +788,117 @@ function Mask() {
         const methods = getMethodsFromTokens(tokens);
 
         let result = ''; 
-        let size = 0;
+        let currentIndex = 0;
+        let isDate = false;
+
+        const datetime = { dd: '01', mm: '01', yy: '1900', hh: '00', mi: '00', ss: '00' }
         
         for (let i = 0; i < methods.length; i++) {
             if (methods[i].type === 'general') {
-                result += value.slice(size, size + tokens[i].length);
-                size += tokens[i].length;
+                currentIndex += tokens[i].length;
             } else if (methods[i].type === 'datetime') {
-                // if (['DD', 'MM', 'YYYY', 'YYY', 'YYY', 'HH', 'MI', 'SS'].includes(tokens[i].toUpperCase())) {
-                //     result += value.slice(size, size + tokens[i].length);
-                //     size += tokens[i].length;
-                // } else if (['WD', 'MMM', 'MMMM', 'MON', 'MONTH', 'DAY'].includes(tokens[i].toUpperCase())) {
-                //     let l = [...weekDays, ...weekDaysFull, ...months, ...monthsFull].find((v) => {
-                //         value.slice(size, value.length - 1).includes(v);
-                //     })
-                //     result += value.slice(size, size + l);
-                //     size += l;
-                // }
-            } else if (methods[i].type === 'text') {
+                let tokLength;
+                isDate = true;
+
+                // Find the currentIndex and the data about the datetime tokens
+                if (methods[i].token === 'D') {
+                    let day = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = day.length;
+                    datetime.dd = day.padStart(2, 0);
+                } else if (methods[i].token === 'DD') {
+                    tokLength = 2;
+                    datetime.dd = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (methods[i].token === 'M') {
+                    let month = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = month.length;
+                    datetime.mm = month.padStart(2, 0);
+                } else if (methods[i].token === 'MM') {
+                    tokLength = 2;
+                    datetime.mm = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (['MMM', 'MON'].includes(methods[i].token)) {
+                    tokLength = 3;
+                    datetime.mm = `${months.indexOf(value.slice(currentIndex, currentIndex+tokLength)) + 1}`.padStart(2, 0);
+                } else if (['MMMM', 'MONTH'].includes(methods[i].token)) {
+                    let month = value.slice(currentIndex, value.length).match(/^[A-Za-z]+/)[0];
+                    datetime.mm = `${monthsFull.indexOf(month) + 1}`.padStart(2, 0);
+                    tokLength = month.length;
+                } else if (methods[i].token === 'MMMMM') {
+                    tokLength = 1;
+                    let month = months.findIndex((month) => month[0] === value[currentIndex].toUpperCase());
+                    datetime.mm = `${month + 1}`.padStart(2, 0);
+                } else if (methods[i].token === 'YYYY') {
+                    tokLength = 4;
+                    datetime.yy = value.slice(currentIndex, currentIndex + tokLength)
+                } else if (methods[i].token === 'YYY') {
+                    tokLength = 3;
+                    let year = value.slice(currentIndex, currentIndex + tokLength);
+                    datetime.yy = 1 + year
+                } else if (methods[i].token === 'YY') {
+                    tokLength = 2;
+                    let year = value.slice(currentIndex, currentIndex + tokLength);
+
+                    if (year >= 40) {
+                        datetime.yy = 19 + year
+                    } else {
+                        datetime.yy = 20 + year
+                    }
+                } else if (['H', 'HH12'].includes(methods[i].token)) {
+                    let hour = value.slice(currentIndex, value.length).match(/\d+/)[0];
+                    tokLength = hour.length;
+                    datetime.hh = hour.padStart(2, 0);
+                } else if (['HH', 'HH24'].includes(methods[i].token)) {
+                    tokLength = 2;
+                    datetime.hh = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'MI') {
+                    tokLength = 2;
+                    datetime.mi = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'SS') {
+                    tokLength = 2;
+                    datetime.ss = value.slice(currentIndex, currentIndex + tokLength);
+                } else if (methods[i].token === 'AM/PM') {
+                    tokLength = 2;
+                    let v = value.slice(currentIndex, value.length);
+                    if (v === 'PM') {
+                        datetime.hh = `${parseInt(datetime.hh) + 12}`; 
+                    }
+                }
+
+                currentIndex += tokLength
+            } else if (isNumeric(methods[i].type)) {
+                let decimal = getDecimal.call({ options }, options.mask);
+                let num, exp;
+
                 
-            } else {
-                // numeric-like
-                getDecimal.call(options, options.mask)
+                if (decimal === '.') {
+                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
+                    currentIndex += num.length;
+                    result += num.replace(/,/g, '');
+                } else if (decimal === ',') {
+                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(\.\d{3})*(,\d+)?/)[0];
+                    currentIndex += num.length;
+                    result += num.replace(/\./g, '').replace(decimal, '.');
+                }
+
+                if (methods[i].type === 'percentage') {
+                    result /= 100;
+                } else if (methods[i].type === 'scientific') {
+                    // Ignores 'E'
+                    currentIndex += 1;
+
+                    // Get exponent
+                    exp = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
+                    currentIndex += exp.length;
+                    result = Number(result) * (10 ** Number(exp));
+                }
+
+                result = Number(result);
             }
+        }
+
+        // If date tokens are present, return in date 'yyyy-mm-dd hh:mi:ss' format 
+        // TODO: Receive the format from options.format
+        if (isDate) {
+            result = `${datetime.yy}-${datetime.mm}-${datetime.dd} ${datetime.hh}:${datetime.mi}:${datetime.ss}`;
         }
 
         return result;
