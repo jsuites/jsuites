@@ -1,7 +1,83 @@
 const jSuites = require('../dist/jsuites');
 
 describe('jSuites mask', () => {
-    describe('keydown events with a single token', () => {
+    describe('()', () => {
+        test('basic decimals', () => {
+            expect(jSuites.mask('123.456789', { mask: '00.00' }).value).toEqual('123.456789');
+            expect(jSuites.mask('123.456', { mask: '00.0' }).value).toEqual('123.456');
+            expect(jSuites.mask('123.456789', { mask: '00,00' }).value).toEqual('123,456789');
+            expect(jSuites.mask('123.456', { mask: '00,0' }).value).toEqual('123,456');
+            expect(jSuites.mask('-123.456', { mask: '00,0' }).value).toEqual('-123,456');
+        });
+
+        test('currency', () => {    
+            expect(jSuites.mask("12345.678", { mask: '#,##0.00' }).value).toEqual("12,345.678");
+            expect(jSuites.mask("987654.321", { mask: '#,##0.00' }).value).toEqual("987,654.321");
+            expect(jSuites.mask("54321", { mask: '#,##0' }).value).toEqual("54,321");
+
+            expect(jSuites.mask("12345.678", { mask: '#,##0.00' }).value).toEqual("12,345.678");
+            expect(jSuites.mask("987654.321", { mask: '#,##0.00' }).value).toEqual("987,654.321");
+            expect(jSuites.mask("11873987654.321", { mask: '#,##0.00' }).value).toEqual("11,873,987,654.321");
+
+            expect(jSuites.mask("12345.678", { mask: '#.##0,00' }).value).toEqual("12.345,678");
+            expect(jSuites.mask("987654.321", { mask: '#.##0,00' }).value).toEqual("987.654,321");
+            expect(jSuites.mask("11873987654.321", { mask: '#.##0,00' }).value).toEqual("11.873.987.654,321");
+            expect(jSuites.mask("11873987654", { mask: '#.##0' }).value).toEqual("11.873.987.654");
+
+            expect(jSuites.mask("-12345.678", { mask: '#,##0.00' }).value).toEqual("-12,345.678");
+            expect(jSuites.mask("-987654.321", { mask: '#,##0.00' }).value).toEqual("-987,654.321");
+            expect(jSuites.mask("-11873987654.321", { mask: '#,##0.00' }).value).toEqual("-11,873,987,654.321");
+            expect(jSuites.mask("-12345.678", { mask: '#.##0,00' }).value).toEqual("-12.345,678");
+            expect(jSuites.mask("-987654.321", { mask: '#.##0,00' }).value).toEqual("-987.654,321");
+            expect(jSuites.mask("-11873987654.321", { mask: '#.##0,00' }).value).toEqual("-11.873.987.654,321");
+            expect(jSuites.mask("-11873987654", { mask: '#.##0' }).value).toEqual("-11.873.987.654");
+        });
+
+        test('scientific', () => {
+            expect(jSuites.mask("100000", { mask: '0E+00' }).value).toEqual("100000");
+            expect(jSuites.mask("11873987654", { mask: '0.00E+00' }).value).toEqual("11873987654");
+            expect(jSuites.mask("-11873987654", { mask: '0.00E+00' }).value).toEqual("-11873987654");
+        });
+
+        test('date', () => {
+            expect(jSuites.mask("20091999", { mask: 'dd/mm/yyyy' }).value).toEqual("20/09/1999");
+            expect(jSuites.mask("20 09 1999", { mask: 'dd/mm/yyyy' }).value).toEqual("20/09/1999");
+            expect(jSuites.mask("20 Sep 1999", { mask: 'dd/mmm/yyyy' }).value).toEqual("20/Sep/1999");
+            expect(jSuites.mask("20 Sep 1999", { mask: 'dd/mon/yyyy' }).value).toEqual("20/Sep/1999");
+        });
+    });
+
+    describe('fullmask', () => {
+        test('basic decimals', () => {
+            expect(jSuites.mask('1', { mask: '000000.00' }, true).value).toEqual('000001.00');
+            expect(jSuites.mask('21', { mask: '000000.00' }, true).value).toEqual('000021.00');
+            expect(jSuites.mask('21.123', { mask: '000000.00' }, true).value).toEqual('000021.12');
+
+            expect(jSuites.mask('21.123', { mask: '000000' }, true).value).toEqual('000021');
+            expect(jSuites.mask('21.49', { mask: '000000' }, true).value).toEqual('000021');
+            expect(jSuites.mask('21.5', { mask: '000000' }, true).value).toEqual('000022');
+            expect(jSuites.mask('21.51', { mask: '000000' }, true).value).toEqual('000022');
+            expect(jSuites.mask('21.999', { mask: '000000' }, true).value).toEqual('000022');
+
+            expect(jSuites.mask('21.123', { mask: '00.00' }, true).value).toEqual('21.12');
+            expect(jSuites.mask('21.1211111111', { mask: '00.00' }, true).value).toEqual('21.12');
+            expect(jSuites.mask('21.125', { mask: '00.00' }, true).value).toEqual('21.13');
+            expect(jSuites.mask('21.1251', { mask: '00.00' }, true).value).toEqual('21.13');
+            expect(jSuites.mask('21.129', { mask: '00.00' }, true).value).toEqual('21.13');
+            expect(jSuites.mask('21.1299999999', { mask: '00.00' }, true).value).toEqual('21.13');
+
+            expect(jSuites.mask('21.123', { mask: '00,00' }, true).value).toEqual('21,12');
+            expect(jSuites.mask('21.129999', { mask: '00,00' }, true).value).toEqual('21,13');
+        });
+
+        test('scientific', () => {
+            expect(jSuites.mask("100000", { mask: '0E+00' }).value).toEqual("1E+05");
+            expect(jSuites.mask("11873987654", { mask: '0.00E+00' }).value).toEqual("1.19E+10");
+            expect(jSuites.mask("-11873987654", { mask: '0.00E+00' }).value).toEqual("-1.19E+10");
+        });
+    });
+
+    describe('onkeydown single tokens', () => {
         test('0.00', () => {
             document.body.innerHTML = '<input id="test-input" type="text" data-mask="0.00">';
             let input = document.getElementById('test-input')
@@ -1726,7 +1802,7 @@ describe('jSuites mask', () => {
         });
     });
 
-    describe('keydown events with mixed tokens', () => {
+    describe('onkeydown mixed tokens', () => {
         test('$ #,##0.00', () => {
             document.body.innerHTML = '<input id="test-input" type="text" data-mask="$ #,##0.00">';
             let input = document.getElementById('test-input')
@@ -1836,7 +1912,7 @@ describe('jSuites mask', () => {
         });
     });
 
-    describe('extract method', () => {
+    describe('.extract', () => {
         test('currency', () => {
             expect(jSuites.mask.parse('$ 20,000.00', { mask: '$ #,##0.00' })).toEqual(20000.00)
             expect(jSuites.mask.parse('20,000.00', { mask: '#,##0.00' })).toEqual(20000.00)
@@ -1912,45 +1988,4 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.parse('7:59 PM', { mask: 'HH12:MI AM/PM' })).toEqual('1900-01-01 19:59:00')
         });
     });
-
-    // describe('render method', () => {
-    //     test('decimals', () => {
-    //         expect(jSuites.mask.render(123.456789, { mask: '000.00' }, true).value).toEqual("123.46");
-    //         expect(jSuites.mask.render(123.456, { mask: '000.0' }, true).value).toEqual("123.46");
-    //         expect(jSuites.mask.render(789.123, { mask: '000.00' }, true).value).toEqual("789.12");
-    //         expect(jSuites.mask.render(456.78, { mask: '000.00' }, true).value).toEqual("456.78");
-    //     });
-    
-    //     test('padding', () => {
-    //         expect(jSuites.mask.render(123, { mask: '00000' }, true).value).toEqual("00123");
-    //         expect(jSuites.mask.render(9876.54321, { mask: '00000' }, true).value).toEqual("09877");
-    //         expect(jSuites.mask.render(1.2, { mask: '0.000' }, true).value).toEqual("1.200");
-    //         expect(jSuites.mask.render(12, { mask: '00' }, true).value).toEqual("12");
-    //     });
-    
-    //     test('padding decimals', () => {
-    //         expect(jSuites.mask.render(123.23, { mask: '000.000' }, true).value).toEqual("123.230");
-    //         expect(jSuites.mask.render(789.1, { mask: '000.000' }, true).value).toEqual("789.100");
-    //     });
-    
-    //     test('numeric', () => {
-    //         expect(jSuites.mask.render(123.2332, { mask: '00000.00'}, true).value).toEqual("00123.23");    
-    //         expect(jSuites.mask.render(1.2, { mask: '000000.000' }, true).value).toEqual("000001.200");
-    //         expect(jSuites.mask.render(-45.67, { mask: '00000.00' }, true).value).toEqual("-00045.67");
-    
-    //         expect(jSuites.mask.render(12345.678, { mask: '#,##0.00' }, true).value).toEqual("12,345.68");
-    //         expect(jSuites.mask.render(987654.321, { mask: '#,##0.00' }, true).value).toEqual("987,654.32");
-    //         expect(jSuites.mask.render(54321, { mask: '#,##0' }, true).value).toEqual("54,321");
-    
-    //         expect(jSuites.mask.render(0, { mask: '000.00' }, true).value).toEqual("000.00");
-    //         expect(jSuites.mask.render(123456789, { mask: '0000000000' }, true).value).toEqual("0123456789");
-    //     });
-    
-    //     test('edge cases', () => {
-    //         expect(jSuites.mask.render(0, { mask: '0.00' }, true).value).toEqual("0.00");
-    //         expect(jSuites.mask.render(0.123, { mask: '0.00' }, true).value).toEqual("0.12");
-    //         expect(jSuites.mask.render(-456, { mask: '000' }, true).value).toEqual("-456");
-    //         expect(jSuites.mask.render(1000, { mask: '0,000' }, true).value).toEqual("1,000");
-    //     });
-    // })
 });

@@ -29,12 +29,82 @@ function Mask() {
     const months = HelpersDate.monthsShort;
 
     // Helpers
+
+    /**
+    * Returns if the given value is considered blank
+    */
     const isBlank = function(v) {
         return v === null || v === '' || typeof(v) === 'undefined';
     }
 
+    /**
+    * Receives a string from method.type and returns if its a numeric method
+    */
     const isNumeric = function(t) {
         return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
+    }
+
+    /**
+    * Rounds the first number based on the decimal precision of the second number.
+    * 
+    * `value` is a string representing the number to be rounded.
+    * `formattedValue` is a string representing the number with the desired decimal precision (mask applied).
+    * 
+    * The function ensures that `value` is rounded to match the precision of `formattedValue` and
+    * retains any leading zeros from the original `formattedValue`.
+    */
+    const getRounded = function(value, formattedValue, decimal) {
+        // Determine the number of decimal places in formattedValue
+        const decimalPlaces = formattedValue.split(decimal)[1]?.length || 0;
+    
+        // Convert value to a number for rounding
+        let valueNum = parseFloat(value);
+    
+        // Round valueNum based on the decimal places in formattedValue
+        const factor = Math.pow(10, decimalPlaces);
+        let roundedNum = Math.round(valueNum * factor) / factor;
+    
+        // Handle integer rounding for cases like "21.99999"
+        if (decimalPlaces === 0) {
+            roundedNum = Math.round(valueNum);
+        }
+    
+        // Return the rounded number as a string
+        return roundedNum.toString().replace(',', decimal).replace('.', decimal).padStart(formattedValue.length, '0');
+    }
+
+    /**
+     * Receives two numbers represented as strings, where both numbers are essentially the same
+     * but have different decimal precision.
+     * 
+     * `more` is a string representing the number with more decimal places.
+     * `fewer` is a string representing the number with fewer decimal places.
+     */
+    const shortenDecimal = function(more, fewer, decimal) {
+        // Determine the number of decimal places in fewer
+        const fewerSize = fewer.split(decimal)[1]?.length || 0;
+    
+        // Convert more to a number for rounding
+        let moreNum = parseFloat(more.replace(',', '.'));
+    
+        // Round moreNum based on the decimal places in fewer
+        const factor = Math.pow(10, fewerSize);
+        let roundedNum = Math.round(moreNum * factor) / factor;
+
+    
+        // Convert the rounded number to a string with the required decimal places
+        let roundedStr = roundedNum.toFixed(fewerSize);
+    
+        // Split the integer and decimal parts of the original more
+        const [fewerIntPadding] = fewer.split(decimal);
+    
+        // Pad the integer part with leading zeros to match the original length of more
+        const paddedInt = roundedStr.split('.')[0].padStart(fewerIntPadding.length, '0');
+    
+        // Reconstruct the final result with the correct decimal places
+        const finalResult = paddedInt + decimal + roundedStr.split('.')[1];
+    
+        return finalResult;
     }
 
     /**
@@ -476,7 +546,7 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '0{1}([.,]{1}0+)?': function(v) {
+        '0{1}([.,]{1}0+)?': function(v, thousandSeparator) {
             let decimal = getDecimal.call(this);
 
             if (isBlank(this.values[this.index])) {
@@ -510,6 +580,9 @@ function Mask() {
                 if (! this.values[this.index].includes(decimal) && this.values[this.index].replace('-', '').length > 0) {
                     this.values[this.index] += v;
                 }
+            } else if ([',', '.'].includes(v) && !thousandSeparator) {
+                // Switch decimals when needed
+                this.values[this.index] += decimal;
             }
         },
         '0+(\\.{1}0+)?%': function(v) {
@@ -530,12 +603,16 @@ function Mask() {
             parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
         },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
+            parseMethods['0{1}([.,]{1}0+)?'].call(this, v, true);
 
             const decimal = getDecimal.call(this);
             const separator = this.tokens[this.index].substr(1,1);
             const negative = this.values[this.index][0] === '-' ? true : false;
 
+            if (v === separator) {
+                this.values[this.index] = this.values[this.index].slice(0, this.values[this.index].length) + decimal;
+            }
+            
             this.values[this.index] = this.values[this.index].replaceAll(separator, '').replace('-', '');
 
             let val = this.values[this.index].split(decimal);
@@ -680,7 +757,7 @@ function Mask() {
         return result;
     }
 
-    const Component = function(str, config, returnObject) {
+    const Component = function(str, config, fullmask) {
         // Internal default control of the mask system
         const control = {
             // Current raw value to be masked
@@ -750,6 +827,60 @@ function Mask() {
                     control.index++;
                 } while (control.tokens.length >= control.index);
             }
+
+            if (fullmask) {
+                // TODO: Handle Scientific Number
+                let numericSequence = ''
+                let positions = [];
+                let fullNumber = '';
+                let oldNum;
+
+                for (let i = 0; i < control.tokens.length; i++) {
+                    if (isNumeric(control.methods[i].type)) {
+                        numericSequence += control.tokens[i];
+                        positions.push(i);
+                    }
+                }
+
+                for (let i = 0; i < positions.length; i++) {
+                    if (control.values[i]) {
+                        fullNumber += control.values[i];
+                    }
+                }
+
+                oldNum = fullNumber;
+
+                let [intMask, decMask] = numericSequence.split(control.options.decimal);
+                let [intNum, decNum] = fullNumber.split(control.options.decimal);
+
+                intNum = intNum.padStart(intMask.length, 0);
+
+                if (!decNum && decMask) {
+                    decNum = '0';
+                    decNum = decNum.padEnd(decMask.length, 0);
+                }
+
+
+                let result;
+                if (decNum && !decMask) {
+                    // Number losing decimal part
+                    result = getRounded(oldNum, intNum, control.options.decimal);
+                } else if (decNum && decMask && decMask.length < decNum.length) {
+                    // Number doesn't lose the decimal part, but got shorter
+                    result = shortenDecimal(oldNum, intNum + control.options.decimal + decNum.slice(0, decMask.length), control.options.decimal);
+                } else {
+                    result = intNum + control.options.decimal + decNum;
+                }
+
+                let index = 0;
+                for (let i = 0; i < positions.length; i++) {
+                    control.values[i] = result.slice(index, index + control.tokens[i].length);
+                    index += control.tokens[i].length;
+                }
+
+            }
+            
+            control.value = control.values.join('').trim();
         }
 
         return control;
