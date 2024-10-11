@@ -15,7 +15,7 @@ function Mask() {
         // Percentage
         percentage: [ '0+(\\.{1}0+)?%' ],
         // Number
-        numeric: [ '#', '0{1}([.,]{1}0+)?', '0' ],
+        numeric: [ '\\?', '#', '0{1}([.,]{1}0+)?', '0' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
@@ -666,8 +666,8 @@ function Mask() {
                 this.index++;
             }
         },
-        '?': function(v) {
-            parseMethods['L'].call(this, v);
+        '\\?': function(v) {
+            parseMethods['0'].call(this, v);
         },
         'A': function(v) {
             parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
@@ -903,6 +903,7 @@ function Mask() {
         let caret = getCaret.call(element);
         // Run mask
         let result = Component(value, { mask: mask, caret: caret });
+        console.log(result)
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
