@@ -948,7 +948,7 @@ function Ajax() {
 
         var httpRequest = new XMLHttpRequest();
         httpRequest.open(options.method, options.url, true);
-        httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+        //httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
 
         // Content type
         if (options.contentType) {
@@ -995,6 +995,24 @@ function Ajax() {
 
         if (document.ajax && typeof(document.ajax.beforeSend) == 'function') {
             document.ajax.beforeSend(httpRequest);
+        }
+
+        httpRequest.onerror = function() {
+            if (options.error && typeof(options.error) == 'function') {
+                options.error({
+                    message: 'Network error: Unable to reach the server.',
+                    status: 0
+                });
+            }
+        }
+
+        httpRequest.ontimeout = function() {
+            if (options.error && typeof(options.error) == 'function') {
+                options.error({
+                    message: 'Request timed out after ' + httpRequest.timeout + 'ms.',
+                    status: 0
+                });
+            }
         }
 
         httpRequest.onload = function() {
@@ -12823,7 +12841,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.6.5',
+    version: '5.7.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
