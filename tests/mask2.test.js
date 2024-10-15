@@ -48,15 +48,42 @@ describe('jSuites mask', () => {
     });
 
     describe('fullmask', () => {
+        test('integers', () => {
+            expect(jSuites.mask("0", { mask: '0' }, true).value).toEqual("0");
+            expect(jSuites.mask("10", { mask: '0' }, true).value).toEqual("10");
+            expect(jSuites.mask("100", { mask: '0' }, true).value).toEqual("100");
+            expect(jSuites.mask("-100", { mask: '0' }, true).value).toEqual("-100");
+                
+            expect(jSuites.mask("1000", { mask: '000000' }, true).value).toEqual("001000");
+            expect(jSuites.mask("1", { mask: '000000' }, true).value).toEqual("000001");
+            expect(jSuites.mask("-1", { mask: '000000' }, true).value).toEqual("-000001");
+                
+            expect(jSuites.mask("-10", { mask: '0' }, true).value).toEqual("-10");
+            expect(jSuites.mask("-100", { mask: '0' }, true).value).toEqual("-100");
+            expect(jSuites.mask("-1000", { mask: '0000' }, true).value).toEqual("-1000");
+            expect(jSuites.mask("-1000", { mask: '000000' }, true).value).toEqual("-001000");
+                
+            expect(jSuites.mask("123456789", { mask: '0' }, true).value).toEqual("123456789");
+            expect(jSuites.mask("1000000000", { mask: '0000000000' }, true).value).toEqual("1000000000");
+            expect(jSuites.mask("999999999", { mask: '0000000000' }, true).value).toEqual("0999999999");
+                
+            expect(jSuites.mask("123", { mask: '0000' }, true).value).toEqual("0123");
+            expect(jSuites.mask("12345", { mask: '00000' }, true).value).toEqual("12345");
+            expect(jSuites.mask("9", { mask: '00' }, true).value).toEqual("09");
+            expect(jSuites.mask("99", { mask: '00' }, true).value).toEqual("99");
+        });
+
         test('basic decimals', () => {
             expect(jSuites.mask('1', { mask: '000000.00' }, true).value).toEqual('000001.00');
             expect(jSuites.mask('21', { mask: '000000.00' }, true).value).toEqual('000021.00');
             expect(jSuites.mask('21.123', { mask: '000000.00' }, true).value).toEqual('000021.12');
 
             expect(jSuites.mask('21.123', { mask: '000000' }, true).value).toEqual('000021');
+            expect(jSuites.mask('-21.123', { mask: '000000' }, true).value).toEqual('-000021');
             expect(jSuites.mask('21.49', { mask: '000000' }, true).value).toEqual('000021');
             expect(jSuites.mask('21.5', { mask: '000000' }, true).value).toEqual('000022');
             expect(jSuites.mask('21.51', { mask: '000000' }, true).value).toEqual('000022');
+            expect(jSuites.mask('-21.51', { mask: '000000' }, true).value).toEqual('-000022');
             expect(jSuites.mask('21.999', { mask: '000000' }, true).value).toEqual('000022');
 
             expect(jSuites.mask('21.123', { mask: '00.00' }, true).value).toEqual('21.12');
@@ -71,9 +98,68 @@ describe('jSuites mask', () => {
         });
 
         test('scientific', () => {
-            expect(jSuites.mask("100000", { mask: '0E+00' }).value).toEqual("1E+05");
-            expect(jSuites.mask("11873987654", { mask: '0.00E+00' }).value).toEqual("1.19E+10");
-            expect(jSuites.mask("-11873987654", { mask: '0.00E+00' }).value).toEqual("-1.19E+10");
+            expect(jSuites.mask("100000", { mask: '0E+00' }, true).value).toEqual("1E+05");
+            expect(jSuites.mask("11873987654", { mask: '0.00E+00' }, true).value).toEqual("1.19E+10");
+            expect(jSuites.mask("-11873987654", { mask: '0.00E+00' }, true).value).toEqual("-1.19E+10");
+            expect(jSuites.mask("0.000000123", { mask: '0.00E+00' }, true).value).toEqual("1.23E-07");
+            expect(jSuites.mask("0.000456", { mask: '0.00E+00' }, true).value).toEqual("4.56E-04");
+            expect(jSuites.mask("-0.000456", { mask: '0.00E+00' }, true).value).toEqual("-4.56E-04");
+            expect(jSuites.mask("987654321000000", { mask: '0.00E+00' }, true).value).toEqual("9.88E+14");
+            expect(jSuites.mask("-987654321000000", { mask: '0.00E+00' }, true).value).toEqual("-9.88E+14");
+            expect(jSuites.mask("0", { mask: '0.00E+00' }, true).value).toEqual("0.00E+00");
+            expect(jSuites.mask("123456789", { mask: '0E+00' }, true).value).toEqual("1E+08");
+            expect(jSuites.mask("-123456789", { mask: '0E+00' }, true).value).toEqual("-1E+08");
+            expect(jSuites.mask("0.000987", { mask: '0E+00' }, true).value).toEqual("1E-03");
+            expect(jSuites.mask("-0.000987", { mask: '0E+00' }, true).value).toEqual("-1E-03");
+            expect(jSuites.mask("15000", { mask: '0E+00' }, true).value).toEqual("2E+04");
+            expect(jSuites.mask("-15000", { mask: '0E+00' }, true).value).toEqual("-2E+04");
+            expect(jSuites.mask("0", { mask: '0E+00' }, true).value).toEqual("0E+00");
+        });
+
+        test('number + general', () => {
+            expect(jSuites.mask("24", { mask: '0 liters' }, true).value).toEqual("24 liters");
+            expect(jSuites.mask("24", { mask: '0 liters' }, true).value).toEqual("24 liters");
+            expect(jSuites.mask("875799.99", { mask: '$ 0.00' }, true).value).toEqual("$ 875799.99");
+            expect(jSuites.mask("875799.99", { mask: '$ #,##0.00' }, true).value).toEqual("$ 875,799.99");
+        });
+
+        test('date', () => {
+            expect(jSuites.mask("20091999", { mask: 'dd/mm/yyyy' }, true).value).toEqual("20/09/1999");
+            expect(jSuites.mask("20 09 1999", { mask: 'dd/mm/yyyy' }, true).value).toEqual("20/09/1999");
+            expect(jSuites.mask("20 Sep 1999", { mask: 'dd/mmm/yyyy' }, true).value).toEqual("20/Sep/1999");
+            expect(jSuites.mask("20 Sep 1999", { mask: 'dd/mon/yyyy' }, true).value).toEqual("20/Sep/1999");
+            expect(jSuites.mask("20091999", { mask: 'dd/mm/yyyy' }, true).value).toEqual("20/09/1999");
+            expect(jSuites.mask("20091999", { mask: 'dd-mm-yyyy' }, true).value).toEqual("20-09-1999");
+            expect(jSuites.mask("20091999", { mask: 'dd.mm.yyyy' }, true).value).toEqual("20.09.1999");
+            expect(jSuites.mask("20 September 1999", { mask: 'dd/mon/yyyy' }, true).value).toEqual("20/Sep/1999");
+            expect(jSuites.mask("20 September 1999", { mask: 'dd mmmm yyyy' }, true).value).toEqual("20 September 1999");
+            expect(jSuites.mask("200919", { mask: 'dd/mm/yy' }, true).value).toEqual("20/09/19");
+            expect(jSuites.mask("200999", { mask: 'dd/mm/yy' }, true).value).toEqual("20/09/99");
+            expect(jSuites.mask("2091999", { mask: 'dd/mm/yyyy' }, true).value).toEqual("20/09/1999");
+            expect(jSuites.mask("200999", { mask: 'dd/mm/yyyy' }, true).value).toEqual("20/09/99");
+
+            expect(jSuites.mask("31022020", { mask: 'dd/mm/yyyy' }, true).value).toEqual("29/02/2020");
+            expect(jSuites.mask("29022020", { mask: 'dd/mm/yyyy' }, true).value).toEqual("29/02/2020");
+            expect(jSuites.mask("29022019", { mask: 'dd/mm/yyyy' }, true).value).toEqual("28/02/2019");
+
+            expect(jSuites.mask("19990920", { mask: 'yyyy/mm/dd' }, true).value).toEqual("1999/09/20");
+            expect(jSuites.mask("1999 Sep 20", { mask: 'yyyy/mmm/dd' }, true).value).toEqual("1999/Sep/20");
+            expect(jSuites.mask("09201999", { mask: 'mm-dd-yyyy' }, true).value).toEqual("09-20-1999");
+            expect(jSuites.mask("Sep 20 1999", { mask: 'mmm/dd/yyyy' }, true).value).toEqual("Sep/20/1999");
+            expect(jSuites.mask("September 20 1999", { mask: 'mmmm-dd-yyyy' }, true).value).toEqual("September-20-1999");
+            expect(jSuites.mask("19992009", { mask: 'yyyy-dd-mm' }, true).value).toEqual("1999-20-09");
+            expect(jSuites.mask("1999 20 Sep", { mask: 'yyyy/dd/mmm' }, true).value).toEqual("1999/20/Sep");
+            expect(jSuites.mask("1999 Sep 20", { mask: 'yyyy-mmm/dd' }, true).value).toEqual("1999-Sep/20");
+            expect(jSuites.mask("19992009", { mask: 'yyyy.dd-mm' }, true).value).toEqual("1999.20-09");
+            expect(jSuites.mask("1999 09 20", { mask: 'yyyy.mm.dd' }, true).value).toEqual("1999.09.20");
+            expect(jSuites.mask("09201999", { mask: 'mm.dd-yyyy' }, true).value).toEqual("09.20-1999");
+            expect(jSuites.mask("09201999", { mask: 'mm/dd/yyyy' }, true).value).toEqual("09/20/1999");
+            expect(jSuites.mask("09201999", { mask: 'mm dd yyyy' }, true).value).toEqual("09 20 1999");
+            expect(jSuites.mask("200919", { mask: 'dd/mm/yy' }, true).value).toEqual("20/09/19");
+            expect(jSuites.mask("09192019", { mask: 'mm/dd/yyyy' }, true).value).toEqual("09/19/2019");
+            expect(jSuites.mask("091919", { mask: 'mm/dd/yy' }, true).value).toEqual("09/19/19");
+            expect(jSuites.mask("Sep201999", { mask: 'mmm/dd/yyyy' }, true).value).toEqual("Sep/20/1999");
+            expect(jSuites.mask("20 Sep 1999", { mask: 'dd/mmm/yyyy' }, true).value).toEqual("20/Sep/1999");
         });
     });
 

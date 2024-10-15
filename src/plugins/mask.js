@@ -108,6 +108,50 @@ function Mask() {
     }
 
     /**
+     * Receives a number and a format represented as a string. The function scales down the number 
+     * to a value between 1 and 10, while formatting it according to the provided decimal precision in the format.
+     * 
+     * `number` is the input number to be scaled.
+     * `format` is a string representing the desired decimal precision (e.g., "0.00" or "0").
+     * 
+     * The function returns an array with two elements:
+     * 1. The scaled number formatted according to the provided precision.
+     * 2. The exponent needed to scale the formatted number back to the original input.
+     * 
+     * Example: 
+     * ("10000", "0") -> ["1", "4"]
+     * ("123456789", "0.00") -> ["1.23", "8"]
+     */
+    function getScientificFormat(number, format) {
+        if (number === 0 || parseFloat(number) === 0) {
+            return ['0', '0'];
+        }
+
+        number = number.replace(',', '.');
+        format = format.replace(',', '.');
+
+        // Determine the number of decimal places based on the format
+        const decimalPlaces = format.toString().split('.')[1]?.length || 0;
+    
+        // Calculate the exponent (log10 gives the exponent directly)
+        let exponent = Math.floor(Math.log10(number));
+    
+        // Scale the number down to be between 1 and 10
+        const scaledNumber = number / Math.pow(10, exponent);
+    
+        // Format the scaled number with the same number of decimal places as the format
+        let formattedNumber = scaledNumber.toFixed(decimalPlaces);
+
+        // Treats rounding up to 10
+        if (formattedNumber == 10) {
+            formattedNumber = '1';
+            exponent += 1;
+        }
+    
+        return [formattedNumber, exponent.toString()];
+    }
+
+    /**
      * Get the decimal defined in the mask configuration
      */
     const getDecimal = function(v) {
@@ -608,10 +652,6 @@ function Mask() {
             const decimal = getDecimal.call(this);
             const separator = this.tokens[this.index].substr(1,1);
             const negative = this.values[this.index][0] === '-' ? true : false;
-
-            if (v === separator) {
-                this.values[this.index] = this.values[this.index].slice(0, this.values[this.index].length) + decimal;
-            }
             
             this.values[this.index] = this.values[this.index].replaceAll(separator, '').replace('-', '');
 
@@ -795,6 +835,7 @@ function Mask() {
             let d = control.mask.split(';');
             // Get only the first mask for now
             control.mask = d[0];
+            
             // Get tokens which are the methods for parsing
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
@@ -829,53 +870,96 @@ function Mask() {
             }
 
             if (fullmask) {
-                // TODO: Handle Scientific Number
                 let numericSequence = ''
                 let positions = [];
                 let fullNumber = '';
-                let oldNum;
+                let negative = false;
+                let scientific;
+                let exponent;
+                let previousNumber;
 
                 for (let i = 0; i < control.tokens.length; i++) {
                     if (isNumeric(control.methods[i].type)) {
+                        // Construct the number value based on numeric tokens
+                        if (control.methods[i].type === 'scientific') {
+                            scientific = control.tokens[i];
+                        }
                         numericSequence += control.tokens[i];
                         positions.push(i);
+                    } else if (control.methods[i].type === 'datetime') {
+                        // Deal with invalid dates like February's 31
+                        if (['DD', 'D'].includes(control.methods[i].method)) {
+                            let d = new Date(control.date[0], control.date[1] - 1, control.values[i]);
+
+                            while (d.getDate() != control.values[i]) {
+                                control.values[i] = (control.values[i] - 1).toString();
+                                d = new Date(control.date[0], control.date[1] - 1, control.values[i]);
+                            }
+                        }
                     }
                 }
 
                 for (let i = 0; i < positions.length; i++) {
-                    if (control.values[i]) {
-                        fullNumber += control.values[i];
+                    if (control.values[positions[i]]) {
+                        fullNumber += control.values[positions[i]];
                     }
                 }
 
-                oldNum = fullNumber;
+
+                if (fullNumber.includes('-')) {
+                    negative = true;
+                    fullNumber = fullNumber.replace('-', '');
+                }
+
+                previousNumber = fullNumber;
+
+                if (scientific) {
+                    [fullNumber, exponent] = getScientificFormat(fullNumber, scientific.split('E')[0]);
+                }
 
                 let [intMask, decMask] = numericSequence.split(control.options.decimal);
                 let [intNum, decNum] = fullNumber.split(control.options.decimal);
 
-                intNum = intNum.padStart(intMask.length, 0);
+                intNum = intNum.padStart(scientific ? scientific.split('E')[0].split(control.options.decimal)[0] : intMask.length, 0);
 
                 if (!decNum && decMask) {
                     decNum = '0';
                     decNum = decNum.padEnd(decMask.length, 0);
                 }
 
-
                 let result;
                 if (decNum && !decMask) {
                     // Number losing decimal part
-                    result = getRounded(oldNum, intNum, control.options.decimal);
+                    result = getRounded(previousNumber, intNum, control.options.decimal);
                 } else if (decNum && decMask && decMask.length < decNum.length) {
                     // Number doesn't lose the decimal part, but got shorter
-                    result = shortenDecimal(oldNum, intNum + control.options.decimal + decNum.slice(0, decMask.length), control.options.decimal);
+                    result = shortenDecimal(previousNumber, intNum + control.options.decimal + decNum.slice(0, decMask.length), control.options.decimal);
                 } else {
-                    result = intNum + control.options.decimal + decNum;
+                    result = `${intNum}${decNum ? control.options.decimal : ''}${decNum ? decNum : ''}`;
+                }
+
+                if (scientific) {
+                    if (parseFloat(result) === 0) {
+                        result = scientific;
+                    } else if (exponent < 0) {
+                        result += 'E' + '-' + exponent.slice(1, exponent.length).padStart(scientific.split('E')[1].length - 1, 0);
+                    } else {
+                        result += 'E' + '+' + exponent.padStart(scientific.split('E')[1].length - 1, 0);
+                    }
+                }
+
+                if (negative) {
+                    result = '-' + result;
                 }
 
                 let index = 0;
-                for (let i = 0; i < positions.length; i++) {
-                    control.values[i] = result.slice(index, index + control.tokens[i].length);
-                    index += control.tokens[i].length;
+                if (positions.length < result.length) {
+                    control.values[positions[0]] = result;
+                } else {
+                    for (let i = 0; i < positions.length; i++) {
+                        control.values[i] = result.slice(index, index + control.tokens[i].length);
+                        index += control.tokens[i].length;
+                    }
                 }
 
             }
@@ -900,10 +984,9 @@ function Mask() {
         // Get the mask
         let mask = element.getAttribute('data-mask');
         // Keep the current caret position
-        let caret = getCaret.call(element);
+        // let caret = getCaret.call(element);
         // Run mask
-        let result = Component(value, { mask: mask, caret: caret });
-        console.log(result)
+        let result = Component(value, { mask: mask, caret: 0 });
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
@@ -911,10 +994,13 @@ function Mask() {
             // Apply value
             element[property] = newValue;
             // Set the caret to the position before transformation
-            setCaret.call(element, result.caret)
+            // setCaret.call(element, result.caret)
         }
     }
 
+    /**
+     * Extract a value from a string based on a given mask
+     */
     Component.parse = function(value, options) {
         const tokens = getTokens(options.mask);
         const methods = getMethodsFromTokens(tokens);
