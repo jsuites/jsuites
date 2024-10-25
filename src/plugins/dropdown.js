@@ -244,6 +244,7 @@ function Dropdown() {
                 sortResults: false,
                 autofocus: false,
                 prompt: null,
+                allowEmpty: true,
             }
 
             // Loop through our object
@@ -974,7 +975,9 @@ function Dropdown() {
                 if (!obj.options.multiple) {
                     // Update value
                     if (obj.items[index].selected) {
-                        obj.setValue(null);
+                        if (obj.options.allowEmpty !== false) {
+                            obj.setValue(null);
+                        }
                     } else {
                         obj.setValue(Value(index));
                     }
@@ -1131,7 +1134,7 @@ function Dropdown() {
                         synonym = synonym.join(' ');
                     }
 
-                    if (str == null || obj.items[i].selected == true || label.match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
+                    if (str == null || obj.items[i].selected == true || label.toString().match(str) || title.match(str) || groupName.match(str) || synonym.match(str)) {
                         results.push(obj.items[i]);
                     }
                 }

@@ -166,7 +166,7 @@ const Events = function() {
     tooltip.classList.add('jtooltip');
 
     const isWebcomponent = function(e) {
-        return e?.shadowRoot || e?.tagName?.includes('-');
+        return e && (e.shadowRoot || (e.tagName && e.tagName.includes('-')));
     }
 
     const getElement = function(e) {
