@@ -81,6 +81,8 @@ interface DropdownOptions {
     autofocus?: boolean;
     /** Custom prompt on insert new items */
     prompt?: (addNewRow: (title: string, id: any) => void) => boolean;
+    /** Allow toggle values on single dropdowns. Default: true */
+    allowEmpty?: boolean;
 }
 
 interface ItemContainer {
