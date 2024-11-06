@@ -948,7 +948,14 @@ function Ajax() {
 
         var httpRequest = new XMLHttpRequest();
         httpRequest.open(options.method, options.url, true);
-        //httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        if (options.requestedWith) {
+            httpRequest.setRequestHeader('X-Requested-With', options.requestedWith);
+        } else {
+            if (options.requestedWith !== false) {
+                httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            }
+        }
 
         // Content type
         if (options.contentType) {
@@ -12844,7 +12851,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.7.0',
+    version: '5.7.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

@@ -103,7 +103,14 @@ function Ajax() {
 
         var httpRequest = new XMLHttpRequest();
         httpRequest.open(options.method, options.url, true);
-        //httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+
+        if (options.requestedWith) {
+            httpRequest.setRequestHeader('X-Requested-With', options.requestedWith);
+        } else {
+            if (options.requestedWith !== false) {
+                httpRequest.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
+            }
+        }
 
         // Content type
         if (options.contentType) {
