@@ -3,6 +3,7 @@
  * https://jspreadsheet.com/v9
  */
 
+import { Animation, Loading } from "./animation";
 import { Calendar } from "./calendar";
 import { Color } from "./color";
 import { Contextmenu } from "./contextmenu";
@@ -25,6 +26,7 @@ import { Validations } from "./validations";
 
 
 export interface JSuites {
+    animation: Animation;
     calendar: Calendar;
     color: Color;
     contextmenu: Contextmenu;
@@ -32,6 +34,7 @@ export interface JSuites {
     editor: Editor;
     floating: Floating;
     form: Form;
+    loading: Loading;
     mask: Mask;
     modal: Modal;
     notification: Notification;
