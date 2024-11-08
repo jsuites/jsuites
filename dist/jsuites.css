@@ -2837,7 +2837,7 @@ div[data-before]:before {
 }
 
 .jtags > div {
-    padding: 6px 22px 6px 10px;
+    padding: 3px 22px 3px 10px;
     font-size: 0.9em;
     position: relative;
     border-radius: 1px;
@@ -2854,13 +2854,11 @@ div[data-before]:before {
 .jtags > div::after {
     content: 'x';
     position: absolute;
-    top: 7px;
     right: 4px;
     width: 12px;
     height: 12px;
     cursor: pointer;
     font-size: 0.9em;
-    line-height: 1em;
     display: none;
 }
 
