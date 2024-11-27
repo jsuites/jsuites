@@ -116,7 +116,9 @@ function Calendar() {
             calendarControlsUpdateButton.innerHTML = obj.options.textUpdate;
 
             // Define mask
-            el.setAttribute('data-mask', obj.options.format.toLowerCase());
+            if (obj.options.format) {
+                el.setAttribute('data-mask', obj.options.format.toLowerCase());
+            }
 
             // Value
             if (!obj.options.value && obj.options.today) {
