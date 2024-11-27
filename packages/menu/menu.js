@@ -49,12 +49,26 @@
     }
 
     const getWindowWidth = function() {
-        let w = window,
-        d = document,
-        e = d.documentElement,
-        g = d.getElementsByTagName('body')[0],
-        x = w.innerWidth || e.clientWidth || g.clientWidth;
-        return x;
+        let w = window;
+        let d = document;
+        let e = d.documentElement;
+        let g = d.getElementsByTagName('body')[0];
+        return w.innerWidth || e.clientWidth || g.clientWidth;
+    }
+
+    const selectOnLoad = function() {
+        let m = document.querySelectorAll('.jmenu nav a');
+        for (let i = 0; i < m.length; i++) {
+            m[i].classList.remove('selected');
+        }
+
+        let href = window.location.pathname;
+        if (href) {
+            let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
+            if (menu) {
+                menu.classList.add('selected');
+            }
+        }
     }
 
     const Plugin = (function(el, options) {
@@ -100,13 +114,9 @@
                         }
                     }
                 }
-                let href = window.location.pathname;
-                if (href) {
-                    let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
-                    if (menu) {
-                        menu.classList.add('selected');
-                    }
-                }
+
+                selectOnLoad();
+
                 let a = el.querySelectorAll('a');
                 for (let i = 0; i < a.length; i++) {
                     if (a[i].nextElementSibling && a[i].nextElementSibling.tagName === 'UL') {
@@ -124,18 +134,7 @@
         }
 
         obj.update = function() {
-            let m = el.querySelectorAll('nav a');
-            for (let i = 0; i < m.length; i++) {
-                m[i].classList.remove('selected');
-            }
-
-            let href = window.location.pathname;
-            if (href) {
-                let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
-                if (menu) {
-                    menu.classList.add('selected');
-                }
-            }
+            selectOnLoad();
         }
 
         obj.select = function(o, e) {
@@ -239,6 +238,9 @@
 
         return obj;
     });
+
+    // Events
+    window.addEventListener('popstate', selectOnLoad);
 
     if (window.jSuites) {
         jSuites.setExtensions({ menu: Plugin });
