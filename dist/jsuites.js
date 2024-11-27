@@ -2827,7 +2827,7 @@ function Mask() {
     /**
      * Render
      */
-    obj.render = function(value, options, fullMask) {
+    obj.render = function(value, options, fullMask, strict) {
         if (isBlank(value)) {
             return value;
         }
@@ -2987,6 +2987,10 @@ function Mask() {
             } else {
                 return value;
             }
+        }
+
+        if (type === 'numeric' && strict === false && typeof(value) === 'string') {
+            return value;
         }
 
         value = obj(value, options);
@@ -3381,7 +3385,9 @@ function Calendar() {
             calendarControlsUpdateButton.innerHTML = obj.options.textUpdate;
 
             // Define mask
-            el.setAttribute('data-mask', obj.options.format.toLowerCase());
+            if (obj.options.format) {
+                el.setAttribute('data-mask', obj.options.format.toLowerCase());
+            }
 
             // Value
             if (!obj.options.value && obj.options.today) {
@@ -10066,7 +10072,11 @@ function Validations() {
         }
         let list;
         if (typeof(options.value[0]) === 'string') {
-            list = options.value[0].split(',');
+            if (options.source) {
+                list = options.source;
+            } else {
+                list = options.value[0].split(',');
+            }
         } else {
             list = options.value[0];
         }
@@ -12851,7 +12861,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.7.1',
+    version: '5.8.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

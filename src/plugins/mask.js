@@ -1393,7 +1393,7 @@ function Mask() {
     /**
      * Render
      */
-    obj.render = function(value, options, fullMask) {
+    obj.render = function(value, options, fullMask, strict) {
         if (isBlank(value)) {
             return value;
         }
@@ -1553,6 +1553,10 @@ function Mask() {
             } else {
                 return value;
             }
+        }
+
+        if (type === 'numeric' && strict === false && typeof(value) === 'string') {
+            return value;
         }
 
         value = obj(value, options);

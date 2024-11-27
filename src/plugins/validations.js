@@ -170,7 +170,11 @@ function Validations() {
         }
         let list;
         if (typeof(options.value[0]) === 'string') {
-            list = options.value[0].split(',');
+            if (options.source) {
+                list = options.source;
+            } else {
+                list = options.value[0].split(',');
+            }
         } else {
             list = options.value[0];
         }

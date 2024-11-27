@@ -1,3 +1,8 @@
+# 5.8.0
+
+- Added a strict argument for mask rendering (default: true).
+- Enabled list validation for ranges.
+
 # 5.6.5
 
 - Translate calendar strings;
