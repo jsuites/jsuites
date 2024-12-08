@@ -7,19 +7,19 @@ function Mask() {
     // Currency
     const tokens = {
         // Text
-        text: [ '@' ],
+        text: [ '@', '&' ],
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
-        scientific: [ '0+(\\.{1}0+)?E{1}\\+0+' ],
+        scientific: [ '0+([.,]{1}0+#*)?E{1}\\+0+' ],
         // Percentage
-        percentage: [ '0+(\\.{1}0+)?%' ],
+        percentage: [ '0+([.,]{1}0+#*)?%' ],
         // Number
-        numeric: [ '\\?', '#', '0{1}([.,]{1}0+)?', '0' ],
+        numeric: [ '0+([.,]{1}0+#*)?' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
         // Other
-        general: [ 'A', '[0-9a-zA-Z\\$]+', '.']
+        general: [ 'A', '0', '#', '\\?', '[0-9a-zA-Z\\$]+', '.']
     }
 
     // Labels
@@ -162,13 +162,13 @@ function Mask() {
                 return this.options.decimal;
             } else {
                 if (this.locale) {
-                    var t = Intl.NumberFormat(this.locale).format(1.1);
+                    let t = Intl.NumberFormat(this.locale).format(1.1);
                     return this.options.decimal = t[1];
                 } else {
                     if (! v) {
                         v  = this.mask;
                     }
-                    var t = v.match(/[.,٫](?=\d{1,14})/g)
+                    let t = v.match(/[.,٫](?=\d{1,14})/g)
                     if (t) {
                         // Save decimal
                         this.options.decimal = t[0];
@@ -192,8 +192,9 @@ function Mask() {
      * Caret position getter
      * `this` in this function should be the element with a caret
      */
-    const getCaret = function() {
-        if (this.tagName == 'DIV') {
+    const getCaret = function(e) {
+        if (this.tagName === 'DIV') {
+            let pos = null;
             let s = this.getSelection();
             if (s) {
                 if (s.rangeCount !== 0) {
@@ -250,39 +251,6 @@ function Mask() {
      * Methods to deal with different types of data
      */
     const parseMethods = {
-        // Methods related to date mask
-        'YEAR': function(v, s) {
-            let y = new Date().getFullYear().toString();
-
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-            if (parseInt(v) >= 0 && parseInt(v) <= 10) {
-                if (this.values[this.index].length < s) {
-                    this.values[this.index] += v;
-                }
-            }
-            if (this.values[this.index].length == s) {
-                if (s === 2) {
-                    y = y.substr(0,2) + this.values[this.index];
-                } else if (s == 3) {
-                    y = y.substr(0,1) + this.values[this.index];
-                } else if (s == 4) {
-                    y = this.values[this.index];
-                }
-                this.date[0] = y;
-                this.index++;
-            }
-        },
-        'YYYY': function(v) {
-            parseMethods.YEAR.call(this, v, 4);
-        },
-        'YYY': function(v) {
-            parseMethods.YEAR.call(this, v, 3);
-        },
-        'YY': function(v) {
-            parseMethods.YEAR.call(this, v, 2);
-        },
         'FIND': function(v, a) {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
@@ -312,33 +280,44 @@ function Mask() {
                 return pos;
             }
         },
-        'MMM': function(v) {
-            let ret = parseMethods.FIND.call(this, v, months);
-            if (typeof(ret) !== 'undefined') {
-                this.date[1] = ret + 1;
+        'YEAR': function(v, s) {
+            if (isBlank(this.values[this.index])) {
+                this.values[this.index] = '';
+            }
+            if (parseInt(v) >= 0 && parseInt(v) <= 10) {
+                if (this.values[this.index].length < s) {
+                    this.values[this.index] += v;
+                }
+            }
+            if (this.values[this.index].length === s) {
+                let y = new Date().getFullYear().toString();
+                if (s === 2) {
+                    y = y.substring(0,2) + this.values[this.index];
+                } else if (s === 3) {
+                    y = y.substring(0,1) + this.values[this.index];
+                } else if (s === 4) {
+                    y = this.values[this.index];
+                }
+                this.date[0] = y;
+                this.index++;
             }
         },
-        'MON': function(v) {
-            parseMethods['MMM'].call(this, v);
+        'YYYY': function(v) {
+            parseMethods.YEAR.call(this, v, 4);
         },
-        'MMMM': function(v) {
-            let ret = parseMethods.FIND.call(this, v, monthsFull);
-            if (typeof(ret) !== 'undefined') {
-                this.date[1] = ret + 1;
-            }
+        'YYY': function(v) {
+            parseMethods.YEAR.call(this, v, 3);
         },
-        'MONTH': function(v) {
-            parseMethods['MMMM'].call(this, v);
+        'YY': function(v) {
+            parseMethods.YEAR.call(this, v, 2);
         },
         'MMMMM': function(v) {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            let pos = 0;
-            let count = 0;
             let value = (this.values[this.index] + v).toLowerCase();
             for (var i = 0; i < monthsFull.length; i++) {
-                if (monthsFull[i][0].toLowerCase().indexOf(value) == 0) {
+                if (monthsFull[i][0].toLowerCase().indexOf(value) === 0) {
                     this.values[this.index] = monthsFull[i][0];
                     this.date[1] = i + 1;
                     this.index++;
@@ -346,129 +325,108 @@ function Mask() {
                 }
             }
         },
-        'MM': function(v) {
+        'MMMM': function(v) {
+            let ret = parseMethods.FIND.call(this, v, monthsFull);
+            if (typeof(ret) !== 'undefined') {
+                this.date[1] = ret + 1;
+            }
+        },
+        'MMM': function(v) {
+            let ret = parseMethods.FIND.call(this, v, months);
+            if (typeof(ret) !== 'undefined') {
+                this.date[1] = ret + 1;
+            }
+        },
+        'MM': function(v, single) {
+            const commit = () => {
+                this.date[1] = this.values[this.index];
+                this.index++;
+            }
+
             if (isBlank(this.values[this.index])) {
                 if (parseInt(v) > 1 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] = '0' + v;
-                    this.index++;
+                    if (! single) {
+                        v = '0' + v;
+                    }
+                    this.values[this.index] = v;
+                    commit();
                 } else if (parseInt(v) < 2) {
                     this.values[this.index] = v;
                 }
             } else {
                 if (this.values[this.index] == 1 && parseInt(v) < 3) {
                     this.date[1] = this.values[this.index] += v;
-                    this.index++;
+                    commit();
                 } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
                     this.date[1] = this.values[this.index] += v;
-                    this.index++;
+                    commit();
+                } else {
+                    let test = parseInt(this.values[this.index]);
+                    if (test > 0 && test <= 12) {
+                        commit();
+                        return false;
+                    }
                 }
             }
         },
         'M': function(v) {
-            let test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (v > 1) {
-                        this.date[1] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        test = true;
-                    }
-                }
-            } else {
-                test = true;
+            return parseMethods['MM'].call(this, v, true);
+        },
+        'MONTH': function(v) {
+            return parseMethods['MMMM'].call(this, v);
+        },
+        'MON': function(v) {
+            return parseMethods['MMM'].call(this, v);
+        },
+        'DDDD': function(v) {
+            return parseMethods.FIND.call(this, v, weekDaysFull);
+        },
+        'DDD': function(v) {
+            return parseMethods.FIND.call(this, v, weekDays);
+        },
+        'DD': function(v, single) {
+            const commit = () => {
+                this.date[2] = this.values[this.index];
+                this.index++;
             }
 
-            // Re-test
-            if (test == true) {
-                const t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 12) {
-                    this.date[1] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'D': function(v) {
-            let test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (parseInt(v) > 3) {
-                        this.date[2] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 1 || this.values[this.index] == 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        test = true;
-                    }
-                }
-            } else {
-                test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 32) {
-                    this.date[2] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'DD': function(v) {
             if (isBlank(this.values[this.index])) {
                 if (parseInt(v) > 3 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] = '0' + v;
-                    this.index++;
+                    if (! single) {
+                        v = '0' + v;
+                    }
+                    this.values[this.index] = v;
+                    commit();
                 } else if (parseInt(v) < 10) {
                     this.values[this.index] = v;
                 }
             } else {
                 if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
+                    this.values[this.index] += v;
+                    commit();
                 } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
+                    this.values[this.index] += v;
+                    commit();
                 } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
+                    this.values[this.index] += v;
+                    commit();
+                } else {
+                    let test = parseInt(this.values[this.index]);
+                    if (test > 0 && test <= 31) {
+                        commit();
+                        return false;
+                    }
                 }
             }
         },
-        'DDD': function(v) {
-            parseMethods.FIND.call(this, v, weekDays);
+        'D': function(v) {
+            return parseMethods['DD'].call(this, v, true);
         },
         'DY': function(v) {
-            parseMethods['DDD'].call(this, v);
-        },
-        'DDDD': function(v) {
-            parseMethods.FIND.call(this, v, weekDaysFull);
+            return parseMethods['DDD'].call(this, v);
         },
         'DAY': function(v) {
-            parseMethods['DDDD'].call(this, v);
+            return parseMethods['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
             if (isBlank(this.values[this.index])) {
@@ -590,85 +548,133 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '0{1}([.,]{1}0+)?': function(v, thousandSeparator) {
+        '0+([.,]{1}0+#*)?': function(v, thousandSeparator) {
             let decimal = getDecimal.call(this);
 
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
             
-            if (v === '-') {
+            if (v == '-') {
                 // Transform the number into negative if it is not already
-                if (this.values[this.index][0] !== '-') {
+                if (this.values[this.index][0] != '-') {
                     this.values[this.index] = '-' + this.values[this.index];
                 }
-            } else if (v === '+') {
+            } else if (v == '+') {
                 // Transform the number into positive if it is negative
-                if (this.values[this.index][0] === '-') {
+                if (this.values[this.index][0] == '-') {
                     this.values[this.index] = this.values[this.index].replace('-', '');
                 }
-            } else if (v === '0') {
-                // Only adds zero if theres a non-zero number before
-                if (this.values[this.index] != '0') {
+            } else if (v == '0') {
+                // Only adds zero if there's a non-zero number before
+                if (this.values[this.index] != '0' && this.values[this.index] != '-0') {
                     this.values[this.index] += v;
                 }
             } else if (v > 0 && v < 10) {
-                // Verify if theres a zero to remove it, avoiding left zeros
-                if (this.values[this.index] == '0') {
+                // Verify if there's a zero to remove it, avoiding left zeros
+                if (this.values[this.index] == '0' || this.values[this.index] == '-0') {
                     this.values[this.index] = this.values[this.index].replace('0', '');
                 }
-
                 this.values[this.index] += v;
-            } else if (v === decimal) {
-                // Only adds decimal when theres a number value on its left
-                if (! this.values[this.index].includes(decimal) && this.values[this.index].replace('-', '').length > 0) {
-                    this.values[this.index] += v;
+            } else if (v == decimal) {
+                // Only adds decimal when there's a number value on its left
+                if (! this.values[this.index].includes(decimal)) {
+                    if (! this.values[this.index].replace('-', '').length) {
+                        this.values[this.index] += '0';
+                    }
+                    this.values[this.index] += decimal;
                 }
-            } else if ([',', '.'].includes(v) && !thousandSeparator) {
-                // Switch decimals when needed
-                this.values[this.index] += decimal;
+            } else if (v === "\u200B") {
+                this.values[this.index] += v;
             }
         },
-        '0+(\\.{1}0+)?%': function(v) {
-            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
+        '0+([.,]{1}0+#*)?%': function(v) {
+            parseMethods['0+([.,]{1}0+#*)?'].call(this, v);
 
             // Adds the % only if it has a number value
             if (this.values[this.index].match(/[\-0-9]/g)) {
                 if (this.values[this.index].indexOf('%') != -1) {
                     this.values[this.index] = this.values[this.index].replaceAll('%', '');
                 }
-
                 this.values[this.index] += '%';
             } else {
                 this.values[this.index] = '';
             }
         },
-        '0+(\\.{1}0+)?E{1}\\+0+': function(v) {
-            parseMethods['0{1}([.,]{1}0+)?'].call(this, v);
+        '0+([.,]{1}0+#*)?E{1}\\+0+': function(v) {
+            parseMethods['0+([.,]{1}0+#*)?'].call(this, v);
         },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            parseMethods['0{1}([.,]{1}0+)?'].call(this, v, true);
-
-            const decimal = getDecimal.call(this);
-            const separator = this.tokens[this.index].substr(1,1);
-            const negative = this.values[this.index][0] === '-' ? true : false;
-            
-            this.values[this.index] = this.values[this.index].replaceAll(separator, '').replace('-', '');
-
-            let val = this.values[this.index].split(decimal);
-
-            // Add the separator
+            parseMethods['0+([.,]{1}0+#*)?'].call(this, v, true);
+            // Get the full original value, including prefixes
+            let decimal = getDecimal.call(this);
+            let separator = this.tokens[this.index].substring(1,2);
+            let currentValue = this.values[this.index];
+            // Remove existing separators and negative sign
+            currentValue = currentValue.replaceAll(separator, '');
+            // Process separators
+            let val = currentValue.split(decimal);
             if (val[0].length > 3) {
-                for (let i = val[0].length - 3; i > 0; i -= 3) {
-                    val[0] = val[0].slice(0, i) + separator + val[0].slice(i, val[0].length);
+                let number = [];
+                let count = 0;
+                for (var j = val[0].length - 1; j >= 0 ; j--) {
+                    let c = val[0][j];
+                    if (c >= 0 && c <= 9) {
+                        if (count && ! (count % 3)) {
+                            number.unshift(separator);
+                        }
+                        count++;
+                    }
+                    number.unshift(c);
                 }
+                val[0] = number.join('');
             }
-
-            this.values[this.index] = (negative ? '-' : '') + val.join(decimal);
-
-            if (this.value.split(separator).length < this.values[this.index].split(separator).length) {
-                this.signal = true;
+            // Reconstruct the value
+            this.values[this.index] = val.join(decimal);
+        },
+        '[0-9a-zA-Z\\$]+': function(v) {
+            // Token to be added to the value
+            let word = this.tokens[this.index];
+            // Value
+            if (typeof(this.values[this.index]) === 'undefined') {
+                this.values[this.index] = '';
             }
+            if (v === null) {
+                let size = this.values[this.index].length;
+                v = word.substring(size, size+1);
+            }
+            // Add the value
+            this.values[this.index] += v;
+            // Only if caret is before the change
+            let current = this.values[this.index].replace('\u200B','');
+            // Add token to the values
+            if (current !== word.substring(0,current.length)) {
+                this.values[this.index] = word;
+                // Next token to process
+                this.index++;
+                return false;
+            } else if (current === word) {
+                // Next token to process
+                this.index++;
+            }
+        },
+        'A': function(v) {
+            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        'a': function(v) {
+            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        '.': function(v) {
+            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+        },
+        '&': function(v) {
+            if (v.match(/^[a-zA-Z ]+$/)) {
+                this.values[this.index] = v;
+                this.index++;
+            }
+        },
+        'C': function(v) {
+            parseMethods['&'].call(this, v);
         },
         // General Methods
         '0': function(v) {
@@ -683,23 +689,6 @@ function Mask() {
         '#': function(v) {
             parseMethods['0'].call(this, v);
         },
-        '[0-9a-zA-Z\\$]+': function(v) {
-            // Token to be added to the value
-            let word = this.tokens[this.index];
-            // Only if caret is before the change
-            if (this.caret > this.values.join('').length && !this.value.includes(word)) {
-                this.caret += word.length;
-            }
-            // Add token to the values
-            this.values[this.index] = word;
-            // Next token to process
-            this.index++;
-            // Repeat if is a number
-            if (v.match(/[\-0-9]/g)) {
-                // Repeat the character
-                this.position--;
-            }
-        },
         'L': function(v) {
             if (v.match(/[a-zA-Z]/gi)) {
                 this.values[this.index] = v;
@@ -708,24 +697,6 @@ function Mask() {
         },
         '\\?': function(v) {
             parseMethods['0'].call(this, v);
-        },
-        'A': function(v) {
-            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
-        },
-        'a': function(v) {
-            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
-        },
-        '.': function(v) {
-            parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
-        },
-        '&': function(v) {
-            if (v.match(/^[a-zA-Z ]+$/)) {
-                this.values[this.index] = v;
-                this.index++;
-            }
-        },
-        'C': function(v) {
-            parseMethods['&'].call(this, v);
         },
         '@': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -797,11 +768,73 @@ function Mask() {
         return result;
     }
 
+    const getMethodByPosition = function(control) {
+        let methodName;
+        if (control.methods[control.index] && typeof(control.value[control.position]) !== 'undefined') {
+            methodName = control.methods[control.index].method;
+        }
+
+        if (methodName && typeof(parseMethods[methodName]) === 'function') {
+            return parseMethods[methodName];
+        }
+
+        return false;
+    }
+
+    const processNumOfDecimals = function(token, number) {
+        // Process decimals
+        if (token[1]) {
+            let numOfDecimals = 0;
+            let numOfHashes = 0;
+            let test = token[1].match(/[0-9]+/g);
+            if (test && test[0]) {
+                numOfDecimals = test[0].length;
+            }
+            test = token[1].match(/#+/g);
+            if (test && test[0]) {
+                numOfHashes = test[0].length;
+            }
+            let fraction = number[1];
+            if (fraction) {
+                let res;
+                if (fraction.length > numOfDecimals + numOfHashes) {
+                    if (fraction[fraction.length - 1] === '5') {
+                        fraction = fraction + '1';
+                    }
+                    res = parseFloat('0.' + fraction).toFixed(numOfDecimals + numOfHashes);
+                } else if (fraction.length < numOfDecimals) {
+                    res = parseFloat('0.' + fraction).toFixed(numOfDecimals);
+                }
+                if (res) {
+                    number[1] = res.toString().split('.')[1];
+                }
+                console.log(res)
+            }
+        } else {
+            if (number[1]) {
+                number[0] = Number(number[0]).toFixed(0);
+                number[1] = '';
+            }
+        }
+    }
+
+    const processNumOfPaddingZeros = function(token, number) {
+        // Process zeros
+        let numOfPaddingZeros = token[0].length;
+        if (numOfPaddingZeros > 1) {
+            number[0] = number[0].toString().padStart(numOfPaddingZeros, '0');
+        }
+    }
+
+    const getValue = function(control) {
+        return control.values.join('').trim();
+    }
+
     const Component = function(str, config, fullmask) {
         // Internal default control of the mask system
         const control = {
             // Current raw value to be masked
-            value: str,
+            value: str.toString(),
             // Mask options
             options: {},
             // New values for each token found
@@ -831,146 +864,78 @@ function Mask() {
         if (control.locale) {
             // Process the locale
         } else if (control.mask) {
-            // Controls of Excel that should be ignore
+            // Controls of Excel that should be ignored
             let d = control.mask.split(';');
             // Get only the first mask for now
             control.mask = d[0];
-            
             // Get tokens which are the methods for parsing
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
             control.methods = getMethodsFromTokens(control.tokens);
             // Walk every character on the value
-            while (control.position < control.value.length) {
+            let method;
+            while (method = getMethodByPosition(control)) {
                 // Get the method name to handle the current token
-                let methodName;
-                if (control.methods[control.index]) {
-                    methodName = control.methods[control.index].method;
+                let ret = method.call(control, control.value[control.position]);
+                // Next position
+                if (ret !== false) {
+                    control.position++;
                 }
-                // If that is a function
-                if (typeof(parseMethods[methodName]) == 'function') {
-                    parseMethods[methodName].call(control, control.value[control.position]);
-                }
-                control.position++;
             }
 
-            let value = control.values.join('').trim();
-            if (value) {
-                // Complement things in the end of the mask
-                do {
-                    if (control.tokens[control.index]) {
-                        // Get the method name to handle the current token
-                        let methodType = control.methods[control.index].type;
-                        if (methodType === 'general') {
-                            control.values[control.index] = control.tokens[control.index];
+            // Move index
+            if (control.methods[control.index]) {
+                let type = control.methods[control.index].type;
+                if (isNumeric(type) && control.methods[++control.index]) {
+                    let next;
+                    while (next = control.methods[control.index]) {
+                        if (control.methods[control.index].type === 'general') {
+                            let method = control.methods[control.index].method;
+                            if (method && typeof(parseMethods[method]) === 'function') {
+                                parseMethods[method].call(control, null);
+                            }
+                        } else {
+                            break;
                         }
                     }
-                    control.index++;
-                } while (control.tokens.length >= control.index);
+                }
             }
 
             if (fullmask) {
-                let numericSequence = ''
-                let positions = [];
-                let fullNumber = '';
-                let negative = false;
-                let scientific;
-                let exponent;
-                let previousNumber;
-
-                for (let i = 0; i < control.tokens.length; i++) {
-                    if (isNumeric(control.methods[i].type)) {
-                        // Construct the number value based on numeric tokens
-                        if (control.methods[i].type === 'scientific') {
-                            scientific = control.tokens[i];
+                // Decimal
+                let decimal = control.options.decimal;
+                // Adjust final value
+                control.methods.forEach((v, k) => {
+                    // Value
+                    let value = control.values[k];
+                    // Transform based on the mask
+                    if (isNumeric(v.type)) {
+                        // Value
+                        let number = value.split(decimal);
+                        // Token
+                        let token = v.token.split(decimal);
+                        // Transform
+                        processNumOfDecimals(token, number);
+                        // Do not apply padding zeros for currency
+                        if (v.type !== 'currency') {
+                            processNumOfPaddingZeros(token, number);
                         }
-                        numericSequence += control.tokens[i];
-                        positions.push(i);
-                    } else if (control.methods[i].type === 'datetime') {
-                        // Deal with invalid dates like February's 31
-                        if (['DD', 'D'].includes(control.methods[i].method)) {
-                            let d = new Date(control.date[0], control.date[1] - 1, control.values[i]);
-
-                            while (d.getDate() != control.values[i]) {
-                                control.values[i] = (control.values[i] - 1).toString();
-                                d = new Date(control.date[0], control.date[1] - 1, control.values[i]);
-                            }
+                        if (v.type === 'percentage') {
+                            number[1] += '%';
                         }
+                        // Result
+                        control.values[k] = number.join(decimal);
                     }
-                }
-
-                for (let i = 0; i < positions.length; i++) {
-                    if (control.values[positions[i]]) {
-                        fullNumber += control.values[positions[i]];
-                    }
-                }
-
-
-                if (fullNumber.includes('-')) {
-                    negative = true;
-                    fullNumber = fullNumber.replace('-', '');
-                }
-
-                previousNumber = fullNumber;
-
-                if (scientific) {
-                    [fullNumber, exponent] = getScientificFormat(fullNumber, scientific.split('E')[0]);
-                }
-
-                let [intMask, decMask] = numericSequence.split(control.options.decimal);
-                let [intNum, decNum] = fullNumber.split(control.options.decimal);
-
-                intNum = intNum.padStart(scientific ? scientific.split('E')[0].split(control.options.decimal)[0] : intMask.length, 0);
-
-                if (!decNum && decMask) {
-                    decNum = '0';
-                    decNum = decNum.padEnd(decMask.length, 0);
-                }
-
-                let result;
-                if (decNum && !decMask) {
-                    // Number losing decimal part
-                    result = getRounded(previousNumber, intNum, control.options.decimal);
-                } else if (decNum && decMask && decMask.length < decNum.length) {
-                    // Number doesn't lose the decimal part, but got shorter
-                    result = shortenDecimal(previousNumber, intNum + control.options.decimal + decNum.slice(0, decMask.length), control.options.decimal);
-                } else {
-                    result = `${intNum}${decNum ? control.options.decimal : ''}${decNum ? decNum : ''}`;
-                }
-
-                if (scientific) {
-                    if (parseFloat(result) === 0) {
-                        result = scientific;
-                    } else if (exponent < 0) {
-                        result += 'E' + '-' + exponent.slice(1, exponent.length).padStart(scientific.split('E')[1].length - 1, 0);
-                    } else {
-                        result += 'E' + '+' + exponent.padStart(scientific.split('E')[1].length - 1, 0);
-                    }
-                }
-
-                if (negative) {
-                    result = '-' + result;
-                }
-
-                let index = 0;
-                if (positions.length < result.length) {
-                    control.values[positions[0]] = result;
-                } else {
-                    for (let i = 0; i < positions.length; i++) {
-                        control.values[i] = result.slice(index, index + control.tokens[i].length);
-                        index += control.tokens[i].length;
-                    }
-                }
-
+                });
             }
             
-            control.value = control.values.join('').trim();
+            control.value = getValue(control);
         }
 
         return control;
     }
 
-    Component.onkeydown = function(e) {
+    Component.oninput = function(e) {
         // Element
         let element = e.target;
         // Property
@@ -984,17 +949,27 @@ function Mask() {
         // Get the mask
         let mask = element.getAttribute('data-mask');
         // Keep the current caret position
-        // let caret = getCaret.call(element);
+        let caret = getCaret.call(element);
+        if (caret) {
+            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
+        }
         // Run mask
-        let result = Component(value, { mask: mask, caret: 0 });
+        let result = Component(value, { mask: mask });
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
         if (newValue !== value && ! e.inputType.includes('delete')) {
-            // Apply value
-            element[property] = newValue;
             // Set the caret to the position before transformation
-            // setCaret.call(element, result.caret)
+            let caret = newValue.indexOf("\u200B");
+            if (caret) {
+                // Apply value
+                element[property] = newValue.replace("\u200B", "");
+                // Set caret
+                setCaret.call(element, caret);
+            } else {
+                // Apply value
+                element[property] = newValue;
+            }
         }
     }
 

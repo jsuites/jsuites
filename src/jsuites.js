@@ -558,7 +558,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jSuites.mask.onkeydown(e);
+            jSuites.mask.oninput(e);
         }
     }
 
