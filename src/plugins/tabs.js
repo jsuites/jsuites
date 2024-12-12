@@ -169,7 +169,7 @@ export default function Tabs(el, options) {
 
     obj.create = function(title, url) {
         if (typeof(obj.options.onbeforecreate) == 'function') {
-            var ret = obj.options.onbeforecreate(el);
+            var ret = obj.options.onbeforecreate(el, title);
             if (ret === false) {
                 return false;
             } else {
