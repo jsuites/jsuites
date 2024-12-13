@@ -34,7 +34,7 @@ interface Options {
      * On before create new tab event
      * @return {string} Header title
      */
-    onbeforecreate: (el: HTMLElement) => string;
+    onbeforecreate: (el: HTMLElement, title: string | undefined) => string | false;
     /** On change tab position event */
     onchangeposition: (headers: HTMLElement[], from: number, to: number) => void;
     /** Enable animation. Default: false */
