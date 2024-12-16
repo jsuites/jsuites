@@ -2293,7 +2293,7 @@ div[data-before]:before {
     color:#000;
 }
 
-.jprogressbar::focus {
+.jprogressbar:focus {
     outline: auto 5px -webkit-focus-ring-color;
 }
 
