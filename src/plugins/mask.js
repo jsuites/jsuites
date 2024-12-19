@@ -1346,7 +1346,10 @@ function Mask() {
             type = getType.call(options, options.mask);
         }
 
-        if (type === 'general') {
+        if (type === 'text') {
+            var o = {};
+            value = v;
+        } else if (type === 'general') {
             var o = obj(v, options, true);
 
             value = v;
@@ -1448,6 +1451,7 @@ function Mask() {
             if (options.mask && fullMask) {
                 fillWithBlanks = true;
             }
+        } else if (type === 'text') {
         } else {
             // Parse number
             if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
