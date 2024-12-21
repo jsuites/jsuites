@@ -1,8 +1,7 @@
 title: JavaScript HTML Editor
 keywords: JavaScript, WYSIWYG HTML Editor, jSuites Plugin, Content Editing Tools, Web Development Integration
 description: jSuites HTML editor is a JavaScript-based plugin offering an interface for web content editing. It includes various manipulation tools and filters, extensions, and a customizable toolbar for seamless integration into web applications and projects.
-
-![JavaScript HTML Editor](img/js-html-editor.svg)
+canonical: https://jsuites.net/docs/javascript-html-editor
 
 # JavaScript HTML Editor
 
@@ -71,6 +70,8 @@ A lightweight wysiwyg JavaScript HTML editor is available with a few native feat
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
 
 <div id="editor" style="width: 480px;"></div>
 
@@ -144,6 +145,8 @@ Learn how to enable a dropping zone for images on your javascript HTML editor.
 <script src="https://jsuites.net/v5/jsuites.js"></script>
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
+
 <p class="small">Drop any image in the rich text below.</p>
 <div id="root" style="width: 480px;"></div>
 
@@ -215,6 +218,9 @@ export default {
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
+
 <div id="editor3"></div>
 <script>
 jSuites.editor(document.getElementById('editor3'), {

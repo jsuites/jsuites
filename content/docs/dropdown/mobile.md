@@ -1,21 +1,25 @@
-title: Responsive Javascript Dropdown
-keywords: javascript, autocomplete, javascript dropdown, mobile, responsive dropdown
-description: Create a fully responsive javascript dropdown. Mobile rendering.
+title: Responsive JavaScript Dropdown
+keywords: JavaScript, responsive dropdown, mobile dropdown, autocomplete functionality, dropdown customization
+description: Implement a fully responsive JavaScript dropdown optimized for mobile devices, featuring seamless autocomplete functionality and easy customization for an enhanced user experience.
 
-* [JavaScript Dropdown Plugin](/docs/dropdown)
+{.breadcrumb}
+- [JavaScript Dropdown](/docs/dropdown)
+- Examples
 
-# Responsive Dropdown
+# Responsive JavaScript Dropdown
 
-The render mode can be defined on initialization with type: **default**, **picker** or **searchbar**.
+Implement a fully responsive JavaScript dropdown that adapts to mobile devices. During initialization, the dropdown's render mode can be tailored to suit various use cases, with options including default, picker, or searchbar.
 
-## Examples
+## Example
 
 ### Dropdown as a Searchbar
 
+In this example, the dropdown is initialized as a searchbar, enhancing the user experience by allowing for easy search and selection within a compact, mobile-friendly interface.
+
 ```html
 <html>
-<script src="https://jsuites.net/v4/jsuites.js"></script>
-<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
 <div id="dropdown"></div>
 
@@ -34,9 +38,10 @@ jSuites.dropdown(document.getElementById('dropdown'), {
 </html>
 ```
 ```jsx
-import { Dropdown } from 'jsuites/react'
-import { useRef } from 'react'
-import 'jsuites/dist/jsuites.css'
+import { Dropdown } from 'jsuites/react';
+import { useRef } from 'react';
+
+import 'jsuites/dist/jsuites.css';
 
 function App() {
   const dropdown = useRef(null);
@@ -55,12 +60,15 @@ function App() {
 export default App;
 ```
 
-### Dropdown as mobile item picker
+### Dropdown as Mobile Item Picker
+
+You can initialise the dropdown with the picker mode to create a floating, responsive option picker optimized for mobile applications. This mode presents a user-friendly, touch-optimized interface ideal for mobile devices.
+
 
 ```html
 <html>
-<script src="https://jsuites.net/v4/jsuites.js"></script>
-<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
 <div id="dropdown"></div>
 
@@ -86,9 +94,10 @@ jSuites.dropdown(document.getElementById('dropdown'), {
 </html>
 ```
 ```jsx
-import { Dropdown } from 'jsuites/react'
-import { useRef } from 'react'
-import 'jsuites/dist/jsuites.css'
+import { Dropdown } from 'jsuites/react';
+import { useRef } from 'react';
+
+import 'jsuites/dist/jsuites.css';
 
 function App() {
   const dropdown = useRef(null);
@@ -114,3 +123,9 @@ function App() {
 }
 export default App;
 ```
+
+## More Dropdown Examples
+
+* [JavaScript Countries Dropdown](/docs/dropdown/countries)
+* [Dropdown Events](/docs/dropdown/events)
+* [Responsive JavaScript Dropdown](/docs/dropdown/mobile)

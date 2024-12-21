@@ -1,11 +1,11 @@
-title: JavaScript dropdown and autocomplete
-keywords: Jexcel, jquery, javascript, autocomplete, element picker, javascript dropdown, javascript select, selectbox
-description: Full examples on how to handle simple, advanced, autocomplete and conditional javascript dropdowns, selectbox, select
+title: JavaScript Dropdown and Autocomplete with Jsuites v4
+keywords: Jexcel, jquery, javascript, autocomplete, element picker, javascript dropdown, javascript select, select box
+description: Full examples on how to handle simple, advanced, autocomplete and conditional javascript dropdowns, select box, select.
 
-JavaScript dropdown
+JavaScript Dropdown And Autocomplete
 ===================
 
-The `jSuites.dropdown` is a lightweight multi-purpose responsive JavaScript dropdown and general option picker plugin. It works great in small screens and has different render methods and several initialization features to give developers a flexible JavaScript dropdown and promote a better user experience in web-based applications.
+The `jSuites.dropdown` is a lightweight multipurpose responsive JavaScript dropdown and general option picker plugin. It works great in small screens and has different render methods and several initialization features to give developers a flexible JavaScript dropdown and promote a better user experience in web-based applications.
 
 The new JavaScript dropdown plugin brings a native autocomplete, multiple option selection, responsive render types and much more features, such as:
 
@@ -18,7 +18,7 @@ The new JavaScript dropdown plugin brings a native autocomplete, multiple option
 7.  Dropdown with image and icons
 8.  Dropdown with group of items and categories
 
-![JavaScript Dropdown](img/js-dropdown.svg)
+![JavaScript Dropdown](img/js-dropdown.svg){.right}
 
   
   
@@ -39,7 +39,7 @@ Create a dropdown autocomplete with a large data source (20K options)
 
 <script>
 jSuites.dropdown(document.getElementById('dropdown-large'), {
-    url: '/docs/v4/large',
+    url: '/docs/large',
     autocomplete: true,
     lazyLoading: true,
     multiple: true,
@@ -103,7 +103,7 @@ jSuites.dropdown(document.getElementById('dropdown-add'), {
     newOptions: true,
     oninsert: function(instance, item) {
         jSuites.ajax({
-            url: '/docs/v4/getId',
+            url: '/docs/getId',
             type: 'POST',
             dataType: 'json',
             data: { data: item },

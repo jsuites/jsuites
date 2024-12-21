@@ -1,17 +1,18 @@
-title: Testing jSuites Plugins
+title: Testing your JavaScript Plugins
 keywords: jSuites, testing, frontend, JavaScript library, plugins, automation
 description: How to create and automate tests for your jSuites plugins, ensuring high-quality reliable web applications.
+canonical: https://jsuites.net/docs/tests
 
-Tests
-=====
+# Tests
 
-jSuites has integrated Jest for its unit testing implementation. This section will provide additional details on effectively conducting tests for your jSuites plugins. Whether you prefer running tests through the command line or in a browser environment, you can follow the instructions provided in this section to accomplish either approach.
+## Overview
+
+This guide provides instructions on integrating Jest to test your implementations using any jSuites plugins.
   
 
-Blue print
-----------
+### Blueprint
 
-In the example provided below, a test is conducted wherein the render method of the mask plugin is invoked. Subsequently, the output is compared against the specified assertions.
+The example below demonstrates a test where the render method of the mask plugin is invoked, and the output is validated against the specified assertions.
 
 {.ignore}
 ```javascript
@@ -23,12 +24,9 @@ describe('Testing jSuites.mask', () => {
 });
 ```
 
-Testing DOM Related Plugins
-----------
+### Testing Plugins That Use the DOM
 
-In order to test DOM related plugins, you need to install the `jsdom` package, which allows you to render plugins on HTML elements and then make assertions based on them.
-
-With `jsdom` configured on your project, you can run a test like the example below to check if an element is correctly added or removed from the document body. 
+Install the jsdom package to test plugins on HTML elements and validate their behavior. Once configured, use the example below to verify if an element is added or removed from the document body.
 
 {.ignore}
 ```javascript
@@ -57,33 +55,24 @@ describe('Testing jSuites.contextmenu', () => {
 More examples in our [GitHub repository](https://github.com/jsuites/jsuites/tree/main/tests)  
   
 
-  
 
-Running your tests
-------------------
+### Running Your Tests
 
-  
+Create a ./test folder in your project root and include your test files.
 
-### Via NPM
-
-Create a `./test` folder in your project root and include your test files, then you can execute:  
-
-To run those tests via command line you will need
+Run the tests from the command line using:
 
 ```bash
 npm run test
 ```
 
-Troubleshooting
----------------
+### Troubleshooting
 
-  
-
-### Not possible to load a file outside the module
+#### Not possible to load a file outside the module
 
 **Issue:** Unable to Load a File Outside the Module
 
-This problem occurs when attempting to use the 'import' statement to load your components, and it's a limitation of Node.js when dealing with the interaction between ES modules (ESM) and CommonJS.
+This error occurs when using the `import` statement in a Node.js project without properly configuring the module type in package.json. Node.js defaults to CommonJS, causing issues with ES module compatibility.
 
 **Solution:**
 
@@ -93,8 +82,9 @@ To address this issue, follow these steps:
 - Add the 'type' field with the value 'module' as shown below:
 
 ```{ "type": "module", // ... other package.json configurations }```
+
 - Save the package.json file.
 - Run your tests.
-- After running the tests, you can remove the 'type' field from package.json if needed.
+- Optionally, remove the type field from package.json after testing.
 
 This solution allows for proper module loading when working with ES modules and CommonJS in Node.js.

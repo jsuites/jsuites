@@ -2,7 +2,10 @@ title: Javascript dropdown with categories and group of items
 keywords: javascript, autocomplete, javascript dropdown, groups, categories
 description: How to group the items from a dropdown in categories.
 
-* [JavaScript autocomplete dropdown](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 JavaScript dropdown with groups
 ===============================

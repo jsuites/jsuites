@@ -1,8 +1,7 @@
 title: JavaScript Modal Component
 keywords: JavaScript Modal Plugin, Responsive Modal Window, Popup Modal Component, Vanilla JavaScript Modal
 description: jSuites modal is a JavaScript modal plugin and web component perfect for creating responsive, customizable popup modals in web applications.
-
-![JavaScript Modal](img/js-modal.svg)
+canonical: https://jsuites.net/docs/modal
 
 # JavaScript Modal
 
@@ -166,9 +165,9 @@ export default {
 </script>
 ```
 
-### Basic JavaScript Vanilla Example
+### Basic Example
 
-This example illustrates how to initialize a basic modal using `jSuites.modal` with an existing HTML div element without specifying a title for the modal.
+This example illustrates how to initialize a basic modal using `jSuites.modal` with an existing DOM element without specifying a title for the modal.
 
 ```html
 <html>

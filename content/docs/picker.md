@@ -1,7 +1,7 @@
-title: Javascript Picker Plugin
+title: Javascript Picker
 keywords: Javascript, picker, picker plugin, JS picker, Javascript picker, developer guide, plugin implementation, usage documentation
 description: Access comprehensive documentation for the Javascript Picker Plugin, covering detailed implementation steps, usage examples, and configuration options tailored for developers.
-
+canonical: https://jsuites.net/docs/picker
 
 # JavaScript Picker
 

@@ -2,7 +2,10 @@ title: Javascript Autocomplete With Country Flags
 keywords: Javascript, autocomplete dropdown, javascript dropdown, country search with flags
 description: How to include country flag images on your jSuites dropdowns.
 
-* [JavaScript Autocomplete](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** with images page is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 JavaScript Autocomplete Dropdown
 ============================================

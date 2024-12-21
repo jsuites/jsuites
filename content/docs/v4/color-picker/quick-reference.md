@@ -2,7 +2,11 @@ title: Javascript color picker quick reference
 keywords: Javascript, color picker, color picker, quick reference, documentation
 description: Learn how to use the jsuites color picker javascript plugin.
 
-* [JavaScript Color Picker](/docs/v4/color-picker)
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** plugin is available here.
+> <br><br>
+> [JavaScript Color Picker v5](/docs/color-picker){.button .main target="_top"}
+
 
 Quick reference
 ===============

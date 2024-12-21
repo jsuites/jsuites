@@ -1,6 +1,7 @@
 title: JavaScript Activity Heatmap Plugin
 keywords: JavaScript, heatmap, heatmap plugin, JS heatmap, Javascript heatmap, activity visualization, lightweight plugin
 description: This plugin enables the creation of GitHub-style activity heatmaps using JavaScript, allowing for an intuitive representation of user activity data over time.
+canonical: https://jsuites.net/docs/heatmap
 
 # JavaScript Activity Heatmap
 

@@ -1,8 +1,7 @@
 title: JavaScript Context Menu Plugin
 keywords: JavaScript, Context Menu, Custom Context Menu, Web Development
 description: Easily create custom right-click context menus in web applications with our JavaScript context menu component. This tool provides extensive customization, from submenus to icons, catering to unique application requirements and enhancing user interaction.
-
-![JavaScript Context Menu](img/js-menu.svg)
+canonical: https://jsuites.net/docs/contextmenu
 
 # JavaScript Context Menu
 
@@ -12,6 +11,29 @@ Introducing the jSuites context menu, a dynamic JavaScript plugin designed to en
 - **Mobile Optimization**: Ensures a responsive and intuitive experience on mobile devices.
 - **Extensive Customization**: Offers various options, including custom events, submenus, and icon inclusion, for a tailored application feel.
 - **Versatile Implementation**: This can be used as a standalone JavaScript plugin or as a web component, providing flexibility in application development.
+
+## Documentation
+
+### Initialization Options
+
+| Property                | Description                                       |
+|-------------------------|---------------------------------------------------|
+| items: Array of objects | Array of item object descriptions.                |
+| onclick: function       | Global onclick event. `function(instance, event)` |
+
+
+### Item options
+
+| Property                                                 | Description                                                           |
+|----------------------------------------------------------|-----------------------------------------------------------------------|
+| type: string                                             | Context menu item type: line \| divisor \| default                    |
+| icon: string                                             | Context menu icon key. (Material icon key icon identification)        |
+| id: string                                               | HTML id property of the item DOM element                              |
+| disabled: boolean                                        | The item is disabled                                                  |
+| onclick: function(element: HTMLElement, event: e) : void | Specific onclick event for the element.                               |
+| shortcut: string                                         | A short description or instruction for the item. Normally a shortcut. |
+| tooltip: string                                          | Show this text when the user mouse over the element                   |
+| submenu: Array of objects                                | Submenu items                                                         |
 
 
 ## Examples
@@ -40,7 +62,7 @@ Using this example, incorporate a custom context menu into your web application.
     </div>
 </jsuites-contextmenu>
 
-<div aria-contextmenu-id="contextmenu-webcomponent" style="border:1px solid gray;width:400px;height:300px;"></div>
+<div aria-contextmenu-id="contextmenu-webcomponent" style="border:1px solid grey;width:400px;height:300px;"></div>
 <i class="small">right click inside the square to open the contextmenu</i>
 </html>
 ```
@@ -62,10 +84,12 @@ function App() {
             });
         }
     }, [])
+    
+    let style = { width: "400px", height: "300px", border: "1px solid gray" };
 
     return (
         <div className="App">
-            <div ref={container} style={{ width: "400px", height: "300px", border: "1px solid gray" }}></div>
+            <div ref={container} style={style}></div>
             <Contextmenu ref={contextmenu} items={[
                 {
                     title: 'About',
@@ -103,7 +127,6 @@ function App() {
         </div>
     );
 }
-
 export default App;
 ```
 ```vue
@@ -248,9 +271,11 @@ function App() {
         }
     }, [])
 
+    let style = { width: "400px", height: "300px", border: "1px solid gray" };
+    
     return (
         <div className="App">
-            <div ref={container} style={{ width: "400px", height: "300px", border: "1px solid gray" }}></div>
+            <div ref={container} style={style}></div>
             <Contextmenu ref={contextmenu} items={[
                 {
                     title: 'Copy',

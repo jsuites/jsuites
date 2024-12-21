@@ -2,7 +2,10 @@ title: Javascript dropdown programmatically interactions.
 keywords: javascript, autocomplete, javascript dropdown, programmatically changes and updates
 description: Javascript dropdown programmatically changes and updates.
 
-* [JavaScript autocomplete dropdown plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 Programmatically changes
 ========================

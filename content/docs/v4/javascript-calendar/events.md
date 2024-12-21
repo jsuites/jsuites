@@ -1,33 +1,36 @@
-title: Javascript calendar and timepicker events
+title: Javascript Calendar and Timepicker Events
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, time, timepicker, events
-description: How to handle the events of the jsuites calendar picker.
+description: How to handle the jSuites calendar picker native events.
+canonical: https://jsuites.net/docs/v4/javascript-calendar/events
 
-* [JavaScript Calendar](/docs/v4/javascript-calendar)
+{.white}
+> A new version of the **JavaScript Calendar** events page is available here.
+> <br><br>
+> [Calendar Events on v5](/docs/javascript-calendar/events){.button .main target="_top"}
 
-JavaScript calendar Events
-==========================
+
+{.breadcrumb}
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
+- Examples
+
+
+# JavaScript Calendar and Time Picker Events
 
 This section provides more information about the events on the javascript calendar plugin.  
   
-
-Documentation
--------------
+## Documentation
 
 The calendar provides the following events:  
 
-| Event | description |
-| --- | --- |
-| onopen | `onopen(el: DOMElement) => void`  <br>This method is called when the calendar is opened. |
-| onclose | `onclose(el: DOMElement) => void`  <br>This method is called when the calendar is closed. |
-| onchange | `onchange(DOMElement element, string currentValue, string previousValue) => void`  <br>This method is called when the value is changed. |
-| onupdate | `onupdate(DOMElement element, string value) => void`  <br>This method is called when a information changes. |
+| Event    | description                                                                                                                             |
+|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
+| onopen   | `onopen(el: DOMElement) => void`<br>This method is called when the calendar is opened.                                                |
+| onclose  | `onclose(el: DOMElement) => void`<br>This method is called when the calendar is closed.                                               |
+| onchange | `onchange(DOMElement element, string currentValue, string previousValue) => void`<br>This method is called when the value is changed. |
+| onupdate | `onupdate(DOMElement element, string value) => void`<br>This method is called when a information changes.                             |
 
   
-  
-
-Example
--------
-
+## Example
 
 ```html
 <html>

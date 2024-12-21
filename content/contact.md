@@ -1,14 +1,49 @@
-title: Contact and Technical Support
-keywords: Team, contact, issues, questions
-description: Submit your ticket on github or drop us an email.
+title: Jsuites - Contact Us  
+keywords: Contact jSuites, Get in Touch, Technical Support, Sales Inquiries  
+description: Reach out to us for any technical support or sales inquiries related to Jsuites. We're here to help with your questions and needs.
+canonical: https://jsuites.net/contact
 
-Get in touch
-============
+<div class="home">
 
-For technical questions please go to the issues section in our github page.
+{data-text="Jspreadsheet" .center}
+# Contact Us
 
-Please visit our GitHub page: [https://github.com/jsuites/jsuites/issues](https://github.com/jsuites/jsuites/issues)
+<br><br>
 
-## Email
+<div class="box shadow center" data-number="3">
+<div>
 
-contact@jspreadsheet.com
+#### Upgrades
+
+Looking for more information?
+
+Email: [contact@jspreadsheet.com](mailto:contact@jspreadsheet.com)
+
+[Contact Us](mailto:contact@jspreadsheet.com){.button .dark target="_blank"}
+
+</div><div>
+
+#### Technical Support
+
+Professional Technical Support
+
+Email: [support@jspreadsheet.com](mailto:support@jspreadsheet.com)
+
+[Talk to us](mailto:support@jspreadsheet.com){.button .dark target="_blank"}
+
+</div><div>
+
+#### Github
+
+GitHub repository:
+
+[https://github.com/jsuites/jsuites](https://github.com/jspreadsheet/ce)
+
+[![GitHub](img/github-logo.svg)](https://github.com/jspreadsheet/ce){target="_blank"}
+
+</div>
+</div>
+
+</div>
+
+<div class="space200 line"></div>

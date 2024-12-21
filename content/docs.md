@@ -1,8 +1,7 @@
 title: JavaScript Plugins
 keywords: JavaScript plugins, JavaScript web components, JavaScript vanilla plugins, web components, calendar, date picker, datetime picker, color picker, input mask
 description: jSuites is a collection of responsive, cross-platform JavaScript plugins and web components designed for multipurpose use. This suite includes a variety of lightweight, fully responsive JavaScript plugins such as calendars, date pickers, date-time pickers, colour pickers, input masks, and more, catering to diverse web development needs.
-
-![JavaScript Plugins](img/js-home.svg)
+canonical: https://jsuites.net/docs
 
 # JavaScript Plugins
 
@@ -22,7 +21,7 @@ jSuites is a compilation of responsive, lightweight JavaScript plugins and web c
 ## Installation
 
 ```bash
-% npm install jsuites
+npm install jsuites
 ```
 
 Or download the source code from our: [Github Repository](https://github.com/jsuites/jsuites)

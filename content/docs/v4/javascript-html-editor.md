@@ -1,4 +1,4 @@
-title: JavaScript HTML Editor and Wysiwyg Plugin
+title: JavaScript HTML Editor and Wysiwyg Plugin with Jsuites v4
 keywords: Javascript, HTML editor, plugin, wysiwyg editor
 description: A simple HTML editor with several interactive features and easy integration.
 
@@ -13,7 +13,7 @@ A lightweight wysiwyg JavaScript HTML editor is available with a few native feat
 4.  Custom toolbar
 5.  Integrated file and image dropzone
 
-![](img/js-html-editor.svg)
+![](img/js-html-editor.svg){.right}
 
   
 

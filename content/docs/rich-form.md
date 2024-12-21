@@ -1,8 +1,7 @@
-title: JavaScript Form
+title: JavaScript Rich Forms
 keywords: JavaScript rich form plugin, HTML form, form validations, change tracking, data persistence, remote server integration
 description: A JavaScript plugin to enable developers to implement advanced form validations and track changes in HTML form elements.
-
-![JavaScript Form](img/js-rich-form.svg)
+canonical: https://jsuites.net/docs/rich-form
 
 # JavaScript Form
 
@@ -113,7 +112,7 @@ Please consider the following form example. If the user tries to leave the page 
     <div class='row'>
         <div class='column'>
             <div class='form-group'>
-                <input type='button' value='Save profile' id='btn'>
+                <input type='button' value='Save profile' id='btn1'>
             </div>
         </div>
     </div>
@@ -121,9 +120,7 @@ Please consider the following form example. If the user tries to leave the page 
 
 <script>
 var myTracker = jSuites.tracker(document.getElementById('root'));
-document.getElementById('btn').addEventListener('click', function () {
-    myTracker.resetTracker()
-})
+document.getElementById('btn1').addEventListener('click', myTracker.resetTracker)
 </script>
 </html>
 ```
@@ -296,7 +293,7 @@ It is possible to extend the native `jSuites.form` plugin validations, that can 
     <div class='row'>
         <div class='column'>
             <div class='form-group'>
-                <input type='button' value='Save profile' id='btn'>
+                <input type='button' value='Save profile' id='btn2'>
             </div>
         </div>
     </div>
@@ -304,7 +301,7 @@ It is possible to extend the native `jSuites.form` plugin validations, that can 
 
 <script>
 let myForm = jSuites.form(document.getElementById('root'), {
-    url: '/v4/f',
+    url: '/docs/f',
     validations: {
         domain: function(value) {
             var reg = new RegExp(/^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$/);
@@ -317,13 +314,13 @@ let myForm = jSuites.form(document.getElementById('root'), {
     },
     onerror: function(el, message) {
         // Format message
-        message = message.replace(new RegExp(/\n/g), "<br>");
+        message = message.replace(new RegExp("\\\\n", "gm"), "<br>");
         // Custom Notification
         jSuites.notification({ message: message });
     }
 });
 
-document.getElementById('btn').addEventListener('click', function () {
+document.getElementById('btn2').addEventListener('click', function () {
     myForm.save()
 })
 </script>
@@ -340,7 +337,7 @@ function App() {
 
     useEffect(() => {
         formInstance.current = jSuites.form(formEl.current, {
-            url: '/v4/f',
+            url: '/docs/f',
             validations: {
                 domain: function (value) {
                     var reg = new RegExp(/^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$/);
@@ -353,7 +350,7 @@ function App() {
             },
             onerror: function (el, message) {
                 // Format message
-                message = message.replace(new RegExp(/\n/g), "<br/>");
+                message = message.replace(new RegExp("\\\\n", "gm"), "<br>");
                 // Custom Notification
                 jSuites.notification({ message: message });
             }
@@ -442,7 +439,7 @@ export default {
     },
     mounted() {
         this.formInstance = jSuites.form(this.$refs.formEl, {
-            url: "/v4/f",
+            url: "/docs/f",
             validations: {
                 domain: (value) => {
                     const reg = /^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$/;
@@ -454,7 +451,7 @@ export default {
                 },
             },
             onerror: (el, message) => {
-                message = message.replace(/\n/g, "<br/>");
+                message = message.replace(new RegExp("\\\\n", "gm"), "<br>");
                 jSuites.notification({ message: message });
             },
         });

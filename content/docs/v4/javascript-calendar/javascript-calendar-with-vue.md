@@ -1,4 +1,4 @@
-title: Vuejs calendar
+title: VueJS Calendar
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, inline javascript date picker, VueJS
 description: Create a calendar picker component with Vuejs and jSuites
 

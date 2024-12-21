@@ -20,7 +20,7 @@ Drop any image in the richtext below.
 jSuites.editor(document.getElementById('editor'), {
     parseURL: true,
     // Website parser is to read websites and images from cross domain
-    remoteParser: '/docs/v4/parser?url=',
+    remoteParser: '/docs/parser?url=',
     // Allowtoolbar
     allowToolbar:true,
 });

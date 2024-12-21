@@ -2,7 +2,10 @@ title: Javascript dropdown basics
 keywords: javascript, autocomplete, javascript dropdown, javascript select, examples, basic example.
 description: Basic example of jsuites javascript dropdown plugin. How to create a dropdown from a select HTML tag or programmatically via JavaScript.
 
-* [JavaScript dropdown and autocomplete plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 Javascript dropdown
 ===================

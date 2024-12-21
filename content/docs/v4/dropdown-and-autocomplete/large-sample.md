@@ -2,7 +2,10 @@ title: Javascript dropdown with lazy loading
 keywords: javascript, autocomplete, javascript dropdown, large sample, big data
 description: Large sample on a jsuites javascript dropdown plugin example
 
-* [JavaScript autocomplete dropdown plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 Handling large datasets
 =======================
@@ -21,7 +24,7 @@ The `jsuites.dropdown` provides a native lazyloading feature to enhance the perf
 
 <script>
     jSuites.dropdown(document.getElementById('dropdown'), {
-        url: '/docs/v4/large',
+        url: '/docs/large',
         autocomplete: true,
         lazyLoading: true,
         width: '280px'

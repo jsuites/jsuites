@@ -1,4 +1,4 @@
-title: Getting Started with Jsuites
+title: Getting Started with Jsuites v4
 keywords: Javascript, jSuites, plugins
 description: jSuites is a comprehensive and free collection of lightweight JavaScript plugins, providing versatile features like spreadsheets, dropdowns, and color pickers. Designed to enhance web applications effortlessly, it empowers developers with a user-friendly, cross-platform approach, streamlining the development process and serving as an invaluable tool for modern web development.
 

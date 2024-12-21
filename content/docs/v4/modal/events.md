@@ -18,7 +18,7 @@ The following example loads a content from a remote URL and defines basic events
 
 <script>
 var modal = jSuites.modal(document.getElementById('modal'), {
-    url: '/docs/v4/content',
+    url: '/docs/content',
     width:'600px',
     height:'480px',
     closed:true,

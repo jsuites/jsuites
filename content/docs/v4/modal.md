@@ -1,4 +1,4 @@
-title: Javascript modal
+title: Javascript Modal with Jsuites v4
 keywords: Javascript modal plugin, responsive modal, popup modal
 description: Vanilla javascript modal plugin and modal javascript web component
 
@@ -7,7 +7,7 @@ JavaScript Modal
 
 The `jSuites.modal` is a lightweight responsive and flexible JavaScript modal plugin. It has excellent performance and usability, and it works great on small screens. The plugin can be used as a vanilla JavaScript or a web component as below:
 
-![](img/js-modal.svg)
+![](img/js-modal.svg){.right}
 
   
 

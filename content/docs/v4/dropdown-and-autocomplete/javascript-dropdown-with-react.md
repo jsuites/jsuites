@@ -2,9 +2,12 @@ title: React dropdown
 keywords: javascript, autocomplete, javascript dropdown, react
 description: Create a dropdown component with React and jSuites
 
-* [React Dropdown](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
-React dropdown
+React Dropdown
 ==============
 
 React dropdown and react autocomplete [working example](https://codesandbox.io/s/jsuites-dropdown-with-react-i4jwe) on codesandbox.  

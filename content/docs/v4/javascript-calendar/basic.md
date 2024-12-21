@@ -1,21 +1,27 @@
 title: Javascript calendar basic example
-keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, basic example, plugin, webcomponent
-description: How to render a javascript calendar as a plugin or a javascript webcomponent.
+keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, basic example, plugin, web component
+description: How to render a javascript calendar as a plugin or a javascript web component.
+canonical: https://jsuites.net/docs/v4/javascript-calendar/basic
 
-* [JavaScript Calendar](/docs/v4/javascript-calendar)
+{.white}
+> A new version of the jSuites **JavaScript Calendar** plugin is available here.
+> <br><br>
+> [jSuites Calendar v5](/docs/javascript-calendar){.button .main target="_top"}
 
-Javascript calendar
-===================
 
-The calendar can be used as a plugin or a web component. It offers a variety of options to customize your requirements.  
-  
-  
+{.breadcrumb}
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
+- Examples
+
+
+# Web Component Calendar
+
+The calendar can be used as a javascript plugin or a web component. It offers a variety of options to customize your requirements.  
+ 
+## Examples
 
 ### Date picker as a web component
-
-  
-  
-
+ 
 ```html
 <html>
 <script src="https://jsuites.net/v4/jsuites.js"></script>
@@ -35,13 +41,7 @@ document.querySelector('jsuites-calendar').addEventListener('onclose', function(
 </html>
 ```
 
-  
-  
-
-### Javascript calendar as a plugin
-
-  
-  
+### Javascript Calendar Plugin
 
 ```html
 <html>
@@ -58,13 +58,7 @@ jSuites.calendar(document.getElementById('calendar'),{
 </html>
 ```
 
-  
-  
-
-### Embedded javascript calendar
-
-  
-  
+### Embeddable JavaScript Calendar
 
 ```html
 <html>

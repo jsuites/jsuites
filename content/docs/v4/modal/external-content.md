@@ -18,7 +18,7 @@ The follow example shows how to create a new modal window from an external conte
 
 <script>
 var external = jSuites.modal(document.getElementById('modal'), {
-    src: '/docs/v4/test.html',
+    src: '/v4/test.html',
     width: '600px',
     height: '480px',
     closed: true

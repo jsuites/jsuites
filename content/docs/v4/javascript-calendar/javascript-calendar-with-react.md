@@ -1,16 +1,14 @@
-title: React calendar
+title: React Calendar
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, inline javascript date picker, react
-description: Create a calendar picker component with Reactd and jSuites
+description: Create a calendar picker component with React and jSuites
 
 * [React Calendar](/docs/v4/javascript-calendar)
 
-React calendar
-==============
+# React Calendar
 
 Take a look at this example in CodeSandbox: [working example](https://codesandbox.io/s/jsuites-calendar-with-react-sbbq8)
 
-Calendar component
-------------------
+## Calendar component
 
 ```jsx
 import { useRef, useEffect } from "react";

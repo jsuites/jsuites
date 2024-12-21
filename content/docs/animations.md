@@ -1,6 +1,7 @@
 title: JavaScript Basic Animations
 keywords: JavaScript animations, JS animations, slide in, slide out, slide left, slide right, slide bottom, slide top, fade in, fade out
 description: This section introduces a collection of basic JavaScript animations, including slide left, slide right, slide bottom, slide top, fade in, and fade out. These animations are part of the jSuites.animation library, designed to enrich user interfaces with smooth and visually appealing effects.
+canonical: https://jsuites.net/docs/animations
 
 # Animations
 

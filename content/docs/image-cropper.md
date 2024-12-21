@@ -1,8 +1,7 @@
 title: JavaScript Cropper
 keywords: JavaScript, Image Cropper, Cropper Plugin, JS Image Editing, Web Components, Image Manipulation
 description: The jSuites Image Cropper is a JavaScript plugin to create basic image editing functionalities in web applications. It provides features such as crop, brightness and contrast adjustment, rotation, and zoom, enabling direct, efficient and straightforward image manipulation.
-
-![JavaScript Cropper](img/js-crop.svg)
+canonical: https://jsuites.net/docs/image-cropper
 
 # JavaScript Image Cropper
 

@@ -1,8 +1,11 @@
 title: Javascript Color Picker: Custom Color Palettes
 keywords: Javascript, color picker, color picker, examples, customize the colors, color palettes.
-description: How to integrate jsuites palettes with the jsuites javascript color plugin.
+description: How to integrate custom palettes in your jSuites javascript color plugin.
 
-* [JavaScript Color Picker](/docs/v4/color-picker)
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** custom palettes is available. 
+> <br><br>
+> [Color Palettes](/docs/color-picker/color-palettes){.button .main target="_top"}
 
 Color palettes
 ==============

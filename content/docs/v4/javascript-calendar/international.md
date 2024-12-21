@@ -1,15 +1,22 @@
 title: Javascript calendar international options
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, international options, customizations
 description: Customize the javascript calendar texts and international options.
+canonical: https://jsuites.net/docs/v4/javascript-calendar/international
 
-* [JavaScript Calendar](/docs/v4/javascript-calendar)
+{.white}
+> A new version of the **JavaScript Calendar** international settings page is available here.
+> <br><br>
+> [International Settings on v5](/docs/javascript-calendar/international){.button .main target="_top"}
 
-International calendar
-======================
+{.breadcrumb}
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
+- Examples
 
-Customize the text and the starting day in the JavasSript calendar
 
-  
+# International Settings
+
+Customize the text and the starting day in the JavasScript calendar
+ 
   
 [See this example on jsfiddle](https://jsfiddle.net/spreadsheet/s6bpwxef/)  
   

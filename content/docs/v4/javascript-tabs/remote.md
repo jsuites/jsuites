@@ -23,11 +23,11 @@ var tabs = jSuites.tabs(document.getElementById('tabs'), {
     data: [
         {
             title: 'Tab 1',
-            url: '/docs/v4/content',
+            url: '/docs/content',
         },
         {
             title: 'Tab 2',
-            url: '/docs/v4/content/2',
+            url: '/docs/content/2',
         },
     ],
     padding: '10px',

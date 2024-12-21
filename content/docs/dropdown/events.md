@@ -1,22 +1,28 @@
-title: Javascript Dropdown Events
-keywords: javascript, autocomplete, javascript dropdown, events, javascript events
-description: Dealing with javascript dropdown events.
+title: JavaScript Dropdown Events  
+keywords: JavaScript, dropdown events, event handling, application integration, UI components, JavaScript UI  
+description: Learn how to integrate JavaScript dropdowns into your application using event handling for enhanced interactivity and advance UI integrations.
 
-* [JavaScript Dropdown Plugin](/docs/dropdown)
+{.breadcrumb}
+- [JavaScript Dropdown](/docs/dropdown)
+- Examples
 
-# Dropdown Events
+# JavaScript Dropdown Events
+
+Integrate the JavaScript dropdown component into your web application using events.
 
 ## Example
 
-Handling JavaScript events on the dropdown component.
+### Adding Events to Dropdowns
+
+The example below demonstrates handling events in a JavaScript dropdown using the jSuites library.
 
 ```html
 <html>
-<script src="https://jsuites.net/v4/jsuites.js"></script>
-<link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
+<script src="https://jsuites.net/v5/jsuites.js"></script>
+<link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
-<input type='button' value='Open the dropdown' class='plain' id='openbtn'>
-<input type='button' value='Close the dropdown' class='plain' id='closebtn'>
+<input type='button' value='Open the dropdown' class='plain' id='btn1'>
+<input type='button' value='Close the dropdown' class='plain' id='btn2'>
 
 <p><span id='log'></span></p>
 
@@ -48,8 +54,8 @@ let myDropdown = jSuites.dropdown(document.getElementById('dropdown'), {
     width:'280px'
 });
 
-openbtn.onclick = () => myDropdown.open()
-closebtn.onclick = () => myDropdown.close()
+btn1.onclick = () => myDropdown.open()
+btn2.onclick = () => myDropdown.close()
 </script>
 </html>
 ```
@@ -150,3 +156,9 @@ export default {
 };
 </script>
 ```
+
+## More Dropdown Examples
+
+* [JavaScript Countries Dropdown](/docs/dropdown/countries)
+* [Dropdown Events](/docs/dropdown/events)
+* [Responsive JavaScript Dropdown](/docs/dropdown/mobile)

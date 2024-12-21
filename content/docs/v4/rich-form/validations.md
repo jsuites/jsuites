@@ -49,7 +49,7 @@ It is possible to extend the native `jSuites.form` plugin validations, that can 
 
 <script>
 var myForm = jSuites.form(document.getElementById('myForm'), {
-    url: '/docs/v4/f',
+    url: '/docs/f',
     validations: {
         domain: function(value) {
             var reg = new RegExp(/^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$/);
@@ -62,7 +62,7 @@ var myForm = jSuites.form(document.getElementById('myForm'), {
     },
     onerror: function(el, message) {
         // Format message
-        message = message.replace(new RegExp(/\n/g), "<br>");
+        message = message.replace(new RegExp("\\\\n", "gm"), "<br>");
         // Custom Notification
         jSuites.notification({ message: message });
     }
@@ -81,8 +81,8 @@ Native validations
 ------------------
 
 | jSuites.validations |
-| --- |
-| email |
-| length |
-| required |
-| number |
+|---------------------|
+| email               |
+| length              |
+| required            |
+| number              |

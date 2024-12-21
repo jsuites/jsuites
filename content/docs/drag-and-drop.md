@@ -1,9 +1,9 @@
 title: JavaScript Drag and Drop Plugin
 keywords: JavaScript drag and drop, sortable list
 description: This document introduces a JavaScript drag-and-drop plugin, a lightweight tool for creating sortable lists with interactive drag-and-drop functionality.
+canonical: https://jsuites.net/docs/drag-and-drop
 
-Draggable list
-==============
+# Draggable list
 
 This script has approximately 1 KB
 

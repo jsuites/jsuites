@@ -1,9 +1,9 @@
-title: JavaScript Ajax Component.
+title: JavaScript Ajax Component
 keywords: Javascript ajax, ajax requests
 description: The JavaScript Ajax Component streamlines the management of Ajax requests. It facilitates the creation of request queues and the registration of events, optimizing the handling of asynchronous server communication in web applications.
+canonical: https://jsuites.net/docs/ajax
 
-Ajax Requests
-=============
+# Ajax Requests
 
 The jSuites.ajax component is an abstraction layer that efficiently manages JavaScript AJAX requests. This vanilla JavaScript implementation boasts several key features, making it a robust choice for handling AJAX interactions.
 

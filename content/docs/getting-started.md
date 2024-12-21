@@ -1,6 +1,7 @@
-title: Getting Started with jSuites Version 4
+title: Getting Started with jSuites
 keywords: JavaScript, jSuites, JavaScript plugins, web development tools, spreadsheets, dropdowns, color pickers, cross-platform development, user-friendly JavaScript
 description: Explore jSuites, a free, comprehensive collection of JavaScript plugins. Features include spreadsheets, dropdowns, color pickers, and more, tailored for modern web development with a cross-platform, user-friendly approach.
+canonical: https://jsuites.net/docs/getting-started
 
 # Getting Started with jSuites
 

@@ -1,31 +1,104 @@
 title: JavaScript Dropdown
 keywords: JavaScript, Autocomplete, Element Picker, JavaScript Dropdown, JavaScript Select, Select Box
 description: Explore comprehensive examples for managing JavaScript dropdowns, from basic setups to advanced configurations and autocomplete features. Learn to create dynamic select boxes with conditional logic for an enhanced user experience on your web application.
-
-![JavaScript Dropdown](img/js-dropdown.svg)
+canonical: https://jsuites.net/docs/dropdown
 
 # JavaScript Dropdown
 
-## Dropdown Overview
-
-The `Jsuites.dropdown` is a JavaScript autocomplete dropdown that offers a suite of customizable options that present a dynamic and efficient alternative to conventional JavaScript dropdowns. Its design prioritizes lightweight and responsive characteristics, making it an ideal choice for small screens and diverse web contexts.
-
-The upgraded JavaScript dropdown plugin enhances functionality with native autocomplete, multi-select capabilities, and adaptive rendering. Key enhancements include:
+The jSuites offer a lightweight JavaScript dropdown plugin with a complete suite of customizable options that suites multiple
+application needs. The new versions enhances functionality with native autocomplete, multi-select capabilities, and adaptive
+rendering and other features such as:
 
 - Great performance;
-- Array-sourced dropdowns;
-- External JSON integration;
-- Efficient autocomplete;
+- Create dropdowns from a local array of data;
+- Load data from a remote data source;
+- Autocomplete with local or remote search;
 - Lazy loading support;
 - Multi-select dropdown options;
-- Adaptive, responsive design;
+- Responsive design;
 - Visual enhancements with images and icons;
 - Organized dropdowns with item grouping;
+
+## Documentation
+
+### Methods
+
+The JavaScript dropdown instance provides the following methods for programmatic interaction:
+
+| Method                      | Description                                                                                                                                                          |
+|-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `open();`                   | Opens the dropdown.                                                                                                                                                  |
+| `close(boolean);`           | Closes the dropdown.<br>`@param boolean ignoreEvents` - If true, does not trigger the `onClose` event.                                                               |
+| `getText();`                | Retrieves the label(s) from the selected option(s) in the dropdown.                                                                                                  |
+| `getValue();`               | Retrieves the value(s) from the selected option(s) in the dropdown.                                                                                                  |
+| `setValue(string\|array);`  | Sets new value(s).<br>`@param mixed newValue` - A single value as a string or multiple values as an array for multi-select dropdowns.                                |
+| `reset();`                  | Clears all selected options in the dropdown.                                                                                                                         |
+| `add();`                    | Adds a new option to the dropdown.                                                                                                                                   |
+| `setData(mixed);`           | Loads new data into the dropdown.<br>`@param mixed data` - The data to load.                                                                                         |
+| `getData();`                | Retrieves the data currently loaded in the dropdown.                                                                                                                 |
+| `setUrl(string, function);` | Updates the URL from which the dropdown fetches data.<br>`@param string url`<br>`@param function callback` - The callback function to execute after setting the URL. |
+| `getPosition(string);`      | Retrieves the position of the option associated with the given value.<br>`@param string value` - The value of the option.                                            |
+| `selectIndex(int);`         | Selects an option based on its index.<br>`@param int index` - The index of the option to select.                                                                     |
+
+### Events
+
+The following events can be use to integrate the dropdown with your application for enhanced interactivity:
+
+| Event             | Description                                                                                                                                                                           |
+|-------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `onopen`          | Triggered when the dropdown opens.<br>`(DOMElement element) => void`                                                                                                                  |
+| `onclose`         | Triggered when the dropdown closes.<br>`(DOMElement element) => void`                                                                                                                 |
+| `onchange`        | Triggered when the selected value changes.<br>`(DOMElement element, Number index, String oldValue, String newValue, String oldLabel, String newLabel) => void`                        |
+| `onfocus`         | Triggered when the dropdown receives focus.<br>`(DOMElement element) => void`                                                                                                         |
+| `onblur`          | Triggered when the dropdown loses focus.<br>`(DOMElement element) => void`                                                                                                            |
+| `onbeforeinput`   | Triggered before the item addition prompt is opened, allowing a customized input to be used. The return of this function is the title of the new item.<br>`(Object instance) => void` |
+| `onbeforeinsert`  | Triggered before a new item is added to the dropdown.<br>`(Object instance, Object item) => void`                                                                                     |
+| `oninsert`        | Triggered when a new option is added to the dropdown.<br>`(Object instance, Object item, Object dataItem) => void`                                                                    |
+| `onload`          | Triggered when the dropdown is fully loaded with data.<br>`(DOMElement element, Object instance, Array data, String currentValue) => void`                                            |
+
+### Initialization Options
+
+Customize your dropdowns behavior with the following initial settings:
+
+| Property                | Description                                                                                    |
+|-------------------------|------------------------------------------------------------------------------------------------|
+| `data: Array`           | An array of items to load into the dropdown.                                                   |
+| `url: string`           | The URL of an external file to load dropdown data from.                                        |
+| `multiple: boolean`     | Set to `true` to allow multiple selections.                                                    |
+| `autocomplete: boolean` | Enables the autocomplete feature.                                                              |
+| `type: string`          | Sets the render type. Options: `default`, `picker`, or `searchbar`.                            |
+| `width: string`         | Specifies the dropdown's default width.                                                        |
+| `value: string`         | Sets the initially selected value.                                                             |
+| `placeholder: string`   | Displays placeholder text when no selection is made.                                           |
+| `newOptions: boolean`   | Enables controls for adding new options.                                                       |
+| `lazyLoading: boolean`  | Enables lazy loading for improved performance with large datasets.                             |
+| `allowEmpty: boolean`   | Allow toggle the selected item on single dropdowns. Default: true                              |
+| `format: 0\|1`          | Determines the data format. `0` for `{ text, value }`, `1` for `{ id, name }`. Default is `0`. |
+
+
+### Dropdown Items
+
+Each option in the dropdown is define by one object and the possible attributes are the following:
+
+| Property            | Description                                                           |
+|---------------------|-----------------------------------------------------------------------|
+| `value: mixed`      | The item's value. Default format.                                     |
+| `text: string`      | The item's display label. Default format.                             |
+| `id: mixed`         | The item's identifier, used when `format` property is set to `1`.     |
+| `name: string`      | The item's name, used as a label when `format` property is set to `1`.|
+| `title: string`     | A brief description of the item.                                      |
+| `tooltip: string`   | Text displayed on mouseover.                                          |
+| `image: string`     | URL or path to the item's icon image.                                 |
+| `group: string`     | The name of the group this item belongs to.                           |
+| `synonym: array`    | Keywords associated with the item to aid in search.                   |
+| `disabled: boolean` | If `true`, the item is not selectable.                                |
+| `color: number`     | A numerical value representing the item's color.                      |
+| `icon: string`      | A keyword for a Material Design icon associated with the item.        |
 
 
 ## Examples
 
-### JavaScript Autocomplete
+### JavaScript Autocomplete Dropdown
 
 Create an autocomplete dropdown capable of handling a vast dataset using this example:
 
@@ -51,7 +124,6 @@ jSuites.dropdown(document.getElementById('dropdown'), {
 import { Dropdown } from 'jsuites/react'
 import { useRef, useEffect } from 'react'
 import 'jsuites/dist/jsuites.css'
-
 
 function App() {
     const dropdown = useRef(null);
@@ -92,7 +164,7 @@ export default {
 ```
 
 
-### Dropdown Item Groups
+### Grouping Items
 
 Organize your dropdown menu with categorized item groups using this example:
 
@@ -125,7 +197,6 @@ jSuites.dropdown(document.getElementById('dropdown'), {
 import { Dropdown } from 'jsuites/react'
 import { useRef, useEffect } from 'react'
 import 'jsuites/dist/jsuites.css'
-
 
 function App() {
     const dropdown = useRef(null);
@@ -182,7 +253,7 @@ export default {
 
 ### Dropdown New Option
 
-Incorporate an option to add new items into your dropdown menu, enhancing its flexibility and user interaction:
+Enable the New Option button, allowing users to dynamically add entries to the dropdown. The example below includes an event handler to manage actions when a user adds a new option.
 
 ```html
 <html>
@@ -223,7 +294,6 @@ import jSuites from 'jsuites'
 import { useRef } from 'react'
 import 'jsuites/dist/jsuites.css'
 
-
 function App() {
     const dropdown = useRef(null);
 
@@ -262,18 +332,12 @@ export default App;
 ```
 ```vue
 <template>
-    <Dropdown
-        ref="dropdown"
-        :data="data"
-        :oninsert="onInsert"
-        width="280px"
-        :newOptions="true"
-    />
+    <Dropdown ref="dropdown" :data="data" :oninsert="onInsert" width="280px" :newOptions="true" />
 </template>
 
 <script>
 import { Dropdown } from "jsuites/vue";
-import jSuites from 'jsuites'
+import jSuites from 'jsuites';
 import 'jsuites/dist/jsuites.css'
 
 export default {
@@ -309,9 +373,8 @@ export default {
 </script>
 ```
 
-## More dropdown examples
+## More Dropdown Examples
 
-
-* [Countries Dropdown](/docs/dropdown/countries)
+* [JavaScript Countries Dropdown](/docs/dropdown/countries)
 * [Dropdown Events](/docs/dropdown/events)
-* [Responsive Autocomplete Dropdown](/docs/dropdown/mobile)
+* [Responsive JavaScript Dropdown](/docs/dropdown/mobile)

@@ -1,6 +1,7 @@
 title: JavaScript Toast
 keywords: JavaScript toast, toast notification, JS toast
 description: This section details a basic yet responsive JavaScript toast notification system. It is ideal for displaying quick, transient messages to users in a non-disruptive manner.
+canonical: https://jsuites.net/docs/javascript-toast
 
 JavaScript Toast
 ==============================

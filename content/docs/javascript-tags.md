@@ -1,8 +1,7 @@
 title: JavaScript Tags
 keywords: JavaScript, Tags Input, jSuites Web Component, Tag Management, User Input Tags, JavaScript Tagging System
 description: The jSuites.tags is an ultralight JavaScript web component and plugin designed to enable users to input and manage multiple tags within a text field. Ideal for keyword entry, tagging systems, and dynamic content categorization in web applications.
-
-![JavaScript Tags](img/js-tags.svg)
+canonical: https://jsuites.net/docs/javascript-tags
 
 # JavaScript Tags
 
@@ -41,6 +40,7 @@ These events allow for customized behaviour adjustments of the component:
 | onfocus        | Method executed when the input is focused.  <br>(HTMLElement element, Object instance, String currentValue) => void  |
 | onblur         | Method executed when the input is focused.  <br>(HTMLElement element, Object instance, String currentValue) => void  |
 | onload         | Method executed the DOM element is ready.  <br>(HTMLElement element, Object instance) => void                        |
+| onremoveitem   | Method executed when a item is removed.  <br>(String title, HTMLElement removedElement) => void                      |
 
 
 ### Initialization Settings
@@ -172,7 +172,7 @@ jSuites.tags(document.getElementById('tag-input2'), {
         var test = re.test(String(value).toLowerCase()) ? true : false;
         return test;
     },
-    search: '/docs/v5/data?q=',
+    search: '/docs/data?q=',
     placeholder: 'To'
 });
 </script>

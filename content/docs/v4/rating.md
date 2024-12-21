@@ -1,5 +1,5 @@
-title: JavaScript Rating
-keywords: Javascript, rating, five star rating plugin
+title: JavaScript Rating with Jsuites v4
+keywords: Javascript, rating, five-star rating plugin
 description: Vanilla JavaScript star rating plugin
 
 Javascript Rating
@@ -12,7 +12,7 @@ The `jSuites.rating` is a lightweight (1Kb) JavaScript star rating plugin. It ca
 * Several events and easy integration;
 * JS plugin or web component;
 
-![](img/js-rating.svg)
+![](img/js-rating.svg){.right}
 
   
 
@@ -116,5 +116,5 @@ External references
 -------------------
 
 * [JavaScript rating](https://github.com/jsuites/jsuites/blob/master/src/rating.js) source code
-* LemonadeJS [JavaScript rating component](https://lemonadejs.net/v2/library/rating)
+* LemonadeJS [JavaScript rating component](https://lemonadejs.com/v2/library/rating)
 * React [rating component](https://codesandbox.io/s/jsuites-rating-with-react-xfdmu)

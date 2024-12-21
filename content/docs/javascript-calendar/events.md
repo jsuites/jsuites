@@ -1,32 +1,33 @@
-title: JavaScript Calendar and Time Picker Events
-keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Examples, Time, Timepicker, Events
-description: Explore handling events with the Jsuites JavaScript Calendar. This guide provides insights into effectively managing date and time selection events and enhancing your web applications with interactive and user-friendly calendar functionalities.
+title: JavaScript Calendar Events
+keywords: JavaScript, Calendar, Date Picker, DateTime Picker, Timepicker, Calendar Events, JavaScript Examples, Interactive Calendar, Date and Time Management
+description: Learn how events enable seamless integration of the JavaScript Calendar into your application using native event handling.
+canonical: https://jsuites.net/docs/javascript-calendar/events
 
+{.breadcrumb}
+- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
+- Examples
 
-[JavaScript Calendar](/docs/javascript-calendar)
+# JavaScript Calendar Events
 
-JavaScript Calendar Events
-==========================
-
-This section delves into the event-handling capabilities of the JavaScript calendar plugin, offering detailed documentation on effectively utilising these events within your applications.
+This documentation provides examples of using events with the jSuites JavaScript Calendar plugin. Learn how to integrate interactive calendar features into your applications.
 
 ## Documentation
 
-The calendar plugin supports a variety of events, enabling developers to implement dynamic and responsive features based on user interactions with the calendar component. These events include:
+### Supported Events
 
-| Event    | description                                                                                                                             |
-|----------|-----------------------------------------------------------------------------------------------------------------------------------------|
-| onopen   | `onopen(el: DOMElement) => void`  <br>This method is called when the calendar is opened.                                                |
-| onclose  | `onclose(el: DOMElement) => void`  <br>This method is called when the calendar is closed.                                               |
-| onchange | `onchange(DOMElement element, string currentValue, string previousValue) => void`  <br>This method is called when the value is changed. |
-| onupdate | `onupdate(DOMElement element, string value) => void`  <br>This method is called when a information changes.                             |
+Explore the events available in the calendar plugin with examples to create dynamic and responsive features.
 
- 
+| Event    | description                                                                                                                            |
+|----------|----------------------------------------------------------------------------------------------------------------------------------------|
+| onopen   | `onopen(el: DOMElement) => void`<br>Triggered when the calendar is opened.                                                             |
+| onclose  | `onclose(el: DOMElement) => void`<br>Triggered when the calendar is closed.                                                            |
+| onchange | `onchange(DOMElement element, string currentValue, string previousValue) => void`<br>Triggered when the calendar value changes.        |
+| onupdate | `onupdate(DOMElement element, string value) => void`<br>Triggered when calendar information is updated.                                |
 
-Examples
--------
 
-How to use JavaScripts events to integrate the calendar with any web application.
+## Example
+
+This example shows how to declare events like `onopen`, `onclose`, `onchange`, and `onupdate` to handle **calendar interactions**.
 
 ```html
 <html>
@@ -124,3 +125,12 @@ export default {
 </script>
 ```
 
+## More examples
+
+Explore additional use cases for the jSuites JavaScript Calendar plugin:
+
+* [Year and Month Selection](/docs/javascript-calendar/year-month)
+* [JavaScript Calendar Events](/docs/javascript-calendar/events)
+* [Calendar Date Range Validations](/docs/javascript-calendar/valid-range)
+* [International Settings](/docs/javascript-calendar/international)
+* [Responsive JavaScript Calendar](/docs/javascript-calendar/mobile)

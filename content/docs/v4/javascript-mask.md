@@ -1,4 +1,4 @@
-title: Javascript string and number mask
+title: Javascript string and number mask with Jsuites v4
 keywords: Javascript, mask, input mask, currency mask, money mask, javascript mask
 description: A simple javascript mask plugin
 
@@ -16,7 +16,7 @@ The new input mask plugin brings a much better user experience. Now it considers
 * Several events and easy integration;
 * JS plugin or web component;
 
-![](img/js-mask.svg)
+![](img/js-mask.svg){.right}
 
   
   

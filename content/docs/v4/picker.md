@@ -1,4 +1,4 @@
-title: Javascript picker
+title: Javascript Picker with Jsuites v4
 keywords: Javascript, picker, picker plugin, JS picker, Javascript picker
 description: A lightweight and fast javascript picker plugin
 

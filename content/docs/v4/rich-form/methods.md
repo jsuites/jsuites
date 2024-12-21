@@ -58,7 +58,7 @@ Integrate your form with a remote backend server. The data is loaded from ajax, 
 
 <script>
 var myForm = jSuites.form(document.getElementById('myForm'), {
-    url: '/docs/v4/f',
+    url: '/docs/f',
     onsave: function() {
         jSuites.notification({ message:'Updated' });
     }

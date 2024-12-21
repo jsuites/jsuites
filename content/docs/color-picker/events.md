@@ -1,23 +1,27 @@
-title: JavaScript Color Picker Events
-keywords: Javascript, color picker, color picker, examples, events
-description: Handling javascript events in your color picker plugin.
+title: JavaScript Color Picker Events  
+keywords: JavaScript, color picker, color picker events, examples, event handling, JavaScript plugin  
+description: Learn how to handle JavaScript events in your color picker plugin to create interactive and dynamic user interfaces.
+canonical: https://jsuites.net/docs/color-picker/events
 
-* [JavaScript Color Picker](/docs/color-picker)
+{.breadcrumb}
+- [JavaScript Color Picker](/docs/color-picker)
+- Examples
 
-Javascript Color Picker Events
-==============================
+# JavaScript Color Picker Events
 
 ## Events
 
-| Method   | Description                                                                               |
-|----------|-------------------------------------------------------------------------------------------|
-| onchange | Method executed when a value is changed.  <br>(HTMLElement element, String color) => void |
-| onclose  | Method executed when the color picker is closed.  <br>(HTMLElement element) => void       |
-| onopen   | Method executed when the color picker is opened.  <br>(HTMLElement element) => void       |
+Easily manage and customize events in your JavaScript color picker to create dynamic and responsive interactions for your application.
+
+| Method   | Description                                                                                |  
+|----------|--------------------------------------------------------------------------------------------|  
+| onchange | Triggered when the color value changes.  <br>`(HTMLElement element, String color) => void` |  
+| onclose  | Triggered when the color picker is closed.  <br>`(HTMLElement element) => void`            |  
+| onopen   | Triggered when the color picker is opened.  <br>`(HTMLElement element) => void`            |
 
 ## Example
 
-Create actions when the color is selected and the picker is opened or closed.
+Define custom actions when a color is selected or when the picker opens or closes:
 
 ```html
 <html>
@@ -44,3 +48,8 @@ jSuites.color(document.getElementById('color-picker'), {
 </html>
 ```
 
+### More Examples
+
+* [Color Picker Events](/docs/color-picker/events)
+* [Color Palettes](/docs/color-picker/color-palettes)
+* [Responsive Color Picker](/docs/color-picker/mobile)

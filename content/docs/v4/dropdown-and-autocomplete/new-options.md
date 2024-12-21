@@ -2,7 +2,10 @@ title: JavaScript autocomplete new options
 keywords: Jexcel, jquery, javascript, autocomplete, javascript dropdown, javascript select, javascript autocomplete
 description: How to enable the new option controls on your javascript autocomplete
 
-* [JavaScript autocomplete dropdown plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 JavaScript dropdown
 ===================
@@ -31,7 +34,7 @@ jSuites.dropdown(document.getElementById('dropdown'), {
     newOptions: true,
     oninsert: function(instance, item) {
         jSuites.ajax({
-            url: '/docs/v4/getId',
+            url: '/docs/getId',
             type: 'POST',
             dataType: 'json',
             data: { data: item },

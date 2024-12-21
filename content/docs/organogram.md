@@ -1,59 +1,68 @@
 title: JavaScript Organogram Plugin
-keywords: JavaScript, Organogram, Organogram Plugin, JS Organogram
-description: The JavaScript Organogram Plugin is a powerful tool for creating captivating and interactive web-based organograms.
-
-![JavaScript Organogram](img/js-organogram.svg)
+description: This JavaScript Organogram Plugin lets developers quickly embed customizable, responsive organogram charts in web apps using structured JSON data.
+keywords: JavaScript, Organogram, Organogram Plugin, JS Organogram, JavaScript Org Chart, Org Chart Plugin, Web Application Organogram, Responsive Organogram Charts, JSON Organogram
+canonical: https://jsuites.net/docs/organogram
 
 # JavaScript Organogram
 
-The jSuites Organogram is a lightweight JavaScript plugin that enables developers to create interactive organogram maps. This plugin offers essential features, including navigation, zoom functionality, and support for events and programmatically triggered actions, enhancing the versatility of organogram visualization in web applications.
+`JavaScript Components`{.jtag .black .framework-images}
 
-- Navigation;
-- Zoom;
-- Events and programmatically actions;
-- Create an organogram map from a JSON object;
+The jSuites Organogram is a lightweight and flexible JavaScript plugin that allows developers to create interactive organogram charts from JSON data. It provides essential features such as navigation controls, zoom functionality, event handling, and support for programmatically triggered actions
 
+- Navigation controls
+- Zoom functionality
+- Event handling
+- Programmatic actions
+- Build organogram charts directly from JSON objects
 
 ## Documentation
 
+Below are the key methods available for customizing and controlling the jSuites Organogram.
+
 ### Methods
 
-| Method                                      | Description                                                                             |
-|---------------------------------------------|-----------------------------------------------------------------------------------------|
-| refresh()                                   | resets the organogram chart to its initial state.                                       |
-| addItem(item: object)                       | Appends a new item in the organogram chart.  <br>@param item - item object to be added. |
-| removeItem(item: object)                    | Removes a item in the organogram chart.  <br>@param item - item object to be removed.   |
-| show(id: int)                               | Show or hide children of a organogram item.  <br>@param id - item id.                   |
-| search(query: string)                       | Search for a specific item in the organogram chart.  <br>@param query - search term.    |
-| setDimensions(width: number,height: number) | Defines the dimensions of the organogram container.                                     |
+| Method                                         | Description                                                                                                |
+|------------------------------------------------|------------------------------------------------------------------------------------------------------------|
+| `refresh()`                                    | Resets the organogram chart to its initial state.                                                          |
+| `addItem(item: object)`                        | Appends a new item to the organogram chart.<br>@param {object} item - Item object to be added.             |
+| `removeItem(item: object)`                     | Removes an item from the organogram chart.<br>@param {object} item - Item object to be removed.            |
+| `show(id: int)`                                | Shows or hides children of an organogram item.<br>@param {number} id - Item ID.                            |
+| `search(query: string)`                        | Searches for a specific item in the organogram chart.<br>@param {string} query - Search term.              |
+| `setDimensions(width: number, height: number)` | Defines the dimensions of the organogram container.<br>@param {number} width<br>@param {number} height<br> |
+
 
 ### Events
 
-| Method   | Description                                                                                                             |
-|----------|-------------------------------------------------------------------------------------------------------------------------|
-| onload   | Trigger a method when component is loaded.  <br>`onload(DOMElement element, Object obj) => void`                        |
-| onchange | Trigger a method when an item is added to the organogram chart.  <br>`onchange(DOMElement element, Object obj) => void` |
-| onclick  | Trigger a method when element is clicked.  <br>`onclick(DOMElement element, Object obj, DOMEvent e) => void`            |
+The JavaScript Component provides the following events, allowing developers to respond to user interactions and changes in the organogram.
+
+| Event     | Description                                                                                                             |
+|-----------|-------------------------------------------------------------------------------------------------------------------------|
+| `onload`  | Fired when the component is loaded.  <br>`onload(DOMElement element, Object obj) => void`                               |
+| `onchange`| Fired when an item is added to the chart.  <br>`onchange(DOMElement element, Object obj) => void`                       |
+| `onclick` | Fired when an element is clicked.  <br>`onclick(DOMElement element, Object obj, DOMEvent e) => void`                    |
+
 
 ### Settings
 
+The following settings allow you to customize the behaviour and appearance of the jSuites Organogram.
+
 | Property                  | Description                                                                         |
 |---------------------------|-------------------------------------------------------------------------------------|
-| url: string               | Data can be loaded from a external file.                                            |
-| data: mixed               | Data to be rendered.                                                                |
-| zoom: int                 | Zoom speed on mouse wheel. Defaults to 0.1                                          |
-| vertical: boolean         | Enables or disables the vertical view of the organization chart. Defaults to false. |
-| width: number             | Organogram container width.                                                         |
-| height: number            | Organogram container height.                                                        |
-| search: boolean           | Enables or disables a search input. Defaults to true.                               |
-| searchPlaceHolder: string | Defines a placeholder for the search.                                               |
+| `url: string`              | Loads data from an external file.                                                   |
+| `data: mixed`              | Data to be rendered in the organogram.                                               |
+| `zoom: int`                | Controls zoom speed on the mouse wheel. Defaults to 0.1.                             |
+| `vertical: boolean`        | Enables or disables vertical view. Defaults to `false`.                              |
+| `width: number`            | Sets the organogram container width.                                                 |
+| `height: number`           | Sets the organogram container height.                                                |
+| `search: boolean`          | Enables or turns off the search input. Defaults to `true`.                            |
+| `searchPlaceHolder: string`| Defines a placeholder for the search input field.                                    |
 
 
 ## Examples
 
 ### Basic Example
 
-The following example demonstrates the creation of a basic organogram using an external JSON file as a data source.
+This example demonstrates how to create a basic organogram using the jSuites Organogram plugin. The data for the organogram is sourced from an external JSON file, and the chart is configured with a vertical layout.
 
 ```html
 <html>
@@ -79,12 +88,11 @@ import Organogram from "@jsuites/organogram";
 import { useEffect } from "react";
 import "@jsuites/organogram/organogram.css";
 
-
 function App() {
     const organogramElement = useRef(null);
 
     useEffect(() => {
-        if (!organogramElement.current) {
+        if (! organogramElement.current) {
             Organogram(organogramElement.current, {
                 width: 460,
                 height: 420,
@@ -96,8 +104,7 @@ function App() {
 
     return (<>
         <div ref={organogramElement}></div>
-    </>
-    );
+    </>);
 }
 
 export default App;

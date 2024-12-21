@@ -1,10 +1,9 @@
 title: JavaScript Color Picker
 keywords: JavaScript, Color Picker, Responsive, Framework Compatibility
 description: Enhance web applications with our responsive JavaScript Color Picker. It is compatible with React, Angular, and Vue and offers customizable color selections for diverse projects.
+canonical: https://jsuites.net/docs/color-picker
 
-![JavaScript Color Picker](img/js-color-picker.svg)
-
-# JavaScript color picker
+# JavaScript Color Picker
 
 The `jSuites.color` is a versatile and lightweight JavaScript color picker for seamless integration into web projects. Whether you're working with standalone applications or incorporating them into React, Angular, or Vue frameworks, this colour picker is engineered for adaptability. It offers a straightforward and intuitive color selection interface, enhancing the user experience. Key features include:
 

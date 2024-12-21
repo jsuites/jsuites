@@ -1,14 +1,15 @@
 title: JavaScript Image Cropper: Brightness And Contrast
 keywords: Javascript, image cropper, cropper plugin, JS cropper, web components, JS crop, examples.
 description: Example on how to implement controls and how apply filters such as brightness and contrast programmatically.
+canonical: https://jsuites.net/docs/image-cropper/brightness-and-contrast-filters
 
-* [JavaScript Cropper](/docs/image-cropper)
+{.breadcrumb}
+- [JavaScript Image Cropper](/docs/image-cropper)
+- Examples
 
-JavaScript Image Cropper: Brightness And Contrast
-========================
+# JavaScript Image Cropper: Brightness And Contrast
 
-Examples
---------
+## Examples
 
 How to implement a image cropper with brightness and contract controls using the javascript cropper plugin.  
 
@@ -36,7 +37,7 @@ How to implement a image cropper with brightness and contract controls using the
 var crop = cropper(document.getElementById('image-cropper'), {
     area: [ 480, 320 ],
     crop: [ 150, 150 ],
-    value: '/templates/v4/img/download-lemonadejs.png',
+    value: '/templates/docs/img/download-lemonadejs.png',
 })
 
 document.getElementById('brightness').onchange = function() {
@@ -162,3 +163,10 @@ export default {
 </script>
 ```
 
+### More examples
+
+More examples using our JavaScript Cropper plugin.
+
+* [Image Cropper example on jsFiddle](https://jsfiddle.net/spreadsheet/1a5mts0u/)
+* [Image Brightness and Contrast](/docs/image-cropper/brightness-and-contrast-filters)
+* [Image Rotate and Zoom](/docs/image-cropper/rotate-and-zoom)

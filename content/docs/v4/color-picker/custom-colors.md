@@ -2,7 +2,11 @@ title: Javascript color picker with custom colors
 keywords: Javascript, color picker, color picker, examples, customize the colors
 description: How to customize the colors on the jsuites javascript color plugin.
 
-* [JavaScript Color Picker](/docs/v4/color-picker)
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** plugin is available here.
+> <br><br>
+> [JavaScript Color Picker v5](/docs/color-picker){.button .main target="_top"}
+
 
 Custom color picker
 ===================

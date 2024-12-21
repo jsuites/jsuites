@@ -1,8 +1,7 @@
-title: JavaScript Toolbar: Dynamic UI Component Integration
+title: JavaScript Toolbar
 keywords: JavaScript, jSuites Toolbar, UI Component, Web Development Plugin, Interface Customization
 description: The jSuites JavaScript Toolbar plugin facilitates the development of dynamic, customizable toolbars within web applications. Ideal for developers looking to enhance interface functionality, this plugin supports integration with third-party JavaScript components, offering a responsive and adaptable solution for diverse UI requirements.
-
-![JavaScript Toolbar](img/js-toolbars.svg)
+canonical: https://jsuites.net/docs/toolbar
 
 # JavaScript Toolbars
 

@@ -2,6 +2,12 @@ title: Javascript color picker example
 keywords: Javascript, color picker, color picker, examples, basic example
 description: Create a basic color picker using the javascript color picker plugin.
 
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** plugin is available here.
+> <br><br>
+> [JavaScript Color Picker v5](/docs/color-picker){.button .main target="_top"}
+
+
 * [JavaScript Color Picker](/docs/v4/color-picker)
 
 Basic color picker example

@@ -2,7 +2,10 @@ title: Vuejs dropdown
 keywords: javascript, autocomplete, javascript dropdown, vuejs
 description: Create a dropdown component with Vuejs and jSuites
 
-* [Vue Dropdown](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 Vue dropdown
 ============

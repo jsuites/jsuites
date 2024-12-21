@@ -1,6 +1,7 @@
 title: JavaScript Loading Spin
 keywords: JavaScript loading spin, animations, JS loading, javascript loading component
 description: This section introduces a lightweight JavaScript loading spin web component, an essential tool for enhancing user experience during data loading or processing phases.
+canonical: https://jsuites.net/docs/loading-spin
 
 # JavaScript Loading Spinner
 

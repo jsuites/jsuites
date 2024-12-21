@@ -1,4 +1,4 @@
-title: Javascript rich form plugin
+title: Javascript Rich Form Plugin with Jsuites v4
 keywords: Javascript rich form plugin, HTML form, form validations, are you sure
 description: The jsuites rich form plugin allow developers to create smart form validations, tracking changes on the form elements and simplify the data persistance to a remote server
 
@@ -13,7 +13,7 @@ The `jSuites.form` enhances a basic HTML form bringing various useful features w
 4.  **Events**: Intercept and update the submission, create rules and callbacks.
 5.  **Upload**: Integrates with jSuites.files to help upload files to the backend.
 
-![](img/js-rich-form.svg)
+![](img/js-rich-form.svg){.right}
 
   
 

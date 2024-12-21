@@ -1,4 +1,4 @@
-title: JavaScript organogram
+title: JavaScript Organogram with Jsuites v4
 keywords: Javascript, organogram, organogram plugin, JS organogram
 description: Create amazing interactive web-based JavaScript organogram
 
@@ -11,7 +11,7 @@ The jSuites `organogram` is a very light javascript plugin to allow developers t
 * Zoom
 * Events and programmatically actions
 
-![](img/js-organogram.svg)
+![](img/js-organogram.svg){.right}
 
   
 

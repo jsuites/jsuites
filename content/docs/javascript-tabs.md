@@ -1,8 +1,7 @@
 title: JavaScript Tabs
 keywords: JavaScript, jSuites Tabs Plugin, Web Content Management, Responsive Design, Developer Tools
 description: jSuites.tabs offers a responsive and versatile JavaScript solution for organizing web content into tabbed layouts, providing developers with extensive customization options and interactive features for enhanced user engagement.
-
-![JavaScript Tabs](img/js-tabs.svg)
+canonical: https://jsuites.net/docs/javascript-tabs
 
 # JavaScript Tabs
 

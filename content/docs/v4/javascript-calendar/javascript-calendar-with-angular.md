@@ -1,16 +1,14 @@
-title: Angular calendar
+title: Angular Calendar
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, inline javascript date picker, angular
 description: Create a calendar picker component with Angular and jSuites
 
 * [Angular Calendar](/docs/v4/javascript-calendar)
 
-Angular Calendar
-================
+# Angular Calendar
 
 Take a look at this example in CodeSandbox: [working example](https://codesandbox.io/s/jsuites-angular-calendar-qrq5e)
 
-Calendar component
-------------------
+## Calendar component
 
 #### calendar.component.ts
 
@@ -103,7 +101,7 @@ Component usage
 
 #### app.component.html
 
-```xml
+```html
 <h3>Angular calendar example</h3>
 <app-calendar
   [properties]="{

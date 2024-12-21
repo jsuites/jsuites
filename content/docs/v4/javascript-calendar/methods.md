@@ -1,39 +1,36 @@
 title: Javascript calendar programmatically changes
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, programmatically changes and updates
 description: How to interact with the calendar and time picker via javascript.
+canonical: https://jsuites.net/docs/v4/javascript-calendar/methods
 
-* [JavaScript Calendar](/docs/v4/javascript-calendar)
+{.white}
+> A new version of the jSuites **JavaScript Calendar** plugin is available here.
+> <br><br>
+> [jSuites Calendar v5](/docs/javascript-calendar){.button .main target="_top"}
 
-Programmatically changes
-========================
+{.breadcrumb}
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
+- Examples
 
-Documentation
--------------
+# Programmatically Methods
+
+## Documentation
 
 Available methods in the javascript calendar  
 
-| Method | Description |
-| --- | --- |
-| calendar.open(); | Open the javascript calendar picker |
-| calendar.close(ignoreEvents); | Close the calendar  <br>@param int ignoreEvents - Do no execute onclose event |
-| calendar.getValue(); | Get the current selected date |
-| calendar.setValue(newValue); | Set a new value for the javascript calendar and time picker  <br>@param mixed newValue - New date should be set as YYYY-MM-DD HH:MM:SS |
-| calendar.reset(); | Reset the input value |
-| calendar.next(); | Go to the next month |
-| calendar.prev(); | Go to the previous month |
+| Method                        | Description                                                                                                                            |
+|-------------------------------|----------------------------------------------------------------------------------------------------------------------------------------|
+| calendar.open();              | Open the javascript calendar picker                                                                                                    |
+| calendar.close(ignoreEvents); | Close the calendar  <br>@param int ignoreEvents - Do no execute onclose event                                                          |
+| calendar.getValue();          | Get the current selected date                                                                                                          |
+| calendar.setValue(newValue);  | Set a new value for the javascript calendar and time picker  <br>@param mixed newValue - New date should be set as YYYY-MM-DD HH:MM:SS |
+| calendar.reset();             | Reset the input value                                                                                                                  |
+| calendar.next();              | Go to the next month                                                                                                                   |
+| calendar.prev();              | Go to the previous month                                                                                                               |
 
-  
-  
-
-Examples
---------
+## Examples
 
 The following example shows how to interact with the JavaScript calendar programmatically  
-  
-  
-  
-   
-  
 
 ```html
 <html>
@@ -54,8 +51,6 @@ closebtn.onclick = () => calendar.close()
 setvaluebtn.onclick = () => calendar.setValue('2020-01-01')
 resetbtn.onclick = () => calendar.reset()
 </script>
-
-
 </html>
 ```
 

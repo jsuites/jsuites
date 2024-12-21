@@ -38,8 +38,8 @@ Check out this example that demonstrates how to make an extension that gets rid 
 <html>
 <script src="https://jsuites.net/v5/jsuites.js"></script>
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
 
 <div id="editor"></div><br/>
 
@@ -102,7 +102,6 @@ export default App;
 <script>
 import { Editor } from "jsuites/vue"
 import "jsuites/dist/jsuites.css"
-
 
 export default {
     name: "App",

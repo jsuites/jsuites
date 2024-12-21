@@ -1,4 +1,4 @@
-title: Javascript image slider
+title: Javascript Image Slider with Jsuites v4
 keywords: Javascript, slider, image slider, slider plugin, JS image slider, Javascript image slider
 description: A simple and lightweight javascript image slider plugin.
 
@@ -16,9 +16,9 @@ Basic slider example
 <link rel="stylesheet" href="https://jsuites.net/v4/jsuites.css" type="text/css" />
 
 <div id="slider">
-<img src='/templates/v4/img/car.jpeg'>
-<img src='/templates/v4/img/car2.jpeg'>
-<img src='/templates/v4/img/car3.jpeg'>
+    <img src="https://jsuites.net/templates/default/img/car.jpeg"/>
+    <img src="https://jsuites.net/templates/default/img/car2.jpeg"/>
+    <img src="https://jsuites.net/templates/default/img/car3.jpeg"/>
 </div>
 
 <br>

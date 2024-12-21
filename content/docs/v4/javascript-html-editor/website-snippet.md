@@ -20,7 +20,7 @@ Paste an URL from a video on youtube or a LINK from an external website.
 jSuites.editor(document.getElementById('editor'), {
     parseURL: true,
     // Website parser is to read websites and images from cross domain
-    remoteParser: '/jsuites/parser?url=',
+    remoteParser: '/docs/parser?url=',
     // Allowtoolbar
     allowToolbar:true,
 });

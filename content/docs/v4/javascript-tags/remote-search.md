@@ -24,7 +24,7 @@ In the following example, the plugin will search remotely for suggestions. Pleas
 <script>
 let tags = jSuites.tags(document.getElementById('tags'), {
     value: [{ text:'Contact', value:'contact@jspreadsheet.com' }],
-    search: '/docs/v4/data?q=',
+    search: '/docs/data?q=',
     placeholder: 'To'
 });
 

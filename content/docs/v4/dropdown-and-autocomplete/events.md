@@ -2,7 +2,10 @@ title: Javascript Dropdown: Javascript Events
 keywords: javascript, autocomplete, javascript dropdown, events, javascript events
 description: Understanding Events on the jSuites javascript dropdown plugin.
 
-* [JavaScript dropdown and autocomplete plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** events page is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 Dropdown Events
 ======

@@ -1,6 +1,7 @@
 title: JavaScript Slider
 keywords: JavaScript, Slider, Image Slider, Slider Plugin, JS Image Slider, JavaScript Image Slider
 description: jSuites slider is a lightweight JavaScript image slider plugin that enhances web pages with dynamic photo galleries.
+canonical: https://jsuites.net/docs/image-slider
 
 JavaScript Slider
 =======================
@@ -64,7 +65,7 @@ npm install jsuites
 <button id="open-slider" type="button" class="jbutton dark">Open the slider</button>
 
 <script>
-jSuites.slider(document.getElementById('slider'), {
+const slider = jSuites.slider(document.getElementById('slider'), {
     grid: true
 });
 

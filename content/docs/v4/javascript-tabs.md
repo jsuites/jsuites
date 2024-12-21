@@ -1,4 +1,4 @@
-title: JavaScript tabs plugin
+title: JavaScript tabs plugin with Jsuites v4
 keywords: Javascript, tabs plugin, web components
 description: Group your content on tabs with jsuites javascript tabs plugin
 
@@ -14,7 +14,7 @@ The `jSuites.tabs` is a lightweight javascript plugin to allow users to group co
 * New tabs controls
 * Navigation controls
 
-![](img/js-tabs.svg)
+![](img/js-tabs.svg){.right}
 
   
 

@@ -1,11 +1,9 @@
 title: JavaScript Five-Star Rating Plugin
 keywords: JavaScript, Rating, Five-Star Rating Plugin
 description: Embed a lightweight (1Kb) five-star rating system in your web apps with `jSuites.rating`, a versatile Vanilla JavaScript plugin that works as a standalone component and within web frameworks.
+canonical: https://jsuites.net/docs/rating
 
-![JavaScript Five-Star Rating Plugin](img/js-rating.svg)
-
-Javascript Five-Star Rating
-=================
+# Javascript Five-Star Rating
 
 ## Overview
 

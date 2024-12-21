@@ -1,9 +1,8 @@
-title: Add a simple contextmenu in your web based application
+title: JavaScript Context Menu with Jsuites v4
 keywords: Javascript, contextmenu
 description: A simple javascript contextmenu that helps to provide a custom right click contextmenu over HTML elements in a web-based application.
 
-JavaScript contextmenu
-======================
+# JavaScript Contextmenu
 
 The `jSuites.contextmenu` is a simple javascript contextmenu that helps to provide a custom right click contextmenu over HTML elements in a web-based application.
 
@@ -12,10 +11,9 @@ The `jSuites.contextmenu` is a simple javascript contextmenu that helps to provi
 * Several events and easy integration;
 * JS plugin or web component;
 
-Examples
---------
+## Examples
 
-### Contextmenu as a webcomponent
+### Contextmenu Web Component
 
 
 ```html

@@ -1,17 +1,23 @@
 title: Javascript Calendar: Responsive Rendering
 keywords: Javascript, calendar, date, datetime, date picker, datetime picker, examples, responsive calendar, mobile calendar
 description: Responsive javascript calendar. How to load on the calendar on mobile or small screens.
+canonical: https://jsuites.net/docs/v4/javascript-calendar/mobile
 
-* [JavaScript Calendar](/docs/v4/javascript-calendar)
+{.white}
+> A new version of the **JavaScript Calendar** responsive component page is available here.
+> <br><br>
+> [Calendar Events on v5](/docs/javascript-calendar/mobile){.button .main target="_top"}
 
-Responsive JavaScript calendar
-==============================
+{.breadcrumb}
+- [JavaScript Calendar](/docs/v4/javascript-calendar)
+- Examples
 
-Full screen mode
-----------------
+
+# Responsive JavaScript Calendar Component
+
+# Full screen mode
 
 You can use the property `fullscreen:` true to start the calendar in full screen mode. Bear in mind that this property is automatic set as true when the screen width is lower than 800 pixels.
-
   
 ```html
 <html>
@@ -33,4 +39,3 @@ jSuites.calendar(document.getElementById('calendar'), {
 </script>
 </html>
 ```
-

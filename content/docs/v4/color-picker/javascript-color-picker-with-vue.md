@@ -2,7 +2,11 @@ title: VueJS color picker
 keywords: Javascript, color picker, color picker, examples, react
 description: Create a color picker component with VueJS and jSuites
 
-* [Vue Color Picker](/docs/v4/color-picker)
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** plugin is available here.
+> <br><br>
+> [JavaScript Color Picker v5](/docs/color-picker){.button .main target="_top"}
+
 
 Vue color picker
 ================

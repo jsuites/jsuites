@@ -1,14 +1,17 @@
 title: JavaScript Calendar: International Settings
 keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Examples, International Options, Customizations
 description: Tailor your JavaScript calendar with customizable texts and international settings, ensuring a localized experience for global audiences.
+canonical: https://jsuites.net/docs/javascript-calendar/international
 
-[JavaScript Calendar](/docs/javascript-calendar)
+{.breadcrumb}
+- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
+- Examples
 
 # International Calendar Customization
 
-Enhance your JavaScript calendar by personalizing the text and setting the week's starting day to align with various international standards.
+Customize your JavaScript calendar by adjusting text and setting the week's starting day to match international preferences.
   
-[Explore this customization in action on jsfiddle.](https://jsfiddle.net/spreadsheet/s6bpwxef/)  
+[Explore this customization on the JavaScript Calendar in action](https://jsfiddle.net/spreadsheet/s6bpwxef/)  
   
 
 ```html
@@ -149,3 +152,14 @@ export default {
 }
 </script>
 ```
+
+
+## More examples
+
+Explore additional use cases for the jSuites JavaScript Calendar plugin:
+
+* [Year and Month Selection](/docs/javascript-calendar/year-month)
+* [JavaScript Calendar Events](/docs/javascript-calendar/events)
+* [Calendar Date Range Validations](/docs/javascript-calendar/valid-range)
+* [International Settings](/docs/javascript-calendar/international)
+* [Responsive JavaScript Calendar](/docs/javascript-calendar/mobile)

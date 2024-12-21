@@ -1,15 +1,16 @@
-title: Javascript Dropdown With flags
+title: Javascript Dropdown With Images
 keywords: Javascript, autocomplete dropdown, javascript dropdown, country search with flags
 description: Create a country dropdown with autocomplete and flag icons.
 
-* [JavaScript Dropdown Plugin](/docs/dropdown)
+{.breadcrumb}
+- [JavaScript Dropdown](/docs/dropdown)
+- Examples
 
-JavaScript Autocomplete Dropdown With Images
-============================================
+# JavaScript Dropdown With Images
 
-The `javascript autocomplete` countries dropdown is a real life example using JSON and a CDN images that works great in small screen devices.
+The following example creates a Country Dropdown list with JavaScript autocomplete search using a JSON for data handling and CDN-hosted images for visual representation. It can adapt its design for small-screen devices.
 
-[This example on JSfiddle](https://jsfiddle.net/hodware/aqfbp3wd/2/){target="_blank"}
+[You can open this example on JSfiddle](https://jsfiddle.net/spreadsheet/aqfbp3wd/){target="_blank"}
 
 ```html
 <html>
@@ -279,9 +280,10 @@ jSuites.dropdown(document.getElementById('dropdown'), {
 </html>
 ```
 ```jsx
-import { Dropdown } from 'jsuites/react'
-import { useRef } from 'react'
-import 'jsuites/dist/jsuites.css'
+import { Dropdown } from 'jsuites/react';
+import { useRef } from 'react';
+
+import 'jsuites/dist/jsuites.css';
 
 let countries = [
     { "text": "Afghanistan", "value": "AF" },
@@ -818,3 +820,9 @@ export default {
 };
 </script>
 ```
+
+## More Dropdown Examples
+
+* [JavaScript Countries Dropdown](/docs/dropdown/countries)
+* [Dropdown Events](/docs/dropdown/events)
+* [Responsive JavaScript Dropdown](/docs/dropdown/mobile)

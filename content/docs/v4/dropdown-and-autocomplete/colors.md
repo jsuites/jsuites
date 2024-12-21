@@ -2,7 +2,10 @@ title: Javascript dropdown with colors
 keywords: javascript, autocomplete, javascript dropdown, items with colors
 description: How to include colors on the javascript dropdown items.
 
-* [JavaScript dropdown and autocomplete plugin](/docs/v4/dropdown-and-autocomplete)
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 JavaScript dropdown with color indication
 =========================================

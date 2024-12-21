@@ -2,7 +2,11 @@ title: Angular color picker
 keywords: Javascript, color picker, color picker, examples, angular
 description: How to create a color picker with Angular and jSuites
 
-* [JavaScript Color Picker](/docs/v4/color-picker)
+{.white}
+> A new version of the jSuites **JavaScript Color Picker** plugin is available here.
+> <br><br>
+> [JavaScript Color Picker v5](/docs/color-picker){.button .main target="_top"}
+
 
 Angular color picker
 ====================

@@ -1,18 +1,21 @@
-title: JavaScript Year Month Picker
-keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Examples, Year Picker, Month Picker
-description: Easily select year and month with our JavaScript picker, streamlining date inputs for more efficient user experiences.
+title: JavaScript Year Month Calendar Picker
+keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Year Picker, Month Picker
+description: Explore the flexibility of JavaScript Year Month Picker, tailored for scenarios requiring exclusive Month/Year selection, offering precise and streamlined inputs for developers.
+canonical: https://jsuites.net/docs/javascript-calendar/year-month
 
-[JavaScript Year Month Picker](/docs/javascript-calendar)
+{.breadcrumb}
+- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
+- Examples
 
-# JavaScript Calendar: Year Month Picker
+# JavaScript Calendar: Year-Month Picker
 
-This section covers the process of setting up the jSuites `calendar plugin` to serve as a JavaScript year and month picker selector, thereby excluding daily selection to tailor the calendar more closely to specific application requirements.
+Learn how to configure the jSuites calendar plugin as a year-and-month picker. This setup disables daily selection, making it ideal for applications requiring precise year and month input, such as reports, archives, or date range filtering.
 
 ## Example
 
-### JavaScript Year Month Picker
+### Year-Month Picker Configuration
 
-This feature allows for a simplified interface where users can quickly navigate and select a particular year and month, ideal for reports, archives, and any scenario where the day of the month is secondary.
+The following example demonstrates how to enable the year-and-month picker with a defined format and valid date range:
 
 ```html
 <html>
@@ -53,7 +56,8 @@ export default App;
 ```
 ```vue
 <template>
-    <Calendar ref="calendar" type="year-month-picker" format="DD/MM/YYYY HH:MM" :validRange="['2024-02-01', '2025-12-31']" />
+    <Calendar ref="calendar" type="year-month-picker"
+        format="DD/MM/YYYY HH:MM" :validRange="['2024-02-01', '2025-12-31']" />
 </template>
 
 <script>
@@ -68,3 +72,13 @@ export default {
 }
 </script>
 ```
+
+## More examples
+
+Explore additional use cases for the jSuites JavaScript Calendar plugin:
+
+* [Year and Month Selection](/docs/javascript-calendar/year-month)
+* [JavaScript Calendar Events](/docs/javascript-calendar/events)
+* [Calendar Date Range Validations](/docs/javascript-calendar/valid-range)
+* [International Settings](/docs/javascript-calendar/international)
+* [Responsive JavaScript Calendar](/docs/javascript-calendar/mobile)
