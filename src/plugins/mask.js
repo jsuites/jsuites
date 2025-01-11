@@ -901,6 +901,8 @@ function Mask() {
                 }
             }
 
+            // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
+
             if (fullmask) {
                 // Decimal
                 let decimal = control.options.decimal;
