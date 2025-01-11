@@ -107,13 +107,13 @@
 .jmenu nav h3 {
     font-size: 1em;
     font-weight: normal;
-    color: #999;
+    color: #757575;
     margin-left: 10px;
     margin-bottom: 10px;
 }
 
 .jmenu ul {
-    margin: 0px;
+    margin: 0;
     padding-left: 20px;
     padding-bottom: 10px;
     list-style: none;
