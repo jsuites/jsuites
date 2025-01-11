@@ -261,7 +261,7 @@ export default function Picker(el, options) {
     var init = function() {
         // Class
         el.classList.add('jpicker');
-        el.setAttribute('tabindex', '900');
+        el.setAttribute('tabindex', '0');
         el.onmousedown = function(e) {
             if (! el.classList.contains('jpicker-focus')) {
                 obj.open();
