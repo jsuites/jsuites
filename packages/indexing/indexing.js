@@ -40,14 +40,15 @@
                             let a = document.createElement('a');
                             a.textContent = v.textContent.replace('¶', '');
                             a.href = '#content-' + v.textContent.toLowerCase().replace('-', ' ').replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
-                            
+
+                            let li = document.createElement('li');
+                            li.appendChild(a);
+
                             if (v.tagName === 'H2') {
                                 lastUl = document.createElement('ul');
-                                ul.appendChild(a);
+                                ul.appendChild(li);
                                 ul.appendChild(lastUl);
                             } else {
-                                let li = document.createElement('li');
-                                li.appendChild(a);
                                 if (lastUl) {
                                     lastUl.appendChild(li);
                                 } else {

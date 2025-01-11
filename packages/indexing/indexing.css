@@ -9,8 +9,7 @@
 }
 
 .indexing li {
-    margin-bottom: 5px;
-    padding-left: 10px;
+    padding: 4px;
 }
 
 .indexing a {
@@ -26,13 +25,8 @@
 
 .indexing ul {
     list-style: none;
-    padding: 1px;
-    margin: 1px;
-}
-
-.indexing ul ul {
-    font-size: 0.9em;
-    padding: 6px;
+    padding: 0;
+    margin: 0 0 15px 15px;
 }
 
 .indexing:empty {
