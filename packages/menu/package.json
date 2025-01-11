@@ -19,7 +19,7 @@
         "javascript plugins, menu, javascript menu plugin"
     ],
     "main": "menu.js",
-    "version": "2.0.1",
+    "version": "2.0.2",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/",

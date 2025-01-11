@@ -56,7 +56,7 @@
         return w.innerWidth || e.clientWidth || g.clientWidth;
     }
 
-    const selectOnLoad = function() {
+    const selectOnLoad = function(adjustScroll) {
         let m = document.querySelectorAll('.jmenu nav a');
         for (let i = 0; i < m.length; i++) {
             m[i].classList.remove('selected');
@@ -66,7 +66,18 @@
         if (href) {
             let menu = document.querySelector('.jmenu a[href="'+ href +'"]');
             if (menu) {
+                // Select header
+                const parent = menu.closest('nav');
+                if (parent) {
+                    parent.classList.add('selected');
+                }
+                // Select child
                 menu.classList.add('selected');
+                // Direct scroll to element
+                if (adjustScroll === true) {
+                    // Force a small delay to ensure DOM is ready
+                    menu.scrollIntoView({ block: 'center' });
+                }
             }
         }
     }
@@ -100,11 +111,11 @@
         }
 
         obj.load = function() {
-            if (localStorage) {
+            if (window.localStorage) {
                 let menu = el.querySelectorAll('nav');
                 for (let i = 0; i < menu.length; i++) {
                     if (menu[i].getAttribute('data-id')) {
-                        let state = localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
+                        let state = window.localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
                         if (state === '1') {
                             menu[i].classList.add('selected');
                         } else {
@@ -115,7 +126,7 @@
                     }
                 }
 
-                selectOnLoad();
+                selectOnLoad(true);
 
                 let a = el.querySelectorAll('a');
                 for (let i = 0; i < a.length; i++) {

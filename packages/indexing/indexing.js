@@ -1,13 +1,3 @@
-/**
- * (c) jSuites Javascript Plugins and Web Components
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- * Plugin: Indexing
- *
- * MIT License
- */
-
 ;(function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
     typeof define === 'function' && define.amd ? define(factory) :
@@ -31,63 +21,75 @@
                     el.innerHTML = '';
                     // Get all elements h2 and h3 in the page
                     let elements = options.source.querySelectorAll('h2,h3');
-                    // Create elements
-                    let ul = document.createElement('ul');
-                    let lastUl;
-                    ul.classList.add('indexing');
-                    elements.forEach(function (v, k) {
-                        if (v.tagName && v.textContent) {
+                    // Create root ul
+                    let rootUl = document.createElement('ul');
+                    rootUl.classList.add('indexing');
+                    
+                    let currentH2Li = null;
+                    let currentH2Ul = null;
+
+                    elements.forEach(function(element) {
+                        if (element.tagName && element.textContent) {
                             let a = document.createElement('a');
-                            a.textContent = v.textContent.replace('¶', '');
-                            a.href = '#content-' + v.textContent.toLowerCase().replace('-', ' ').replace(/[^\w\s]/g, '').replace(/\s+/g, '-');
+                            a.textContent = element.textContent.replace('¶', '');
+                            a.href = '#content-' + element.textContent.toLowerCase()
+                                .replace('-', ' ')
+                                .replace(/[^\w\s]/g, '')
+                                .replace(/\s+/g, '-');
 
                             let li = document.createElement('li');
                             li.appendChild(a);
 
-                            if (v.tagName === 'H2') {
-                                lastUl = document.createElement('ul');
-                                ul.appendChild(li);
-                                ul.appendChild(lastUl);
-                            } else {
-                                if (lastUl) {
-                                    lastUl.appendChild(li);
+                            if (element.tagName === 'H2') {
+                                // For H2, create a new ul for potential children
+                                currentH2Li = li;
+                                currentH2Ul = document.createElement('ul');
+                                li.appendChild(currentH2Ul);
+                                rootUl.appendChild(li);
+                            } else if (element.tagName === 'H3') {
+                                // For H3, append to the current H2's ul if it exists
+                                if (currentH2Ul) {
+                                    currentH2Ul.appendChild(li);
                                 } else {
-                                    ul.appendChild(li);
+                                    // If no parent H2 exists, append to root
+                                    rootUl.appendChild(li);
                                 }
                             }
                         }
                     });
 
-                    if (ul.children.length) {
-                        el.appendChild(ul);
+                    // Only append if we have content
+                    if (rootUl.children.length) {
+                        el.appendChild(rootUl);
                     }
                 }
             }
 
-            // Items
+            // Items for scroll tracking
             let items = [];
-            // Get all elements h2 and h3 in the page
             let elements = el.querySelectorAll('a');
-            // Adding events
-            elements.forEach(function (v) {
-               if (v.tagName && v.textContent) {
-                   let link = v.href.split('#');
-                   let element = document.querySelector('[href="#'+link[1]+'"]');
-                   let top = element.offsetTop;
-                   let item = {
-                       top: top - offset,
-                       behavior: 'smooth',
-                       element: v,
-                   }
-                   items.push(item);
-                   v.addEventListener('click', function(e) {
-                       window.scrollTo(item);
-                       e.preventDefault();
-                       e.stopImmediatePropagation();
-                       return false;
-                   });
-                   v.setAttribute('href', window.location.pathname + '#' + link[1]);
-               }
+            
+            elements.forEach(function(v) {
+                if (v.tagName && v.textContent) {
+                    let link = v.href.split('#');
+                    let element = document.querySelector('[href="#' + link[1] + '"]');
+                    let top = element.offsetTop;
+                    let item = {
+                        top: top - offset,
+                        behavior: 'smooth',
+                        element: v,
+                    }
+                    items.push(item);
+                    
+                    v.addEventListener('click', function(e) {
+                        window.scrollTo(item);
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                        return false;
+                    });
+                    
+                    v.setAttribute('href', window.location.pathname + '#' + link[1]);
+                }
             });
 
             return items;
@@ -103,7 +105,7 @@
         document.addEventListener('scroll', function() {
             if (items && items.length) {
                 let item = null;
-                items.forEach(function (v) {
+                items.forEach(function(v) {
                     v.element.classList.remove('selected');
                     if (document.documentElement.scrollTop >= v.top - offset) {
                         item = v.element;
