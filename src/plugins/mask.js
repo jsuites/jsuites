@@ -70,9 +70,6 @@ function Mask() {
             }
             var t = HelpersDate.now(this.date);
             v = HelpersDate.dateToNum(t);
-            if (this.date[4]) {
-                v += parseFloat(this.date[4] / 60);
-            }
         }
 
         if (isNaN(v)) {

@@ -1504,9 +1504,6 @@ function Mask() {
             }
             var t = helpers_date.now(this.date);
             v = helpers_date.dateToNum(t);
-            if (this.date[4]) {
-                v += parseFloat(this.date[4] / 60);
-            }
         }
 
         if (isNaN(v)) {
@@ -12865,7 +12862,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.8.4',
+    version: '5.8.5',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
