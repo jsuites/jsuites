@@ -15,14 +15,10 @@ export default function Picker(el, options) {
     var dropdownContent = null;
 
     const handleKeyDown = function(e) {
-        if (!e.target.classList.contains('jpicker')) {
+        if (!e.target.classList.contains('jpicker') || !e.target.classList.contains('jpicker-focus')) {
             return;
         }
 
-        if (!e.target.classList.contains('jpicker-focus')) {
-            return;
-        }
-        
         e.stopPropagation();
 
         let hover = el.querySelector('.jpicker-hover')

@@ -272,7 +272,7 @@ export default function Toolbar(el, options) {
         el.classList[state]('jtoolbar-disabled');
     }
 
-    obj.focus() = function() {
+    obj.focus = function() {
         el.focus();
     }
 
