@@ -272,6 +272,10 @@ export default function Toolbar(el, options) {
         el.classList[state]('jtoolbar-disabled');
     }
 
+    obj.focus() = function() {
+        el.focus();
+    }
+
     el.onclick = function(e) {
         var element = Helpers.findElement(e.target, 'jtoolbar-item');
         if (element) {
