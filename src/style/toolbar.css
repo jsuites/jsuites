@@ -121,6 +121,11 @@
     padding-right:0px;
 }
 
+.jtoolbar:focus-within .jtoolbar-focus {
+	background-color: #f2f2f2;
+	border-radius: 5px;
+}
+
 .jtoolbar .jpicker-header {
     height: 24px;
     line-height: 24px;

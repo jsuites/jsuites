@@ -136,6 +136,7 @@ export default function Toolbar(el, options) {
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
                 Picker(toolbarItem, items[i]);
+				toolbarItem.setAttribute('tabindex', '-1');
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             } else if (items[i].type == 'label') {
@@ -286,8 +287,47 @@ export default function Toolbar(el, options) {
         obj.refresh();
     });
 
+    el.onkeydown = function(e) {
+        if (!e.target.classList.contains('jtoolbar')) {
+            return;
+        }
+
+        let focused = el.querySelector('.jtoolbar-focus')
+
+        const moveFocus = (direction) => {
+            if (!focused) {
+                toolbarContent.children[0].classList.add('jtoolbar-focus');
+            } else {
+                const nextFocused = direction === 'left' ? focused.previousElementSibling : focused.nextElementSibling;
+                if (nextFocused) {
+                    focused.classList.remove('jtoolbar-focus');
+                    nextFocused.classList.add('jtoolbar-focus');
+                }
+            }
+        };
+
+        if (e.key === 'ArrowLeft') {
+            moveFocus('left');
+        } else if (e.key === 'ArrowRight') {
+            moveFocus('right');
+        } else if (e.key === 'Enter' && focused) {
+            obj.selectItem(focused);
+
+            const mousedownEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+
+            focused.dispatchEvent(mousedownEvent);
+            focused.click();
+        }
+    }
+
     // Toolbar
     el.classList.add('jtoolbar');
+    // Add tabindex
+    el.setAttribute('tabindex', '0');
     // Reset content
     el.innerHTML = '';
     // Container

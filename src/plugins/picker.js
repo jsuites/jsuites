@@ -14,6 +14,56 @@ export default function Picker(el, options) {
     var dropdownHeader = null;
     var dropdownContent = null;
 
+    const handleKeyDown = function(e) {
+        console.log(e.target)
+        if (!e.target.classList.contains('jpicker')) {
+            return;
+        }
+
+        if (!e.target.classList.contains('jpicker-focus')) {
+            return;
+        }
+        
+        e.stopPropagation();
+
+        let hover = el.querySelector('.jpicker-hover')
+
+        const moveHover = (direction) => {
+            if (!hover) {
+                dropdownContent.children[0].classList.add('jpicker-hover');
+            } else {
+                const nextHovered = direction === 'left' || direction === 'up' ? hover.previousElementSibling : hover.nextElementSibling;
+                if (nextHovered) {
+                    hover.classList.remove('jpicker-hover');
+                    nextHovered.classList.add('jpicker-hover');
+                }
+            }
+        };
+
+        if (e.key === 'Enter') {
+            if (hover) {                    
+                const mousedownEvent = new MouseEvent('mousedown', {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window
+                });
+                
+                hover.dispatchEvent(mousedownEvent);
+                hover.click();
+
+                hover.classList.remove('jpicker-hover');
+            }
+        } else if (e.key === 'ArrowUp') {
+            moveHover('up')
+        } else if (e.key === 'ArrowDown') {
+            moveHover('down')
+        } else if (e.key === 'ArrowRight') {
+            moveHover('right')
+        } else if (e.key === 'ArrowLeft') {
+            moveHover('left')
+        }
+    };
+
     /**
      * The element passed is a DOM element
      */
@@ -239,10 +289,12 @@ export default function Picker(el, options) {
             if (typeof obj.options.onopen == 'function') {
                 obj.options.onopen(el, obj);
             }
+
+            el.addEventListener('keydown', handleKeyDown);
         }
     }
 
-    obj.close = function() {
+    obj.close = function() {        
         if (el.classList.contains('jpicker-focus')) {
             el.classList.remove('jpicker-focus');
 
@@ -253,6 +305,8 @@ export default function Picker(el, options) {
                 obj.options.onclose(el, obj);
             }
         }
+
+        el.removeEventListener('keydown', handleKeyDown);
     }
 
     /**

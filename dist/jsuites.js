@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 195:
+/***/ 794:
 /***/ (function(module) {
 
 /**
@@ -8058,6 +8058,51 @@ function Picker(el, options) {
             }
         }
 
+        el.onkeydown = function(e) {
+            e.stopPropagation();
+
+            if (!e.target.classList.contains('jpicker')) {
+                return;
+            }
+
+            let hover = el.querySelector('.jpicker-hover')
+
+            const moveHover = (direction) => {
+                if (!hover) {
+                    dropdownContent.children[0].classList.add('jpicker-hover');
+                } else {
+                    const nextHovered = direction === 'left' || direction === 'up' ? hover.previousElementSibling : hover.nextElementSibling;
+                    if (nextHovered) {
+                        hover.classList.remove('jpicker-hover');
+                        nextHovered.classList.add('jpicker-hover');
+                    }
+                }
+            };
+
+            if (e.key === 'Enter') {
+                if (hover) {                    
+                    const mousedownEvent = new MouseEvent('mousedown', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    });
+                    
+                    hover.dispatchEvent(mousedownEvent);
+                    hover.click();
+
+                    hover.classList.remove('jpicker-hover');
+                }
+            } else if (e.key === 'ArrowUp') {
+                moveHover('up')
+            } else if (e.key === 'ArrowDown') {
+                moveHover('down')
+            } else if (e.key === 'ArrowRight') {
+                moveHover('right')
+            } else if (e.key === 'ArrowLeft') {
+                moveHover('left')
+            }
+		};
+
         // Dropdown Header
         dropdownHeader = document.createElement('div');
         dropdownHeader.classList.add('jpicker-header');
@@ -8247,6 +8292,7 @@ function Toolbar(el, options) {
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
                 Picker(toolbarItem, items[i]);
+				toolbarItem.setAttribute('tabindex', '-1');
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             } else if (items[i].type == 'label') {
@@ -8397,8 +8443,47 @@ function Toolbar(el, options) {
         obj.refresh();
     });
 
+    el.onkeydown = function(e) {
+        if (!e.target.classList.contains('jtoolbar')) {
+            return;
+        }
+
+        let focused = el.querySelector('.jtoolbar-focus')
+
+        const moveFocus = (direction) => {
+            if (!focused) {
+                toolbarContent.children[0].classList.add('jtoolbar-focus');
+            } else {
+                const nextFocused = direction === 'left' ? focused.previousElementSibling : focused.nextElementSibling;
+                if (nextFocused) {
+                    focused.classList.remove('jtoolbar-focus');
+                    nextFocused.classList.add('jtoolbar-focus');
+                }
+            }
+        };
+
+        if (e.key === 'ArrowLeft') {
+            moveFocus('left');
+        } else if (e.key === 'ArrowRight') {
+            moveFocus('right');
+        } else if (e.key === 'Enter' && focused) {
+            obj.selectItem(focused);
+
+            const mousedownEvent = new MouseEvent('mousedown', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+
+            focused.dispatchEvent(mousedownEvent);
+            focused.click();
+        }
+    }
+
     // Toolbar
     el.classList.add('jtoolbar');
+    // Add tabindex
+    el.setAttribute('tabindex', '0');
     // Reset content
     el.innerHTML = '';
     // Container
@@ -12802,7 +12887,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(195);
+var sha512 = __webpack_require__(794);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 

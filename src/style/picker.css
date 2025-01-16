@@ -44,6 +44,10 @@
     scrollbar-color: #333 transparent;
 }
 
+.jpicker-hover {
+	background-color: #f2f2f2;
+}
+
 .jpicker-content::-webkit-scrollbar {
     width: 8px;
 }
