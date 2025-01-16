@@ -15,7 +15,6 @@ export default function Picker(el, options) {
     var dropdownContent = null;
 
     const handleKeyDown = function(e) {
-        console.log(e.target)
         if (!e.target.classList.contains('jpicker')) {
             return;
         }
@@ -53,6 +52,8 @@ export default function Picker(el, options) {
 
                 hover.classList.remove('jpicker-hover');
             }
+        } else if (e.key === 'Escape') {
+            obj.close();
         } else if (e.key === 'ArrowUp') {
             moveHover('up')
         } else if (e.key === 'ArrowDown') {
@@ -294,7 +295,7 @@ export default function Picker(el, options) {
         }
     }
 
-    obj.close = function() {        
+    obj.close = function() {
         if (el.classList.contains('jpicker-focus')) {
             el.classList.remove('jpicker-focus');
 
@@ -307,6 +308,13 @@ export default function Picker(el, options) {
         }
 
         el.removeEventListener('keydown', handleKeyDown);
+
+        let focused = el.closest('.jpicker-focus');
+        if (focused) {
+            focused.focus();
+        } else {
+            el.blur();
+        }
     }
 
     /**
