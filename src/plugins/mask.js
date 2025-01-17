@@ -1,8 +1,6 @@
 import Helpers from '../utils/helpers';
 import HelpersDate from '../utils/helpers.date';
 
-
-
 function Mask() {
     // Currency
     const tokens = {
@@ -41,114 +39,7 @@ function Mask() {
     * Receives a string from method.type and returns if its a numeric method
     */
     const isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
-    }
-
-    /**
-    * Rounds the first number based on the decimal precision of the second number.
-    * 
-    * `value` is a string representing the number to be rounded.
-    * `formattedValue` is a string representing the number with the desired decimal precision (mask applied).
-    * 
-    * The function ensures that `value` is rounded to match the precision of `formattedValue` and
-    * retains any leading zeros from the original `formattedValue`.
-    */
-    const getRounded = function(value, formattedValue, decimal) {
-        // Determine the number of decimal places in formattedValue
-        const decimalPlaces = formattedValue.split(decimal)[1]?.length || 0;
-    
-        // Convert value to a number for rounding
-        let valueNum = parseFloat(value);
-    
-        // Round valueNum based on the decimal places in formattedValue
-        const factor = Math.pow(10, decimalPlaces);
-        let roundedNum = Math.round(valueNum * factor) / factor;
-    
-        // Handle integer rounding for cases like "21.99999"
-        if (decimalPlaces === 0) {
-            roundedNum = Math.round(valueNum);
-        }
-    
-        // Return the rounded number as a string
-        return roundedNum.toString().replace(',', decimal).replace('.', decimal).padStart(formattedValue.length, '0');
-    }
-
-    /**
-     * Receives two numbers represented as strings, where both numbers are essentially the same
-     * but have different decimal precision.
-     * 
-     * `more` is a string representing the number with more decimal places.
-     * `fewer` is a string representing the number with fewer decimal places.
-     */
-    const shortenDecimal = function(more, fewer, decimal) {
-        // Determine the number of decimal places in fewer
-        const fewerSize = fewer.split(decimal)[1]?.length || 0;
-    
-        // Convert more to a number for rounding
-        let moreNum = parseFloat(more.replace(',', '.'));
-    
-        // Round moreNum based on the decimal places in fewer
-        const factor = Math.pow(10, fewerSize);
-        let roundedNum = Math.round(moreNum * factor) / factor;
-
-    
-        // Convert the rounded number to a string with the required decimal places
-        let roundedStr = roundedNum.toFixed(fewerSize);
-    
-        // Split the integer and decimal parts of the original more
-        const [fewerIntPadding] = fewer.split(decimal);
-    
-        // Pad the integer part with leading zeros to match the original length of more
-        const paddedInt = roundedStr.split('.')[0].padStart(fewerIntPadding.length, '0');
-    
-        // Reconstruct the final result with the correct decimal places
-        const finalResult = paddedInt + decimal + roundedStr.split('.')[1];
-    
-        return finalResult;
-    }
-
-    /**
-     * Receives a number and a format represented as a string. The function scales down the number 
-     * to a value between 1 and 10, while formatting it according to the provided decimal precision in the format.
-     * 
-     * `number` is the input number to be scaled.
-     * `format` is a string representing the desired decimal precision (e.g., "0.00" or "0").
-     * 
-     * The function returns an array with two elements:
-     * 1. The scaled number formatted according to the provided precision.
-     * 2. The exponent needed to scale the formatted number back to the original input.
-     * 
-     * Example: 
-     * ("10000", "0") -> ["1", "4"]
-     * ("123456789", "0.00") -> ["1.23", "8"]
-     */
-    function getScientificFormat(number, format) {
-        if (number === 0 || parseFloat(number) === 0) {
-            return ['0', '0'];
-        }
-
-        number = number.replace(',', '.');
-        format = format.replace(',', '.');
-
-        // Determine the number of decimal places based on the format
-        const decimalPlaces = format.toString().split('.')[1]?.length || 0;
-    
-        // Calculate the exponent (log10 gives the exponent directly)
-        let exponent = Math.floor(Math.log10(number));
-    
-        // Scale the number down to be between 1 and 10
-        const scaledNumber = number / Math.pow(10, exponent);
-    
-        // Format the scaled number with the same number of decimal places as the format
-        let formattedNumber = scaledNumber.toFixed(decimalPlaces);
-
-        // Treats rounding up to 10
-        if (formattedNumber == 10) {
-            formattedNumber = '1';
-            exponent += 1;
-        }
-    
-        return [formattedNumber, exponent.toString()];
+        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric';
     }
 
     /**
@@ -231,7 +122,7 @@ function Mask() {
         
         if (!isNaN(index) && index >= 0) {
             // Set caret
-            if (this.tagName == 'DIV') {
+            if (this.tagName === 'DIV') {
                 const s = window.getSelection();
                 const r = document.createRange();
         
@@ -706,6 +597,42 @@ function Mask() {
         }
     }
 
+
+    const extractDate = function() {
+        let v = '';
+        if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
+            if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
+                v = parseInt(this.date[3]);
+            } else {
+                let h = parseInt(this.date[3]);
+                if (h < 13 && this.values.indexOf('PM') !== -1) {
+                    v = (h+12) % 24;
+                } else {
+                    v = h % 24;
+                }
+            }
+            if (this.date[4]) {
+                v += parseFloat(this.date[4] / 60);
+            }
+            if (this.date[5]) {
+                v += parseFloat(this.date[5] / 3600);
+            }
+            v /= 24;
+        } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
+            if (this.date[0] && this.date[1] && ! this.date[2]) {
+                this.date[2] = 1;
+            }
+            var t = HelpersDate.now(this.date);
+            v = HelpersDate.dateToNum(t);
+        }
+
+        if (isNaN(v)) {
+            v = '';
+        }
+
+        return v;
+    }
+
     const getTokens = function(str) {
         // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
         const expressions = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
@@ -1097,6 +1024,95 @@ function Mask() {
         }
 
         return result;
+    }
+
+    Component.extract = function(v, options, returnObject) {
+        if (isBlank(v)) {
+            return v;
+        }
+        if (typeof(options) != 'object') {
+            return v;
+        } else {
+            options = Object.assign({}, options);
+
+            if (! options.options) {
+                options.options = {};
+            }
+        }
+
+        // Compatibility
+        if (! options.mask && options.format) {
+            options.mask = options.format;
+        }
+
+        // Remove []
+        if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
+            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
+            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
+        }
+
+        // Get decimal
+        getDecimal.call(options, options.mask);
+
+        var type = null;
+        var value = null;
+
+        if (options.type == 'percent' || options.options.style == 'percent') {
+            type = 'percentage';
+        } else if (options.mask) {
+            type = getType.call(options, options.mask);
+        }
+
+        if (type === 'text') {
+            var o = {};
+            value = v;
+        } else if (type === 'general') {
+            var o = obj(v, options, true);
+
+            value = v;
+        } else if (type === 'datetime') {
+            if (v instanceof Date) {
+                v = obj.getDateString(v, options.mask);
+            }
+
+            var o = obj(v, options, true);
+
+            if (Helpers.isNumeric(v)) {
+                value = v;
+            } else {
+                value = extractDate.call(o);
+            }
+        } else if (type === 'scientific') {
+            value = v;
+            if (typeof(v) === 'string') {
+                value = Number(value);
+            }
+            var o = options;
+        } else {
+            value = Extract.call(options, v);
+            // Percentage
+            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
+                value /= 100;
+            }
+            var o = options;
+        }
+
+        o.value = value;
+
+        if (! o.type && type) {
+            o.type = type;
+        }
+
+        if (returnObject) {
+            return o;
+        } else {
+            return value;
+        }
     }
 
     return Component;
