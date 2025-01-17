@@ -111,16 +111,18 @@
         }
 
         obj.load = function() {
-            if (window.localStorage) {
-                let menu = el.querySelectorAll('nav');
-                for (let i = 0; i < menu.length; i++) {
-                    if (menu[i].getAttribute('data-id')) {
-                        let state = window.localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
-                        if (state === '1') {
-                            menu[i].classList.add('selected');
-                        } else {
-                            if (state === '0' || ! menu[i].classList.contains('selected')) {
-                                menu[i].classList.remove('selected');
+            if (options.adjustOnLoad !== false) {
+                if (window.localStorage) {
+                    let menu = el.querySelectorAll('nav');
+                    for (let i = 0; i < menu.length; i++) {
+                        if (menu[i].getAttribute('data-id')) {
+                            let state = window.localStorage.getItem('jmenu-' + menu[i].getAttribute('data-id'));
+                            if (state === '1') {
+                                menu[i].classList.add('selected');
+                            } else {
+                                if (state === '0' || !menu[i].classList.contains('selected')) {
+                                    menu[i].classList.remove('selected');
+                                }
                             }
                         }
                     }
