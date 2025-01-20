@@ -89,5 +89,14 @@ describe('Validations', () => {
     expect(jSuites.validations.exist(undefined)).toBe(false);
   });
 
+  test('text length tests', () => {
+    expect(jSuites.validations.textLength(undefined, { criteria: '=', value: [0] })).toBe(true);
+    expect(jSuites.validations.textLength(null, { criteria: '=', value: [0] })).toBe(true);
+    expect(jSuites.validations.textLength(0, { criteria: '=', value: [1] })).toBe(true);
+    expect(jSuites.validations.textLength(true, { criteria: '=', value: [4] })).toBe(true);
+    expect(jSuites.validations.textLength(false, { criteria: '=', value: [5] })).toBe(true);
+    expect(jSuites.validations.textLength('0', { criteria: '=', value: [1] })).toBe(true);
+  })
+
   // Add more tests as needed
 });
