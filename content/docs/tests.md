@@ -1,13 +1,13 @@
-title: Testing your JavaScript Plugins
+title:Javascript Plugins - Tests | Jsuites
 keywords: jSuites, testing, frontend, JavaScript library, plugins, automation
-description: How to create and automate tests for your jSuites plugins, ensuring high-quality reliable web applications.
+description: How to create and automate tests for your Jsuites plugins, ensuring high-quality reliable web applications.
 canonical: https://jsuites.net/docs/tests
 
 # Tests
 
 ## Overview
 
-This guide provides instructions on integrating Jest to test your implementations using any jSuites plugins.
+This guide provides instructions on integrating Jest to test your implementations using any Jsuites plugins.
   
 
 ### Blueprint
