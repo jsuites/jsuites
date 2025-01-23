@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 195:
+/***/ 794:
 /***/ (function(module) {
 
 /**
@@ -10185,9 +10185,16 @@ function Validations() {
     }
 
     component.textLength = function(data, options) {
-        data = data.toString();
+        let textLength;
+        if (typeof data === 'string') {
+            textLength = data.length;
+        } else if (typeof data !== 'undefined' && data !== null && typeof data.toString === 'function') {
+            textLength = data.toString().length;
+        } else {
+            textLength = 0;
+        }
 
-        return component.number(data.length, options);
+        return component.number(textLength, options);
     }
 
     return component;
@@ -12802,7 +12809,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(195);
+var sha512 = __webpack_require__(794);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 

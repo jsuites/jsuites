@@ -282,9 +282,16 @@ function Validations() {
     }
 
     component.textLength = function(data, options) {
-        data = data.toString();
+        let textLength;
+        if (typeof data === 'string') {
+            textLength = data.length;
+        } else if (typeof data !== 'undefined' && data !== null && typeof data.toString === 'function') {
+            textLength = data.toString().length;
+        } else {
+            textLength = 0;
+        }
 
-        return component.number(data.length, options);
+        return component.number(textLength, options);
     }
 
     return component;
