@@ -1,6 +1,7 @@
 title: Javascript Tags and JavaScript Keywords Plugins with Jsuites v4
 keywords: Javascript, tagging, javascript tags, keywords, javascript keywords
 description: The jSuites.tags is very light javascript web component and plugin to allow users to insert and manage multiple entries as tags into a text input
+canonical: https://jsuites.net/docs/v4/javascript-tags
 
 Javascript keywords and tags input
 ==================================

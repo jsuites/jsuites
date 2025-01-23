@@ -1,6 +1,7 @@
 title: JavaScript tabs plugin with Jsuites v4
 keywords: Javascript, tabs plugin, web components
 description: Group your content on tabs with jsuites javascript tabs plugin
+canonical: https://jsuites.net/docs/v4/javascript-tabs
 
 JavaScript tabs plugin
 ======================

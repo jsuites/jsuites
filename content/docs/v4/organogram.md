@@ -1,6 +1,7 @@
 title: JavaScript Organogram with Jsuites v4
 keywords: Javascript, organogram, organogram plugin, JS organogram
 description: Create amazing interactive web-based JavaScript organogram
+canonical: https://jsuites.net/docs/v4/organogram
 
 Javascript Organogram
 =====================

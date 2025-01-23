@@ -1,6 +1,7 @@
 title: Javascript Image Slider with Jsuites v4
 keywords: Javascript, slider, image slider, slider plugin, JS image slider, Javascript image slider
 description: A simple and lightweight javascript image slider plugin.
+canonical: https://jsuites.net/docs/v4/image-slider
 
 Javascript image slider
 =======================

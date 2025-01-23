@@ -1,6 +1,7 @@
 title: JavaScript Element Validations with Jsuites v4
 keywords: Javascript rich form plugin, HTML form, validations on a HTML form.
 description: This plugin brings several pre-coded validations that can be re-used across different applications.
+canonical: https://jsuites.net/docs/v4/validations
 
 Data validations
 ================

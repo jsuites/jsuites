@@ -37,7 +37,7 @@ How to implement a image cropper with brightness and contract controls using the
 var crop = cropper(document.getElementById('image-cropper'), {
     area: [ 480, 320 ],
     crop: [ 150, 150 ],
-    value: '/templates/docs/img/download-lemonadejs.png',
+    value: '/templates/default/img/download-lemonadejs.png',
 })
 
 document.getElementById('brightness').onchange = function() {

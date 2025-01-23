@@ -39,7 +39,7 @@ How to implement a image cropper with rotate and zoom controls using the javascr
 var crop = cropper(document.getElementById('image-cropper'), {
     area: [ 480, 320 ],
     crop: [ 150, 150 ],
-    value: '/templates/default/img/lemonadejs.png',
+    value: '/templates/default/img/download-lemonadejs.png',
 })
 
 document.getElementById('zoom').onchange = function() {

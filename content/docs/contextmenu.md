@@ -7,7 +7,7 @@ canonical: https://jsuites.net/docs/contextmenu
 
 Introducing the jSuites context menu, a dynamic JavaScript plugin designed to enrich web applications by enabling custom right-click context menus on HTML elements. Perfectly adaptable across different web frameworks, this tool is optimized for a smooth and consistent user experience on all devices, including mobile. With its broad customization capabilities, you can easily integrate submenus, icons, and specific event handlers to create a more interactive and user-friendly interface. Key Features:
 
-- **Framework Flexibility**: Easily integrate with React, Angular, VueJS and other frameworks.
+- **Framework Flexibility**: Easily integrate with React, Angular, Vue.js and other frameworks.
 - **Mobile Optimization**: Ensures a responsive and intuitive experience on mobile devices.
 - **Extensive Customization**: Offers various options, including custom events, submenus, and icon inclusion, for a tailored application feel.
 - **Versatile Implementation**: This can be used as a standalone JavaScript plugin or as a web component, providing flexibility in application development.
@@ -16,24 +16,24 @@ Introducing the jSuites context menu, a dynamic JavaScript plugin designed to en
 
 ### Initialization Options
 
-| Property                | Description                                       |
-|-------------------------|---------------------------------------------------|
-| items: Array of objects | Array of item object descriptions.                |
-| onclick: function       | Global onclick event. `function(instance, event)` |
+| Property                  | Description                                        |
+|---------------------------|----------------------------------------------------|
+| `items: Array of objects` | Array of item object descriptions.                 |
+| `onclick: function`       | Global onclick event. `function(instance, event)`  |
 
 
 ### Item options
 
-| Property                                                 | Description                                                           |
-|----------------------------------------------------------|-----------------------------------------------------------------------|
-| type: string                                             | Context menu item type: line \| divisor \| default                    |
-| icon: string                                             | Context menu icon key. (Material icon key icon identification)        |
-| id: string                                               | HTML id property of the item DOM element                              |
-| disabled: boolean                                        | The item is disabled                                                  |
-| onclick: function(element: HTMLElement, event: e) : void | Specific onclick event for the element.                               |
-| shortcut: string                                         | A short description or instruction for the item. Normally a shortcut. |
-| tooltip: string                                          | Show this text when the user mouse over the element                   |
-| submenu: Array of objects                                | Submenu items                                                         |
+| Property                                                   | Description                                                           |
+|------------------------------------------------------------|-----------------------------------------------------------------------|
+| `type: string`                                             | Context menu item type: line \| divisor \| default                    |
+| `icon: string`                                             | Context menu icon key. (Material icon key icon identification)        |
+| `id: string`                                               | HTML id property of the item DOM element                              |
+| `disabled: boolean`                                        | The item is disabled                                                  |
+| `onclick: function(element: HTMLElement, event: e) : void` | Specific onclick event for the element.                               |
+| `shortcut: string`                                         | A short description or instruction for the item. Normally a shortcut. |
+| `tooltip: string`                                          | Show this text when the user mouse over the element                   |
+| `submenu: Array of objects`                                | Submenu items                                                         |
 
 
 ## Examples
@@ -85,7 +85,7 @@ function App() {
         }
     }, [])
     
-    let style = { width: "400px", height: "300px", border: "1px solid gray" };
+    let style = { width: "400px", height: "300px", border: "1px solid grey" };
 
     return (
         <div className="App">
@@ -131,7 +131,7 @@ export default App;
 ```
 ```vue
 <template>
-    <div ref="container" @contextmenu="open" style="height: 300px; width: 400px; border: 1px solid gray;"></div>
+    <div ref="container" @contextmenu="open" style="height: 300px; width: 400px; border: 1px solid grey;"></div>
     <Contextmenu ref="contextmenu" :onclick="handleClick" :items="items" />
 </template>
 
@@ -193,7 +193,7 @@ export default {
 </script>
 ```
 
-### Context Menu with Vanilla JavaScript
+### Context Menu with Simpel JavaScript
 
 Easily add a context menu to your web projects using only vanilla JavaScript for a lightweight and customizable solution.
 
@@ -202,7 +202,7 @@ Easily add a context menu to your web projects using only vanilla JavaScript for
 <script src="https://jsuites.net/v5/jsuites.js"></script>
 <link rel="stylesheet" href="https://jsuites.net/v5/jsuites.css" type="text/css" />
 
-<div id='container' style='border:1px solid gray;width:400px;height:300px;'></div>
+<div id='container' style='border:1px solid grey;width:400px;height:300px;'></div>
 <i class="small">right click inside the square to open the contextmenu</i>
 
 <div id='contextmenu'></div>
@@ -271,7 +271,7 @@ function App() {
         }
     }, [])
 
-    let style = { width: "400px", height: "300px", border: "1px solid gray" };
+    let style = { width: "400px", height: "300px", border: "1px solid grey" };
     
     return (
         <div className="App">
@@ -318,7 +318,7 @@ export default App;
 ```
 ```vue
 <template>
-    <div ref="container" @contextmenu="open" style="height: 300px; width: 400px; border: 1px solid gray;"></div>
+    <div ref="container" @contextmenu="open" style="height: 300px; width: 400px; border: 1px solid grey;"></div>
     <Contextmenu ref="contextmenu" :onclick="handleClick" :items="items" />
 </template>
 

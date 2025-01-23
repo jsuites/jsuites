@@ -2,6 +2,11 @@ title: Javascript modal quick reference
 keywords: Javascript modal plugin, responsive modal, popup modal, quick reference, documentation
 description: How to use the jsuites modal as a javascript plugin or web component.
 
+{.white}
+> A new version of the jSuites **JavaScript Modal** is available.
+> <br><br>
+> [JavaScript Modal](/docs/modal){.button .main target="_top"}
+
 Javascript modal quick reference
 ================================
 

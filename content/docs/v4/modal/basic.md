@@ -2,6 +2,12 @@ title: Javascript modal plugin basic example
 keywords: Javascript modal plugin, responsive modal, popup modal, examples, basic example
 description: A basic example on how to use the javascript modal as a web component or a javascript plugin.
 
+{.white}
+> A new version of the jSuites **JavaScript Modal** is available. 
+> <br><br>
+> [JavaScript Modal](/docs/modal){.button .main target="_top"}
+
+
 Javascript modal basic examples
 ===============================
 

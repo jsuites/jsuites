@@ -1,6 +1,12 @@
 title: JavaScript Dropdown and Autocomplete with Jsuites v4
 keywords: Jexcel, jquery, javascript, autocomplete, element picker, javascript dropdown, javascript select, select box
 description: Full examples on how to handle simple, advanced, autocomplete and conditional javascript dropdowns, select box, select.
+canonical: https://jsuites.net/docs/v4/dropdown-and-autocomplete
+
+{.white}
+> A new version of the jSuites **JavaScript Dropdown** plugin is available here.
+> <br><br>
+> [JavaScript Dropdown](/docs/dropdown){.button .main target="_top"}
 
 JavaScript Dropdown And Autocomplete
 ===================
@@ -17,8 +23,6 @@ The new JavaScript dropdown plugin brings a native autocomplete, multiple option
 6.  Responsive dropdown with multiple options and responsive render types
 7.  Dropdown with image and icons
 8.  Dropdown with group of items and categories
-
-![JavaScript Dropdown](img/js-dropdown.svg){.right}
 
   
   

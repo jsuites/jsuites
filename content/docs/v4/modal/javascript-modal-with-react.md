@@ -2,6 +2,11 @@ title: React modal
 keywords: Javascript modal plugin, popup modal, react
 description: Create a modal component with react and jSuites
 
+{.white}
+> A new version of the jSuites **JavaScript Modal** is available.
+> <br><br>
+> [JavaScript Modal](/docs/modal){.button .main target="_top"}
+
 React modal
 ===========
 

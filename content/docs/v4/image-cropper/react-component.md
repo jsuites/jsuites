@@ -2,6 +2,11 @@ title: React image cropper
 keywords: JavaScript image cropper, crop, react image cropper
 description: React image cropper and online image editor.
 
+{.white}
+> A new version of the jSuites **JavaScript Cropper** plugin is available here.
+> <br><br>
+> [JavaScript Image Cropper](/docs/image-cropper){.button .main target="_top"}
+
 * [JavaScript Cropper](/docs/v4/image-cropper)
 
 React component

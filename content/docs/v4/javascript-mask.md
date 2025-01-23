@@ -1,6 +1,7 @@
 title: Javascript string and number mask with Jsuites v4
 keywords: Javascript, mask, input mask, currency mask, money mask, javascript mask
 description: A simple javascript mask plugin
+canonical: https://jsuites.net/docs/v4/javascript-mask
 
 JavaScript input mask
 =====================

@@ -3,7 +3,7 @@ keywords: Contact jSuites, Get in Touch, Technical Support, Sales Inquiries
 description: Reach out to us for any technical support or sales inquiries related to Jsuites. We're here to help with your questions and needs.
 canonical: https://jsuites.net/contact
 
-<div class="home">
+<div class="home" style="margin-top: 60px;">
 
 {data-text="Jspreadsheet" .center}
 # Contact Us

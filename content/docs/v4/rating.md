@@ -1,6 +1,7 @@
 title: JavaScript Rating with Jsuites v4
 keywords: Javascript, rating, five-star rating plugin
 description: Vanilla JavaScript star rating plugin
+canonical: https://jsuites.net/docs/v4/rating
 
 Javascript Rating
 =================

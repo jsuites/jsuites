@@ -3,9 +3,11 @@ keywords: JavaScript, Autocomplete, Element Picker, JavaScript Dropdown, JavaScr
 description: Explore comprehensive examples for managing JavaScript dropdowns, from basic setups to advanced configurations and autocomplete features. Learn to create dynamic select boxes with conditional logic for an enhanced user experience on your web application.
 canonical: https://jsuites.net/docs/dropdown
 
+![JavaScript Dropdown](img/js-dropdown.svg){.right}
+
 # JavaScript Dropdown
 
-The jSuites offer a lightweight JavaScript dropdown plugin with a complete suite of customizable options that suites multiple
+The jSuites offer a lightweight **JavaScript Dropdown** plugin with a complete suite of customizable options that suites multiple
 application needs. The new versions enhances functionality with native autocomplete, multi-select capabilities, and adaptive
 rendering and other features such as:
 
@@ -15,7 +17,7 @@ rendering and other features such as:
 - Autocomplete with local or remote search;
 - Lazy loading support;
 - Multi-select dropdown options;
-- Responsive design;
+- Responsive dropdown rendering;
 - Visual enhancements with images and icons;
 - Organized dropdowns with item grouping;
 
@@ -23,7 +25,7 @@ rendering and other features such as:
 
 ### Methods
 
-The JavaScript dropdown instance provides the following methods for programmatic interaction:
+The `JavaScript dropdown` instance provides the following methods for programmatic interaction:
 
 | Method                      | Description                                                                                                                                                          |
 |-----------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------|

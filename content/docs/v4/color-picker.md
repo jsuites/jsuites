@@ -1,6 +1,7 @@
 title: Javascript Color Picker Plugin with Jsuites v4
 keywords: Javascript, color picker, color picker
 description: Vanilla javascript color picker plugin.
+canonical: https://jsuites.net/docs/v4/color-picker
 
 JavaScript color picker
 =======================

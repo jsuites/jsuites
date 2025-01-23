@@ -2,6 +2,11 @@ title: JavaScript image cropper filters
 keywords: Javascript, image cropper, cropper plugin, JS cropper, web components, JS crop, examples.
 description: Example on how to implement controls and how apply filters such as brightness and contrast programatically.
 
+{.white}
+> A new version of the jSuites **JavaScript Cropper** plugin is available here.
+> <br><br>
+> [JavaScript Image Cropper](/docs/image-cropper){.button .main target="_top"}
+
 * [JavaScript Cropper](/docs/v4/image-cropper)
 
 JavaScript image cropper

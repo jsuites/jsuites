@@ -18,7 +18,10 @@ canonical: https://jsuites.net
     </div>
     <div class="column f3 video-wrapper big-screen-only home-container">
         <br>
-        <video src="media/jsuites-demo.mp4" playsinline autoplay muted loop type="video/mp4" style="width:90%;height:90%;"></video>
+        <div style="aspect-ratio: 16/9;">
+            <!-- set a 640:360 i.e a 16:9 aspect ratio -->
+            <video src="media/jsuites-demo.mp4" playsinline autoplay muted loop type="video/mp4" width="640" height="360" style="width: 100%; height: auto;"></video>
+        </div>
    </div>
 </div>
 
@@ -26,21 +29,21 @@ canonical: https://jsuites.net
     <div class="stats-item">
         <img src="img/home/npm-logo.svg" alt="NPM Logo" style="height: 22px;">
         <div>
-            <h4>20k +</h4>
+            <b>20k +</b>
             <p>Weekly downloads</p>
         </div>
     </div>
     <div class="stats-item">
         <img src="img/home/github-logo.svg" alt="GitHub Logo" style="height: 36px;">
         <div>
-            <h4>400+</h4>
+            <b>400+</b>
             <p>GitHub stars</p>
         </div>
     </div>
     <div class="stats-item">
         <img src="img/home/license-icon.svg" alt="MIT License Icon" style="height: 36px;">
         <div>
-            <h4>MIT License</h4>
+            <b>MIT License</b>
             <p>Free and open-source</p>
         </div>
     </div>
@@ -55,19 +58,19 @@ canonical: https://jsuites.net
             <p>Comprehensive JavaScript plugins and tools for diverse web-based applications. Fully compatible and easily integrated with any JavaScript library, offering various components to enhance web development projects.</p>
             <div>
                 <div class="example-selectable-card selected" onclick="showText('home-dropdown', this)" style="margin-top: 50px;">
-                    <h4>JavaScript Dropdown</h4>
+                    <b>JavaScript Dropdown</b>
                     <p>Enhance your forms with dynamic drop-down and autocomplete features.</p>
                 </div>
                 <div class="example-selectable-card" onclick="showText('home-calendar', this)">
-                    <h4>JavaScript Calendar</h4>
+                    <b>JavaScript Calendar</b>
                     <p>Implement interactive calendars for event management and scheduling.</p>
                 </div>
                 <div class="example-selectable-card" onclick="showText('home-toolbars', this)">
-                    <h4>JavaScript Toolbar</h4>
+                    <b>JavaScript Toolbar</b>
                     <p>Enables embedding dynamic, fully customizable toolbars into web applications.</p>
                 </div>
                 <div class="example-selectable-card" onclick="showText('home-color', this)">
-                    <h4>JavaScript Color Picker</h4>
+                    <b>JavaScript Color Picker</b>
                     <p>Embed a color picker tool for customizable color selections.</p>
                 </div>
             </div>
@@ -732,47 +735,47 @@ export default {
 <div class="box" data-number="3">
     <div>
         <img src="img/home/grid/optimized.svg" style="height: 36px; width: 36px;" alt="Small, optimized plugins for efficient performance">
-        <h4>Optimized</h4>
+        <b>Optimized</b>
         <p>Small, optimized plugins for efficient performance.</p>
     </div>
     <div>
         <img src="img/home/grid/all-in-one.svg" style="height: 36px; width: 36px;" alt="A diverse range of solutions within a single collection">
-        <h4>All-in-One Solutions</h4>
+        <b>All-in-One Solutions</b>
         <p>A diverse range of solutions within a single collection.</p>
     </div>
     <div>
         <img src="img/home/grid/user-friendly.svg" style="height: 36px; width: 36px;" alt="Tools for creating rich, user-friendly web interfaces and applications">
-        <h4>User-Friendly Web Apps</h4>
+        <b>User-Friendly Web Apps</b>
         <p>Tools for creating rich, user-friendly web interfaces and applications.</p>
     </div>
     <div>
         <img src="img/home/grid/simplified.svg" style="height: 36px; width: 36px;" alt="Simplified management of complex data inputs, maintaining familiarity for users">
-        <h4>Simplified</h4>
+        <b>Simplified</b>
         <p>Simplified management of complex data inputs, maintaining familiarity for users.</p>
     </div>
     <div>
         <img src="img/home/grid/enhancing-client.svg" style="height: 36px; width: 36px;" alt="Enhanced software experience for clients">
-        <h4>Enhancing Client Experience</h4>
+        <b>Enhancing Client Experience</b>
         <p>Enhanced software experience for clients.</p>
     </div>
     <div>
         <img src="img/home/grid/all-in-one.svg" style="height: 36px; width: 36px;" alt="Capability to develop sophisticated and attractive UI designs">
-        <h4>Enhanced software experience for clients.</h4>
+        <b>Enhanced software experience for clients.</b>
         <p>Capability to develop sophisticated and attractive UI designs.</p>
     </div>
         <div>
         <img src="img/home/grid/fast-and-easy.svg" style="height: 36px; width: 36px;" alt="Streamlined, fast, and easy-to-use components">
-        <h4>Fast and Easy</h4>
+        <b>Fast and Easy</b>
         <p>Streamlined, fast, and easy-to-use components.</p>
     </div>
     <div>
         <img src="img/home/grid/unified.svg" style="height: 36px; width: 36px;" alt="Unified coding across multiple platforms for consistent development">
-        <h4>Unified</h4>
+        <b>Unified</b>
         <p>Unified coding across multiple platforms for consistent development.</p>
     </div>
     <div>
         <img src="img/home/grid/consistent.svg" style="height: 36px; width: 36px;" alt="Uniform, excellent user experience across various devices">
-        <h4>Consistent</h4>
+        <b>Consistent</b>
         <p>Uniform, excellent user experience across various devices.</p>
     </div>
 </div>
@@ -789,22 +792,22 @@ export default {
 <div class="box" data-number="2">
     <div>
         <a href="https://jspreadsheet.com"><img src="img/logo/jspreadsheet-pro-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet Pro Logo"></a>
-        <h4>Jspreadsheet Pro</h4>
+        <b>Jspreadsheet Pro</b>
         <p>Enterprise JavaScript data grid component to integrate spreadsheet UI into your web-based application.</p>
     </div>
     <div>
         <a href="https://intrasheets.com"><img src="img/logo/intrasheets-logo.svg" style="height: 44px; width: 44px;" alt="Intrasheets Logo"></a>
-        <h4>Intrasheets</h4>
+        <b>Intrasheets</b>
         <p>Collaborate with ease using Intrasheets, an intuitive tool for managing spreadsheets across teams, ensuring that everyone stays on the same page.</p>
     </div>
     <div>
         <a href="https://bossanova.uk/jspreadsheet/v4/"><img src="img/logo/jspreadsheet-ce-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet CE Logo"></a>
-        <h4>Jspreadsheet CE</h4>
+        <b>Jspreadsheet CE</b>
         <p>An open-source spreadsheet component that offers essential features for developers looking for flexibility without the need for a commercial license.</p>
     </div>
     <div>
         <a href="https://lemonadejs.com"><img src="img/logo/lemonadejs-logo.svg" style="height: 44px; width: 44px;" alt="LemonadeJS Logo"></a>
-        <h4>Lemonade</h4>
+        <b>Lemonade</b>
         <p>A light and easy-to-use solution for creating elegant UI elements, giving your web apps a refreshing boost in both style and functionality.</p>
     </div>
 </div>

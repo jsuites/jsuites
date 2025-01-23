@@ -1,15 +1,15 @@
-title: Javascript Modal Events with Jsuites 4
-keywords: Javascript modal plugin, responsive modal, popup modal, events
-description: Learn how to use the events available on the jsuites javascript modal plugin.
+title: JavaScript Modal Events  
+keywords: JavaScript modal plugin, responsive modal, popup modal, modal events  
+description: Discover how to use and manage events with the jSuites JavaScript modal plugin to create responsive and interactive modals.
+canonical: https://jsuites.net/docs/modal/events
 
-{.white}
-> A new version of the jSuites **JavaScript Modal** events page is available.
-> <br><br>
-> [JavaScript Modal Events](/docs/modal/events){.button .main target="_top"}
+{.breadcrumb}
+- [JavaScript Modal](/docs/modal)
+- Examples
 
-# Javascript modal events with Version 4
+# JavaScript Modal Events
 
-The following example loads a content from a remote URL and defines basic events to the modal
+This example demonstrates loading content from a remote URL and configuring basic event handlers for the modal.
 
 ```html
 <html>
@@ -41,3 +41,7 @@ btn.addEventListener('click', function() {
 </html>
 ```
 
+## More Examples
+
+- [Modal Events](/docs/modal/events)
+- [External Content](/docs/modal/external-content)

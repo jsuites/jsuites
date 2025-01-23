@@ -2,6 +2,11 @@ title: JavaScript image cropper quick reference
 keywords: Javascript, image cropper, cropper plugin, JS cropper, web components, JS crop, quick reference, documentation
 description: The quick reference on How to implement a JavaScript online image copper.
 
+{.white}
+> A new version of the jSuites **JavaScript Cropper** plugin is available here.
+> <br><br>
+> [JavaScript Image Cropper](/docs/image-cropper){.button .main target="_top"}
+
 * [JavaScript Cropper](/docs/v4/image-cropper)
 
 JavaScript Image cropper

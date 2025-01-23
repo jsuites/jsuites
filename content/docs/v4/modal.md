@@ -1,6 +1,7 @@
 title: Javascript Modal with Jsuites v4
 keywords: Javascript modal plugin, responsive modal, popup modal
 description: Vanilla javascript modal plugin and modal javascript web component
+canonical: https://jsuites.net/docs/v4/modal
 
 JavaScript Modal
 ================

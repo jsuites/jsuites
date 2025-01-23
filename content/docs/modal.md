@@ -1,45 +1,45 @@
-title: JavaScript Modal Component
-keywords: JavaScript Modal Plugin, Responsive Modal Window, Popup Modal Component, Vanilla JavaScript Modal
-description: jSuites modal is a JavaScript modal plugin and web component perfect for creating responsive, customizable popup modals in web applications.
+title: JavaScript Modal  
+keywords: JavaScript Modal Plugin, Responsive Modal Window, Popup Modal Component, Vanilla JavaScript Modal  
+description: jSuites Modal is a lightweight JavaScript plugin and web component designed for building responsive and highly customizable popup modals, enhancing the user experience in web applications.  
 canonical: https://jsuites.net/docs/modal
 
 # JavaScript Modal
 
-`jSuites.modal` is a lightweight JavaScript plugin for creating modal windows, designed to be responsive and adaptable to various screen sizes. It offers a straightforward approach for integrating modal functionality, supporting vanilla JavaScript and web component usage.
+jSuites provides a lightweight native JavaScript plugin for creating responsive and versatile modals. It works seamlessly with your favourite frameworks like React, Angular, Vue, web components, or even pure JavaScript.
 
 ## Documentation
 
 ### Available Methods
 
-| Method   | Description     |
-|----------|-----------------|
-| open()   | Open the modal  |
-| close()  | Close the modal |
+| Method    | Description     |
+|-----------|-----------------|
+| `open()`  | Open the modal  |
+| `close()` | Close the modal |
 
 ### Initialization properties
 
-| Property          | Description                          |
-|-------------------|--------------------------------------|
-| url: string       | Open the content from a remote URL.  |
-| closed: boolean   | Create the modal but keep it closed. |
-| width: number     | The width size of your modal         |
-| height: number    | The height size of your modal        |
-| title: string     | The title shown of your modal        |
-| backdrop: boolean | Don't show the backdrop              |
+| Property            | Description                          |
+|---------------------|--------------------------------------|
+| `url: string`       | Open the content from a remote URL.  |
+| `closed: boolean`   | Create the modal but keep it closed. |
+| `width: number`     | The width size of your modal         |
+| `height: number`    | The height size of your modal        |
+| `title: string`     | The title shown of your modal        |
+| `backdrop: boolean` | Don't show the backdrop              |
 
 ### Events
 
-| Event   | Description                                                                                       |
-|---------|---------------------------------------------------------------------------------------------------|
-| onopen  | A method is execute when the modal is opened.  <br>(element: HTMLElement, instance: JSON) => void |
-| onclose | A method is execute when the modal is closed.  <br>(element: HTMLElement, instance: JSON) => void |
+| Event     | Description                                                                                        |
+|-----------|----------------------------------------------------------------------------------------------------|
+| `onopen`  | A method is execute when the modal is opened.<br>(element: HTMLElement, instance: JSON) => void    |
+| `onclose` | A method is execute when the modal is closed.<br>(element: HTMLElement, instance: JSON) => void    |
 
 
 ## Examples
 
 ### JavaScript Web Component Modal
 
-This example demonstrates how to implement a modal using the custom HTML tag provided by the `jSuites.modal` JavaScript plugin.
+This example shows how to create and use a modal with the custom HTML tag provided by the `jSuites.modal` plugin, enabling seamless integration as a web component.
 
 {.all}
 ```html
@@ -69,7 +69,7 @@ document.querySelector('jsuites-modal').addEventListener('onclose', function() {
 
 ### JavaScript Modal
 
-A basic modal with events.
+This example demonstrates a basic modal implementation with event handling.
 
 ```html
 <html>
@@ -107,7 +107,7 @@ import { Modal } from 'jsuites/react'
 import { useRef } from 'react'
 import 'jsuites/dist/jsuites.css'
 
-function App() {
+export default function App() {
     const modal = useRef(null);
 
     const onOpen = function(el, instance) {
@@ -131,7 +131,6 @@ function App() {
         </div>
     );
 }
-export default App;
 ```
 ```vue
 <template>
@@ -165,9 +164,9 @@ export default {
 </script>
 ```
 
-### Basic Example
+### Create Modal from HTML Content
 
-This example illustrates how to initialize a basic modal using `jSuites.modal` with an existing DOM element without specifying a title for the modal.
+This example demonstrates how to use `jSuites.modal` to initialize a modal directly from an existing DOM element. The modal is created without specifying a title, showcasing a simple and flexible approach to working with predefined HTML content.
 
 ```html
 <html>
@@ -243,3 +242,7 @@ export default {
 </script>
 ```
 
+## More Examples
+
+- [Modal Events](/docs/modal/events)
+- [External Content](/docs/modal/external-content)

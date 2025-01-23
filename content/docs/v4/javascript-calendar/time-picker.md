@@ -13,11 +13,11 @@ canonical: https://jsuites.net/docs/v4/javascript-calendar/time-picker
 - [JavaScript Calendar](/docs/v4/javascript-calendar)
 - Examples
 
-## Calendar With Time Picker
+# Calendar With Time Picker
 
 The example below enables the time picker on the JavaScript calendar.  
 
-### Javascript date and time picker
+## Javascript date and time picker
 
 How to enable the hour and minutes dropdown.  
 

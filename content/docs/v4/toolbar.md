@@ -1,14 +1,12 @@
 title: JavaScript Toolbar Plugin with Jsuites v4
 keywords: Javascript, toolbar, plugin, generic toolbar
 description: Integrate a toolbar to third part javascript component
+canonical: https://jsuites.net/docs/v4/toolbar
 
 JavaScript Toolbars
 ===================
 
 The jSuites toolbar is a lightweight JavaScript plugin to create general customizable responsive toolbars.  
-  
-
-![](img/js-toolbars.svg){.right}
 
 Example
 -------

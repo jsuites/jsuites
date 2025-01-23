@@ -1,6 +1,7 @@
 title: Javascript Heatmap Plugin with Jsuites v4
 keywords: Javascript, heatmap, heatmap plugin, JS heatmap, Javascript heatmap
 description: A lightweight javascript activity github-like heatmap plugin.
+canonical: https://jsuites.net/docs/v4/heatmap
 
 JavaScript heatmap
 ==================

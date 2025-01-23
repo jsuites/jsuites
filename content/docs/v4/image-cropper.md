@@ -1,6 +1,7 @@
 title: JavaScript Image Cropper with Jsuites v4
 keywords: Javascript, image cropper, cropper, cropper plugin, JS cropper, web components, JS crop
 description: Quick basic image edition via JavaScript with the jSuites javascript cropper plugin. Useful features such crop, brightness, contrast, rotate and zoom are available.
+canonical: https://jsuites.net/docs/v4/image-cropper
 
 JavaScript cropper
 ==================

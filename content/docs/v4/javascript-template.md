@@ -1,6 +1,7 @@
 title: Javascript Template with Jsuites v4
 keywords: Javascript, tagging, javascript template, keywords, javascript keywords
 description: The jSuites.template is very light javascript plugin which allows users to upload data remotely or locally to a template, search and page automatically, you should only be concerned with creating the template.
+canonical: https://jsuites.net/docs/v4/javascript-template
 
 JavaScript Template
 ===================

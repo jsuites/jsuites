@@ -2,8 +2,13 @@ title: Remote Content JavaScript Modal
 keywords: JavaScript modal, plugins, modal
 description: How to create a quick JavaScript modal using a remote content.
 
-Simple Modal with Remote Content
-==================================
+{.white}
+> A new version of the jSuites **JavaScript Modal** external content page is available.
+> <br><br>
+> [JavaScript Modal External Content](/docs/modal/external-content){.button .main target="_top"}
+
+
+# Simple Modal with Remote Content
 
 The follow example shows how to create a new modal window from an external content.
 
@@ -28,6 +33,5 @@ btn.addEventListener('click', function() {
     external.open()
 })
 </script>
-
 </html>
 ```

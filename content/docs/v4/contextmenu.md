@@ -1,6 +1,7 @@
 title: JavaScript Context Menu with Jsuites v4
 keywords: Javascript, contextmenu
 description: A simple javascript contextmenu that helps to provide a custom right click contextmenu over HTML elements in a web-based application.
+canonical: https://jsuites.net/docs/v4/contextmenu
 
 # JavaScript Contextmenu
 

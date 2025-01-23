@@ -2,6 +2,11 @@ title: VueJS image cropper
 keywords: JavaScript image cropper, crop, vuejs image cropper
 description: How to integrate the image cropper into a vue project.
 
+{.white}
+> A new version of the jSuites **JavaScript Cropper** plugin is available here.
+> <br><br>
+> [JavaScript Image Cropper](/docs/image-cropper){.button .main target="_top"}
+
 * [Vue Image Cropper](/docs/v4/image-cropper)
 
 Vue Image Cropper
