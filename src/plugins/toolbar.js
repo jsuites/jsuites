@@ -114,6 +114,7 @@ export default function Toolbar(el, options) {
 
             if (items[i].tooltip) {
                 toolbarItem.setAttribute('title', items[i].tooltip);
+                toolbarItem.setAttribute('aria-label', items[i].tooltip);
             }
 
             // Id
@@ -153,6 +154,7 @@ export default function Toolbar(el, options) {
                     }
                 }
                 toolbarIcon.innerHTML = items[i].content ? items[i].content : '';
+                toolbarItem.setAttribute('role', 'button');
                 toolbarItem.appendChild(toolbarIcon);
 
                 // Badge options

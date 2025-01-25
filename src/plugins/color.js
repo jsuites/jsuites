@@ -462,6 +462,11 @@ export default function Color(el, options) {
             input.max = 255;
             input.value = 0;
 
+            input.setAttribute('aria-label', "Color value");
+            input.setAttribute('aria-valuemin', "0");
+            input.setAttribute('aria-valuemax', "255");
+            input.setAttribute('aria-valuenow', "0");
+
             inputContainer.appendChild(label);
             subContainer.appendChild(input);
 

@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 794:
+/***/ 195:
 /***/ (function(module) {
 
 /**
@@ -4483,6 +4483,7 @@ function Palette() {
 
 
 
+
 function Tabs(el, options) {
     var obj = {};
     obj.options = {};
@@ -4595,12 +4596,15 @@ function Tabs(el, options) {
             }
             // Remote selected
             obj.headers.children[i].classList.remove('jtabs-selected');
+            obj.headers.children[i].removeAttribute('aria-selected')
             if (obj.content.children[i]) {
                 obj.content.children[i].classList.remove('jtabs-selected');
             }
         }
 
         obj.headers.children[index].classList.add('jtabs-selected');
+        obj.headers.children[index].setAttribute('aria-selected', 'true')
+
         if (obj.content.children[index]) {
             obj.content.children[index].classList.add('jtabs-selected');
         }
@@ -4719,11 +4723,20 @@ function Tabs(el, options) {
         }
 
         if (title) {
+            let headerId = helpers.guid();
+            let contentId = helpers.guid();
             // Add content
             var div = document.createElement('div');
+            div.setAttribute('id', contentId);
+            div.setAttribute('role', 'tabpanel');
+            div.setAttribute('aria-labelledby', headerId);
 
             // Add headers
             var h = document.createElement('div');
+            h.setAttribute('id', headerId);
+            h.setAttribute('role', 'tab');
+            h.setAttribute('aria-controls', contentId);
+
             h.innerHTML = title;
             h.content = div;
 
@@ -4832,7 +4845,10 @@ function Tabs(el, options) {
         obj.headers = document.createElement('div');
         obj.content = document.createElement('div');
         obj.headers.classList.add('jtabs-headers');
+        obj.headers.setAttribute('role', 'tablist');
         obj.content.classList.add('jtabs-content');
+        obj.content.setAttribute('role', 'region');
+        obj.content.setAttribute('aria-label', 'Tab Panels');
 
         if (obj.options.palette) {
             el.classList.add('jtabs-modern');
@@ -5499,6 +5515,11 @@ function Color(el, options) {
             input.min = 0;
             input.max = 255;
             input.value = 0;
+
+            input.setAttribute('aria-label', "Color value");
+            input.setAttribute('aria-valuemin', "0");
+            input.setAttribute('aria-valuemax', "255");
+            input.setAttribute('aria-valuenow', "0");
 
             inputContainer.appendChild(label);
             subContainer.appendChild(input);
@@ -7825,6 +7846,7 @@ function Picker(el, options) {
             // Item
             var dropdownItem = document.createElement('div');
             dropdownItem.classList.add('jpicker-item');
+            dropdownItem.setAttribute('role', 'option');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
@@ -8049,8 +8071,14 @@ function Picker(el, options) {
      * Create floating picker
      */
     var init = function() {
+        let id = helpers.guid();
+
         // Class
         el.classList.add('jpicker');
+        el.setAttribute('role', 'combobox');
+        el.setAttribute('aria-haspopup', 'listbox');
+        el.setAttribute('aria-expanded', 'false');
+        el.setAttribute('aria-controls', id);
         el.setAttribute('tabindex', '0');
         el.onmousedown = function(e) {
             if (! el.classList.contains('jpicker-focus')) {
@@ -8064,6 +8092,8 @@ function Picker(el, options) {
 
         // Dropdown content
         dropdownContent = document.createElement('div');
+        dropdownContent.setAttribute('id', id);
+        dropdownContent.setAttribute('role', 'listbox');
         dropdownContent.classList.add('jpicker-content');
         dropdownContent.onclick = function(e) {
             var item = helpers.findElement(e.target, 'jpicker-item');
@@ -8225,6 +8255,7 @@ function Toolbar(el, options) {
 
             if (items[i].tooltip) {
                 toolbarItem.setAttribute('title', items[i].tooltip);
+                toolbarItem.setAttribute('aria-label', items[i].tooltip);
             }
 
             // Id
@@ -8264,6 +8295,7 @@ function Toolbar(el, options) {
                     }
                 }
                 toolbarIcon.innerHTML = items[i].content ? items[i].content : '';
+                toolbarItem.setAttribute('role', 'button');
                 toolbarItem.appendChild(toolbarIcon);
 
                 // Badge options
@@ -12809,7 +12841,7 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(794);
+var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 

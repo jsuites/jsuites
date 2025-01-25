@@ -35,6 +35,7 @@ export default function Picker(el, options) {
             // Item
             var dropdownItem = document.createElement('div');
             dropdownItem.classList.add('jpicker-item');
+            dropdownItem.setAttribute('role', 'option');
             dropdownItem.k = keys[i];
             dropdownItem.v = obj.options.data[keys[i]];
             // Label
@@ -259,8 +260,14 @@ export default function Picker(el, options) {
      * Create floating picker
      */
     var init = function() {
+        let id = Helpers.guid();
+
         // Class
         el.classList.add('jpicker');
+        el.setAttribute('role', 'combobox');
+        el.setAttribute('aria-haspopup', 'listbox');
+        el.setAttribute('aria-expanded', 'false');
+        el.setAttribute('aria-controls', id);
         el.setAttribute('tabindex', '0');
         el.onmousedown = function(e) {
             if (! el.classList.contains('jpicker-focus')) {
@@ -274,6 +281,8 @@ export default function Picker(el, options) {
 
         // Dropdown content
         dropdownContent = document.createElement('div');
+        dropdownContent.setAttribute('id', id);
+        dropdownContent.setAttribute('role', 'listbox');
         dropdownContent.classList.add('jpicker-content');
         dropdownContent.onclick = function(e) {
             var item = Helpers.findElement(e.target, 'jpicker-item');

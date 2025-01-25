@@ -1,5 +1,6 @@
 import Ajax from "./ajax";
 import Sorting from "../utils/sorting";
+import Helpers from '../utils/helpers';
 
 export default function Tabs(el, options) {
     var obj = {};
@@ -113,12 +114,15 @@ export default function Tabs(el, options) {
             }
             // Remote selected
             obj.headers.children[i].classList.remove('jtabs-selected');
+            obj.headers.children[i].removeAttribute('aria-selected')
             if (obj.content.children[i]) {
                 obj.content.children[i].classList.remove('jtabs-selected');
             }
         }
 
         obj.headers.children[index].classList.add('jtabs-selected');
+        obj.headers.children[index].setAttribute('aria-selected', 'true')
+
         if (obj.content.children[index]) {
             obj.content.children[index].classList.add('jtabs-selected');
         }
@@ -237,11 +241,20 @@ export default function Tabs(el, options) {
         }
 
         if (title) {
+            let headerId = Helpers.guid();
+            let contentId = Helpers.guid();
             // Add content
             var div = document.createElement('div');
+            div.setAttribute('id', contentId);
+            div.setAttribute('role', 'tabpanel');
+            div.setAttribute('aria-labelledby', headerId);
 
             // Add headers
             var h = document.createElement('div');
+            h.setAttribute('id', headerId);
+            h.setAttribute('role', 'tab');
+            h.setAttribute('aria-controls', contentId);
+
             h.innerHTML = title;
             h.content = div;
 
@@ -350,7 +363,10 @@ export default function Tabs(el, options) {
         obj.headers = document.createElement('div');
         obj.content = document.createElement('div');
         obj.headers.classList.add('jtabs-headers');
+        obj.headers.setAttribute('role', 'tablist');
         obj.content.classList.add('jtabs-content');
+        obj.content.setAttribute('role', 'region');
+        obj.content.setAttribute('aria-label', 'Tab Panels');
 
         if (obj.options.palette) {
             el.classList.add('jtabs-modern');

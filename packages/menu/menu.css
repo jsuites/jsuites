@@ -189,7 +189,7 @@
 @media (max-width: 1024px) {
     .jmenu {
         height: 100%;
-        position: fixed;
+        position: fixed !important;
         top: 0;
         left: 0;
         background-color:#fff;
@@ -219,6 +219,10 @@
     .jmenu-icon {
         display: block;
     }
+}
+
+.jmenu-icon {
+    cursor: pointer;
 }
 
 .jmenu div::-webkit-scrollbar {

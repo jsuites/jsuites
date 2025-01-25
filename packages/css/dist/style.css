@@ -774,15 +774,6 @@ jwarning .navbar {
     width: 24px;
 }
 
-[data-icon]:before {
-    content: attr(data-icon);
-    font-family: "Material Icons";
-    width: 24px;
-    height: 24px;
-    font-size: 24px;
-    margin-right: 5px;
-}
-
 .start {
     justify-content: start;
 }
