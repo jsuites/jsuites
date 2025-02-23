@@ -2883,6 +2883,10 @@ function Mask() {
                 fillWithBlanks = true;
             }
         } else if (type === 'text') {
+            // Parse number
+            if (typeof(value) === 'number') {
+                value = value.toString();
+            }
         } else {
             // Parse number
             if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
