@@ -26,11 +26,14 @@
     },
     "main": "dist/jsuites.js",
     "types": "dist/jsuites.d.ts",
-    "version": "5.9.1",
+    "version": "5.9.2",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
+    "dependencies": {
+        "lemonadejs": "^4.3.3"
+    },
     "devDependencies": {
         "@testing-library/dom": "^9.3.4",
         "copy-webpack-plugin": "^11.0.0",
