@@ -68,10 +68,6 @@ footer a {
     display: none;
 }
 
-input:disabled, select:disabled, textarea:disabled, button:disabled {
-    color: #888;
-}
-
 .application {
     height: 100%;
     box-sizing: border-box;
