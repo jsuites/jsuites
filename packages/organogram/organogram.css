@@ -55,8 +55,8 @@
 
 .jorg-search {
     position: absolute;
-    left: 25px;
-    top: 25px;
+    left: 0;
+    top: 0;
 }
 
 .jorg-tf-tree {
@@ -436,8 +436,8 @@
 
 .jorg-zoom-container {
     position: absolute;
-    right: 25px;
-    top: 25px;
+    right: 0;
+    top: 0;
     background: transparent;
     margin-left: 25px;
     display: flex;
