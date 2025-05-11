@@ -22,7 +22,7 @@
         "jsuites": "^5.9.2"
     },
     "main": "organogram.js",
-    "version": "1.6.1",
+    "version": "1.6.2",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",

@@ -59,6 +59,11 @@
     top: 0;
 }
 
+.jorg.fullscreen-mode .jorg-search {
+    left: 25px;
+    top: 25px;
+}
+
 .jorg-tf-tree {
     font-size: 16px;
 }
@@ -442,6 +447,11 @@
     margin-left: 25px;
     display: flex;
     justify-content: space-between;
+}
+
+.jorg.fullscreen-mode .jorg-zoom-container {
+    right: 25px;
+    top: 25px;
 }
 
 .jorg-action {
