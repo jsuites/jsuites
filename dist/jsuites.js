@@ -2033,27 +2033,46 @@ function Mask() {
             parser['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
-                    if (two) {
-                        v = 0 + v;
+            var test = false;
+            if (parseInt(v) >= 0 && parseInt(v) < 10) {
+                if (isBlank(this.values[this.index])) {
+                    if (parseInt(v) > 1 && parseInt(v) < 10) {
+                        if (two) {
+                            v = 0 + v;
+                        }
+                        this.date[3] = this.values[this.index] = v;
+                        this.index++;
+                    } else if (parseInt(v) < 10) {
+                        this.values[this.index] = v;
                     }
-                    this.date[3] = this.values[this.index] = v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
+                } else {
+                    if (this.values[this.index] == 1 && parseInt(v) < 3) {
+                        this.date[3] = this.values[this.index] += v;
+                        this.index++;
+                    } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
+                        this.date[3] = this.values[this.index] += v;
+                        this.index++;
+                    } else {
+                        var test = true;
+                    }
                 }
             } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                    this.date[3] = this.values[this.index] += v;
+                var test = true;
+            }
+
+            // Re-test
+            if (test == true) {
+                var t = parseInt(this.values[this.index]);
+                if (t >= 0 && t <= 12) {
+                    this.date[3] = this.values[this.index];
                     this.index++;
-                } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
-                    this.date[3] = this.values[this.index] += v;
-                    this.index++;
+                    // Repeat the character
+                    this.position--;
                 }
             }
         },
         'HH24': function(v, two) {
+            var test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (this.values[this.index] == null || this.values[this.index] == '') {
                     if (parseInt(v) > 2 && parseInt(v) < 10) {
@@ -2078,7 +2097,22 @@ function Mask() {
                         }
                         this.date[3] = this.values[this.index] += v;
                         this.index++;
+                    } else {
+                        var test = true;
                     }
+                }
+            } else {
+                var test = true;
+            }
+
+            // Re-test
+            if (test == true) {
+                var t = parseInt(this.values[this.index]);
+                if (t >= 0 && t < 24) {
+                    this.date[3] = this.values[this.index];
+                    this.index++;
+                    // Repeat the character
+                    this.position--;
                 }
             }
         },
@@ -12903,7 +12937,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.9.2',
+    version: '5.9.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
