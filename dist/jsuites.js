@@ -10265,6 +10265,26 @@ function Validations() {
         return component.number(textLength, options);
     }
 
+    component.time = function(data, options) {
+       if (! isNumeric(data)) {
+           return false;
+       }
+
+       if (!options || !options.criteria) {
+           return true;
+       }
+
+       if (!numberCriterias[options.criteria]) {
+           return false;
+       }
+
+       let values = options.value.map(function(num) {
+          return parseInt(parseFloat(num) * 10**17) / 10**17;
+       })
+
+       return numberCriterias[options.criteria](parseInt(parseFloat(data) * 10**17) / 10**17, values);
+   };
+
     return component;
 }
 
