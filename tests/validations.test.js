@@ -98,5 +98,11 @@ describe('Validations', () => {
     expect(jSuites.validations.textLength('0', { criteria: '=', value: [1] })).toBe(true);
   })
 
+  test('time tests', () => {
+    expect(jSuites.validations.time(0.00797453703703704, { criteria: 'between', value: [0.00763888888888889, 0.00832175925925926] })).toBe(true);
+    expect(jSuites.validations.time(0.00797453703703704, { criteria: 'not between', value: [0.00763888888888889, 0.00832175925925926] })).toBe(false);
+    expect(jSuites.validations.time(0.0038194444444444443, { criteria: '<=', value: [0.00381944444444444] })).toBe(true);
+  })
+
   // Add more tests as needed
 });
