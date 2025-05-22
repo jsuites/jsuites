@@ -320,6 +320,7 @@ function Mask() {
             return parseMethods['DDDD'].call(this, v);
         },
         'HH12': function(v, two) {
+            let test = false;
             if (isBlank(this.values[this.index])) {
                 if (parseInt(v) > 1 && parseInt(v) < 10) {
                     if (two) {
@@ -337,10 +338,24 @@ function Mask() {
                 } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
                     this.date[3] = this.values[this.index] += v;
                     this.index++;
+                } else {
+                    test = true;
+                }
+            }
+
+            // Re-test
+            if (test === true) {
+                var t = parseInt(this.values[this.index]);
+                if (t >= 0 && t <= 12) {
+                    this.date[3] = this.values[this.index];
+                    this.index++;
+                    // Repeat the character
+                    this.position--;
                 }
             }
         },
         'HH24': function(v, two) {
+            let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
                 if (this.values[this.index] == null || this.values[this.index] == '') {
                     if (parseInt(v) > 2 && parseInt(v) < 10) {
@@ -365,7 +380,22 @@ function Mask() {
                         }
                         this.date[3] = this.values[this.index] += v;
                         this.index++;
+                    } else {
+                        test = true;
                     }
+                }
+            } else {
+                test = true;
+            }
+
+            // Re-test
+            if (test === true) {
+                var t = parseInt(this.values[this.index]);
+                if (t >= 0 && t < 24) {
+                    this.date[3] = this.values[this.index];
+                    this.index++;
+                    // Repeat the character
+                    this.position--;
                 }
             }
         },
