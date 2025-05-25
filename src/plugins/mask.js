@@ -46,34 +46,28 @@ function Mask() {
      * Get the decimal defined in the mask configuration
      */
     const getDecimal = function(v) {
-        if (v && Number(v) == v) {
-            return '.';
+        let decimal;
+        if (this.decimal) {
+            decimal = this.decimal;
         } else {
-            if (this.options.decimal) {
-                return this.options.decimal;
+            if (this.locale) {
+                let t = Intl.NumberFormat(this.locale).format(1.1);
+                decimal = t[1];
             } else {
-                if (this.locale) {
-                    let t = Intl.NumberFormat(this.locale).format(1.1);
-                    return this.options.decimal = t[1];
+                if (! v) {
+                    v  = this.mask;
+                }
+                let t = v.match(/[.,٫](?=\d{1,14})/g)
+                if (t) {
+                    decimal = t[0];
                 } else {
-                    if (! v) {
-                        v  = this.mask;
-                    }
-                    let t = v.match(/[.,٫](?=\d{1,14})/g)
-                    if (t) {
-                        // Save decimal
-                        this.options.decimal = t[0];
-                        // Return decimal
-                        return t[0];
-                    } else {
-                        this.options.decimal = '1.1'.toLocaleString().substring(1,2);
-                    }
+                    decimal = '1.1'.toLocaleString().substring(1,2);
                 }
             }
         }
 
-        if (this.options.decimal) {
-            return this.options.decimal;
+        if (decimal) {
+            return decimal;
         } else {
             return null;
         }
@@ -470,18 +464,20 @@ function Mask() {
         },
         // Numeric Methods
         '0+([.,]{1}0+#*)?': function(v, thousandSeparator) {
-            let decimal = getDecimal.call(this);
+            if (v === '.' && inputIsANumber(this.raw)) {
+                v = this.decimal;
+            }
 
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
             
-            if (v == '-') {
+            if (v === '-') {
                 // Transform the number into negative if it is not already
                 if (this.values[this.index][0] != '-') {
                     this.values[this.index] = '-' + this.values[this.index];
                 }
-            } else if (v == '+') {
+            } else if (v === '+') {
                 // Transform the number into positive if it is negative
                 if (this.values[this.index][0] == '-') {
                     this.values[this.index] = this.values[this.index].replace('-', '');
@@ -497,13 +493,13 @@ function Mask() {
                     this.values[this.index] = this.values[this.index].replace('0', '');
                 }
                 this.values[this.index] += v;
-            } else if (v == decimal) {
+            } else if (v === this.decimal) {
                 // Only adds decimal when there's a number value on its left
-                if (! this.values[this.index].includes(decimal)) {
+                if (! this.values[this.index].includes(this.decimal)) {
                     if (! this.values[this.index].replace('-', '').length) {
                         this.values[this.index] += '0';
                     }
-                    this.values[this.index] += decimal;
+                    this.values[this.index] += this.decimal;
                 }
             } else if (v === "\u200B") {
                 this.values[this.index] += v;
@@ -514,7 +510,7 @@ function Mask() {
 
             // Adds the % only if it has a number value
             if (this.values[this.index].match(/[\-0-9]/g)) {
-                if (this.values[this.index].indexOf('%') != -1) {
+                if (this.values[this.index].indexOf('%') !== -1) {
                     this.values[this.index] = this.values[this.index].replaceAll('%', '');
                 }
                 this.values[this.index] += '%';
@@ -526,15 +522,15 @@ function Mask() {
             parseMethods['0+([.,]{1}0+#*)?'].call(this, v);
         },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
+            // Process first the number
             parseMethods['0+([.,]{1}0+#*)?'].call(this, v, true);
-            // Get the full original value, including prefixes
-            let decimal = getDecimal.call(this);
+            // Create the separators
             let separator = this.tokens[this.index].substring(1,2);
             let currentValue = this.values[this.index];
             // Remove existing separators and negative sign
             currentValue = currentValue.replaceAll(separator, '');
             // Process separators
-            let val = currentValue.split(decimal);
+            let val = currentValue.split(this.decimal);
             if (val[0].length > 3) {
                 let number = [];
                 let count = 0;
@@ -551,7 +547,7 @@ function Mask() {
                 val[0] = number.join('');
             }
             // Reconstruct the value
-            this.values[this.index] = val.join(decimal);
+            this.values[this.index] = val.join(this.decimal);
         },
         '[0-9a-zA-Z\\$]+': function(v) {
             // Token to be added to the value
@@ -695,6 +691,27 @@ function Mask() {
      * Identify each method for each token
      */
     const getMethodsFromTokens = function(t) {
+        // Uppercase
+        for (let i = 0; i < t.length; i++) {
+            t[i] = t[i].toString().toUpperCase();
+        }
+
+        // Compatibility with Excel
+        for (let i = 0; i < t.length; i++) {
+            if (t[i] === 'MM') {
+                // Not a month, correct to minutes
+                if (t[i-1] && t[i-1].indexOf('H') >= 0) {
+                    t[i] = 'MI';
+                } else if (t[i-2] && t[i-2].indexOf('H') >= 0) {
+                    t[i] = 'MI';
+                } else if (t[i+1] && t[i+1].indexOf('S') >= 0) {
+                    t[i] = 'MI';
+                } else if (t[i+2] && t[i+2].indexOf('S') >= 0) {
+                    t[i] = 'MI';
+                }
+            }
+        }
+
         let result = [];
         for (let i = 0; i < t.length; i++) {
             var m = getMethod.call(this, t[i]);
@@ -705,23 +722,6 @@ function Mask() {
                 result.push(null);
             }
         }
-
-        // Compatibility with Excel
-        for (let i = 0; i < result.length; i++) {
-            if (result[i] === 'MM') {
-                // Not a month, correct to minutes
-                if (result[i-1] && result[i-1].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i-2] && result[i-2].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+1] && result[i+1].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+2] && result[i+2].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                }
-            }
-        }
-
         return result;
     }
 
@@ -765,7 +765,6 @@ function Mask() {
                 if (res) {
                     number[1] = res.toString().split('.')[1];
                 }
-                console.log(res)
             }
         } else {
             if (number[1]) {
@@ -787,11 +786,16 @@ function Mask() {
         return control.values.join('').trim();
     }
 
-    const Component = function(str, config, fullmask) {
+    const inputIsANumber = function(num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const getConfig = function(config) {
         // Internal default control of the mask system
         const control = {
-            // Current raw value to be masked
-            value: str.toString(),
             // Mask options
             options: {},
             // New values for each token found
@@ -818,10 +822,11 @@ function Mask() {
             }
         }
 
-        if (control.locale) {
-            // Process the locale
-        } else if (control.mask) {
-            // Controls of Excel that should be ignored
+        // Decimal
+        control.decimal = getDecimal.call(control);
+
+        // Controls of Excel that should be ignored
+        if (control.mask) {
             let d = control.mask.split(';');
             // Get only the first mask for now
             control.mask = d[0];
@@ -829,6 +834,21 @@ function Mask() {
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
             control.methods = getMethodsFromTokens(control.tokens);
+        }
+
+        return control;
+    }
+
+    const Component = function(str, config) {
+        // Get configuration
+        const control = getConfig(config)
+        // Value to be masked
+        control.value = str.toString();
+        control.raw = str;
+
+        if (control.locale) {
+            // Process the locale
+        } else if (control.mask) {
             // Walk every character on the value
             let method;
             while (method = getMethodByPosition(control)) {
@@ -857,39 +877,9 @@ function Mask() {
                     }
                 }
             }
-
-            // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
-
-            if (fullmask) {
-                // Decimal
-                let decimal = control.options.decimal;
-                // Adjust final value
-                control.methods.forEach((v, k) => {
-                    // Value
-                    let value = control.values[k];
-                    // Transform based on the mask
-                    if (isNumeric(v.type)) {
-                        // Value
-                        let number = value.split(decimal);
-                        // Token
-                        let token = v.token.split(decimal);
-                        // Transform
-                        processNumOfDecimals(token, number);
-                        // Do not apply padding zeros for currency
-                        if (v.type !== 'currency') {
-                            processNumOfPaddingZeros(token, number);
-                        }
-                        if (v.type === 'percentage') {
-                            number[1] += '%';
-                        }
-                        // Result
-                        control.values[k] = number.join(decimal);
-                    }
-                });
-            }
-            
-            control.value = getValue(control);
         }
+
+        control.value = getValue(control);
 
         return control;
     }
@@ -932,128 +922,72 @@ function Mask() {
         }
     }
 
-    /**
-     * Extract a value from a string based on a given mask
-     */
-    Component.parse = function(value, options) {
-        const tokens = getTokens(options.mask);
-        const methods = getMethodsFromTokens(tokens);
-
-        let result = ''; 
-        let currentIndex = 0;
-        let isDate = false;
-
-        const datetime = { dd: '01', mm: '01', yy: '1900', hh: '00', mi: '00', ss: '00' }
-        
-        for (let i = 0; i < methods.length; i++) {
-            if (methods[i].type === 'general') {
-                currentIndex += tokens[i].length;
-            } else if (methods[i].type === 'datetime') {
-                let tokLength;
-                isDate = true;
-
-                // Find the currentIndex and the data about the datetime tokens
-                if (methods[i].token === 'D') {
-                    let day = value.slice(currentIndex, value.length).match(/\d+/)[0];
-                    tokLength = day.length;
-                    datetime.dd = day.padStart(2, 0);
-                } else if (methods[i].token === 'DD') {
-                    tokLength = 2;
-                    datetime.dd = value.slice(currentIndex, currentIndex + tokLength)
-                } else if (methods[i].token === 'M') {
-                    let month = value.slice(currentIndex, value.length).match(/\d+/)[0];
-                    tokLength = month.length;
-                    datetime.mm = month.padStart(2, 0);
-                } else if (methods[i].token === 'MM') {
-                    tokLength = 2;
-                    datetime.mm = value.slice(currentIndex, currentIndex + tokLength)
-                } else if (['MMM', 'MON'].includes(methods[i].token)) {
-                    tokLength = 3;
-                    datetime.mm = `${months.indexOf(value.slice(currentIndex, currentIndex+tokLength)) + 1}`.padStart(2, 0);
-                } else if (['MMMM', 'MONTH'].includes(methods[i].token)) {
-                    let month = value.slice(currentIndex, value.length).match(/^[A-Za-z]+/)[0];
-                    datetime.mm = `${monthsFull.indexOf(month) + 1}`.padStart(2, 0);
-                    tokLength = month.length;
-                } else if (methods[i].token === 'MMMMM') {
-                    tokLength = 1;
-                    let month = months.findIndex((month) => month[0] === value[currentIndex].toUpperCase());
-                    datetime.mm = `${month + 1}`.padStart(2, 0);
-                } else if (methods[i].token === 'YYYY') {
-                    tokLength = 4;
-                    datetime.yy = value.slice(currentIndex, currentIndex + tokLength)
-                } else if (methods[i].token === 'YYY') {
-                    tokLength = 3;
-                    let year = value.slice(currentIndex, currentIndex + tokLength);
-                    datetime.yy = 1 + year
-                } else if (methods[i].token === 'YY') {
-                    tokLength = 2;
-                    let year = value.slice(currentIndex, currentIndex + tokLength);
-
-                    if (year >= 40) {
-                        datetime.yy = 19 + year
-                    } else {
-                        datetime.yy = 20 + year
-                    }
-                } else if (['H', 'HH12'].includes(methods[i].token)) {
-                    let hour = value.slice(currentIndex, value.length).match(/\d+/)[0];
-                    tokLength = hour.length;
-                    datetime.hh = hour.padStart(2, 0);
-                } else if (['HH', 'HH24'].includes(methods[i].token)) {
-                    tokLength = 2;
-                    datetime.hh = value.slice(currentIndex, currentIndex + tokLength);
-                } else if (methods[i].token === 'MI') {
-                    tokLength = 2;
-                    datetime.mi = value.slice(currentIndex, currentIndex + tokLength);
-                } else if (methods[i].token === 'SS') {
-                    tokLength = 2;
-                    datetime.ss = value.slice(currentIndex, currentIndex + tokLength);
-                } else if (methods[i].token === 'AM/PM') {
-                    tokLength = 2;
-                    let v = value.slice(currentIndex, value.length);
-                    if (v === 'PM') {
-                        datetime.hh = `${parseInt(datetime.hh) + 12}`; 
-                    }
+    Component.getType = function(config) {
+        // Get configuration
+        const control = getConfig(config);
+        // Mask type
+        let type = 'general';
+        // Process other types
+        for (var i = 0; i < control.methods.length; i++) {
+            let m = control.methods[i];
+            if (m && m.type !== 'general' && m.type !== type) {
+                if (type === 'general') {
+                    type = m.type;
+                }  else {
+                    type = 'general';
+                    break;
                 }
-
-                currentIndex += tokLength
-            } else if (isNumeric(methods[i].type)) {
-                let decimal = getDecimal.call({ options }, options.mask);
-                let num, exp;
-
-                
-                if (decimal === '.') {
-                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
-                    currentIndex += num.length;
-                    result += num.replace(/,/g, '');
-                } else if (decimal === ',') {
-                    num = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(\.\d{3})*(,\d+)?/)[0];
-                    currentIndex += num.length;
-                    result += num.replace(/\./g, '').replace(decimal, '.');
-                }
-
-                if (methods[i].type === 'percentage') {
-                    result /= 100;
-                } else if (methods[i].type === 'scientific') {
-                    // Ignores 'E'
-                    currentIndex += 1;
-
-                    // Get exponent
-                    exp = value.slice(currentIndex, value.length).match(/[+-]?\d{1,3}(,\d{3})*(\.\d+)?/)[0];
-                    currentIndex += exp.length;
-                    result = Number(result) * (10 ** Number(exp));
-                }
-
-                result = Number(result);
             }
         }
+        return type;
+    }
 
-        // If date tokens are present, return in date 'yyyy-mm-dd hh:mi:ss' format 
-        // TODO: Receive the format from options.format
-        if (isDate) {
-            result = `${datetime.yy}-${datetime.mm}-${datetime.dd} ${datetime.hh}:${datetime.mi}:${datetime.ss}`;
+    // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
+
+    Component.render = function(value, options, fullMask) {
+
+        const type = Component.getType(options);
+
+        console.log(type)
+
+        // Percentage
+        if (type === 'percentage') {
+           value
         }
 
-        return result;
+        // Process mask
+        let control = Component(value, options);
+
+        // Complement render
+        if (fullMask) {
+            // Decimal
+            let decimal = control.decimal;
+            // Adjust final value
+            control.methods.forEach((v, k) => {
+                // Value
+                let value = control.values[k];
+                // Transform based on the mask
+                if (isNumeric(v.type)) {
+                    // Value
+                    let number = value.split(decimal);
+                    // Token
+                    let token = v.token.split(decimal);
+                    // Transform
+                    processNumOfDecimals(token, number);
+                    // Do not apply padding zeros for currency
+                    if (v.type !== 'currency') {
+                        processNumOfPaddingZeros(token, number);
+                    }
+                    if (v.type === 'percentage') {
+                        number[1] += '%';
+                    }
+                    // Result
+                    control.values[k] = number.join(decimal);
+                }
+            });
+        }
+
+        return getValue(control);
     }
 
     Component.extract = function(v, options, returnObject) {
