@@ -2996,22 +2996,16 @@ div[data-before]:before {
     background-color:#f2f2f2;
 }
 
-
 .jtoolbar .jpicker {
-    padding-left:0px;
-    padding-right:0px;
+    padding-left: 0;
+    padding-right: 0;
 }
 
 .jtoolbar .jpicker-header {
-    height: 24px;
-    line-height: 24px;
-    padding: 0px;
-    padding-right: 20px;
-    padding-left: 8px;
-    background-position: top 50% right 0px;
+    padding: 0 20px 0 8px;
+    background-position: top 50% right 0;
     display: flex;
     align-items: center;
-    font-size: 0.9em;
 }
 
 .jtoolbar .jpicker-content > div {
