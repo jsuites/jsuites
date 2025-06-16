@@ -4,7 +4,9 @@ import helpers from './utils/helpers';
 import path from './utils/path';
 import sorting from './utils/sorting';
 import lazyLoading from './utils/lazyloading';
+import propertymap from './utils/propertymap';
 
+import studio from '@lemonadejs/studio/dist/index.js';
 import ajax from './plugins/ajax';
 import animation from './plugins/animation';
 import calendar from './plugins/calendar';
@@ -49,6 +51,23 @@ import './style/slider.css';
 import './style/tabs.css';
 import './style/tags.css';
 import './style/toolbar.css';
+import '@lemonadejs/studio/dist/style.css'
+
+// Create a proxy for studio, to execute the property mapping before a plugin call
+const studioMapped = new Proxy(studio, {
+    get(target, prop) {
+        const originalFunction = target[prop];
+
+        if (typeof originalFunction === 'function') {
+        return function(element, config) {
+            const mappedConfig = propertymap(config, prop.toLowerCase());
+            return originalFunction.call(target, element, mappedConfig);
+        };
+        }
+        
+        return originalFunction;
+    }
+});
 
 var jSuites = {
     // Helpers
@@ -74,7 +93,7 @@ var jSuites = {
     animation: animation,
     calendar: calendar,
     color: color,
-    contextmenu: contextmenu,
+    contextmenu: studioMapped.Contextmenu,
     dropdown: dropdown,
     editor: editor,
     floating: floating,
@@ -85,7 +104,7 @@ var jSuites = {
     palette: palette,
     picker: picker,
     progressbar: progressbar,
-    rating: rating,
+    rating: studioMapped.Rating,
     search: search,
     slider: slider,
     tabs: tabs,
