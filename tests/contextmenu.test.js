@@ -15,6 +15,16 @@ describe('contextmenu', () => {
             ],
         })
 
+        const contextmenuEvent = new MouseEvent('contextmenu', {
+            bubbles: true,
+            cancelable: true,
+            button: 2,
+            clientX: 100,
+            clientY: 100
+        });
+
+        div.dispatchEvent(contextmenuEvent);
+
         expect(document.body.innerHTML).toContain('Select All')
         expect(document.body.innerHTML).toContain('Ctrl + A')
         expect(document.body.innerHTML).toContain('Method to Select All Text')
