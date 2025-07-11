@@ -2,6 +2,10 @@
     max-width: 320px;
 }
 
+.jmenu * {
+    font-family: "Open Sans", sans-serif;
+}
+
 .jmenu:after {
     content: '';
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z'/%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3C/svg%3E");
@@ -37,8 +41,11 @@
 }
 
 .jmenu nav {
-    position: relative;
     margin-bottom: 2px;
+}
+
+.jmenu nav > div {
+    padding: 10px;
 }
 
 .jmenu nav h2 {
@@ -47,15 +54,14 @@
     align-items: center;
     font-weight: bold;
     font-size: 1em;
-    padding: 10px;
-    padding-left: 15px;
+    padding: 10px 15px;
     line-height: 24px;
     border-radius: 4px;
-    margin: 0px;
+    margin: 0;
     letter-spacing: 1.1px;
 }
 
-.jmenu nav.selected h2 {
+.jmenu nav h2.selected {
     background-color:  #f3f3f3;
 }
 
@@ -74,110 +80,98 @@
     font-weight: normal;
 }
 
-.jmenu nav h2::after {
-    position: absolute;
-    right: 6px;
-    width: 18px;
-    height: 18px;
-    content: '';
-    background-repeat: no-repeat;
-    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M10 17l5-5-5-5v10z'/%3E%3Cpath d='M0 24V0h24v24H0z' fill='none'/%3E%3C/svg%3E");
-    transition: transform .25s ease-in-out;
-}
-
-.jmenu nav.selected h2::after {
-    transform: rotate(90deg);
-    -ms-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
-}
-
-.jmenu nav > div {
-    padding: 15px;
-    display: none;
-}
-
-.jmenu nav.selected > div {
-    display: block;
-}
-
-.jmenu nav > div > div {
-    margin-bottom: 15px;
-}
-
 .jmenu nav h3 {
     font-size: 1em;
     font-weight: normal;
     color: #757575;
-    margin-left: 10px;
-    margin-bottom: 10px;
+    padding: 0;
+    margin: 0 0 10px 0;
 }
 
-.jmenu ul {
-    margin: 0;
-    padding-left: 20px;
-    padding-bottom: 10px;
-    list-style: none;
-}
-
-.jmenu li {
-    margin-bottom: 6px;
-}
-
-.jmenu li > ul {
-    margin-top: 8px;
+.jmenu .folder {
     position: relative;
+    cursor: pointer;
 }
 
-.jmenu a {
-    color: #000;
-    text-decoration: none;
-}
-
-.jmenu a:hover {
-    text-decoration: underline;
-}
-
-.jmenu a.selected {
-    border-left: 4px solid var(--button-color);
-    padding-left: 10px;
-    margin-left: -14px;
-}
-
-.jmenu a.jmenu-subitem.selected {
-    padding-left: 24px;
-    margin-left: -28px;
-}
-
-.jmenu .title {
-    border-bottom: 1px solid #ddd;
-    margin-bottom: 20px;
-    padding-bottom: 5px;
-}
-
-.jmenu-subitem::before {
-    content: '';
+.jmenu .folder::after {
     position: absolute;
-    margin-left: -20px;
-    margin-top: 2px;
+    top: calc(50% - 9px);
+    right: 5px;
     width: 18px;
     height: 18px;
+    content: '';
     background-repeat: no-repeat;
     background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M10 17l5-5-5-5v10z'/%3E%3Cpath d='M0 24V0h24v24H0z' fill='none'/%3E%3C/svg%3E");
+    background-position: center center;
     transition: transform .25s ease-in-out;
 }
 
-.jmenu-subitem ~ ul {
+.jmenu .folder.selected::after {
+    transform: rotate(90deg);
+}
+
+.jmenu .folder + * {
     display: none;
 }
 
-.jmenu-subitem.opened::before {
-    transform: rotate(90deg);
-    -ms-transform: rotate(90deg);
-    -webkit-transform: rotate(90deg);
+.jmenu .folder.selected + * {
+    display: block;
 }
 
-.jmenu-subitem.opened ~ ul {
+.jmenu ul {
+    white-space: nowrap;
+    margin: 5px 0 0 20px;
+    padding: 0;
+    list-style: none;
+    position: relative;
+}
+
+.jmenu ul:before {
+    background-color: #ddd;
+    width: 1px;
+    content: "";
+    inset-inline-start: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+.jmenu nav > div > ul {
+    margin: 5px 0 30px 5px;
+}
+
+.jmenu li {
+    position: relative;
+}
+
+.jmenu li:last-child {
+    margin-bottom: 10px;
+}
+
+.jmenu li.selected {
+    background-color: var(--main-color-light);
+}
+
+.jmenu li.selected:before {
+    background-color: var(--main-color);
+    width: 1px;
+    content: "";
+    inset-inline-start: 0;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+.jmenu a {
     display: block;
+    color: #000;
+    text-decoration: none;
+    padding: 4px 15px;
+}
+
+.jmenu a:hover {
+    background-color: #f3f3f3;
+    text-decoration: underline;
 }
 
 @media (min-width: 1024px) {
