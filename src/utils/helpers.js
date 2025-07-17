@@ -10,14 +10,24 @@ Helpers.two = function(value) {
 }
 
 Helpers.focus = function(el) {
-    if (el.innerText.length) {
-        var range = document.createRange();
-        var sel = window.getSelection();
-        var node = el.childNodes[el.childNodes.length-1];
-        range.setStart(node, node.length)
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
+    if (el.textContent.length) {
+        // Handle contenteditable elements
+        const range = document.createRange();
+        const sel = window.getSelection();
+
+        let node = el;
+        // Go as deep as possible to the last text node
+        while (node.lastChild) node = node.lastChild;
+        // Ensure it's a text node
+        if (node.nodeType === Node.TEXT_NODE) {
+            range.setStart(node, node.length);
+        } else {
+            range.setStart(node, node.childNodes.length);
+        }
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+
         el.scrollLeft = el.scrollWidth;
     }
 }
