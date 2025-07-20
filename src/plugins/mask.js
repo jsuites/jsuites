@@ -980,7 +980,12 @@ function Mask() {
         const type = Component.getType(options);
 
         // Percentage
-        if (type === 'percentage') {
+        if (type === 'datetime') {
+            var t = Component.getDateString(value, options.mask);
+            if (t) {
+                value = t;
+            }
+        } else if (type === 'percentage') {
             if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
                 value = Number(value.replace('%', ''));
             } else {
@@ -1032,6 +1037,218 @@ function Mask() {
         }
 
         return getValue(control);
+    }
+
+    Component.getDateString = function(value, options) {
+        if (! options) {
+            options = {};
+        }
+
+        // Labels
+        let format;
+
+        if (options && typeof(options) == 'object') {
+            if (options.format) {
+                format = options.format;
+            } else if (options.mask) {
+                format = options.mask;
+            }
+        } else {
+            format = options;
+        }
+
+        if (! format) {
+            format = 'YYYY-MM-DD';
+        }
+
+        // Convert to number of hours
+        if (format.indexOf('[h]') >= 0) {
+            let result = 0;
+            if (value && Helpers.isNumeric(value)) {
+                result = parseFloat(24 * Number(value));
+                if (format.indexOf('mm') >= 0) {
+                    let d;
+                    let h = ('' + result).split('.');
+                    if (h[1]) {
+                        d = 60 * parseFloat('0.' + h[1])
+                        d = parseFloat(d.toFixed(2));
+                    } else {
+                        d = 0;
+                    }
+                    result = parseInt(h[0]) + ':' + Helpers.two(d);
+                }
+            }
+            return result;
+        }
+
+        // Date instance
+        if (value instanceof Date) {
+            value = HelpersDate.now(value);
+        } else if (value && Helpers.isNumeric(value)) {
+            value = HelpersDate.numToDate(value);
+        }
+
+        // Tokens
+        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+
+        // Expression to extract all tokens from the string
+        let e = new RegExp(tokens.join('|'), 'gi');
+        // Extract
+        let t = format.match(e);
+
+        // Compatibility with Excel
+        for (let i = 0; i < t.length; i++) {
+            if (t[i].toUpperCase() == 'MM') {
+                // Not a month, correct to minutes
+                if (t[i - 1] && t[i - 1].toUpperCase().indexOf('H') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i - 2] && t[i - 2].toUpperCase().indexOf('H') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i + 1] && t[i + 1].toUpperCase().indexOf('S') >= 0) {
+                    t[i] = 'mi';
+                } else if (t[i + 2] && t[i + 2].toUpperCase().indexOf('S') >= 0) {
+                    t[i] = 'mi';
+                }
+            }
+        }
+
+        // Object
+        const o = {
+            tokens: t
+        }
+
+        // Value
+        if (value) {
+            let d = '' + value;
+            let splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
+            d = d.split(splitStr);
+
+            let h = 0;
+            let m = 0;
+            let s = 0;
+
+            if (d[1]) {
+                h = d[1].split(':');
+                m = h[1] ? h[1] : 0;
+                s = h[2] ? h[2] : 0;
+                h = h[0] ? h[0] : 0;
+            }
+
+            d = d[0].split('-');
+
+            let day = new Date(d[0], d[1], 0).getDate();
+
+            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
+
+                // Data
+                o.data = [d[0], d[1], d[2], h, m, s];
+
+                // Value
+                o.value = [];
+
+                // Calendar instance
+                let calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
+
+                // Get method
+                var get = function (i) {
+                    // Token
+                    let t = this.tokens[i];
+                    // Case token
+                    let s = t.toUpperCase();
+                    let v = null;
+
+                    if (s === 'YYYY') {
+                        v = this.data[0];
+                    } else if (s === 'YYY') {
+                        v = this.data[0].substring(1, 4);
+                    } else if (s === 'YY') {
+                        v = this.data[0].substring(2, 4);
+                    } else if (s === 'Y') {
+                        v = this.data[0].substring(3, 4);
+                    } else if (t === 'MON') {
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toUpperCase();
+                    } else if (t === 'mon') {
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toLowerCase();
+                    } else if (t === 'MONTH') {
+                        v = HelpersDate.months[calendar.getMonth()].toUpperCase();
+                    } else if (t === 'month') {
+                        v = HelpersDate.months[calendar.getMonth()].toLowerCase();
+                    } else if (s === 'MMMMM') {
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 1);
+                    } else if (s === 'MMMM' || t === 'Month') {
+                        v = HelpersDate.months[calendar.getMonth()];
+                    } else if (s === 'MMM' || t == 'Mon') {
+                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3);
+                    } else if (s === 'MM') {
+                        v = Helpers.two(this.data[1]);
+                    } else if (s === 'M') {
+                        v = calendar.getMonth() + 1;
+                    } else if (t === 'DAY') {
+                        v = HelpersDate.weekdays[calendar.getDay()].toUpperCase();
+                    } else if (t === 'day') {
+                        v = HelpersDate.weekdays[calendar.getDay()].toLowerCase();
+                    } else if (s === 'DDDD' || t == 'Day') {
+                        v = HelpersDate.weekdays[calendar.getDay()];
+                    } else if (s === 'DDD') {
+                        v = HelpersDate.weekdays[calendar.getDay()].substr(0, 3);
+                    } else if (s === 'DD') {
+                        v = Helpers.two(this.data[2]);
+                    } else if (s === 'D') {
+                        v = parseInt(this.data[2]);
+                    } else if (s === 'Q') {
+                        v = Math.floor((calendar.getMonth() + 3) / 3);
+                    } else if (s === 'HH24' || s === 'HH') {
+                        v = this.data[3];
+                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
+                            v -= 12;
+                        }
+                        v = Helpers.two(v);
+                    } else if (s === 'HH12') {
+                        if (this.data[3] > 12) {
+                            v = Helpers.two(this.data[3] - 12);
+                        } else {
+                            v = Helpers.two(this.data[3]);
+                        }
+                    } else if (s === 'H') {
+                        v = this.data[3];
+                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
+                            v -= 12;
+                            v = Helpers.two(v);
+                        }
+                    } else if (s === 'MI') {
+                        v = Helpers.two(this.data[4]);
+                    } else if (s === 'SS') {
+                        v = Helpers.two(this.data[5]);
+                    } else if (s === 'MS') {
+                        v = calendar.getMilliseconds();
+                    } else if (s === 'AM/PM') {
+                        if (this.data[3] >= 12) {
+                            v = 'PM';
+                        } else {
+                            v = 'AM';
+                        }
+                    } else if (s === 'WD') {
+                        v = HelpersDate.weekdays[calendar.getDay()];
+                    }
+
+                    if (v === null) {
+                        this.value[i] = this.tokens[i];
+                    } else {
+                        this.value[i] = v;
+                    }
+                }
+
+                for (let i = 0; i < o.tokens.length; i++) {
+                    get.call(o, i);
+                }
+                // Put pieces together
+                value = o.value.join('');
+            } else {
+                value = '';
+            }
+        }
+
+        return value;
     }
 
 /*
