@@ -42,6 +42,37 @@ function Mask() {
         return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric';
     }
 
+    const adjustPrecision = function(num) {
+        if (typeof num === 'number' && ! Number.isInteger(num)) {
+            const v = num.toString().split('.');
+
+            if (v[1] && v[1].length > 10) {
+                let t0 = 0;
+                const t1 = v[1][v[1].length - 2];
+
+                if (t1 == 0 || t1 == 9) {
+                    for (let i = v[1].length - 2; i > 0; i--) {
+                        if (t0 >= 0 && v[1][i] == t1) {
+                            t0++;
+                            if (t0 > 6) {
+                                break;
+                            }
+                        } else {
+                            t0 = 0;
+                            break;
+                        }
+                    }
+
+                    if (t0) {
+                        return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
+                    }
+                }
+            }
+        }
+
+        return num;
+    }
+
     /**
      * Get the decimal defined in the mask configuration
      */
@@ -910,7 +941,7 @@ function Mask() {
         if (newValue !== value && ! e.inputType.includes('delete')) {
             // Set the caret to the position before transformation
             let caret = newValue.indexOf("\u200B");
-            if (caret) {
+            if (caret !== -1) {
                 // Apply value
                 element[property] = newValue.replace("\u200B", "");
                 // Set caret
@@ -948,11 +979,13 @@ function Mask() {
 
         const type = Component.getType(options);
 
-        console.log(type)
-
         // Percentage
         if (type === 'percentage') {
-           value
+            if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
+                value = Number(value.replace('%', ''));
+            } else {
+                value = adjustPrecision(Number(value) * 100);
+            }
         }
 
         // Process mask
@@ -968,10 +1001,18 @@ function Mask() {
                 let value = control.values[k];
                 // Transform based on the mask
                 if (isNumeric(v.type)) {
-                    // Value
-                    let number = value.split(decimal);
-                    // Token
-                    let token = v.token.split(decimal);
+                    let number, token;
+                    if (v.type === 'percentage') {
+                        // Value
+                        number = value.replace('%','').split(decimal);
+                        // Token
+                        token = v.token.replace('%','').split(decimal);
+                    } else {
+                        // Value
+                        number = value.split(decimal);
+                        // Token
+                        token = v.token.split(decimal);
+                    }
                     // Transform
                     processNumOfDecimals(token, number);
                     // Do not apply padding zeros for currency
@@ -979,10 +1020,13 @@ function Mask() {
                         processNumOfPaddingZeros(token, number);
                     }
                     if (v.type === 'percentage') {
+                        if (typeof(number[1]) === 'undefined') {
+                            number[1] = '';
+                        }
                         number[1] += '%';
                     }
                     // Result
-                    control.values[k] = number.join(decimal);
+                    //control.values[k] = number.join(decimal);
                 }
             });
         }
@@ -990,6 +1034,7 @@ function Mask() {
         return getValue(control);
     }
 
+/*
     Component.extract = function(v, options, returnObject) {
         if (isBlank(v)) {
             return v;
@@ -1078,6 +1123,7 @@ function Mask() {
             return value;
         }
     }
+    */
 
     return Component;
 }

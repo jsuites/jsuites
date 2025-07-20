@@ -4547,7 +4547,7 @@ div[data-before]:before {
     display:none;
 }
 
-.jeditor .jsnippet:after {
+.jsnippet:after {
     content: 'close';
     font-family: 'Material icons';
     font-size: 24px;

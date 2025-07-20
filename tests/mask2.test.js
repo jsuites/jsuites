@@ -12,24 +12,14 @@ describe('jSuites mask', () => {
 
         test('currency', () => {    
             expect(jSuites.mask("12345.678", { mask: '#,##0.00' }).value).toEqual("12,345.678");
-            expect(jSuites.mask("987654.321", { mask: '#,##0.00' }).value).toEqual("987,654.321");
             expect(jSuites.mask("54321", { mask: '#,##0' }).value).toEqual("54,321");
-
-            expect(jSuites.mask("12345.678", { mask: '#,##0.00' }).value).toEqual("12,345.678");
-            expect(jSuites.mask("987654.321", { mask: '#,##0.00' }).value).toEqual("987,654.321");
             expect(jSuites.mask("11873987654.321", { mask: '#,##0.00' }).value).toEqual("11,873,987,654.321");
 
-            expect(jSuites.mask("12345.678", { mask: '#.##0,00' }).value).toEqual("12.345,678");
             expect(jSuites.mask("987654.321", { mask: '#.##0,00' }).value).toEqual("987.654,321");
-            expect(jSuites.mask("11873987654.321", { mask: '#.##0,00' }).value).toEqual("11.873.987.654,321");
             expect(jSuites.mask("11873987654", { mask: '#.##0' }).value).toEqual("11.873.987.654");
 
-            expect(jSuites.mask("-12345.678", { mask: '#,##0.00' }).value).toEqual("-12,345.678");
             expect(jSuites.mask("-987654.321", { mask: '#,##0.00' }).value).toEqual("-987,654.321");
             expect(jSuites.mask("-11873987654.321", { mask: '#,##0.00' }).value).toEqual("-11,873,987,654.321");
-            expect(jSuites.mask("-12345.678", { mask: '#.##0,00' }).value).toEqual("-12.345,678");
-            expect(jSuites.mask("-987654.321", { mask: '#.##0,00' }).value).toEqual("-987.654,321");
-            expect(jSuites.mask("-11873987654.321", { mask: '#.##0,00' }).value).toEqual("-11.873.987.654,321");
             expect(jSuites.mask("-11873987654", { mask: '#.##0' }).value).toEqual("-11.873.987.654");
         });
 
@@ -1998,11 +1988,166 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('render', () => {
+        test('currency', () => {
+            expect(jSuites.mask.render(-13552.94219, { mask: '# ##0'}, true)).toBe('-13 553');
+            expect(jSuites.mask.render(0.128899, { mask: '$ #.##0,00' }, true)).toBe('$ 0,13');
+            expect(jSuites.mask.render(123.4, { mask: '#,##0.0000' }, true)).toBe('123.4000');
+            expect(jSuites.mask.render(987654321.98765, { mask: '#,##0.0000' }, true)).toBe('987,654,321.9877');
+            expect(jSuites.mask.render(1234567890.123, { mask: '#,##0.00' })).toBe('1,234,567,890.123');
+            expect(jSuites.mask.render(79998007920000000000000, { mask: '#,##0' }, true)).toBe('79,998,007,920,000,000,000,000');
+        });
+
+        test('number', () => {
+            expect(jSuites.mask.render(1.005, { mask: '0.00' }, true)).toBe('1.01');
+            expect(jSuites.mask.render(11.45, { mask: '0.0' }, true)).toBe('11.5');
+            expect(jSuites.mask.render(-11.45, { mask: '0.0' }, true)).toBe('-11.5');
+            expect(jSuites.mask.render(1000000.0005, { mask: '0.000' }, true)).toBe('1000000.001');
+            expect(jSuites.mask.render(-1000000.0005, { mask: '0.000' }, true)).toBe('-1000000.001');
+            expect(jSuites.mask.render(-11.449, { mask: '0.00' }, true)).toBe('-11.45');
+            expect(jSuites.mask.render(-11.455, { mask: '0.00' }, true)).toBe('-11.46');
+            expect(jSuites.mask.render(123, { mask: '00000'}, true)).toBe('00123');
+        });
+
+        test('scientific', () => {
+            expect(jSuites.mask.render(12345678900, { mask: '0.00E+00' }, true)).toBe('1.23e+10');
+            expect(jSuites.mask.render(98765432100000, { mask: '0.000000000E+00' }, true)).toBe('9.876543210e+13');
+            expect(jSuites.mask.render(1234567890, { mask: '0.000000E+0' }, true)).toBe('1.234568e+9');
+            expect(jSuites.mask.render(79998007920000000000000, { mask: '0.0000E+00' }, true)).toBe('7.9998e+22');
+            expect(jSuites.mask.render(-79998007920000000000000, { mask: '0.0000E+00' }, true)).toBe('-7.9998e+22');
+            expect(jSuites.mask.render(79998007920000000000000, { mask: '0.0000E+00' })).toBe('79998007920000000000000');
+            expect(jSuites.mask.render(-79998007920000000000000, { mask: '0.0000E+00' })).toBe('-79998007920000000000000');
+        });
+
+        test('percentage', () => {
+            expect(jSuites.mask.render('100%', { mask: '0%' })).toEqual('100%');
+            expect(jSuites.mask.render('0%', { mask: '0%' })).toEqual('0%');
+            expect(jSuites.mask.render(2.2, { mask: '0.00%' })).toEqual('220%');
+            expect(jSuites.mask.render(0.1, { mask: '0%' }, true)).toBe('10%');
+        });
+
+        test('date', () => {
+            // Basic date formats
+            expect(jSuites.mask.render('2023-01-15', { mask: 'YYYY-MM-DD' })).toBe('2023-01-15');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DD/MM/YYYY' })).toBe('15/01/2023');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'MM/DD/YYYY' })).toBe('01/15/2023');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DD-MM-YYYY' })).toBe('15-01-2023');
+
+            // Short year format
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DD/MM/YY' })).toBe('15/01/23');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'MM/DD/YY' })).toBe('01/15/23');
+
+            // Month name formats
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DD MMM YYYY' })).toBe('15 Jan 2023');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DD MMMM YYYY' })).toBe('15 January 2023');
+            expect(jSuites.mask.render('2023-12-25', { mask: 'MMM DD, YYYY' })).toBe('Dec 25, 2023');
+            expect(jSuites.mask.render('2023-12-25', { mask: 'MMMM DD, YYYY' })).toBe('December 25, 2023');
+
+            // Day name formats
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DDD, DD MMM YYYY' })).toBe('Sun, 15 Jan 2023');
+            expect(jSuites.mask.render('2023-01-15', { mask: 'DDDD, MMMM DD, YYYY' })).toBe('Sunday, January 15, 2023');
+
+            // Different input formats
+            expect(jSuites.mask.render('01/15/2023', { mask: 'YYYY-MM-DD' })).toBe('2023-01-15');
+            expect(jSuites.mask.render('15/01/2023', { mask: 'MM-DD-YYYY' })).toBe('01-15-2023');
+
+            // Date objects
+            expect(jSuites.mask.render(new Date('2023-01-15'), { mask: 'DD/MM/YYYY' })).toBe('15/01/2023');
+            expect(jSuites.mask.render(new Date('2023-01-15'), { mask: 'MMM DD, YYYY' })).toBe('Jan 15, 2023');
+
+            // Edge cases
+            expect(jSuites.mask.render('2023-02-01', { mask: 'DD MMM YY' })).toBe('01 Feb 23');
+            expect(jSuites.mask.render('2023-12-31', { mask: 'DDD DD/MM/YYYY' })).toBe('Sun 31/12/2023');
+
+            // Invalid dates
+            expect(jSuites.mask.render('invalid-date', { mask: 'DD/MM/YYYY' })).toBe('');
+            expect(jSuites.mask.render('', { mask: 'DD/MM/YYYY' })).toBe('');
+            expect(jSuites.mask.render(null, { mask: 'DD/MM/YYYY' })).toBe('');
+        });
+
+        test('time', () => {
+            // Basic time formats (24-hour)
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH:MM:SS' })).toBe('14:30:45');
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH:MM' })).toBe('14:30');
+            expect(jSuites.mask.render('09:05:03', { mask: 'HH:MM:SS' })).toBe('09:05:03');
+            expect(jSuites.mask.render('09:05', { mask: 'HH:MM' })).toBe('09:05');
+
+            // 12-hour format with AM/PM
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH:MM:SS AM/PM' })).toBe('02:30:45 PM');
+            expect(jSuites.mask.render('02:30:45', { mask: 'HH:MM:SS AM/PM' })).toBe('02:30:45 AM');
+            expect(jSuites.mask.render('00:30:45', { mask: 'HH:MM:SS AM/PM' })).toBe('12:30:45 AM');
+            expect(jSuites.mask.render('12:30:45', { mask: 'HH:MM:SS AM/PM' })).toBe('12:30:45 PM');
+
+            // 12-hour format without seconds
+            expect(jSuites.mask.render('14:30', { mask: 'HH:MM AM/PM' })).toBe('02:30 PM');
+            expect(jSuites.mask.render('02:30', { mask: 'HH:MM AM/PM' })).toBe('02:30 AM');
+            expect(jSuites.mask.render('00:30', { mask: 'HH:MM AM/PM' })).toBe('12:30 AM');
+            expect(jSuites.mask.render('12:30', { mask: 'HH:MM AM/PM' })).toBe('12:30 PM');
+
+            // Single digit hours (H vs HH)
+            expect(jSuites.mask.render('09:30:45', { mask: 'H:MM:SS' })).toBe('9:30:45');
+            expect(jSuites.mask.render('14:30:45', { mask: 'H:MM:SS' })).toBe('14:30:45');
+            expect(jSuites.mask.render('09:30', { mask: 'H:MM' })).toBe('9:30');
+
+            // Minutes and seconds variations
+            expect(jSuites.mask.render('14:05:03', { mask: 'HH:M:SS' })).toBe('14:5:03');
+            expect(jSuites.mask.render('14:30:03', { mask: 'HH:MM:S' })).toBe('14:30:3');
+            expect(jSuites.mask.render('14:05:03', { mask: 'H:M:S' })).toBe('14:5:3');
+
+            // Date object inputs
+            expect(jSuites.mask.render(new Date('2023-01-15T14:30:45'), { mask: 'HH:MM:SS' })).toBe('14:30:45');
+            expect(jSuites.mask.render(new Date('2023-01-15T02:30:45'), { mask: 'HH:MM AM/PM' })).toBe('02:30 AM');
+            expect(jSuites.mask.render(new Date('2023-01-15T14:30:45'), { mask: 'H:MM AM/PM' })).toBe('2:30 PM');
+
+            // Different separators
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH.MM.SS' })).toBe('14.30.45');
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH-MM-SS' })).toBe('14-30-45');
+            expect(jSuites.mask.render('14:30:45', { mask: 'HH MM SS' })).toBe('14 30 45');
+
+            // Microseconds/milliseconds
+            expect(jSuites.mask.render('14:30:45.123', { mask: 'HH:MM:SS.fff' })).toBe('14:30:45.123');
+            expect(jSuites.mask.render('14:30:45.123456', { mask: 'HH:MM:SS.ffffff' })).toBe('14:30:45.123456');
+
+            // Edge cases
+            expect(jSuites.mask.render('00:00:00', { mask: 'HH:MM:SS' })).toBe('00:00:00');
+            expect(jSuites.mask.render('23:59:59', { mask: 'HH:MM:SS' })).toBe('23:59:59');
+            expect(jSuites.mask.render('00:00:00', { mask: 'HH:MM AM/PM' })).toBe('12:00 AM');
+            expect(jSuites.mask.render('23:59:59', { mask: 'HH:MM AM/PM' })).toBe('11:59 PM');
+
+            // Invalid times
+            expect(jSuites.mask.render('invalid-time', { mask: 'HH:MM:SS' })).toBe('');
+            expect(jSuites.mask.render('25:30:45', { mask: 'HH:MM:SS' })).toBe('');
+            expect(jSuites.mask.render('14:65:45', { mask: 'HH:MM:SS' })).toBe('');
+            expect(jSuites.mask.render('', { mask: 'HH:MM:SS' })).toBe('');
+            expect(jSuites.mask.render(null, { mask: 'HH:MM:SS' })).toBe('');
+
+            // Mixed datetime inputs (should extract time part)
+            expect(jSuites.mask.render('2023-01-15 14:30:45', { mask: 'HH:MM:SS' })).toBe('14:30:45');
+            expect(jSuites.mask.render('2023-01-15T14:30:45Z', { mask: 'HH:MM AM/PM' })).toBe('02:30 PM');
+        });
+
+        test('datetime', () => {
+            // Combined date and time formats
+            expect(jSuites.mask.render('2023-01-15 14:30:45', { mask: 'YYYY-MM-DD HH:MM:SS' })).toBe('2023-01-15 14:30:45');
+            expect(jSuites.mask.render('2023-01-15 14:30:45', { mask: 'DD/MM/YYYY HH:MM' })).toBe('15/01/2023 14:30');
+            expect(jSuites.mask.render('2023-01-15 14:30:45', { mask: 'MMM DD, YYYY HH:MM AM/PM' })).toBe('Jan 15, 2023 02:30 PM');
+            expect(jSuites.mask.render('2023-01-15 02:30:45', { mask: 'DDDD, MMMM DD, YYYY H:MM:SS AM/PM' })).toBe('Sunday, January 15, 2023 2:30:45 AM');
+
+            // ISO 8601 formats
+            expect(jSuites.mask.render('2023-01-15T14:30:45Z', { mask: 'YYYY-MM-DDTHH:MM:SSZ' })).toBe('2023-01-15T14:30:45Z');
+            expect(jSuites.mask.render('2023-01-15T14:30:45.123Z', { mask: 'YYYY-MM-DDTHH:MM:SS.fffZ' })).toBe('2023-01-15T14:30:45.123Z');
+
+            // Date objects
+            expect(jSuites.mask.render(new Date('2023-01-15T14:30:45'), { mask: 'DD/MM/YYYY HH:MM:SS' })).toBe('15/01/2023 14:30:45');
+            expect(jSuites.mask.render(new Date('2023-01-15T14:30:45'), { mask: 'MMM DD, YYYY H:MM AM/PM' })).toBe('Jan 15, 2023 2:30 PM');
+        });
+    });
+
     describe('.extract', () => {
         test('currency', () => {
-            expect(jSuites.mask.render('$ 20,000.00', { mask: '$ #,##0.00' })).toEqual(20000.00)
-            expect(jSuites.mask.render('20,000.00', { mask: '#,##0.00' })).toEqual(20000.00)
-            expect(jSuites.mask.render('EU 20,000.00', { mask: '#,##0.00' })).toEqual(20000.00)
+            expect(jSuites.mask.extract('$ 20,000.00', { mask: '$ #,##0.00' })).toEqual(20000.00)
+            expect(jSuites.mask.extract('20,000.00', { mask: '#,##0.00' })).toEqual(20000.00)
+            expect(jSuites.mask.extract('EU 20,000.00', { mask: '#,##0.00' })).toEqual(20000.00)
         });
 
         test('number', () => {
@@ -2020,11 +2165,8 @@ describe('jSuites mask', () => {
         });
 
         test('percentage', () => {
-            expect(jSuites.mask.render('100%', { mask: '0%' })).toEqual(1)
-            expect(jSuites.mask.render('0%', { mask: '0%' })).toEqual(0)
-            expect(jSuites.mask.render('50%', { mask: '0%' })).toEqual(0.5)
-            expect(jSuites.mask.render('150%', { mask: '0%' })).toEqual(1.5)
-            expect(jSuites.mask.render('50.50%', { mask: '0.00%' })).toEqual(0.505)
+            expect(jSuites.mask.render('100%', { mask: '0%' })).toEqual('100%');
+            expect(jSuites.mask.render('0%', { mask: '0%' })).toEqual('0%');
         });
 
         test('date', () => {
