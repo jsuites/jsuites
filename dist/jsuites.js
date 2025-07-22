@@ -427,14 +427,24 @@ Helpers.two = function(value) {
 }
 
 Helpers.focus = function(el) {
-    if (el.innerText.length) {
-        var range = document.createRange();
-        var sel = window.getSelection();
-        var node = el.childNodes[el.childNodes.length-1];
-        range.setStart(node, node.length)
-        range.collapse(true)
-        sel.removeAllRanges()
-        sel.addRange(range)
+    if (el.textContent.length) {
+        // Handle contenteditable elements
+        const range = document.createRange();
+        const sel = window.getSelection();
+
+        let node = el;
+        // Go as deep as possible to the last text node
+        while (node.lastChild) node = node.lastChild;
+        // Ensure it's a text node
+        if (node.nodeType === Node.TEXT_NODE) {
+            range.setStart(node, node.length);
+        } else {
+            range.setStart(node, node.childNodes.length);
+        }
+        range.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(range);
+
         el.scrollLeft = el.scrollWidth;
     }
 }
@@ -574,6 +584,10 @@ Helpers.findElement = function(element, condition) {
 
 /* harmony default export */ var helpers = (Helpers);
 ;// CONCATENATED MODULE: ./src/utils/path.js
+const isValidPathObj = function(o) {
+    return typeof o === 'object' || typeof o === 'function';
+}
+
 function Path(pathString, value, remove) {
     // Ensure the path is a valid, non-empty string
     if (typeof pathString !== 'string' || pathString.length === 0) {
@@ -595,11 +609,7 @@ function Path(pathString, value, remove) {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             // Check if the current object is valid and has the key
-            if (
-                currentObject != null &&
-                typeof currentObject === 'object' &&
-                Object.prototype.hasOwnProperty.call(currentObject, key)
-            ) {
+            if (currentObject != null && isValidPathObj(currentObject) && Object.prototype.hasOwnProperty.call(currentObject, key)) {
                 currentObject = currentObject[key];
             } else {
                 // Return undefined if the path is invalid or currentObject is null/undefined
@@ -616,16 +626,13 @@ function Path(pathString, value, remove) {
         const key = keys[i];
 
         // Check if the current object is invalid (null/undefined or non-object)
-        if (currentObject == null || typeof currentObject !== 'object') {
+        if (currentObject == null || ! isValidPathObj(currentObject)) {
             console.warn(`Cannot set value: path '${pathString}' blocked by invalid object at '${key}'`);
             return false;
         }
 
         // If the key exists but is null/undefined or a non-object, replace it with an empty object
-        if (
-            Object.prototype.hasOwnProperty.call(currentObject, key) &&
-            (currentObject[key] == null || typeof currentObject[key] !== 'object')
-        ) {
+        if (Object.prototype.hasOwnProperty.call(currentObject, key) && (currentObject[key] == null || ! isValidPathObj(currentObject[key]))) {
             currentObject[key] = {};
         } else if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
             // If the key doesn't exist, create an empty object
@@ -12996,7 +13003,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.11.0',
+    version: '5.11.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

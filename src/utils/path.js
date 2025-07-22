@@ -1,3 +1,7 @@
+const isValidPathObj = function(o) {
+    return typeof o === 'object' || typeof o === 'function';
+}
+
 export default function Path(pathString, value, remove) {
     // Ensure the path is a valid, non-empty string
     if (typeof pathString !== 'string' || pathString.length === 0) {
@@ -21,7 +25,7 @@ export default function Path(pathString, value, remove) {
             // Check if the current object is valid and has the key
             if (
                 currentObject != null &&
-                typeof currentObject === 'object' &&
+                isValidPathObj(currentObject) &&
                 Object.prototype.hasOwnProperty.call(currentObject, key)
             ) {
                 currentObject = currentObject[key];
@@ -40,7 +44,7 @@ export default function Path(pathString, value, remove) {
         const key = keys[i];
 
         // Check if the current object is invalid (null/undefined or non-object)
-        if (currentObject == null || typeof currentObject !== 'object') {
+        if (currentObject == null || ! isValidPathObj(currentObject)) {
             console.warn(`Cannot set value: path '${pathString}' blocked by invalid object at '${key}'`);
             return false;
         }
@@ -48,7 +52,7 @@ export default function Path(pathString, value, remove) {
         // If the key exists but is null/undefined or a non-object, replace it with an empty object
         if (
             Object.prototype.hasOwnProperty.call(currentObject, key) &&
-            (currentObject[key] == null || typeof currentObject[key] !== 'object')
+            (currentObject[key] == null || ! isValidPathObj(currentObject[key]))
         ) {
             currentObject[key] = {};
         } else if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
@@ -64,7 +68,7 @@ export default function Path(pathString, value, remove) {
     const finalKey = keys[keys.length - 1];
 
     // Check if the current object is valid for setting/deleting
-    if (currentObject == null || typeof currentObject !== 'object') {
+    if (currentObject == null || ! isValidPathObj(currentObject)) {
         return false;
     }
 
