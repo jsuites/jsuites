@@ -1412,7 +1412,7 @@ function Mask() {
         // Number
         numeric: [ '0+([.,]{1}0+#*)?' ],
         // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
+        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
         general: [ 'A', '0', '#', '\\?', '[0-9a-zA-Z\\$]+', '.']
     }
@@ -1842,26 +1842,56 @@ function Mask() {
                 }
             }
         },
-        'N60': function(v, i) {
-            if (this.values[this.index] == null || this.values[this.index] == '') {
-                if (parseInt(v) > 5 && parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
+        'N60': function(v, i, two) {
+            let test = false;
+            if (parseInt(v) >= 0 && parseInt(v) < 10) {
+                if (this.values[this.index] == null || this.values[this.index] == '') {
+                    if (parseInt(v) > 5 && parseInt(v) < 10) {
+                        if (two) {
+                            v = '0' + v;
+                        }
+                        this.date[i] = this.values[this.index] = v;
+                        this.index++;
+                    } else if (parseInt(v) < 10) {
+                        this.values[this.index] = v;
+                    }
+                } else {
+                    if (this.values[this.index] < 6 && parseInt(v) < 10) {
+                        if (!two && this.values[this.index] === '0') {
+                            this.values[this.index] = '';
+                        }
+                        this.date[i] = this.values[this.index] += v;
+                        this.index++;
+                    } else {
+                        test = true;
+                    }
                 }
             } else {
-                if (parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] += v;
+                test = true;
+            }
+
+            // Re-test
+            if (test === true) {
+                var t = parseInt(this.values[this.index]);
+                if (t >= 0 && t < 60) {
+                    this.date[i] = this.values[this.index];
                     this.index++;
+                    // Repeat the character
+                    this.position--;
                 }
             }
         },
         'MI': function(v) {
-            parseMethods.N60.call(this, v, 4);
+            parseMethods.N60.call(this, v, 4, true);
         },
         'SS': function(v) {
-            parseMethods.N60.call(this, v, 5);
+            parseMethods.N60.call(this, v, 5, true);
+        },
+        'I': function(v) {
+            parseMethods.N60.call(this, v, 4, false);
+        },
+        'S': function(v) {
+            parseMethods.N60.call(this, v, 5, false);
         },
         'AM/PM': function(v) {
             if (typeof(this.values[this.index]) === 'undefined') {
@@ -1876,6 +1906,11 @@ function Mask() {
                 }
             } else if (this.values[this.index] === 'A' || this.values[this.index] === 'P') {
                 this.values[this.index] += 'M';
+
+                console.log(this.date)
+                //console.log(this.values);
+                //if (v > 12 && this.tokens.indexOf('AM/PM') !== -1) {
+
                 this.index++;
             }
         },
@@ -2115,6 +2150,21 @@ function Mask() {
         }
     }
 
+    const fixMinuteToken = function(t) {
+        for (let i = 0; i < t.length; i++) {
+            if (t[i] === 'M' || t[i] === 'MM') {
+                // Not a month, correct to minutes
+                if ((t[i - 1] && t[i - 1].indexOf('H') >= 0) ||
+                    (t[i - 2] && t[i - 2].indexOf('H') >= 0) ||
+                    (t[i + 1] && t[i + 1].indexOf('S') >= 0) ||
+                    (t[i + 2] && t[i + 2].indexOf('S') >= 0)) {
+                    // Apply minute token
+                    t[i] = t[i] === 'M' ? 'I': 'MI';
+                }
+            }
+        }
+    }
+
     /**
      * Identify each method for each token
      */
@@ -2125,20 +2175,7 @@ function Mask() {
         }
 
         // Compatibility with Excel
-        for (let i = 0; i < t.length; i++) {
-            if (t[i] === 'MM') {
-                // Not a month, correct to minutes
-                if (t[i-1] && t[i-1].indexOf('H') >= 0) {
-                    t[i] = 'MI';
-                } else if (t[i-2] && t[i-2].indexOf('H') >= 0) {
-                    t[i] = 'MI';
-                } else if (t[i+1] && t[i+1].indexOf('S') >= 0) {
-                    t[i] = 'MI';
-                } else if (t[i+2] && t[i+2].indexOf('S') >= 0) {
-                    t[i] = 'MI';
-                }
-            }
-        }
+        fixMinuteToken(t);
 
         let result = [];
         for (let i = 0; i < t.length; i++) {
@@ -2196,7 +2233,7 @@ function Mask() {
             }
         } else {
             if (number[1]) {
-                number[0] = Number(number[0]).toFixed(0);
+                number[0] = parseFloat(number.join('.')).toFixed(0);
                 number[1] = '';
             }
         }
@@ -2270,6 +2307,7 @@ function Mask() {
     const Component = function(str, config) {
         // Get configuration
         const control = getConfig(config)
+        console.log(control)
         // Value to be masked
         control.value = str.toString();
         control.raw = str;
@@ -2381,6 +2419,8 @@ function Mask() {
             var t = Component.getDateString(value, options.mask);
             if (t) {
                 value = t;
+            } else {
+                return '';
             }
         } else if (type === 'percentage') {
             if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
@@ -2421,19 +2461,60 @@ function Mask() {
                     if (v.type !== 'currency') {
                         processNumOfPaddingZeros(token, number);
                     }
-                    if (v.type === 'percentage') {
-                        if (typeof(number[1]) === 'undefined') {
-                            number[1] = '';
-                        }
-                        number[1] += '%';
-                    }
                     // Result
-                    //control.values[k] = number.join(decimal);
+                    if (number[1]) {
+                        control.values[k] = number.join(decimal);
+                    } else {
+                        control.values[k] = number[0];
+                    }
+                    // Symbol
+                    if (v.type === 'percentage') {
+                        control.values[k] += '%';
+                    }
                 }
             });
         }
 
         return getValue(control);
+    }
+
+    const extractDateAndTime = function(value) {
+        value = '' + value.substring(0,19);
+        let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
+        value = value.split(splitStr);
+
+        let y = null;
+        let m = null;
+        let d = null;
+        let h = '0';
+        let i = '0';
+        let s = '0';
+
+        if (! value[1]) {
+            if (value[0].indexOf(':') !== -1) {
+                value[0] = value[0].split(':');
+                h = value[0][0];
+                i = value[0][1];
+                s = value[0][2];
+            } else {
+                value[0] = value[0].split('-');
+                y = value[0][0];
+                m = value[0][1];
+                d = value[0][2];
+            }
+        } else {
+            value[0] = value[0].split('-');
+            y = value[0][0];
+            m = value[0][1];
+            d = value[0][2];
+
+            value[1] = value[1].split(':');
+            h = value[1][0];
+            i = value[1][1];
+            s = value[1][2];
+        }
+
+        return [y,m,d,h,i,s];
     }
 
     Component.getDateString = function(value, options) {
@@ -2458,12 +2539,14 @@ function Mask() {
             format = 'YYYY-MM-DD';
         }
 
+        format = format.toUpperCase();
+
         // Convert to number of hours
-        if (format.indexOf('[h]') >= 0) {
+        if (format.indexOf('[H]') >= 0) {
             let result = 0;
             if (value && helpers.isNumeric(value)) {
                 result = parseFloat(24 * Number(value));
-                if (format.indexOf('mm') >= 0) {
+                if (format.indexOf('MM') >= 0) {
                     let d;
                     let h = ('' + result).split('.');
                     if (h[1]) {
@@ -2494,20 +2577,7 @@ function Mask() {
         let t = format.match(e);
 
         // Compatibility with Excel
-        for (let i = 0; i < t.length; i++) {
-            if (t[i].toUpperCase() == 'MM') {
-                // Not a month, correct to minutes
-                if (t[i - 1] && t[i - 1].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i - 2] && t[i - 2].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 1] && t[i + 1].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 2] && t[i + 2].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                }
-            }
-        }
+        fixMinuteToken(t);
 
         // Object
         const o = {
@@ -2516,29 +2586,24 @@ function Mask() {
 
         // Value
         if (value) {
-            let d = '' + value;
-            let splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
-            d = d.split(splitStr);
-
-            let h = 0;
-            let m = 0;
-            let s = 0;
-
-            if (d[1]) {
-                h = d[1].split(':');
-                m = h[1] ? h[1] : 0;
-                s = h[2] ? h[2] : 0;
-                h = h[0] ? h[0] : 0;
-            }
-
-            d = d[0].split('-');
-
-            let day = new Date(d[0], d[1], 0).getDate();
-
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
-
+            try {
                 // Data
-                o.data = [d[0], d[1], d[2], h, m, s];
+                o.data = extractDateAndTime(value);
+
+                if (o.data[1] && o.data[1] > 12) {
+                    throw new Error('Invalid date');
+                } else if (o.data[3] && o.data[3] > 23) {
+                    throw new Error('Invalid date');
+                } else if (o.data[4] && o.data[4] > 59) {
+                    throw new Error('Invalid date');
+                } else if (o.data[5] && o.data[5] > 59) {
+                    throw new Error('Invalid date');
+                } else if (o.data[0] != null && o.data[1] != null) {
+                    let day = new Date(o.data[0], o.data[1], 0).getDate();
+                    if (o.data[2] > day) {
+                        throw new Error('Invalid date');
+                    }
+                }
 
                 // Value
                 o.value = [];
@@ -2547,9 +2612,10 @@ function Mask() {
                 let calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
 
                 // Get method
-                var get = function (i) {
+                const get = function (i) {
                     // Token
                     let t = this.tokens[i];
+
                     // Case token
                     let s = t.toUpperCase();
                     let v = null;
@@ -2596,8 +2662,12 @@ function Mask() {
                         v = Math.floor((calendar.getMonth() + 3) / 3);
                     } else if (s === 'HH24' || s === 'HH') {
                         v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
+                        if (this.tokens.indexOf('AM/PM') !== -1) {
+                            if (v > 12) {
+                                v -= 12;
+                            } else if (v == '0' || v == '00') {
+                                v = 12;
+                            }
                         }
                         v = helpers.two(v);
                     } else if (s === 'HH12') {
@@ -2608,14 +2678,21 @@ function Mask() {
                         }
                     } else if (s === 'H') {
                         v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
-                            v = helpers.two(v);
+                        if (this.tokens.indexOf('AM/PM') !== -1) {
+                            if (v > 12) {
+                                v -= 12;
+                            } else if (v == '0' || v == '00') {
+                                v = 12;
+                            }
                         }
                     } else if (s === 'MI') {
                         v = helpers.two(this.data[4]);
+                    } else if (s === 'I') {
+                        v = parseInt(this.data[4]);
                     } else if (s === 'SS') {
                         v = helpers.two(this.data[5]);
+                    } else if (s === 'S') {
+                        v = parseInt(this.data[5]);
                     } else if (s === 'MS') {
                         v = calendar.getMilliseconds();
                     } else if (s === 'AM/PM') {
@@ -2638,9 +2715,9 @@ function Mask() {
                 for (let i = 0; i < o.tokens.length; i++) {
                     get.call(o, i);
                 }
-                // Put pieces together
+
                 value = o.value.join('');
-            } else {
+            } catch (e) {
                 value = '';
             }
         }
