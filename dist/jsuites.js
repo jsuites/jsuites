@@ -1406,15 +1406,15 @@ function Mask() {
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
-        scientific: [ '0+([.,]{1}0+#*)?E{1}\\+0+' ],
+        scientific: [ '[0#]+([.,]{1}0*#*)?E{1}\\+0+' ],
         // Percentage
-        percentage: [ '0+([.,]{1}0+#*)?%' ],
+        percentage: [ '[0#]+([.,]{1}0*#*)?%' ],
         // Number
-        numeric: [ '0+([.,]{1}0+#*)?' ],
+        numeric: [ '[0#]+([.,]{1}0*#*)?', '#+' ],
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '#', '\\?', '[0-9a-zA-Z\\$]+', '.']
+        general: [ 'A', '0', '\\?', '[0-9a-zA-Z\\$]+', '.']
     }
 
     // Labels
@@ -1779,7 +1779,7 @@ function Mask() {
         'HH24': function(v, two) {
             let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] == null || this.values[this.index] == '') {
+                if (isBlank()) {
                     if (parseInt(v) > 2 && parseInt(v) < 10) {
                         if (two) {
                             v = 0 + v;
@@ -1807,7 +1807,9 @@ function Mask() {
                     }
                 }
             } else {
-                test = true;
+                if (! two) {
+                    test = true;
+                }
             }
 
             // Re-test
@@ -1845,7 +1847,7 @@ function Mask() {
         'N60': function(v, i, two) {
             let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] == null || this.values[this.index] == '') {
+                if (isBlank(this.values[this.index])) {
                     if (parseInt(v) > 5 && parseInt(v) < 10) {
                         if (two) {
                             v = '0' + v;
@@ -1857,7 +1859,7 @@ function Mask() {
                     }
                 } else {
                     if (this.values[this.index] < 6 && parseInt(v) < 10) {
-                        if (!two && this.values[this.index] === '0') {
+                        if (! two && this.values[this.index] === '0') {
                             this.values[this.index] = '';
                         }
                         this.date[i] = this.values[this.index] += v;
@@ -1866,7 +1868,7 @@ function Mask() {
                         test = true;
                     }
                 }
-            } else {
+            } else if (this.values[this.index] && ! two) {
                 test = true;
             }
 
@@ -1926,7 +1928,7 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '0+([.,]{1}0+#*)?': function(v, thousandSeparator) {
+        '[0#]+([.,]{1}0*#*)?': function(v, thousandSeparator) {
             if (v === '.' && inputIsANumber(this.raw)) {
                 v = this.decimal;
             }
@@ -1968,8 +1970,8 @@ function Mask() {
                 this.values[this.index] += v;
             }
         },
-        '0+([.,]{1}0+#*)?%': function(v) {
-            parseMethods['0+([.,]{1}0+#*)?'].call(this, v);
+        '[0#]+([.,]{1}0*#*)?%': function(v) {
+            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
 
             // Adds the % only if it has a number value
             if (this.values[this.index].match(/[\-0-9]/g)) {
@@ -1981,12 +1983,12 @@ function Mask() {
                 this.values[this.index] = '';
             }
         },
-        '0+([.,]{1}0+#*)?E{1}\\+0+': function(v) {
-            parseMethods['0+([.,]{1}0+#*)?'].call(this, v);
+        '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
+            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
         },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
             // Process first the number
-            parseMethods['0+([.,]{1}0+#*)?'].call(this, v, true);
+            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v, true);
             // Create the separators
             let separator = this.tokens[this.index].substring(1,2);
             let currentValue = this.values[this.index];
@@ -2086,7 +2088,6 @@ function Mask() {
         }
     }
 
-
     const extractDate = function() {
         let v = '';
         if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
@@ -2122,27 +2123,41 @@ function Mask() {
         return v;
     }
 
+    // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
+
     const getTokens = function(str) {
-        // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
         const expressions = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
         // Expression to extract all tokens from the string
-        const methods = str.match(new RegExp(expressions.join('|'), 'gi'));
-        // Extract
-        return methods;
+        return str.match(new RegExp(expressions.join('|'), 'gi'));
     }
 
     /**
      * Get the method of one given token
      */
-    const getMethod = function(str) {
+    const getMethod = function(str, temporary) {
         const types = Object.keys(tokens);
 
-        // Found
+        // Check for datetime mask
+        let datetime = true;
+        for (let i = 0; i < temporary.length; i++) {
+            let type = temporary[i].type;
+            if (! (type === 'datetime' || type === 'general')) {
+                datetime = false;
+            }
+        }
+
+        // Remove date time from the possible types
+        if (datetime !== true) {
+            types.splice(5, 1);
+        }
+
+        // Get the method based on the token
         for (let i = 0; i < types.length; i++) {
-            var type = types[i];
-            for (var j = 0; j < tokens[type].length; j++) {
-                var e = new RegExp(tokens[type][j], 'gi');
-                var r = str.match(e);
+            let type = types[i];
+
+            for (let j = 0; j < tokens[type].length; j++) {
+                let e = new RegExp('^' + tokens[type][j] + '$', 'gi'); // Anchor regex
+                let r = str.toString().toUpperCase().match(e);
                 if (r) {
                     return { type: type, method: tokens[type][j] }
                 }
@@ -2170,18 +2185,17 @@ function Mask() {
      */
     const getMethodsFromTokens = function(t) {
         // Uppercase
-        for (let i = 0; i < t.length; i++) {
-            t[i] = t[i].toString().toUpperCase();
-        }
+        t = t.map(v => {
+            return v.toString().toUpperCase();
+        });
 
         // Compatibility with Excel
         fixMinuteToken(t);
 
         let result = [];
         for (let i = 0; i < t.length; i++) {
-            var m = getMethod.call(this, t[i]);
+            var m = getMethod(t[i], result);
             if (m) {
-                m.token = t[i].toUpperCase();
                 result.push(m);
             } else {
                 result.push(null);
@@ -2203,48 +2217,26 @@ function Mask() {
         return false;
     }
 
-    const processNumOfDecimals = function(token, number) {
-        // Process decimals
-        if (token[1]) {
-            let numOfDecimals = 0;
-            let numOfHashes = 0;
-            let test = token[1].match(/[0-9]+/g);
-            if (test && test[0]) {
-                numOfDecimals = test[0].length;
-            }
-            test = token[1].match(/#+/g);
-            if (test && test[0]) {
-                numOfHashes = test[0].length;
-            }
-            let fraction = number[1];
-            if (fraction) {
-                let res;
-                if (fraction.length > numOfDecimals + numOfHashes) {
-                    if (fraction[fraction.length - 1] === '5') {
-                        fraction = fraction + '1';
-                    }
-                    res = parseFloat('0.' + fraction).toFixed(numOfDecimals + numOfHashes);
-                } else if (fraction.length < numOfDecimals) {
-                    res = parseFloat('0.' + fraction).toFixed(numOfDecimals);
-                }
-                if (res) {
-                    number[1] = res.toString().split('.')[1];
-                }
-            }
-        } else {
-            if (number[1]) {
-                number[0] = parseFloat(number.join('.')).toFixed(0);
-                number[1] = '';
-            }
+    const processPaddingZeros = function(token, value, decimal) {
+        let m = token.split(decimal);
+        let desiredNumOfPaddingZeros = m[0].length;
+        let v = value.toString().split(decimal);
+        let len = v[0].length;
+        if (desiredNumOfPaddingZeros > len) {
+            v[0] = v[0].padStart(desiredNumOfPaddingZeros, '0');
+            return v.join(decimal);
         }
     }
 
-    const processNumOfPaddingZeros = function(token, number) {
-        // Process zeros
-        let numOfPaddingZeros = token[0].length;
-        if (numOfPaddingZeros > 1) {
-            number[0] = number[0].toString().padStart(numOfPaddingZeros, '0');
-        }
+    const processNumOfPaddingZeros = function(control) {
+        control.methods.forEach((method, k) => {
+            if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
+                let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
+                if (ret) {
+                    control.values[k] = ret;
+                }
+            }
+        });
     }
 
     const getValue = function(control) {
@@ -2256,6 +2248,24 @@ function Mask() {
             num = num.trim();
         }
         return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const getType = function(control) {
+        // Mask type
+        let type = 'general';
+        // Process other types
+        for (var i = 0; i < control.methods.length; i++) {
+            let m = control.methods[i];
+            if (m && m.type !== 'general' && m.type !== type) {
+                if (type === 'general') {
+                    type = m.type;
+                }  else {
+                    type = 'general';
+                    break;
+                }
+            }
+        }
+        return type;
     }
 
     const getConfig = function(config) {
@@ -2301,13 +2311,15 @@ function Mask() {
             control.methods = getMethodsFromTokens(control.tokens);
         }
 
+        control.type = getType(control);
+
         return control;
     }
 
-    const Component = function(str, config) {
+    const Component = function(str, config, returnObject) {
         // Get configuration
-        const control = getConfig(config)
-        console.log(control)
+        const control = getConfig(config);
+
         // Value to be masked
         control.value = str.toString();
         control.raw = str;
@@ -2347,7 +2359,11 @@ function Mask() {
 
         control.value = getValue(control);
 
-        return control;
+        if (returnObject) {
+            return control;
+        } else {
+            return control.value;
+        }
     }
 
     Component.oninput = function(e) {
@@ -2368,8 +2384,9 @@ function Mask() {
         if (caret) {
             value = value.substring(0, caret) + "\u200B" + value.substring(caret);
         }
+
         // Run mask
-        let result = Component(value, { mask: mask });
+        let result = Component(value, { mask: mask }, true);
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element
@@ -2388,91 +2405,168 @@ function Mask() {
         }
     }
 
-    Component.getType = function(config) {
-        // Get configuration
-        const control = getConfig(config);
-        // Mask type
-        let type = 'general';
-        // Process other types
-        for (var i = 0; i < control.methods.length; i++) {
-            let m = control.methods[i];
-            if (m && m.type !== 'general' && m.type !== type) {
-                if (type === 'general') {
-                    type = m.type;
-                }  else {
-                    type = 'general';
-                    break;
+    const toPlainString = function(num) {
+        // Convert number to string if it isn't already
+        num = String(num);
+
+        // If it's not in exponential form, return as-is
+        if (!/e/i.test(num)) return num;
+
+        // Decompose scientific notation
+        const [coefficient, exponent] = num.toLowerCase().split('e');
+        const exp = parseInt(exponent, 10);
+
+        // Handle sign
+        const sign = coefficient[0] === '-' ? '-' : '';
+        const [intPart, fracPart = ''] = coefficient.replace('-', '').split('.');
+
+        const digits = intPart + fracPart;
+        const decimalPos = intPart.length;
+
+        let newPos = decimalPos + exp;
+
+        if (newPos <= 0) {
+            // Decimal point moves left
+            return sign + '0.' + '0'.repeat(-newPos) + digits;
+        } else if (newPos >= digits.length) {
+            // Decimal point moves right, add trailing zeros
+            return sign + digits + '0'.repeat(newPos - digits.length);
+        } else {
+            // Decimal point moves into the number
+            return sign + digits.slice(0, newPos) + '.' + digits.slice(newPos);
+        }
+    };
+
+    const adjustNumberOfDecimalPlaces = function(config, value) {
+        let temp = value;
+        let mask = config.mask;
+        let expo;
+
+        if (config.type === 'scientific') {
+            mask = config.mask.toUpperCase().split('E')[0];
+
+            let numOfDecimalPlaces = mask.split(config.decimal);
+            numOfDecimalPlaces = numOfDecimalPlaces[1].match(/[0#]+/g);
+            numOfDecimalPlaces = numOfDecimalPlaces[0]?.length ?? 0;
+            temp = temp.toExponential(numOfDecimalPlaces);
+            expo = temp.toString().split('e+');
+            temp = Number(expo[0]);
+        }
+
+        if (mask.indexOf(config.decimal) === -1) {
+            // No decimal places
+            if (! Number.isInteger(temp)) {
+                temp = temp.toFixed(0);
+            }
+        } else {
+            // Length of the decimal
+            let mandatoryDecimalPlaces = mask.split(config.decimal);
+            mandatoryDecimalPlaces = mandatoryDecimalPlaces[1].match(/0+/g);
+            if (mandatoryDecimalPlaces) {
+                mandatoryDecimalPlaces = mandatoryDecimalPlaces[0].length;
+            } else {
+                mandatoryDecimalPlaces = 0;
+            }
+            // Amount of decimal
+            let numOfDecimalPlaces = temp.toString().split(config.decimal)
+            numOfDecimalPlaces = numOfDecimalPlaces[1]?.length ?? 0;
+            // Necessary adjustment
+            let necessaryAdjustment = 0;
+            if (numOfDecimalPlaces < mandatoryDecimalPlaces) {
+                necessaryAdjustment = mandatoryDecimalPlaces;
+            } else {
+                // Optional
+                let optionalDecimalPlaces = mask.split(config.decimal);
+                optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g)[0].length;
+                if (numOfDecimalPlaces > optionalDecimalPlaces) {
+                    necessaryAdjustment = optionalDecimalPlaces;
                 }
             }
+            // Adjust decimal numbers if applicable
+            if (necessaryAdjustment) {
+                let t = temp.toFixed(necessaryAdjustment);
+                let n = temp.toString().split('.');
+                let fraction = n[1];
+                if (fraction && fraction.length > necessaryAdjustment && fraction[fraction.length - 1] === '5') {
+                    t = parseFloat(n[0] + '.' + fraction + '1').toFixed(necessaryAdjustment);
+                }
+                temp = t;
+            }
         }
-        return type;
+
+        if (config.type === 'scientific') {
+            let ret = processPaddingZeros(mask, temp, config.decimal);
+            if (ret) {
+                temp = ret;
+            }
+            expo[0] = temp;
+
+            mask = config.mask.toUpperCase().split('E+')[1];
+            ret = processPaddingZeros(mask, expo[1], config.decimal);
+            if (ret) {
+                expo[1] = ret;
+            }
+
+            temp = expo.join('e+');
+        }
+
+        return temp;
     }
 
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
     Component.render = function(value, options, fullMask) {
-
-        const type = Component.getType(options);
+        // Config
+        const config = getConfig(options);
 
         // Percentage
-        if (type === 'datetime') {
-            var t = Component.getDateString(value, options.mask);
+        if (config.type === 'datetime') {
+            var t = Component.getDateString(value, config.mask);
             if (t) {
                 value = t;
             } else {
                 return '';
             }
-        } else if (type === 'percentage') {
-            if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
-                value = Number(value.replace('%', ''));
-            } else {
-                value = adjustPrecision(Number(value) * 100);
+        } else if (config.type === 'text') {
+            // Parse number
+            if (typeof(value) === 'number') {
+                value = value.toString();
+            }
+        } else {
+            if (config.type === 'percentage') {
+                if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
+                    value = value.replace('%', '');
+                } else {
+                    value = adjustPrecision(Number(value) * 100);
+                }
+            }
+
+            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
+                value = Number(value);
+            }
+
+            if (typeof value === 'number') {
+                // Temporary value
+                let temp = value;
+
+                if (fullMask) {
+                    temp = adjustNumberOfDecimalPlaces(config, value);
+
+                    if (config.type === 'scientific') {
+                        return temp;
+                    }
+                }
+
+                value = toPlainString(temp);
             }
         }
 
         // Process mask
-        let control = Component(value, options);
+        let control = Component(value, options, true);
 
         // Complement render
         if (fullMask) {
-            // Decimal
-            let decimal = control.decimal;
-            // Adjust final value
-            control.methods.forEach((v, k) => {
-                // Value
-                let value = control.values[k];
-                // Transform based on the mask
-                if (isNumeric(v.type)) {
-                    let number, token;
-                    if (v.type === 'percentage') {
-                        // Value
-                        number = value.replace('%','').split(decimal);
-                        // Token
-                        token = v.token.replace('%','').split(decimal);
-                    } else {
-                        // Value
-                        number = value.split(decimal);
-                        // Token
-                        token = v.token.split(decimal);
-                    }
-                    // Transform
-                    processNumOfDecimals(token, number);
-                    // Do not apply padding zeros for currency
-                    if (v.type !== 'currency') {
-                        processNumOfPaddingZeros(token, number);
-                    }
-                    // Result
-                    if (number[1]) {
-                        control.values[k] = number.join(decimal);
-                    } else {
-                        control.values[k] = number[0];
-                    }
-                    // Symbol
-                    if (v.type === 'percentage') {
-                        control.values[k] += '%';
-                    }
-                }
-            });
+            processNumOfPaddingZeros(control);
         }
 
         return getValue(control);
@@ -12402,7 +12496,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jSuites = {
+var jsuites_jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
@@ -12413,7 +12507,7 @@ var jSuites = {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jSuites[k[i]] = o[k[i]];
+                jsuites_jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -12448,8 +12542,8 @@ var jSuites = {
 }
 
 // Legacy
-jSuites.image = Upload;
-jSuites.image.create = function(data) {
+jsuites_jSuites.image = Upload;
+jsuites_jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -12459,9 +12553,9 @@ jSuites.image.create = function(data) {
     return img;
 }
 
-jSuites.tracker = plugins_form;
-jSuites.loading = animation.loading;
-jSuites.sha512 = (sha512_default());
+jsuites_jSuites.tracker = plugins_form;
+jsuites_jSuites.loading = animation.loading;
+jsuites_jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -12562,7 +12656,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -12748,7 +12842,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jSuites.findElement(element, 'jpanel');
+            let item = jsuites_jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -12808,7 +12902,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -12866,7 +12960,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jSuites.findElement(e.target, function(o) {
+            item = jsuites_jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -12910,7 +13004,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jSuites.mask.oninput(e);
+            jsuites_jSuites.mask.oninput(e);
         }
     }
 
@@ -12928,7 +13022,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jSuites);
+/* harmony default export */ var jsuites = (jsuites_jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()
