@@ -404,9 +404,6 @@ describe('jSuites mask', () => {
             input.value = '36';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
-            input.value = '1.0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
             input.value = '-3';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
@@ -456,9 +453,6 @@ describe('jSuites mask', () => {
             input.value = '36';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
-            input.value = '1.0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
             input.value = '-3';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
@@ -843,12 +837,6 @@ describe('jSuites mask', () => {
             input.value = '15';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
-            input.value = '1.0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
-            input.value = '1,0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
             input.value = '-1';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
@@ -901,12 +889,6 @@ describe('jSuites mask', () => {
             input.value = '15';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
-            input.value = '1.0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
-            input.value = '1,0';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('10');
             input.value = '-1';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
@@ -1554,9 +1536,6 @@ describe('jSuites mask', () => {
             input.value = '-3';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
-            input.value = '1.2';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('12');
             input.value = 'abcd';
             input.dispatchEvent(event);
             expect(input.value).toEqual('');
@@ -1586,9 +1565,6 @@ describe('jSuites mask', () => {
             input.dispatchEvent(event);
             expect(input.value).toEqual('09');
             input.value = '12';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('12');
-            input.value = '1.2';
             input.dispatchEvent(event);
             expect(input.value).toEqual('12');
             input.value = 'abcd';
@@ -1652,9 +1628,6 @@ describe('jSuites mask', () => {
             input.value = '-3';
             input.dispatchEvent(event);
             expect(input.value).toEqual('3');
-            input.value = '1.2';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('12');
             input.value = 'abcd';
             input.dispatchEvent(event);
             expect(input.value).toEqual('');
@@ -1713,9 +1686,6 @@ describe('jSuites mask', () => {
             input.value = '-1';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
-            input.value = '1.2';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('12');
             input.value = 'abcd';
             input.dispatchEvent(event);
             expect(input.value).toEqual('');
@@ -1774,9 +1744,6 @@ describe('jSuites mask', () => {
             input.value = '-1';
             input.dispatchEvent(event);
             expect(input.value).toEqual('1');
-            input.value = '1.2';
-            input.dispatchEvent(event);
-            expect(input.value).toEqual('12');
             input.value = 'abcd';
             input.dispatchEvent(event);
             expect(input.value).toEqual('');

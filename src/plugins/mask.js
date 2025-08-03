@@ -382,7 +382,7 @@ function Mask() {
         'HH24': function(v, two) {
             let test = false;
             if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank()) {
+                if (isBlank(this.values[this.index])) {
                     if (parseInt(v) > 2 && parseInt(v) < 10) {
                         if (two) {
                             v = 0 + v;
@@ -410,9 +410,7 @@ function Mask() {
                     }
                 }
             } else {
-                if (! two) {
-                    test = true;
-                }
+                test = true;
             }
 
             // Re-test
@@ -471,7 +469,7 @@ function Mask() {
                         test = true;
                     }
                 }
-            } else if (this.values[this.index] && ! two) {
+            } else {
                 test = true;
             }
 
@@ -511,11 +509,6 @@ function Mask() {
                 }
             } else if (this.values[this.index] === 'A' || this.values[this.index] === 'P') {
                 this.values[this.index] += 'M';
-
-                console.log(this.date)
-                //console.log(this.values);
-                //if (v > 12 && this.tokens.indexOf('AM/PM') !== -1) {
-
                 this.index++;
             }
         },
@@ -1212,6 +1205,33 @@ function Mask() {
         }
 
         return [y,m,d,h,i,s];
+    }
+
+    // Helper to extract date from a string
+    Component.extractDateFromString = function (date, format) {
+        let o = Component(date, { mask: format }, true);
+
+        // Check if in format Excel (Need difference with format date or type detected is numeric)
+        if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
+            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
+            return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
+        }
+
+        let complete = false;
+
+        if (o.values && o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
+            complete = true;
+        }
+
+        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
+            if (!o.date[2]) {
+                o.date[2] = 1;
+            }
+
+            return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
+        }
+
+        return '';
     }
 
     Component.getDateString = function(value, options) {
