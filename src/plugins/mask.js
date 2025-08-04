@@ -1258,26 +1258,6 @@ function Mask() {
 
         format = format.toUpperCase();
 
-        // Convert to number of hours
-        if (format.indexOf('[H]') >= 0) {
-            let result = 0;
-            if (value && Helpers.isNumeric(value)) {
-                result = parseFloat(24 * Number(value));
-                if (format.indexOf('MM') >= 0) {
-                    let d;
-                    let h = ('' + result).split('.');
-                    if (h[1]) {
-                        d = 60 * parseFloat('0.' + h[1])
-                        d = parseFloat(d.toFixed(2));
-                    } else {
-                        d = 0;
-                    }
-                    result = parseInt(h[0]) + ':' + Helpers.two(d);
-                }
-            }
-            return result;
-        }
-
         // Date instance
         if (value instanceof Date) {
             value = HelpersDate.now(value);
@@ -1286,7 +1266,7 @@ function Mask() {
         }
 
         // Tokens
-        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
 
         // Expression to extract all tokens from the string
         let e = new RegExp(tokens.join('|'), 'gi');
@@ -1308,8 +1288,6 @@ function Mask() {
                 o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
-                    throw new Error('Invalid date');
-                } else if (o.data[3] && o.data[3] > 23) {
                     throw new Error('Invalid date');
                 } else if (o.data[4] && o.data[4] > 59) {
                     throw new Error('Invalid date');
@@ -1378,7 +1356,7 @@ function Mask() {
                     } else if (s === 'Q') {
                         v = Math.floor((calendar.getMonth() + 3) / 3);
                     } else if (s === 'HH24' || s === 'HH') {
-                        v = this.data[3];
+                        v = this.data[3]%24;
                         if (this.tokens.indexOf('AM/PM') !== -1) {
                             if (v > 12) {
                                 v -= 12;
@@ -1388,13 +1366,14 @@ function Mask() {
                         }
                         v = Helpers.two(v);
                     } else if (s === 'HH12') {
-                        if (this.data[3] > 12) {
-                            v = Helpers.two(this.data[3] - 12);
+                        v = this.data[3]%24;
+                        if (v > 12) {
+                            v = Helpers.two(v - 12);
                         } else {
-                            v = Helpers.two(this.data[3]);
+                            v = Helpers.two(v);
                         }
                     } else if (s === 'H') {
-                        v = this.data[3];
+                        v = this.data[3]%24;
                         if (this.tokens.indexOf('AM/PM') !== -1) {
                             if (v > 12) {
                                 v -= 12;
@@ -1402,6 +1381,8 @@ function Mask() {
                                 v = 12;
                             }
                         }
+                    } else if (s === '[H]') {
+                        v = this.data[3];
                     } else if (s === 'MI') {
                         v = Helpers.two(this.data[4]);
                     } else if (s === 'I') {
@@ -1442,8 +1423,7 @@ function Mask() {
         return value;
     }
 
-/*
-    Component.extract = function(v, options, returnObject) {
+/*    Component.extract = function(v, options, returnObject) {
         if (isBlank(v)) {
             return v;
         }
@@ -1530,8 +1510,7 @@ function Mask() {
         } else {
             return value;
         }
-    }
-    */
+    }*/
 
     return Component;
 }

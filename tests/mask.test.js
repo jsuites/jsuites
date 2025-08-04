@@ -236,6 +236,101 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('Excel-specific masking features', () => {
+        test('conditional formatting with brackets', () => {
+            // Excel supports conditional formatting with comparison operators in brackets
+            expect(jSuites.mask.render(500, { mask: '[>1000]#,##0.00"K";#,##0.00' })).toBe('500.00');
+            expect(jSuites.mask.render(1500, { mask: '[>1000]#,##0.00"K";#,##0.00' })).toBe('1,500.00K');
+            expect(jSuites.mask.render(-500, { mask: '[<0][Red](#,##0.00);#,##0.00' })).toBe('(500.00)');
+            expect(jSuites.mask.render(500, { mask: '[<0][Red](#,##0.00);#,##0.00' })).toBe('500.00');
+
+            // Test equality conditions
+            expect(jSuites.mask.render(1, { mask: '[=1]"one";[=2]"two";#' })).toBe('one');
+            expect(jSuites.mask.render(2, { mask: '[=1]"one";[=2]"two";#' })).toBe('two');
+            expect(jSuites.mask.render(3, { mask: '[=1]"one";[=2]"two";#' })).toBe('3');
+        });
+
+        test('negative number formatting with brackets', () => {
+            // Standard Excel negative number formats
+            expect(jSuites.mask.render(-1234.56, { mask: '#,##0.00;(#,##0.00)' })).toBe('(1,234.56)');
+            expect(jSuites.mask.render(1234.56, { mask: '#,##0.00;(#,##0.00)' })).toBe('1,234.56');
+            expect(jSuites.mask.render(-1234.56, { mask: '#,##0.00;[Red](#,##0.00)' })).toBe('(1,234.56)');
+
+            // With alignment spacing for decimal alignment
+            expect(jSuites.mask.render(1234.56, { mask: '#,##0.00_);[Red](#,##0.00)' })).toBe('1,234.56 ');
+            expect(jSuites.mask.render(-1234.56, { mask: '#,##0.00_);[Red](#,##0.00)' })).toBe('(1,234.56)');
+        });
+
+        test('complex conditional number formats', () => {
+            // Four-section format: positive;negative;zero;text
+            expect(jSuites.mask.render(100, { mask: '#,##0.00;"negative";0.00;"text"' })).toBe('100.00');
+            expect(jSuites.mask.render(-100, { mask: '#,##0.00;"negative";0.00;"text"' })).toBe('negative');
+            expect(jSuites.mask.render(0, { mask: '#,##0.00;"negative";0.00;"text"' })).toBe('0.00');
+            expect(jSuites.mask.render('hello', { mask: '#,##0.00;"negative";0.00;"@"' })).toBe('hello');
+
+            // Conditional with color and text combinations
+            expect(jSuites.mask.render(5, { mask: '[>10][Green]#,##0"+++";[Red]#,##0"---"' })).toBe('5---');
+            expect(jSuites.mask.render(15, { mask: '[>10][Green]#,##0"+++";[Red]#,##0"---"' })).toBe('15+++');
+        });
+
+        test('text and number combination masks', () => {
+            // Escaping characters with backslash
+            expect(jSuites.mask.render(1234, { mask: '#,##0kg' })).toBe('1,234kg');
+            expect(jSuites.mask.render(50, { mask: '0%' })).toBe('50%');
+            expect(jSuites.mask.render(25, { mask: '0"°C"' })).toBe('25°C');
+
+            // Plural/singular text based on value
+            expect(jSuites.mask.render(1, { mask: '[=1]0" mile";0" miles"' })).toBe('1 mile');
+            expect(jSuites.mask.render(2, { mask: '[=1]0" mile";0" miles"' })).toBe('2 miles');
+            expect(jSuites.mask.render(0, { mask: '[=1]0" mile";0" miles"' })).toBe('0 miles');
+        });
+
+        test('large number scaling formats', () => {
+            // Thousands scaling
+            expect(jSuites.mask.render(1500, { mask: '#,##0,,"M"' })).toBe('0M');
+            expect(jSuites.mask.render(1500000, { mask: '#,##0,,"M"' })).toBe('2M');
+            expect(jSuites.mask.render(1500000, { mask: '#,##0.0,,"M"' })).toBe('1.5M');
+
+            // Millions scaling
+            expect(jSuites.mask.render(1500000000, { mask: '#,##0,,,"B"' })).toBe('2B');
+            expect(jSuites.mask.render(1500000000, { mask: '#,##0.0,,,"B"' })).toBe('1.5B');
+        });
+
+        test('advanced date formats with conditions', () => {
+            // Conditional date formatting
+            expect(jSuites.mask.render('2023-01-01', { mask: '[=TODAY()]"Today";DD/MM/YYYY' })).toBe('01/01/2023');
+
+            // Custom date formats with text
+            expect(jSuites.mask.render('2023-12-25', { mask: 'DD"th of "MMMM", "YYYY' })).toBe('25th of December, 2023');
+            expect(jSuites.mask.render('2023-01-01', { mask: 'DDD", the "DD"st of "MMMM' })).toBe('Sun, the 01st of January');
+        });
+
+        test('input validation with bracket formats', () => {
+            testInputMask('[h]:mm:ss', [
+                { input: '25:30:45', expected: '25:30:45' },
+                { input: '100:00:00', expected: '100:00:00' },
+                { input: '0:15:30', expected: '0:15:30' }
+            ]);
+
+            // Test that regular time format caps at 24 hours
+            testInputMask('hh:mm:ss', [
+                { input: '25:30:45', expected: '01:30:45' }, // Should wrap to next day
+                { input: '23:59:59', expected: '23:59:59' }
+            ]);
+        });
+
+        test('accounting and financial formats', () => {
+            // Standard accounting format with space alignment
+            expect(jSuites.mask.render(1234.56, { mask: '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)' })).toBe(' $ 1,234.56 ');
+            expect(jSuites.mask.render(-1234.56, { mask: '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)' })).toBe(' $ (1,234.56)');
+            expect(jSuites.mask.render(0, { mask: '_($* #,##0.00_);_($* (#,##0.00);_($* "-"??_);_(@_)' })).toBe(' $ -   ');
+
+            // Currency with different negative formats
+            expect(jSuites.mask.render(-50.25, { mask: '$#,##0.00;-$#,##0.00;$0.00' })).toBe('-$50.25');
+            expect(jSuites.mask.render(-50.25, { mask: '$#,##0.00;($#,##0.00);$0.00' })).toBe('($50.25)');
+        });
+    });
+
     describe('render method', () => {
         test('currency rendering', () => {
             expect(jSuites.mask.render(-13552.94219, { mask: '# ##0'}, true)).toBe('-13 553');
@@ -277,6 +372,16 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render('00:30:45', { mask: 'HH:MM:SS AM/PM' })).toBe('12:30:45 AM');
             expect(jSuites.mask.render('09:30:45', { mask: 'H:MM:SS' })).toBe('9:30:45');
             expect(jSuites.mask.render(new Date('2023-01-15T14:30:45'), { mask: 'HH:MM:SS' })).toBe('14:30:45');
+
+            // Excel-like bracket time formats (duration over 24 hours)
+            expect(jSuites.mask.render('33:20', { mask: 'H:MM' })).toBe('9:20');
+            expect(jSuites.mask.render('33:20', { mask: '[h]:mm' })).toBe('33:20');
+            expect(jSuites.mask.render('25:30:45', { mask: '[h]:mm:ss' })).toBe('25:30:45');
+            expect(jSuites.mask.render('100:15', { mask: '[hh]:mm' })).toBe('100:15');
+
+            // Excel bracket formats for minutes and seconds over normal limits
+            expect(jSuites.mask.render('150:30', { mask: '[mm]:ss' })).toBe('150:30');
+            expect(jSuites.mask.render('3661', { mask: '[ss]' })).toBe('3661'); // Total seconds
         });
 
         test('datetime rendering', () => {
