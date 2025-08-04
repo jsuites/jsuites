@@ -17,7 +17,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '[0-9a-zA-Z\\$]+', '.']
+        general: [ 'A', '0', '\\?', '[0-9a-zA-Z\\$]+', '_\\)', ',,M', ',,B', '.']
     }
 
     // Labels
@@ -88,11 +88,25 @@ function Mask() {
                 if (! v) {
                     v  = this.mask;
                 }
-                let t = v.match(/[.,٫](?=\d{1,14})/g)
-                if (t) {
-                    decimal = t[0];
+
+                let e = new RegExp('0{1}(.{1})0+', 'ig');
+                let t = e.exec(v);
+                if (t && t[1] && t[1].length === 1) {
+                    decimal = t[1];
                 } else {
-                    decimal = '1.1'.toLocaleString().substring(1,2);
+                    e = new RegExp('#{1}(.{1})#+', 'ig');
+                    t = e.exec(v);
+                    if (t && t[1] && t[1].length === 1) {
+                        if (t[1] === ',') {
+                            decimal = '.';
+                        } else if (t[1] === "'" || t[1] === '.') {
+                            decimal = ',';
+                        }
+                    }
+                }
+
+                if (! decimal) {
+                    decimal = '1.1'.toLocaleString().substring(1, 2);
                 }
             }
         }
@@ -587,6 +601,8 @@ function Mask() {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v, true);
             // Create the separators
             let separator = this.tokens[this.index].substring(1,2);
+
+
             let currentValue = this.values[this.index];
             // Remove existing separators and negative sign
             currentValue = currentValue.replaceAll(separator, '');
@@ -681,6 +697,18 @@ function Mask() {
                 this.values[this.index] = '';
             }
             this.values[this.index] += v;
+        },
+        '_\\)': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+        },
+        ',,M': function(v) {
+            this.values[this.index] = 'M';
+            this.index++;
+        },
+        ',,B': function(v) {
+            this.values[this.index] = 'B';
+            this.index++;
         }
     }
 
@@ -836,7 +864,7 @@ function Mask() {
     }
 
     const getValue = function(control) {
-        return control.values.join('').trim();
+        return control.values.join('');
     }
 
     const inputIsANumber = function(num) {
@@ -863,6 +891,8 @@ function Mask() {
         }
         return type;
     }
+
+    // TODO, get negative mask automatically based on the input sign?
 
     const getConfig = function(config) {
         // Internal default control of the mask system
@@ -899,8 +929,8 @@ function Mask() {
         // Controls of Excel that should be ignored
         if (control.mask) {
             let d = control.mask.split(';');
-            // Get only the first mask for now
-            control.mask = d[0];
+            // Get only the first mask for now and remove
+            control.mask = d[0].replace(new RegExp('"', 'mgi'), "");
             // Get tokens which are the methods for parsing
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
@@ -910,95 +940,6 @@ function Mask() {
         control.type = getType(control);
 
         return control;
-    }
-
-    const Component = function(str, config, returnObject) {
-        // Get configuration
-        const control = getConfig(config);
-
-        // Value to be masked
-        control.value = str.toString();
-        control.raw = str;
-
-        if (control.locale) {
-            // Process the locale
-        } else if (control.mask) {
-            // Walk every character on the value
-            let method;
-            while (method = getMethodByPosition(control)) {
-                // Get the method name to handle the current token
-                let ret = method.call(control, control.value[control.position]);
-                // Next position
-                if (ret !== false) {
-                    control.position++;
-                }
-            }
-
-            // Move index
-            if (control.methods[control.index]) {
-                let type = control.methods[control.index].type;
-                if (isNumeric(type) && control.methods[++control.index]) {
-                    let next;
-                    while (next = control.methods[control.index]) {
-                        if (control.methods[control.index].type === 'general') {
-                            let method = control.methods[control.index].method;
-                            if (method && typeof(parseMethods[method]) === 'function') {
-                                parseMethods[method].call(control, null);
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        control.value = getValue(control);
-
-        if (returnObject) {
-            return control;
-        } else {
-            return control.value;
-        }
-    }
-
-    Component.oninput = function(e) {
-        // Element
-        let element = e.target;
-        // Property
-        let property = 'value';
-        // Get the value of the input
-        if (element.tagName !== 'INPUT') {
-            property = 'textContent';
-        }
-        // Value
-        let value = element[property];
-        // Get the mask
-        let mask = element.getAttribute('data-mask');
-        // Keep the current caret position
-        let caret = getCaret.call(element);
-        if (caret) {
-            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
-        }
-
-        // Run mask
-        let result = Component(value, { mask: mask }, true);
-        // New value
-        let newValue = result.values.join('');
-        // Apply the result back to the element
-        if (newValue !== value && ! e.inputType.includes('delete')) {
-            // Set the caret to the position before transformation
-            let caret = newValue.indexOf("\u200B");
-            if (caret !== -1) {
-                // Apply value
-                element[property] = newValue.replace("\u200B", "");
-                // Set caret
-                setCaret.call(element, caret);
-            } else {
-                // Apply value
-                element[property] = newValue;
-            }
-        }
     }
 
     const toPlainString = function(num) {
@@ -1109,6 +1050,95 @@ function Mask() {
         return temp;
     }
 
+    const Component = function(str, config, returnObject) {
+        // Get configuration
+        const control = getConfig(config);
+
+        // Value to be masked
+        control.value = str.toString();
+        control.raw = str;
+
+        if (control.locale) {
+            // Process the locale
+        } else if (control.mask) {
+            // Walk every character on the value
+            let method;
+            while (method = getMethodByPosition(control)) {
+                // Get the method name to handle the current token
+                let ret = method.call(control, control.value[control.position]);
+                // Next position
+                if (ret !== false) {
+                    control.position++;
+                }
+            }
+
+            // Move index
+            if (control.methods[control.index]) {
+                let type = control.methods[control.index].type;
+                if (isNumeric(type) && control.methods[++control.index]) {
+                    let next;
+                    while (next = control.methods[control.index]) {
+                        if (control.methods[control.index].type === 'general') {
+                            let method = control.methods[control.index].method;
+                            if (method && typeof(parseMethods[method]) === 'function') {
+                                parseMethods[method].call(control, null);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        control.value = getValue(control);
+
+        if (returnObject) {
+            return control;
+        } else {
+            return control.value;
+        }
+    }
+
+    Component.oninput = function(e) {
+        // Element
+        let element = e.target;
+        // Property
+        let property = 'value';
+        // Get the value of the input
+        if (element.tagName !== 'INPUT') {
+            property = 'textContent';
+        }
+        // Value
+        let value = element[property];
+        // Get the mask
+        let mask = element.getAttribute('data-mask');
+        // Keep the current caret position
+        let caret = getCaret.call(element);
+        if (caret) {
+            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
+        }
+
+        // Run mask
+        let result = Component(value, { mask: mask }, true);
+        // New value
+        let newValue = result.values.join('');
+        // Apply the result back to the element
+        if (newValue !== value && ! e.inputType.includes('delete')) {
+            // Set the caret to the position before transformation
+            let caret = newValue.indexOf("\u200B");
+            if (caret !== -1) {
+                // Apply value
+                element[property] = newValue.replace("\u200B", "");
+                // Set caret
+                setCaret.call(element, caret);
+            } else {
+                // Apply value
+                element[property] = newValue;
+            }
+        }
+    }
+
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
     Component.render = function(value, options, fullMask) {
@@ -1135,9 +1165,23 @@ function Mask() {
                 } else {
                     value = adjustPrecision(Number(value) * 100);
                 }
+            } else {
+                if (config.mask.includes(',,M')) {
+                    if (typeof(value) === 'string' && value.indexOf('M') !== -1) {
+                        value = value.replace('M', '');
+                    } else {
+                        value = Number(value) / 1000000;
+                    }
+                } else if (config.mask.includes(',,B')) {
+                    if (typeof(value) === 'string' && value.indexOf('B') !== -1) {
+                        value = value.replace('B', '');
+                    } else {
+                        value = Number(value) / 1000000000;
+                    }
+                }
             }
 
-            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
+            if (typeof(value) === 'string' && isNumeric(value)) {
                 value = Number(value);
             }
 
@@ -1154,6 +1198,10 @@ function Mask() {
                 }
 
                 value = toPlainString(temp);
+
+                if (config.decimal === ',') {
+                    value = value.replace('.', config.decimal);
+                }
             }
         }
 

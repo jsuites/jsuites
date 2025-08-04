@@ -255,6 +255,7 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(-1234.56, { mask: '#,##0.00;(#,##0.00)' })).toBe('(1,234.56)');
             expect(jSuites.mask.render(1234.56, { mask: '#,##0.00;(#,##0.00)' })).toBe('1,234.56');
             expect(jSuites.mask.render(-1234.56, { mask: '#,##0.00;[Red](#,##0.00)' })).toBe('(1,234.56)');
+            expect(jSuites.mask.render(1234.56, { mask: '#,##0.00_);[Red](#,##0.00)' })).toBe('1,234.56 ');
 
             // With alignment spacing for decimal alignment
             expect(jSuites.mask.render(1234.56, { mask: '#,##0.00_);[Red](#,##0.00)' })).toBe('1,234.56 ');
