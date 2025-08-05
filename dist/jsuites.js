@@ -1395,6 +1395,9 @@ function Animation() {
 
 /* harmony default export */ var animation = (Animation());
 ;// CONCATENATED MODULE: ./src/plugins/mask.js
+/*
+ Add '*' as a valid symbol
+ */
 
 
 
@@ -1403,6 +1406,8 @@ function Mask() {
     const tokens = {
         // Text
         text: [ '@', '&' ],
+        // Number
+        fraction: [ '# \\?+\\/[0-9?]+' ],
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
@@ -1414,7 +1419,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '[0-9a-zA-Z\\$]+', '.']
+        general: [ 'A', '0', '\\?', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '.']
     }
 
     // Labels
@@ -1433,10 +1438,10 @@ function Mask() {
     }
 
     /**
-    * Receives a string from method.type and returns if its a numeric method
+    * Receives a string from a method type and returns if it's a numeric method
     */
     const isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric';
+        return t === 'currency' || t === 'percentage' || t === '' || t === 'numeric';
     }
 
     const adjustPrecision = function(num) {
@@ -1485,11 +1490,25 @@ function Mask() {
                 if (! v) {
                     v  = this.mask;
                 }
-                let t = v.match(/[.,٫](?=\d{1,14})/g)
-                if (t) {
-                    decimal = t[0];
+
+                let e = new RegExp('0{1}(.{1})0+', 'ig');
+                let t = e.exec(v);
+                if (t && t[1] && t[1].length === 1) {
+                    decimal = t[1];
                 } else {
-                    decimal = '1.1'.toLocaleString().substring(1,2);
+                    e = new RegExp('#{1}(.{1})#+', 'ig');
+                    t = e.exec(v);
+                    if (t && t[1] && t[1].length === 1) {
+                        if (t[1] === ',') {
+                            decimal = '.';
+                        } else if (t[1] === "'" || t[1] === '.') {
+                            decimal = ',';
+                        }
+                    }
+                }
+
+                if (! decimal) {
+                    decimal = '1.1'.toLocaleString().substring(1, 2);
                 }
             }
         }
@@ -1771,8 +1790,7 @@ function Mask() {
                 if (t >= 0 && t <= 12) {
                     this.date[3] = this.values[this.index];
                     this.index++;
-                    // Repeat the character
-                    this.position--;
+                    return false;
                 }
             }
         },
@@ -1816,8 +1834,7 @@ function Mask() {
                 if (t >= 0 && t < 24) {
                     this.date[3] = this.values[this.index];
                     this.index++;
-                    // Repeat the character
-                    this.position--;
+                    return false;
                 }
             }
         },
@@ -1837,8 +1854,7 @@ function Mask() {
                 if (this.values[this.index].match(/[0-9]/g)) {
                     this.date[3] = this.values[this.index];
                     this.index++;
-                    // Repeat the character
-                    this.position--;
+                    return false;
                 }
             }
         },
@@ -1876,8 +1892,7 @@ function Mask() {
                 if (t >= 0 && t < 60) {
                     this.date[i] = this.values[this.index];
                     this.index++;
-                    // Repeat the character
-                    this.position--;
+                    return false;
                 }
             }
         },
@@ -1921,7 +1936,7 @@ function Mask() {
             }
         },
         // Numeric Methods
-        '[0#]+([.,]{1}0*#*)?': function(v, thousandSeparator) {
+        '[0#]+([.,]{1}0*#*)?': function(v) {
             if (v === '.' && inputIsANumber(this.raw)) {
                 v = this.decimal;
             }
@@ -1962,6 +1977,7 @@ function Mask() {
             } else if (v === "\u200B") {
                 this.values[this.index] += v;
             }
+
         },
         '[0#]+([.,]{1}0*#*)?%': function(v) {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
@@ -1976,14 +1992,13 @@ function Mask() {
                 this.values[this.index] = '';
             }
         },
-        '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
-            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
-        },
         '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
             // Process first the number
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v, true);
             // Create the separators
             let separator = this.tokens[this.index].substring(1,2);
+
+
             let currentValue = this.values[this.index];
             // Remove existing separators and negative sign
             currentValue = currentValue.replaceAll(separator, '');
@@ -2006,6 +2021,12 @@ function Mask() {
             }
             // Reconstruct the value
             this.values[this.index] = val.join(this.decimal);
+        },
+        '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
+            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
+        },
+        '# \\?+\\/[0-9?]+': function(v) {
+            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
         },
         '[0-9a-zA-Z\\$]+': function(v) {
             // Token to be added to the value
@@ -2078,6 +2099,26 @@ function Mask() {
                 this.values[this.index] = '';
             }
             this.values[this.index] += v;
+        },
+        '_\\)': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+            return false;
+        },
+        '_\\(': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+            return false;
+        },
+        ',,M': function(v) {
+            this.values[this.index] = 'M';
+            this.index++;
+            return false;
+        },
+        ',,,B': function(v) {
+            this.values[this.index] = 'B';
+            this.index++;
+            return false;
         }
     }
 
@@ -2119,7 +2160,7 @@ function Mask() {
     // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
 
     const getTokens = function(str) {
-        const expressions = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
+        const expressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
         // Expression to extract all tokens from the string
         return str.match(new RegExp(expressions.join('|'), 'gi'));
     }
@@ -2224,16 +2265,23 @@ function Mask() {
     const processNumOfPaddingZeros = function(control) {
         control.methods.forEach((method, k) => {
             if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
+                let negativeNumber = control.values[k] < 0;
                 let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
                 if (ret) {
                     control.values[k] = ret;
+                }
+
+                if (control.parenthesisForNegativeNumbers === true) {
+                    if (negativeNumber) {
+                        control.values[k] = '(' + control.values[k].replace('-', '') + ')';
+                    }
                 }
             }
         });
     }
 
     const getValue = function(control) {
-        return control.values.join('').trim();
+        return control.values.join('');
     }
 
     const inputIsANumber = function(num) {
@@ -2261,7 +2309,9 @@ function Mask() {
         return type;
     }
 
-    const getConfig = function(config) {
+    // TODO, get negative mask automatically based on the input sign?
+
+    const getConfig = function(config, value) {
         // Internal default control of the mask system
         const control = {
             // Mask options
@@ -2290,14 +2340,22 @@ function Mask() {
             }
         }
 
+        // Parenthesis
+        let reg = /(?<!_)\((?![^()]*_)([^'"]*?)\)/g;
+        if (typeof control.mask === 'string' && control.mask.match(reg)) {
+            control.mask = control.mask.replace(reg, '$1');
+            control.parenthesisForNegativeNumbers = true;
+        }
+
         // Decimal
         control.decimal = getDecimal.call(control);
 
         // Controls of Excel that should be ignored
         if (control.mask) {
             let d = control.mask.split(';');
-            // Get only the first mask for now
-            control.mask = d[0];
+            let mask = typeof(value) === 'number' && value < 0 && d[1] ? d[1] : d[0];
+            // Get only the first mask for now and remove
+            control.mask = mask.replace(new RegExp('"', 'mgi'), "");
             // Get tokens which are the methods for parsing
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
@@ -2307,95 +2365,6 @@ function Mask() {
         control.type = getType(control);
 
         return control;
-    }
-
-    const Component = function(str, config, returnObject) {
-        // Get configuration
-        const control = getConfig(config);
-
-        // Value to be masked
-        control.value = str.toString();
-        control.raw = str;
-
-        if (control.locale) {
-            // Process the locale
-        } else if (control.mask) {
-            // Walk every character on the value
-            let method;
-            while (method = getMethodByPosition(control)) {
-                // Get the method name to handle the current token
-                let ret = method.call(control, control.value[control.position]);
-                // Next position
-                if (ret !== false) {
-                    control.position++;
-                }
-            }
-
-            // Move index
-            if (control.methods[control.index]) {
-                let type = control.methods[control.index].type;
-                if (isNumeric(type) && control.methods[++control.index]) {
-                    let next;
-                    while (next = control.methods[control.index]) {
-                        if (control.methods[control.index].type === 'general') {
-                            let method = control.methods[control.index].method;
-                            if (method && typeof(parseMethods[method]) === 'function') {
-                                parseMethods[method].call(control, null);
-                            }
-                        } else {
-                            break;
-                        }
-                    }
-                }
-            }
-        }
-
-        control.value = getValue(control);
-
-        if (returnObject) {
-            return control;
-        } else {
-            return control.value;
-        }
-    }
-
-    Component.oninput = function(e) {
-        // Element
-        let element = e.target;
-        // Property
-        let property = 'value';
-        // Get the value of the input
-        if (element.tagName !== 'INPUT') {
-            property = 'textContent';
-        }
-        // Value
-        let value = element[property];
-        // Get the mask
-        let mask = element.getAttribute('data-mask');
-        // Keep the current caret position
-        let caret = getCaret.call(element);
-        if (caret) {
-            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
-        }
-
-        // Run mask
-        let result = Component(value, { mask: mask }, true);
-        // New value
-        let newValue = result.values.join('');
-        // Apply the result back to the element
-        if (newValue !== value && ! e.inputType.includes('delete')) {
-            // Set the caret to the position before transformation
-            let caret = newValue.indexOf("\u200B");
-            if (caret !== -1) {
-                // Apply value
-                element[property] = newValue.replace("\u200B", "");
-                // Set caret
-                setCaret.call(element, caret);
-            } else {
-                // Apply value
-                element[property] = newValue;
-            }
-        }
     }
 
     const toPlainString = function(num) {
@@ -2506,11 +2475,174 @@ function Mask() {
         return temp;
     }
 
+    const formatFraction = function(value, mask) {
+        let maxDenominator;
+        let fixedDenominator = null;
+
+        // Check for fixed denominator like # ?/8 or # ??/16
+        const fixed = mask.match(/\/(\d+)/);
+        if (fixed) {
+            fixedDenominator = parseInt(fixed[1], 10);
+            maxDenominator = fixedDenominator;
+        } else {
+            // Determine based on question marks in mask
+            const match = mask.match(/\?\/(\?+)/);
+            if (match) {
+                maxDenominator = Math.pow(10, match[1].length) - 1;
+            } else {
+                maxDenominator = 9; // Default for # ?/?
+            }
+        }
+
+        // If we have a fixed denominator, use it exactly (don't simplify)
+        if (fixedDenominator) {
+            const numerator = Math.round(value * fixedDenominator);
+            const whole = Math.floor(numerator / fixedDenominator);
+            const remainder = numerator % fixedDenominator;
+
+            if (remainder === 0) {
+                return `${whole}`;
+            }
+
+            if (whole === 0) {
+                return `${remainder}/${fixedDenominator}`;
+            }
+
+            return `${whole} ${remainder}/${fixedDenominator}`;
+        }
+
+        // Fallback to original algorithm for flexible denominators
+        let bestNumerator = 0;
+        let bestDenominator = 1;
+        let bestError = Infinity;
+
+        for (let d = 1; d <= maxDenominator; d++) {
+            const n = Math.round(value * d);
+            const approx = n / d;
+            const error = Math.abs(value - approx);
+
+            if (error < bestError) {
+                bestError = error;
+                bestNumerator = n;
+                bestDenominator = d;
+            }
+        }
+
+        // Simplify
+        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
+        const divisor = gcd(Math.abs(bestNumerator), bestDenominator);
+        let numerator = bestNumerator / divisor;
+        let denominator = bestDenominator / divisor;
+
+        // Whole and remainder
+        const whole = Math.floor(numerator / denominator);
+        const remainder = numerator % denominator;
+
+        if (remainder === 0) {
+            return `${whole}`;
+        }
+
+        if (whole === 0) {
+            return `${remainder}/${denominator}`;
+        }
+
+        return `${whole} ${remainder}/${denominator}`;
+    };
+
+    const Component = function(str, config, returnObject) {
+        // Get configuration
+        const control = getConfig(config, str);
+
+        // Value to be masked
+        control.value = str.toString();
+        control.raw = str;
+
+        if (control.locale) {
+            // Process the locale
+        } else if (control.mask) {
+            // Walk every character on the value
+            let method;
+            while (method = getMethodByPosition(control)) {
+                // Get the method name to handle the current token
+                let ret = method.call(control, control.value[control.position]);
+                // Next position
+                if (ret !== false) {
+                    control.position++;
+                }
+            }
+
+            // Move index
+            if (control.methods[control.index]) {
+                let type = control.methods[control.index].type;
+                if (isNumeric(type) && control.methods[++control.index]) {
+                    let next;
+                    while (next = control.methods[control.index]) {
+                        if (control.methods[control.index].type === 'general') {
+                            let method = control.methods[control.index].method;
+                            if (method && typeof(parseMethods[method]) === 'function') {
+                                parseMethods[method].call(control, null);
+                            }
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        control.value = getValue(control);
+
+        if (returnObject) {
+            return control;
+        } else {
+            return control.value;
+        }
+    }
+
+    Component.oninput = function(e) {
+        // Element
+        let element = e.target;
+        // Property
+        let property = 'value';
+        // Get the value of the input
+        if (element.tagName !== 'INPUT') {
+            property = 'textContent';
+        }
+        // Value
+        let value = element[property];
+        // Get the mask
+        let mask = element.getAttribute('data-mask');
+        // Keep the current caret position
+        let caret = getCaret.call(element);
+        if (caret) {
+            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
+        }
+
+        // Run mask
+        let result = Component(value, { mask: mask }, true);
+        // New value
+        let newValue = result.values.join('');
+        // Apply the result back to the element
+        if (newValue !== value && ! e.inputType.includes('delete')) {
+            // Set the caret to the position before transformation
+            let caret = newValue.indexOf("\u200B");
+            if (caret !== -1) {
+                // Apply value
+                element[property] = newValue.replace("\u200B", "");
+                // Set caret
+                setCaret.call(element, caret);
+            } else {
+                // Apply value
+                element[property] = newValue;
+            }
+        }
+    }
+
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
     Component.render = function(value, options, fullMask) {
         // Config
-        const config = getConfig(options);
+        const config = getConfig(options, value);
 
         // Percentage
         if (config.type === 'datetime') {
@@ -2532,9 +2664,23 @@ function Mask() {
                 } else {
                     value = adjustPrecision(Number(value) * 100);
                 }
+            } else {
+                if (config.mask.includes(',,M')) {
+                    if (typeof(value) === 'string' && value.indexOf('M') !== -1) {
+                        value = value.replace('M', '');
+                    } else {
+                        value = Number(value) / 1000000;
+                    }
+                } else if (config.mask.includes(',,,B')) {
+                    if (typeof(value) === 'string' && value.indexOf('B') !== -1) {
+                        value = value.replace('B', '');
+                    } else {
+                        value = Number(value) / 1000000000;
+                    }
+                }
             }
 
-            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
+            if (typeof(value) === 'string' && isNumeric(value)) {
                 value = Number(value);
             }
 
@@ -2543,14 +2689,22 @@ function Mask() {
                 let temp = value;
 
                 if (fullMask) {
-                    temp = adjustNumberOfDecimalPlaces(config, value);
+                    if (config.type === 'fraction') {
+                        return formatFraction(value, config.mask);
+                    } else {
+                        temp = adjustNumberOfDecimalPlaces(config, value);
 
-                    if (config.type === 'scientific') {
-                        return temp;
+                        if (config.type === 'scientific') {
+                            return temp;
+                        }
                     }
                 }
 
                 value = toPlainString(temp);
+
+                if (config.decimal === ',') {
+                    value = value.replace('.', config.decimal);
+                }
             }
         }
 
@@ -2655,26 +2809,6 @@ function Mask() {
 
         format = format.toUpperCase();
 
-        // Convert to number of hours
-        if (format.indexOf('[H]') >= 0) {
-            let result = 0;
-            if (value && helpers.isNumeric(value)) {
-                result = parseFloat(24 * Number(value));
-                if (format.indexOf('MM') >= 0) {
-                    let d;
-                    let h = ('' + result).split('.');
-                    if (h[1]) {
-                        d = 60 * parseFloat('0.' + h[1])
-                        d = parseFloat(d.toFixed(2));
-                    } else {
-                        d = 0;
-                    }
-                    result = parseInt(h[0]) + ':' + helpers.two(d);
-                }
-            }
-            return result;
-        }
-
         // Date instance
         if (value instanceof Date) {
             value = helpers_date.now(value);
@@ -2683,7 +2817,7 @@ function Mask() {
         }
 
         // Tokens
-        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
 
         // Expression to extract all tokens from the string
         let e = new RegExp(tokens.join('|'), 'gi');
@@ -2705,8 +2839,6 @@ function Mask() {
                 o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
-                    throw new Error('Invalid date');
-                } else if (o.data[3] && o.data[3] > 23) {
                     throw new Error('Invalid date');
                 } else if (o.data[4] && o.data[4] > 59) {
                     throw new Error('Invalid date');
@@ -2775,7 +2907,7 @@ function Mask() {
                     } else if (s === 'Q') {
                         v = Math.floor((calendar.getMonth() + 3) / 3);
                     } else if (s === 'HH24' || s === 'HH') {
-                        v = this.data[3];
+                        v = this.data[3]%24;
                         if (this.tokens.indexOf('AM/PM') !== -1) {
                             if (v > 12) {
                                 v -= 12;
@@ -2785,13 +2917,14 @@ function Mask() {
                         }
                         v = helpers.two(v);
                     } else if (s === 'HH12') {
-                        if (this.data[3] > 12) {
-                            v = helpers.two(this.data[3] - 12);
+                        v = this.data[3]%24;
+                        if (v > 12) {
+                            v = helpers.two(v - 12);
                         } else {
-                            v = helpers.two(this.data[3]);
+                            v = helpers.two(v);
                         }
                     } else if (s === 'H') {
-                        v = this.data[3];
+                        v = this.data[3]%24;
                         if (this.tokens.indexOf('AM/PM') !== -1) {
                             if (v > 12) {
                                 v -= 12;
@@ -2799,6 +2932,8 @@ function Mask() {
                                 v = 12;
                             }
                         }
+                    } else if (s === '[H]') {
+                        v = this.data[3];
                     } else if (s === 'MI') {
                         v = helpers.two(this.data[4]);
                     } else if (s === 'I') {
@@ -2839,8 +2974,7 @@ function Mask() {
         return value;
     }
 
-/*
-    Component.extract = function(v, options, returnObject) {
+/*    Component.extract = function(v, options, returnObject) {
         if (isBlank(v)) {
             return v;
         }
@@ -2927,8 +3061,7 @@ function Mask() {
         } else {
             return value;
         }
-    }
-    */
+    }*/
 
     return Component;
 }
@@ -12516,7 +12649,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jsuites_jSuites = {
+var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
@@ -12527,7 +12660,7 @@ var jsuites_jSuites = {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jsuites_jSuites[k[i]] = o[k[i]];
+                jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -12562,8 +12695,8 @@ var jsuites_jSuites = {
 }
 
 // Legacy
-jsuites_jSuites.image = Upload;
-jsuites_jSuites.image.create = function(data) {
+jSuites.image = Upload;
+jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -12573,9 +12706,9 @@ jsuites_jSuites.image.create = function(data) {
     return img;
 }
 
-jsuites_jSuites.tracker = plugins_form;
-jsuites_jSuites.loading = animation.loading;
-jsuites_jSuites.sha512 = (sha512_default());
+jSuites.tracker = plugins_form;
+jSuites.loading = animation.loading;
+jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -12676,7 +12809,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -12862,7 +12995,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jsuites_jSuites.findElement(element, 'jpanel');
+            let item = jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -12922,7 +13055,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -12980,7 +13113,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jsuites_jSuites.findElement(e.target, function(o) {
+            item = jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -13024,7 +13157,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jsuites_jSuites.mask.oninput(e);
+            jSuites.mask.oninput(e);
         }
     }
 
@@ -13042,7 +13175,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jsuites_jSuites);
+/* harmony default export */ var jsuites = (jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()
