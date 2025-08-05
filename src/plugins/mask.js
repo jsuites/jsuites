@@ -1,5 +1,7 @@
 /*
  Add '*' as a valid symbol
+ Formats such as 'DD"th of "MMMM", "YYYY'
+ Conditional masking
  */
 import Helpers from '../utils/helpers';
 import HelpersDate from '../utils/helpers.date';
@@ -22,7 +24,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '_-', '.']
     }
 
     // Labels
@@ -723,6 +725,11 @@ function Mask() {
             this.index++;
             return false;
         },
+        '_-': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+            return false;
+        },
         ',,M': function(v) {
             this.values[this.index] = 'M';
             this.index++;
@@ -983,6 +990,11 @@ function Mask() {
                 mask = mask.replace(reg, '$1');
                 control.parenthesisForNegativeNumbers = true;
             }
+            // Match brackets that should be removed (NOT the time format codes)
+            reg = /\[(?!(?:s|ss|h|hh|m|mm)\])([^\]]*)\]/g;
+            if (mask.match(reg)) {
+                mask = mask.replace(reg, ''); // Removes brackets and content
+            }
             // Get only the first mask for now and remove
             control.mask = mask;
             // Get tokens which are the methods for parsing
@@ -1071,10 +1083,6 @@ function Mask() {
             } else {
                 // Optional
                 let optionalDecimalPlaces = mask.split(config.decimal);
-
-                console.log(config,mask)
-
-
                 optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g)[0].length;
                 if (numOfDecimalPlaces > optionalDecimalPlaces) {
                     necessaryAdjustment = optionalDecimalPlaces;
@@ -1367,11 +1375,11 @@ function Mask() {
 
         // Process mask
         let control = Component(value, options, true);
+
+        console.log(control)
+
         // Complement render
         if (fullMask) {
-
-            console.log(control)
-
             processNumOfPaddingZeros(control);
         }
 

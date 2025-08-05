@@ -1397,6 +1397,8 @@ function Animation() {
 ;// CONCATENATED MODULE: ./src/plugins/mask.js
 /*
  Add '*' as a valid symbol
+ Formats such as 'DD"th of "MMMM", "YYYY'
+ Conditional masking
  */
 
 
@@ -1419,7 +1421,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '_-', '.']
     }
 
     // Labels
@@ -2120,6 +2122,11 @@ function Mask() {
             this.index++;
             return false;
         },
+        '_-': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+            return false;
+        },
         ',,M': function(v) {
             this.values[this.index] = 'M';
             this.index++;
@@ -2379,6 +2386,11 @@ function Mask() {
             if (mask.match(reg)) {
                 mask = mask.replace(reg, '$1');
                 control.parenthesisForNegativeNumbers = true;
+            }
+            // Match brackets that should be removed (NOT the time format codes)
+            reg = /\[(?!(?:s|ss|h|hh|m|mm)\])([^\]]*)\]/g;
+            if (mask.match(reg)) {
+                mask = mask.replace(reg, ''); // Removes brackets and content
             }
             // Get only the first mask for now and remove
             control.mask = mask;
