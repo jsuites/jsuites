@@ -396,10 +396,48 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(0.5, { mask: '# ??/32' }, true)).toBe('16/32');
             expect(jSuites.mask.render(0.25, { mask: '# ??/32' }, true)).toBe('8/32');
             expect(jSuites.mask.render(0.75, { mask: '# ??/32' }, true)).toBe('24/32');
+
+            // Rounding scenarios
+            expect(jSuites.mask.render(0.24, { mask: '# ?/8' }, true)).toBe('2/8');
+            expect(jSuites.mask.render(0.26, { mask: '# ?/8' }, true)).toBe('2/8');
+            expect(jSuites.mask.render(0.37, { mask: '# ?/8' }, true)).toBe('3/8');
+            expect(jSuites.mask.render(0.38, { mask: '# ?/8' }, true)).toBe('3/8');
+
+            // Format without space
+            expect(jSuites.mask.render(1.5, { mask: '?/?' }, true)).toBe('3/2');
+            expect(jSuites.mask.render(2.25, { mask: '?/?' }, true)).toBe('9/4');
+            expect(jSuites.mask.render(1.25, { mask: '?/8' }, true)).toBe('10/8');
+
+            // Unusual denominators
+            expect(jSuites.mask.render(0.111111, { mask: '# ?/9' }, true)).toBe('1/9');
+            expect(jSuites.mask.render(0.142857, { mask: '# ?/7' }, true)).toBe('1/7');
+            expect(jSuites.mask.render(0.090909, { mask: '# ??/11' }, true)).toBe('1/11');
+            expect(jSuites.mask.render(0.083333, { mask: '# ??/12' }, true)).toBe('1/12');
+
+            // Large denominators
+            expect(jSuites.mask.render(0.01, { mask: '# ??/100' }, true)).toBe('1/100');
+            expect(jSuites.mask.render(0.99, { mask: '# ??/100' }, true)).toBe('99/100');
+            expect(jSuites.mask.render(1.01, { mask: '# ??/100' }, true)).toBe('1 1/100');
+
+            // Values close to 1
+            expect(jSuites.mask.render(0.999, { mask: '# ??/??' }, true)).toBe('1      ');
+            expect(jSuites.mask.render(0.9999, { mask: '# ??/??' }, true)).toBe('1      ');
+            expect(jSuites.mask.render(1.001, { mask: '# ??/??' }, true)).toBe('1      ');
+
+            // Very small fraction handling
+            expect(jSuites.mask.render(0.0001, { mask: '# ??/??' }, true)).toBe('0      ');
+            expect(jSuites.mask.render(0.00001, { mask: '# ??/??' }, true)).toBe('0      ');
+
+            // Large numbers with fractions
+            expect(jSuites.mask.render(100.5, { mask: '# ??/??' }, true)).toBe('100 1/2');
+            expect(jSuites.mask.render(999.25, { mask: '# ?/8' }, true)).toBe('999 2/8');
+
+            // Different space formatting
+            expect(jSuites.mask.render(1.5, { mask: '#  ??/??' }, true)).toBe('1  1/2');
         });
 
         test('currency rendering', () => {
-            expect(jSuites.mask.render(-13552.94219, { mask: '# ##0'}, true)).toBe('-13 553');
+            expect(jSuites.mask.render(-13552.94219, { mask: '# ##0' }, true)).toBe('-13 553');
             expect(jSuites.mask.render(0.128899, { mask: '$ #.##0,00' }, true)).toBe('$ 0,13');
             expect(jSuites.mask.render(123.4, { mask: '#,##0.0000' }, true)).toBe('123.4000');
             expect(jSuites.mask.render(79998007920000000000000, { mask: '#,##0' }, true)).toBe('79,998,007,920,000,000,000,000');
@@ -409,7 +447,7 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(1.005, { mask: '0.00' }, true)).toBe('1.01');
             expect(jSuites.mask.render(11.45, { mask: '0.0' }, true)).toBe('11.5');
             expect(jSuites.mask.render(-11.45, { mask: '0.0' }, true)).toBe('-11.5');
-            expect(jSuites.mask.render(123, { mask: '00000'}, true)).toBe('00123');
+            expect(jSuites.mask.render(123, { mask: '00000' }, true)).toBe('00123');
         });
 
         test('scientific notation rendering', () => {
