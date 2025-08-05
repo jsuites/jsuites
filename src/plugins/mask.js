@@ -22,7 +22,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '.']
     }
 
     // Labels
@@ -91,14 +91,16 @@ function Mask() {
                 decimal = t[1];
             } else {
                 if (! v) {
-                    v  = this.mask;
+                    v = this.mask;
                 }
 
-                let e = new RegExp('0{1}(.{1})0+', 'ig');
+                // Fixed regex: 0* means zero or more 0s before decimal separator
+                let e = new RegExp('0*([,.])0+', 'ig');
                 let t = e.exec(v);
                 if (t && t[1] && t[1].length === 1) {
                     decimal = t[1];
                 } else {
+                    // Try the second pattern for # formats
                     e = new RegExp('#{1}(.{1})#+', 'ig');
                     t = e.exec(v);
                     if (t && t[1] && t[1].length === 1) {
@@ -672,6 +674,11 @@ function Mask() {
                 this.index++;
             }
         },
+        '\\*': function(v) {
+            this.values[this.index] = '';
+            this.index++;
+            return false;
+        },
         'C': function(v) {
             parseMethods['&'].call(this, v);
         },
@@ -695,7 +702,10 @@ function Mask() {
             }
         },
         '\\?': function(v) {
-            parseMethods['0'].call(this, v);
+            if (v.match(/[1-9]/g)) {
+                this.values[this.index] = v;
+                this.index++;
+            }
         },
         '@': function(v) {
             if (isBlank(this.values[this.index])) {
@@ -868,16 +878,15 @@ function Mask() {
     const processNumOfPaddingZeros = function(control) {
         control.methods.forEach((method, k) => {
             if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
-                let negativeNumber = control.values[k] < 0;
                 let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
                 if (ret) {
                     control.values[k] = ret;
                 }
+            }
 
-                if (control.parenthesisForNegativeNumbers === true) {
-                    if (negativeNumber) {
-                        control.values[k] = '(' + control.values[k].replace('-', '') + ')';
-                    }
+            if (method.type === 'currency' || method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
+                if (control.parenthesisForNegativeNumbers === true && control.values[k].toString().includes('-')) {
+                    control.values[k] = '(' + control.values[k].replace('-', '') + ')';
                 }
             }
         });
@@ -912,6 +921,13 @@ function Mask() {
         return type;
     }
 
+    const isNumber = function(num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
     // TODO, get negative mask automatically based on the input sign?
 
     const getConfig = function(config, value) {
@@ -943,28 +959,41 @@ function Mask() {
             }
         }
 
-        // Parenthesis
-        let reg = /(?<!_)\((?![^()]*_)([^'"]*?)\)/g;
-        if (typeof control.mask === 'string' && control.mask.match(reg)) {
-            control.mask = control.mask.replace(reg, '$1');
-            control.parenthesisForNegativeNumbers = true;
-        }
-
-        // Decimal
-        control.decimal = getDecimal.call(control);
-
         // Controls of Excel that should be ignored
         if (control.mask) {
             let d = control.mask.split(';');
-            let mask = typeof(value) === 'number' && value < 0 && d[1] ? d[1] : d[0];
+            // Mask
+            let mask = d[0]
+            if (isNumber(value)) {
+                if (Number(value) < 0 && d[1]) {
+                    mask = d[1];
+                } else if (Number(value) === 0 && d[2]) {
+                    mask = d[2];
+                }
+            } else {
+                if (d[3]) {
+                    mask = d[3];
+                }
+            }
+            // Cleaning the mask
+            mask = mask.replace(new RegExp('"', 'mgi'), "");
+            // Parenthesis
+            let reg = /(?<!_)\((?![^()]*_)([^'"]*?)\)/g;
+            if (mask.match(reg)) {
+                mask = mask.replace(reg, '$1');
+                control.parenthesisForNegativeNumbers = true;
+            }
             // Get only the first mask for now and remove
-            control.mask = mask.replace(new RegExp('"', 'mgi'), "");
+            control.mask = mask;
             // Get tokens which are the methods for parsing
             control.tokens = getTokens(control.mask);
             // Get methods from the tokens
             control.methods = getMethodsFromTokens(control.tokens);
         }
 
+        // Decimal
+        control.decimal = getDecimal.call(control);
+        // Type
         control.type = getType(control);
 
         return control;
@@ -1042,6 +1071,10 @@ function Mask() {
             } else {
                 // Optional
                 let optionalDecimalPlaces = mask.split(config.decimal);
+
+                console.log(config,mask)
+
+
                 optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g)[0].length;
                 if (numOfDecimalPlaces > optionalDecimalPlaces) {
                     necessaryAdjustment = optionalDecimalPlaces;
@@ -1099,57 +1132,78 @@ function Mask() {
 
         // If we have a fixed denominator, use it exactly (don't simplify)
         if (fixedDenominator) {
-            const numerator = Math.round(value * fixedDenominator);
+            const isNegative = value < 0;
+            const absValue = Math.abs(value);
+            const numerator = Math.round(absValue * fixedDenominator);
             const whole = Math.floor(numerator / fixedDenominator);
             const remainder = numerator % fixedDenominator;
 
             if (remainder === 0) {
-                return `${whole}`;
+                return isNegative ? `-${whole}` : `${whole}`;
             }
 
             if (whole === 0) {
-                return `${remainder}/${fixedDenominator}`;
+                return isNegative ? `-${remainder}/${fixedDenominator}` : `${remainder}/${fixedDenominator}`;
             }
 
-            return `${whole} ${remainder}/${fixedDenominator}`;
+            return isNegative ? `-${whole} ${remainder}/${fixedDenominator}` : `${whole} ${remainder}/${fixedDenominator}`;
         }
 
-        // Fallback to original algorithm for flexible denominators
-        let bestNumerator = 0;
-        let bestDenominator = 1;
-        let bestError = Infinity;
+        // Use continued fractions algorithm for better approximation
+        // This is closer to what Excel actually does
+        function continuedFraction(value, maxDenom) {
+            if (value === 0) return [0, 1];
 
-        for (let d = 1; d <= maxDenominator; d++) {
-            const n = Math.round(value * d);
-            const approx = n / d;
-            const error = Math.abs(value - approx);
+            let sign = value < 0 ? -1 : 1;
+            value = Math.abs(value);
 
-            if (error < bestError) {
-                bestError = error;
-                bestNumerator = n;
-                bestDenominator = d;
+            let whole = Math.floor(value);
+            let frac = value - whole;
+
+            if (frac === 0) return [sign * whole, 1];
+
+            // Find best rational approximation using continued fractions
+            let h1 = 1, h2 = 0;
+            let k1 = 0, k2 = 1;
+            let x = frac;
+
+            while (k1 <= maxDenom) {
+                let a = Math.floor(x);
+                let h0 = a * h1 + h2;
+                let k0 = a * k1 + k2;
+
+                if (k0 > maxDenom) break;
+
+                h2 = h1; h1 = h0;
+                k2 = k1; k1 = k0;
+
+                if (Math.abs(x - a) < 1e-10) break;
+                x = 1 / (x - a);
             }
+
+            // Add the whole part back
+            let finalNum = sign * (whole * k1 + h1);
+            let finalDen = k1;
+
+            return [finalNum, finalDen];
         }
 
-        // Simplify
-        const gcd = (a, b) => b === 0 ? a : gcd(b, a % b);
-        const divisor = gcd(Math.abs(bestNumerator), bestDenominator);
-        let numerator = bestNumerator / divisor;
-        let denominator = bestDenominator / divisor;
+        const [numerator, denominator] = continuedFraction(value, maxDenominator);
 
-        // Whole and remainder
-        const whole = Math.floor(numerator / denominator);
-        const remainder = numerator % denominator;
+        // Handle the result
+        const whole = Math.floor(Math.abs(numerator) / denominator);
+        const remainder = Math.abs(numerator) % denominator;
+        const sign = numerator < 0 ? '-' : '';
 
         if (remainder === 0) {
-            return `${whole}`;
+            return `${sign}${whole}`;
         }
 
         if (whole === 0) {
-            return `${remainder}/${denominator}`;
+            return `${sign}${remainder}/${denominator}`;
         }
 
-        return `${whole} ${remainder}/${denominator}`;
+        return `${sign}${whole} ${remainder}/${denominator}`;
     };
 
     const Component = function(str, config, returnObject) {
@@ -1264,20 +1318,20 @@ function Mask() {
             if (config.type === 'percentage') {
                 if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
                     value = value.replace('%', '');
-                } else {
+                } else if (fullMask) {
                     value = adjustPrecision(Number(value) * 100);
                 }
             } else {
                 if (config.mask.includes(',,M')) {
                     if (typeof(value) === 'string' && value.indexOf('M') !== -1) {
                         value = value.replace('M', '');
-                    } else {
+                    } else if (fullMask) {
                         value = Number(value) / 1000000;
                     }
                 } else if (config.mask.includes(',,,B')) {
                     if (typeof(value) === 'string' && value.indexOf('B') !== -1) {
                         value = value.replace('B', '');
-                    } else {
+                    } else if (fullMask) {
                         value = Number(value) / 1000000000;
                     }
                 }
@@ -1313,9 +1367,11 @@ function Mask() {
 
         // Process mask
         let control = Component(value, options, true);
-
         // Complement render
         if (fullMask) {
+
+            console.log(control)
+
             processNumOfPaddingZeros(control);
         }
 
