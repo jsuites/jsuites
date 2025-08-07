@@ -265,7 +265,7 @@ describe('jSuites mask', () => {
         });
 
         test('negative number formatting with brackets', () => {
-            expect(jSuites.mask.render(-100000, { mask: '(0)' }, true)).toBe('(100000)');
+            expect(jSuites.mask.render(-50.25, { mask: '(0)' }, true)).toBe('-(50)');
             expect(jSuites.mask.render(-100000, { mask: '_(0_)' }, true)).toBe(' -100000 ');
 
             // Standard Excel negative number formats
@@ -419,20 +419,20 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(1.01, { mask: '# ??/100' }, true)).toBe('1 1/100');
 
             // Values close to 1
-            expect(jSuites.mask.render(0.999, { mask: '# ??/??' }, true)).toBe('1      ');
-            expect(jSuites.mask.render(0.9999, { mask: '# ??/??' }, true)).toBe('1      ');
-            expect(jSuites.mask.render(1.001, { mask: '# ??/??' }, true)).toBe('1      ');
+            expect(jSuites.mask.render(0.999, { mask: '# ??/??' }, true)).toBe('1');
+            expect(jSuites.mask.render(0.9999, { mask: '# ??/??' }, true)).toBe('1');
+            expect(jSuites.mask.render(1.001, { mask: '# ??/??' }, true)).toBe('1');
 
             // Very small fraction handling
-            expect(jSuites.mask.render(0.0001, { mask: '# ??/??' }, true)).toBe('0      ');
-            expect(jSuites.mask.render(0.00001, { mask: '# ??/??' }, true)).toBe('0      ');
+            expect(jSuites.mask.render(0.0001, { mask: '# ??/??' }, true)).toBe('0');
+            expect(jSuites.mask.render(0.00001, { mask: '# ??/??' }, true)).toBe('0');
 
             // Large numbers with fractions
             expect(jSuites.mask.render(100.5, { mask: '# ??/??' }, true)).toBe('100 1/2');
             expect(jSuites.mask.render(999.25, { mask: '# ?/8' }, true)).toBe('999 2/8');
 
             // Different space formatting
-            expect(jSuites.mask.render(1.5, { mask: '#  ??/??' }, true)).toBe('1  1/2');
+            expect(jSuites.mask.render(1.5, { mask: '#  ??/??' }, true)).toBe('1 1/2');
         });
 
         test('currency rendering', () => {

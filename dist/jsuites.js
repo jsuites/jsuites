@@ -1399,6 +1399,7 @@ function Animation() {
  Add '*' as a valid symbol
  Formats such as 'DD"th of "MMMM", "YYYY'
  Conditional masking
+ (000) 00000-00
  */
 
 
@@ -1409,7 +1410,7 @@ function Mask() {
         // Text
         text: [ '@', '&' ],
         // Number
-        fraction: [ '# \\?+\\/[0-9?]+' ],
+        fraction: [ '#{0,1}.*?\\?+\\/[0-9?]+' ],
         // Currency tokens
         currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
         // Scientific
@@ -1421,7 +1422,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\)', '_\\(', '_-', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\(', '_\\)', '\\(', '\\)', '_-', '.']
     }
 
     // Labels
@@ -2029,7 +2030,7 @@ function Mask() {
         '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
         },
-        '# \\?+\\/[0-9?]+': function(v) {
+        '#{0,1}.*?\\?+\\/[0-9?]+': function(v) {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
         },
         '[0-9a-zA-Z\\$]+': function(v) {
@@ -2112,13 +2113,31 @@ function Mask() {
             }
             this.values[this.index] += v;
         },
+        '_\\(': function(v) {
+            this.values[this.index] = ' ';
+            this.index++;
+            return false;
+        },
         '_\\)': function(v) {
             this.values[this.index] = ' ';
             this.index++;
             return false;
         },
-        '_\\(': function(v) {
-            this.values[this.index] = ' ';
+        '\\(': function(v) {
+            if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
+                this.values[this.index] = '';
+            } else {
+                this.values[this.index] = '(';
+            }
+            this.index++;
+            return false;
+        },
+        '\\)': function(v) {
+            if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
+                this.values[this.index] = '';
+            } else {
+                this.values[this.index] = ')';
+            }
             this.index++;
             return false;
         },
@@ -2186,6 +2205,7 @@ function Mask() {
      * Get the method of one given token
      */
     const getMethod = function(str, temporary) {
+        str = str.toString().toUpperCase();
         const types = Object.keys(tokens);
 
         // Check for datetime mask
@@ -2199,7 +2219,8 @@ function Mask() {
 
         // Remove date time from the possible types
         if (datetime !== true) {
-            types.splice(5, 1);
+            let index = types.indexOf('datetime');
+            types.splice(index, 1);
         }
 
         // Get the method based on the token
@@ -2208,7 +2229,7 @@ function Mask() {
 
             for (let j = 0; j < tokens[type].length; j++) {
                 let e = new RegExp('^' + tokens[type][j] + '$', 'gi'); // Anchor regex
-                let r = str.toString().toUpperCase().match(e);
+                let r = str.match(e);
                 if (r) {
                     return { type: type, method: tokens[type][j] }
                 }
@@ -2280,6 +2301,7 @@ function Mask() {
     }
 
     const processNumOfPaddingZeros = function(control) {
+        let negativeSignal = false;
         control.methods.forEach((method, k) => {
             if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
                 let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
@@ -2288,12 +2310,27 @@ function Mask() {
                 }
             }
 
-            if (method.type === 'currency' || method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
-                if (control.parenthesisForNegativeNumbers === true && control.values[k].toString().includes('-')) {
-                    control.values[k] = '(' + control.values[k].replace('-', '') + ')';
+            if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true) {
+                if (method.type === 'currency') {
+                    if (control.values[k].toString().includes('-')) {
+                        control.values[k] = control.values[k].replace('-', '');
+
+                        negativeSignal = true;
+                    }
                 }
             }
         });
+
+
+        if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true && negativeSignal) {
+            control.methods.forEach((method, k) => {
+                if (! control.values[k] && control.tokens[k] === '(') {
+                    control.values[k] = '(';
+                } else if (! control.values[k] && control.tokens[k] === ')') {
+                    control.values[k] = ')';
+                }
+            });
+        }
     }
 
     const getValue = function(control) {
@@ -2384,7 +2421,6 @@ function Mask() {
             // Parenthesis
             let reg = /(?<!_)\((?![^()]*_)([^'"]*?)\)/g;
             if (mask.match(reg)) {
-                mask = mask.replace(reg, '$1');
                 control.parenthesisForNegativeNumbers = true;
             }
             // Match brackets that should be removed (NOT the time format codes)
@@ -2480,10 +2516,6 @@ function Mask() {
             } else {
                 // Optional
                 let optionalDecimalPlaces = mask.split(config.decimal);
-
-                console.log(config,mask)
-
-
                 optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g)[0].length;
                 if (numOfDecimalPlaces > optionalDecimalPlaces) {
                     necessaryAdjustment = optionalDecimalPlaces;
@@ -2523,8 +2555,9 @@ function Mask() {
     const formatFraction = function(value, mask) {
         let maxDenominator;
         let fixedDenominator = null;
+        let allowWholeNumber = true;
 
-        // Check for fixed denominator like # ?/8 or # ??/16
+        // Check for fixed denominator like # ?/8 or ?/8
         const fixed = mask.match(/\/(\d+)/);
         if (fixed) {
             fixedDenominator = parseInt(fixed[1], 10);
@@ -2535,85 +2568,81 @@ function Mask() {
             if (match) {
                 maxDenominator = Math.pow(10, match[1].length) - 1;
             } else {
-                maxDenominator = 9; // Default for # ?/?
+                maxDenominator = 9; // Default for # ?/? or ?/?
             }
         }
+        // Check if mask allows whole number (e.g., ?/? or ?/8 implies no whole number)
+        allowWholeNumber = mask.includes('#');
 
         // If we have a fixed denominator, use it exactly (don't simplify)
         if (fixedDenominator) {
             const isNegative = value < 0;
             const absValue = Math.abs(value);
             const numerator = Math.round(absValue * fixedDenominator);
+
+            // For masks like ?/8, always output as pure fraction (no whole number)
+            if (!allowWholeNumber) {
+                return isNegative ? `-${numerator}/${fixedDenominator}` : `${numerator}/${fixedDenominator}`;
+            }
+
+            // For masks like # ?/8, allow whole number
             const whole = Math.floor(numerator / fixedDenominator);
             const remainder = numerator % fixedDenominator;
-
             if (remainder === 0) {
                 return isNegative ? `-${whole}` : `${whole}`;
             }
-
             if (whole === 0) {
-                return isNegative ? `-${remainder}/${fixedDenominator}` : `${remainder}/${fixedDenominator}`;
+                return isNegative ? `-${numerator}/${fixedDenominator}` : `${numerator}/${fixedDenominator}`;
             }
-
             return isNegative ? `-${whole} ${remainder}/${fixedDenominator}` : `${whole} ${remainder}/${fixedDenominator}`;
         }
 
         // Use continued fractions algorithm for better approximation
-        // This is closer to what Excel actually does
         function continuedFraction(value, maxDenom) {
             if (value === 0) return [0, 1];
-
             let sign = value < 0 ? -1 : 1;
             value = Math.abs(value);
-
             let whole = Math.floor(value);
             let frac = value - whole;
-
             if (frac === 0) return [sign * whole, 1];
 
-            // Find best rational approximation using continued fractions
             let h1 = 1, h2 = 0;
             let k1 = 0, k2 = 1;
             let x = frac;
-
             while (k1 <= maxDenom) {
                 let a = Math.floor(x);
                 let h0 = a * h1 + h2;
                 let k0 = a * k1 + k2;
-
                 if (k0 > maxDenom) break;
-
                 h2 = h1; h1 = h0;
                 k2 = k1; k1 = k0;
-
                 if (Math.abs(x - a) < 1e-10) break;
                 x = 1 / (x - a);
             }
 
-            // Add the whole part back
-            let finalNum = sign * (whole * k1 + h1);
+            // Add the whole part back only if allowed
+            let finalNum = sign * (allowWholeNumber ? whole * k1 + h1 : Math.round(value * k1));
             let finalDen = k1;
-
             return [finalNum, finalDen];
         }
 
         const [numerator, denominator] = continuedFraction(value, maxDenominator);
 
         // Handle the result
-        const whole = Math.floor(Math.abs(numerator) / denominator);
-        const remainder = Math.abs(numerator) % denominator;
-        const sign = numerator < 0 ? '-' : '';
+        const isNegative = numerator < 0;
+        const absNumerator = Math.abs(numerator);
+        const whole = allowWholeNumber ? Math.floor(absNumerator / denominator) : 0;
+        const remainder = absNumerator % denominator;
+        const sign = isNegative ? '-' : '';
 
         if (remainder === 0) {
-            return `${sign}${whole}`;
+            return `${sign}${whole || 0}`;
         }
-
-        if (whole === 0) {
-            return `${sign}${remainder}/${denominator}`;
+        if (whole === 0 || !allowWholeNumber) {
+            return `${sign}${absNumerator}/${denominator}`;
         }
-
         return `${sign}${whole} ${remainder}/${denominator}`;
-    };
+    }
 
     const Component = function(str, config, returnObject) {
         // Get configuration
@@ -2622,7 +2651,7 @@ function Mask() {
         // Value to be masked
         control.value = str.toString();
         control.raw = str;
-
+console.log(control)
         if (control.locale) {
             // Process the locale
         } else if (control.mask) {
@@ -2778,9 +2807,6 @@ function Mask() {
         let control = Component(value, options, true);
         // Complement render
         if (fullMask) {
-
-            console.log(control)
-
             processNumOfPaddingZeros(control);
         }
 
