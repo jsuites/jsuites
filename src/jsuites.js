@@ -1,5 +1,3 @@
-import '@lemonadejs/studio';
-
 import dictionary from './utils/dictionary';
 import tracking from './utils/tracking';
 import helpers from './utils/helpers';
