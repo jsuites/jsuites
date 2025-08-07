@@ -2,4 +2,6 @@ import jSuites from './jsuites';
 
 import '../dist/jsuites.css';
 
-jSuites.tags(root);
+window.j = jSuites;
+
+// jSuites.tags(root);
