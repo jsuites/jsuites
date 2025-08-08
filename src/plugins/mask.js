@@ -1262,6 +1262,45 @@ function Mask() {
         return `${sign}${whole} ${remainder}/${denominator}`;
     }
 
+    const extractDateAndTime = function(value) {
+        value = '' + value.substring(0,19);
+        let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
+        value = value.split(splitStr);
+
+        let y = null;
+        let m = null;
+        let d = null;
+        let h = '0';
+        let i = '0';
+        let s = '0';
+
+        if (! value[1]) {
+            if (value[0].indexOf(':') !== -1) {
+                value[0] = value[0].split(':');
+                h = value[0][0];
+                i = value[0][1];
+                s = value[0][2];
+            } else {
+                value[0] = value[0].split('-');
+                y = value[0][0];
+                m = value[0][1];
+                d = value[0][2];
+            }
+        } else {
+            value[0] = value[0].split('-');
+            y = value[0][0];
+            m = value[0][1];
+            d = value[0][2];
+
+            value[1] = value[1].split(':');
+            h = value[1][0];
+            i = value[1][1];
+            s = value[1][2];
+        }
+
+        return [y,m,d,h,i,s];
+    }
+
     const Component = function(str, config, returnObject) {
         // Get configuration
         const control = getConfig(config, str);
@@ -1308,43 +1347,582 @@ function Mask() {
         }
     }
 
-    Component.oninput = function(e) {
-        // Element
-        let element = e.target;
-        // Property
-        let property = 'value';
-        // Get the value of the input
-        if (element.tagName !== 'INPUT') {
-            property = 'textContent';
-        }
-        // Value
-        let value = element[property];
-        // Get the mask
-        let mask = element.getAttribute('data-mask');
-        // Keep the current caret position
-        let caret = getCaret.call(element);
-        if (caret) {
-            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
-        }
+    // Helper: Extract group/decimal separators from locale
+    const getSeparators = function(locale) {
+        const parts = Intl.NumberFormat(locale).formatToParts(123456.789);
+        const group = parts.find(p => p.type === 'group')?.value || ',';
+        const decimal = parts.find(p => p.type === 'decimal')?.value || '.';
+        return { group, decimal };
+    }
 
-        // Run mask
-        let result = Component(value, { mask: mask }, true);
-        // New value
-        let newValue = result.values.join('');
-        // Apply the result back to the element
-        if (newValue !== value && ! e.inputType.includes('delete')) {
-            // Set the caret to the position before transformation
-            let caret = newValue.indexOf("\u200B");
-            if (caret !== -1) {
-                // Apply value
-                element[property] = newValue.replace("\u200B", "");
-                // Set caret
-                setCaret.call(element, caret);
+    // Helper: Infer group/decimal separators from input string
+    const inferFormatFromString = function(str) {
+        if (str.includes('.') && str.includes(',')) return { group: '.', decimal: ',' };
+        if (str.includes(',') && !str.includes('.')) return { group: ',', decimal: '.' };
+        if (str.includes('.') && !str.includes(',')) return { group: ',', decimal: '.' };
+        if (str.includes("’")) return { group: '’', decimal: '.' };
+        if (str.includes(' ') && str.includes(',')) return { group: ' ', decimal: ',' };
+        return null;
+    }
+
+    // Helper: Compare rendered value to original input
+    const testMask = function(mask, value, original) {
+        const rendered = Component.render(value, { mask }, true);
+        return rendered.replace(/\s/g, '') === original.replace(/\s/g, '');
+    }
+
+    // Escape for RegExp
+    const escapeRegex = function(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    const symbolLocaleHints = {
+        '$': { group: ',', decimal: '.' },
+        '€': { group: '.', decimal: ',' },
+        '£': { group: ',', decimal: '.' },
+        'R$': { group: '.', decimal: ',' },
+        'CHF': { group: '’', decimal: '.' },
+        '¥': { group: ',', decimal: '.' }
+    };
+
+    const autoCastingFractions = function(value) {
+        const fractionPattern = /^\s*(-?\d+\s+)?(-?\d+)\/(\d+)\s*$/;
+        const fractionMatch = value.match(fractionPattern);
+        if (fractionMatch) {
+            const sign = value.trim().startsWith('-') ? -1 : 1;
+            const whole = fractionMatch[1] ? Math.abs(parseInt(fractionMatch[1])) : 0;
+            const numerator = Math.abs(parseInt(fractionMatch[2]));
+            const denominator = parseInt(fractionMatch[3]);
+
+            if (denominator === 0) return null;
+
+            const decimalValue = sign * (whole + (numerator / denominator));
+
+            // Determine the mask
+            let mask;
+            if ([2, 4, 8, 16, 32].includes(denominator)) {
+                mask = whole !== 0 ? `# ?/${denominator}` : `?/${denominator}`;
+            } else if (denominator <= 9) {
+                mask = whole !== 0 ? '# ?/?' : '?/?';
             } else {
-                // Apply value
-                element[property] = newValue;
+                mask = whole !== 0 ? '# ??/??' : '??/??';
+            }
+
+            if (testMask(mask, decimalValue, value.trim())) {
+                return { mask, value: decimalValue };
             }
         }
+        return null;
+    }
+
+    const autoCastingPercent = function(value) {
+        const percentPattern = /^\s*([+-]?\d+(?:[.,]\d+)?)%\s*$/;
+        const percentMatch = value.match(percentPattern);
+        if (percentMatch) {
+            const rawNumber = percentMatch[1].replace(',', '.');
+            const decimalValue = parseFloat(rawNumber) / 100;
+
+            const decimalPart = rawNumber.split('.')[1];
+            const decimalPlaces = decimalPart ? decimalPart.length : 0;
+            const mask = decimalPlaces > 0 ? `0.${'0'.repeat(decimalPlaces)}%` : '0%';
+
+            if (testMask(mask, decimalValue, value.trim())) {
+                return { mask: mask, value: decimalValue };
+            }
+        }
+        return null;
+    }
+
+    const autoCastingDates = function(value) {
+        if (!value || typeof value !== 'string') {
+            return null;
+        }
+
+        // Smart pattern detection based on the structure of the string
+
+        // 1. Analyze the structure to determine possible formats
+        const analyzeStructure = function(str) {
+            const patterns = [];
+
+            // Check for date with forward slashes: XX/XX/XXXX or XX/XX/XX
+            if (str.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/)) {
+                const parts = str.split('/');
+                const p1 = parseInt(parts[0]);
+                const p2 = parseInt(parts[1]);
+                const p3 = parseInt(parts[2]);
+
+                // Determine likely format based on values
+                if (p1 <= 12 && p2 <= 31 && p2 > 12) {
+                    // Likely mm/dd/yyyy
+                    patterns.push('mm/dd/yyyy', 'mm/dd/yy', 'm/d/yyyy', 'm/d/yy');
+                } else if (p1 <= 31 && p2 <= 12 && p1 > 12) {
+                    // Likely dd/mm/yyyy
+                    patterns.push('dd/mm/yyyy', 'dd/mm/yy', 'd/m/yyyy', 'd/m/yy');
+                } else if (p1 <= 12 && p2 <= 12) {
+                    // Ambiguous - could be either, use locale preference
+                    const locale = navigator.language || 'en-US';
+                    if (locale.startsWith('en-US')) {
+                        patterns.push('mm/dd/yyyy', 'dd/mm/yyyy', 'mm/dd/yy', 'dd/mm/yy');
+                    } else {
+                        patterns.push('dd/mm/yyyy', 'mm/dd/yyyy', 'dd/mm/yy', 'mm/dd/yy');
+                    }
+                }
+
+                // Add variations
+                if (p3 < 100) {
+                    patterns.push('dd/mm/yy', 'mm/dd/yy', 'd/m/yy', 'm/d/yy');
+                } else {
+                    patterns.push('dd/mm/yyyy', 'mm/dd/yyyy', 'd/m/yyyy', 'm/d/yyyy');
+                }
+            }
+
+            // Check for date with dashes: XX-XX-XXXX
+            else if (str.match(/^\d{1,2}-\d{1,2}-\d{2,4}$/)) {
+                const parts = str.split('-');
+                const p1 = parseInt(parts[0]);
+                const p2 = parseInt(parts[1]);
+                const p3 = parseInt(parts[2]);
+
+                if (p1 <= 12 && p2 <= 31 && p2 > 12) {
+                    patterns.push('mm-dd-yyyy', 'mm-dd-yy', 'm-d-yyyy', 'm-d-yy');
+                } else if (p1 <= 31 && p2 <= 12 && p1 > 12) {
+                    patterns.push('dd-mm-yyyy', 'dd-mm-yy', 'd-m-yyyy', 'd-m-yy');
+                } else {
+                    patterns.push('dd-mm-yyyy', 'mm-dd-yyyy', 'dd-mm-yy', 'mm-dd-yy');
+                }
+            }
+
+            // Check for ISO format: YYYY-MM-DD
+            else if (str.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                patterns.push('yyyy-mm-dd', 'yyyy-m-d');
+            }
+
+            // Check for format: YYYY/MM/DD
+            else if (str.match(/^\d{4}\/\d{1,2}\/\d{1,2}$/)) {
+                patterns.push('yyyy/mm/dd', 'yyyy/m/d');
+            }
+
+            // Check for dates with month names
+            else if (str.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i)) {
+                // DD Mon YYYY or DD Month YYYY
+                if (str.match(/^\d{1,2}\s+\w+\s+\d{2,4}$/i)) {
+                    patterns.push('dd mmm yyyy', 'dd mmmm yyyy', 'd mmm yyyy', 'd mmmm yyyy',
+                        'dd mmm yy', 'dd mmmm yy', 'd mmm yy', 'd mmmm yy');
+                }
+                // Mon DD, YYYY or Month DD, YYYY
+                else if (str.match(/^\w+\s+\d{1,2},?\s+\d{2,4}$/i)) {
+                    patterns.push('mmm dd, yyyy', 'mmmm dd, yyyy', 'mmm d, yyyy', 'mmmm d, yyyy',
+                        'mmm dd yyyy', 'mmmm dd yyyy', 'mmm d yyyy', 'mmmm d yyyy');
+                }
+                // DD-Mon-YYYY
+                else if (str.match(/^\d{1,2}-\w+-\d{2,4}$/i)) {
+                    patterns.push('dd-mmm-yyyy', 'dd-mmmm-yyyy', 'd-mmm-yyyy', 'd-mmmm-yyyy',
+                        'dd-mmm-yy', 'dd-mmmm-yy', 'd-mmm-yy', 'd-mmmm-yy');
+                }
+            }
+
+            // Check for weekday formats
+            else if (str.match(/^(mon|tue|wed|thu|fri|sat|sun)/i)) {
+                if (str.match(/^\w+,\s+\d{1,2}\s+\w+\s+\d{4}$/i)) {
+                    patterns.push('ddd, dd mmm yyyy', 'ddd, d mmm yyyy',
+                        'dddd, dd mmmm yyyy', 'dddd, d mmmm yyyy');
+                }
+            }
+
+            // Check for datetime formats
+            else if (str.includes(' ') && str.match(/\d{1,2}:\d{2}/)) {
+                const parts = str.split(' ');
+                if (parts.length >= 2) {
+                    const datePart = parts[0];
+                    const timePart = parts.slice(1).join(' ');
+
+                    // Determine date format
+                    let dateMasks = [];
+                    if (datePart.includes('/')) {
+                        dateMasks = ['dd/mm/yyyy', 'mm/dd/yyyy', 'd/m/yyyy', 'm/d/yyyy'];
+                    } else if (datePart.includes('-')) {
+                        if (datePart.match(/^\d{4}-/)) {
+                            dateMasks = ['yyyy-mm-dd', 'yyyy-m-d'];
+                        } else {
+                            dateMasks = ['dd-mm-yyyy', 'mm-dd-yyyy', 'd-m-yyyy', 'm-d-yyyy'];
+                        }
+                    }
+
+                    // Determine time format
+                    let timeMasks = [];
+                    if (timePart.match(/\d{1,2}:\d{2}:\d{2}/)) {
+                        timeMasks = ['hh:mm:ss', 'h:mm:ss'];
+                    } else {
+                        timeMasks = ['hh:mm', 'h:mm'];
+                    }
+
+                    // Add AM/PM variants if present
+                    if (timePart.match(/[ap]m/i)) {
+                        timeMasks = timeMasks.map(t => t + ' am/pm');
+                    }
+
+                    // Combine date and time masks
+                    for (const dateMask of dateMasks) {
+                        for (const timeMask of timeMasks) {
+                            patterns.push(`${dateMask} ${timeMask}`);
+                        }
+                    }
+                }
+            }
+
+            // Check for time-only formats
+            else if (str.match(/^\d{1,2}:\d{2}(:\d{2})?(\s*(am|pm))?$/i)) {
+                if (str.match(/:\d{2}:\d{2}/)) {
+                    patterns.push('hh:mm:ss', 'h:mm:ss');
+                    if (str.match(/[ap]m/i)) {
+                        patterns.push('hh:mm:ss am/pm', 'h:mm:ss am/pm');
+                    }
+                } else {
+                    patterns.push('hh:mm', 'h:mm');
+                    if (str.match(/[ap]m/i)) {
+                        patterns.push('hh:mm am/pm', 'h:mm am/pm');
+                    }
+                }
+            }
+
+            // Check for extended hour format [h]:mm:ss
+            else if (str.match(/^\[?\d+\]?:\d{2}:\d{2}$/)) {
+                patterns.push('[h]:mm:ss');
+            }
+
+            return [...new Set(patterns)]; // Remove duplicates
+        };
+
+        // Get candidate masks based on the string structure
+        const candidateMasks = analyzeStructure(value);
+
+        // If no patterns detected, try some common formats as fallback
+        if (candidateMasks.length === 0) {
+            const locale = navigator.language || 'en-US';
+            if (locale.startsWith('en-US')) {
+                candidateMasks.push(
+                    'mm/dd/yyyy', 'mm-dd-yyyy', 'yyyy-mm-dd',
+                    'mm/dd/yy', 'mm-dd-yy',
+                    'hh:mm:ss', 'hh:mm', 'h:mm am/pm'
+                );
+            } else {
+                candidateMasks.push(
+                    'dd/mm/yyyy', 'dd-mm-yyyy', 'yyyy-mm-dd',
+                    'dd/mm/yy', 'dd-mm-yy',
+                    'hh:mm:ss', 'hh:mm', 'h:mm'
+                );
+            }
+        }
+
+        // Try each candidate mask
+        for (const mask of candidateMasks) {
+            try {
+                // Use Component.extractDateFromString to parse the date
+                const isoDate = Component.extractDateFromString(value, mask);
+
+                if (isoDate && isoDate !== '') {
+                    // Parse the ISO date string to components
+                    const parts = isoDate.split(' ');
+                    const dateParts = parts[0].split('-');
+                    const timeParts = parts[1] ? parts[1].split(':') : ['0', '0', '0'];
+
+                    const year = parseInt(dateParts[0]);
+                    const month = parseInt(dateParts[1]);
+                    const day = parseInt(dateParts[2]);
+                    const hour = parseInt(timeParts[0]);
+                    const minute = parseInt(timeParts[1]);
+                    const second = parseInt(timeParts[2]);
+
+                    // Validate the date components
+                    if (year > 0 && month >= 1 && month <= 12 && day >= 1 && day <= 31 &&
+                        hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
+
+                        // Convert to Excel serial number
+                        const excelNumber = HelpersDate.dateToNum(isoDate);
+
+                        // Verify by rendering back
+                        const rendered = Component.render(excelNumber, { mask: mask }, true);
+
+                        // Case-insensitive comparison for month names
+                        if (rendered.toLowerCase() === value.toLowerCase()) {
+                            return {
+                                mask: mask,
+                                value: excelNumber,
+                                type: 'datetime'
+                            };
+                        }
+                    }
+                }
+            } catch (e) {
+            }
+        }
+
+        // No matching format found
+        return null;
+    };
+
+    const autoCastingCurrency = function (input) {
+        if (typeof input !== 'string') return null;
+
+        const original = input.trim();
+
+        const isNegative = /^\s*[-(]/.test(original);
+        let value = original.replace(/[()\-\s]/g, '');
+
+        // Known symbols
+        const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
+        let symbol = '';
+
+        for (let s of knownSymbols) {
+            const regex = new RegExp(`^${s.replace(/[$]/g, '\\$')}(\\s?)`);
+            const match = value.match(regex);
+            if (match) {
+                symbol = s + (match[1] || ' ');
+                value = value.replace(regex, '');
+                break;
+            }
+        }
+
+        // Generic symbol/prefix (e.g., "U$", "US$")
+        if (!symbol) {
+            const prefixMatch = value.match(/^([^\d\s.,-]{1,4})\s?/);
+            if (prefixMatch) {
+                symbol = prefixMatch[1] + ' ';
+                value = value.replace(prefixMatch[0], '');
+            }
+        }
+
+        // Code suffix (e.g., USD, BRL)
+        const codeMatch = value.match(/([A-Z]{3})$/);
+        if (codeMatch) {
+            value = value.replace(codeMatch[1], '').trim();
+            if (!symbol) symbol = codeMatch[1] + ' ';
+        }
+
+        // Infer separators
+        let group = ',', decimal = '.';
+
+        if (value.includes(',') && value.includes('.')) {
+            const lastComma = value.lastIndexOf(',');
+            const lastDot = value.lastIndexOf('.');
+            if (lastComma > lastDot) {
+                group = '.';
+                decimal = ',';
+            } else {
+                group = ',';
+                decimal = '.';
+            }
+        } else if (value.includes('.')) {
+            const parts = value.split('.');
+            const lastPart = parts[parts.length - 1];
+            if (/^\d{3}$/.test(lastPart)) {
+                group = '.';
+                decimal = ',';
+            } else {
+                group = ',';
+                decimal = '.';
+            }
+        } else if (value.includes(',')) {
+            const parts = value.split(',');
+            const lastPart = parts[parts.length - 1];
+            if (/^\d{3}$/.test(lastPart)) {
+                group = ',';
+                decimal = '.';
+            } else {
+                group = '.';
+                decimal = ',';
+            }
+        }
+
+        // Normalize and parse
+        const normalized = value
+            .replace(new RegExp(`\\${group}`, 'g'), '')
+            .replace(decimal, '.');
+
+        const parsed = parseFloat(normalized);
+        if (isNaN(parsed)) return null;
+
+        const finalValue = isNegative ? -parsed : parsed;
+
+        // Build dynamic group + decimal mask
+        const decimalPlaces = normalized.includes('.') ? normalized.split('.')[1].length : 0;
+        const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
+        const groupMask = '#' + group + '##0';
+        const mask = `${symbol}${groupMask}${maskDecimal}`;
+
+        return {
+            mask,
+            value: finalValue
+        };
+    }
+
+    const autoCastingNumber = function(input) {
+        if (typeof input !== 'string') return null;
+
+        const original = input.trim();
+
+        // Exclude anything that looks like currency, percent, fraction, or date
+        if (/[%$€£¥₹\/:]/.test(original)) return null;
+        if (/\d+[\/]\d+/.test(original)) return null;
+        if (/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(original)) return null;
+
+        // Validate numeric format
+        const isNumeric = /^0*[0-9]+([.,][0-9]+)?$/.test(original);
+        if (!isNumeric) return null;
+
+        // Infer separators
+        const decimal = original.includes(',') ? ',' : '.';
+        const raw = original.replace(',', '.'); // Normalize
+
+        const parsed = parseFloat(raw);
+        if (isNaN(parsed)) return null;
+
+        // Build mask preserving leading zeros
+        const [intPart, decPart] = original.replace(',', '.').split('.');
+        const intMask = intPart.replace(/[1-9]/g, '0');
+        const decMask = decPart ? '.' + '0'.repeat(decPart.length) : '';
+        const mask = `${intMask}${decMask}`;
+
+        return {
+            mask: mask || '0',
+            value: parsed
+        };
+    };
+
+    const autoCastingScientific = function(input) {
+        if (typeof input !== 'string') return null;
+
+        const original = input.trim();
+
+        // Match scientific notation: 1e3, -2.5E-4, etc.
+        const sciPattern = /^[-+]?\d*\.?\d+[eE][-+]?\d+$/;
+        if (!sciPattern.test(original)) return null;
+
+        const parsed = parseFloat(original);
+        if (isNaN(parsed)) return null;
+
+        // Extract parts to determine mask
+        const [coefficient, exponent] = original.toLowerCase().split('e');
+        const decimalPlaces = coefficient.includes('.') ? coefficient.split('.')[1].length : 0;
+        const mask = `0${decimalPlaces ? '.' + '0'.repeat(decimalPlaces) : ''}E+00`;
+
+        return {
+            mask,
+            value: parsed
+        };
+    };
+
+
+    /**
+     * Try to get which mask that can transform the number in that format
+     */
+    Component.autoCasting = function(value, returnObject) {
+        const methods = [
+            autoCastingDates,        // Most structured, the least ambiguous
+            autoCastingFractions,    // Specific pattern with slashes
+            autoCastingPercent,      // Recognizable with "%"
+            autoCastingScientific,
+            autoCastingNumber,       // Only picks up basic digits, decimals, leading 0s
+            autoCastingCurrency,     // Complex formats, but recognizable
+        ];
+
+        for (let method of methods) {
+            const test = method(value);
+            if (test) {
+                return test;
+            }
+        }
+
+        return null;
+    }
+
+    Component.extract = function(v, options, returnObject) {
+        /*if (isBlank(v)) {
+            return v;
+        }
+        if (typeof(options) != 'object') {
+            return v;
+        } else {
+            options = Object.assign({}, options);
+
+            if (! options.options) {
+                options.options = {};
+            }
+        }
+
+        // Compatibility
+        if (! options.mask && options.format) {
+            options.mask = options.format;
+        }
+
+        // Remove []
+        if (options.mask) {
+            if (options.mask.indexOf(';') !== -1) {
+                var t = options.mask.split(';');
+                options.mask = t[0];
+            }
+            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
+            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
+            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
+        }
+
+        // Get decimal
+        getDecimal.call(options, options.mask);
+
+        var type = null;
+        var value = null;
+
+        if (options.type == 'percent' || options.options.style == 'percent') {
+            type = 'percentage';
+        } else if (options.mask) {
+            type = getType.call(options, options.mask);
+        }
+
+        if (type === 'text') {
+            var o = {};
+            value = v;
+        } else if (type === 'general') {
+            var o = obj(v, options, true);
+
+            value = v;
+        } else if (type === 'datetime') {
+            if (v instanceof Date) {
+                v = obj.getDateString(v, options.mask);
+            }
+
+            var o = obj(v, options, true);
+
+            if (Helpers.isNumeric(v)) {
+                value = v;
+            } else {
+                value = extractDate.call(o);
+            }
+        } else if (type === 'scientific') {
+            value = v;
+            if (typeof(v) === 'string') {
+                value = Number(value);
+            }
+            var o = options;
+        } else {
+            value = Extract.call(options, v);
+            // Percentage
+            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
+                value /= 100;
+            }
+            var o = options;
+        }
+
+        o.value = value;
+
+        if (! o.type && type) {
+            o.type = type;
+        }
+
+        if (returnObject) {
+            return o;
+        } else {
+            return value;
+        }*/
     }
 
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
@@ -1424,45 +2002,6 @@ function Mask() {
         }
 
         return getValue(control);
-    }
-
-    const extractDateAndTime = function(value) {
-        value = '' + value.substring(0,19);
-        let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
-        value = value.split(splitStr);
-
-        let y = null;
-        let m = null;
-        let d = null;
-        let h = '0';
-        let i = '0';
-        let s = '0';
-
-        if (! value[1]) {
-            if (value[0].indexOf(':') !== -1) {
-                value[0] = value[0].split(':');
-                h = value[0][0];
-                i = value[0][1];
-                s = value[0][2];
-            } else {
-                value[0] = value[0].split('-');
-                y = value[0][0];
-                m = value[0][1];
-                d = value[0][2];
-            }
-        } else {
-            value[0] = value[0].split('-');
-            y = value[0][0];
-            m = value[0][1];
-            d = value[0][2];
-
-            value[1] = value[1].split(':');
-            h = value[1][0];
-            i = value[1][1];
-            s = value[1][2];
-        }
-
-        return [y,m,d,h,i,s];
     }
 
     // Helper to extract date from a string
@@ -1681,94 +2220,44 @@ function Mask() {
         return value;
     }
 
-/*    Component.extract = function(v, options, returnObject) {
-        if (isBlank(v)) {
-            return v;
+    Component.oninput = function(e) {
+        // Element
+        let element = e.target;
+        // Property
+        let property = 'value';
+        // Get the value of the input
+        if (element.tagName !== 'INPUT') {
+            property = 'textContent';
         }
-        if (typeof(options) != 'object') {
-            return v;
-        } else {
-            options = Object.assign({}, options);
-
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
+        // Value
+        let value = element[property];
+        // Get the mask
+        let mask = element.getAttribute('data-mask');
+        // Keep the current caret position
+        let caret = getCaret.call(element);
+        if (caret) {
+            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
         }
 
-        // Get decimal
-        getDecimal.call(options, options.mask);
-
-        var type = null;
-        var value = null;
-
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        }
-
-        if (type === 'text') {
-            var o = {};
-            value = v;
-        } else if (type === 'general') {
-            var o = obj(v, options, true);
-
-            value = v;
-        } else if (type === 'datetime') {
-            if (v instanceof Date) {
-                v = obj.getDateString(v, options.mask);
-            }
-
-            var o = obj(v, options, true);
-
-            if (Helpers.isNumeric(v)) {
-                value = v;
+        // Run mask
+        let result = Component(value, { mask: mask }, true);
+        // New value
+        let newValue = result.values.join('');
+        // Apply the result back to the element
+        if (newValue !== value && ! e.inputType.includes('delete')) {
+            // Set the caret to the position before transformation
+            let caret = newValue.indexOf("\u200B");
+            if (caret !== -1) {
+                // Apply value
+                element[property] = newValue.replace("\u200B", "");
+                // Set caret
+                setCaret.call(element, caret);
             } else {
-                value = extractDate.call(o);
+                // Apply value
+                element[property] = newValue;
             }
-        } else if (type === 'scientific') {
-            value = v;
-            if (typeof(v) === 'string') {
-                value = Number(value);
-            }
-            var o = options;
-        } else {
-            value = Extract.call(options, v);
-            // Percentage
-            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
-                value /= 100;
-            }
-            var o = options;
         }
-
-        o.value = value;
-
-        if (! o.type && type) {
-            o.type = type;
-        }
-
-        if (returnObject) {
-            return o;
-        } else {
-            return value;
-        }
-    }*/
+    }
 
     return Component;
 }

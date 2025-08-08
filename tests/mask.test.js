@@ -494,7 +494,93 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('autoCasting Date and time formats', () => {
+        test('should detect common date formats', () => {
+            expect(jSuites.mask.autoCasting("25/12/2025")).toEqual({ mask: 'dd/mm/yyyy', value: 45651 });
+            expect(jSuites.mask.autoCasting("12/25/2025")).toEqual({ mask: 'mm/dd/yyyy', value: 45651 });
+            expect(jSuites.mask.autoCasting("2025-12-25")).toEqual({ mask: 'yyyy-mm-dd', value: 45651 });
+        });
 
+        test('should detect dates with month names', () => {
+            expect(jSuites.mask.autoCasting("25 Dec 2025")).toEqual({ mask: 'dd mmm yyyy', value: 45651 });
+            expect(jSuites.mask.autoCasting("December 25, 2025")).toEqual({ mask: 'mmmm dd, yyyy', value: 45651 });
+        });
+
+        test('should detect time formats', () => {
+            expect(jSuites.mask.autoCasting("14:30:45")).toEqual({ mask: 'hh:mm:ss', value: 0.604 }); // 14.5/24
+            expect(jSuites.mask.autoCasting("2:30 PM")).toEqual({ mask: 'h:mm am/pm', value: 0.604 }); // 14.5/24
+        });
+
+        test('should detect combined datetime formats', () => {
+            expect(jSuites.mask.autoCasting("25/12/2025 14:30:00")).toEqual({ mask: 'dd/mm/yyyy hh:mm:ss', value: 45651.604 });
+        });
+    });
+
+    describe('autoCasting Currency formats', () => {
+        test('should detect currency with dot separator', () => {
+            expect(jSuites.mask.autoCasting("$ 1,234.56")).toEqual({ mask: '$ #,##0.00', value: 1234.56 });
+        });
+
+        test('should detect currency with comma separator (EU style)', () => {
+            expect(jSuites.mask.autoCasting("€ 1.234,56")).toEqual({ mask: '€ #.##0,00', value: 1234.56 });
+        });
+
+        test('should detect negative currency', () => {
+            expect(jSuites.mask.autoCasting("($5,000.75)")).toEqual({ mask: '($#,##0.00)', value: -5000.75 });
+        });
+    });
+
+    describe('autoCasting Percentage formats', () => {
+        test('should detect whole number percent', () => {
+            expect(jSuites.mask.autoCasting("50%")).toEqual({ mask: '0%', value: 0.5 });
+        });
+
+        test('should detect decimal percent', () => {
+            expect(jSuites.mask.autoCasting("25.5%")).toEqual({ mask: '0.0%', value: 0.255 });
+        });
+    });
+
+    describe('autoCasting Fraction formats', () => {
+        test('should detect simple fractions', () => {
+            expect(jSuites.mask.autoCasting("1/2")).toEqual({ mask: '# ?/?', value: 0.5 });
+            expect(jSuites.mask.autoCasting("3/4")).toEqual({ mask: '# ?/?', value: 0.75 });
+        });
+
+        test('should detect mixed numbers', () => {
+            expect(jSuites.mask.autoCasting("1 1/2")).toEqual({ mask: '# ?/?', value: 1.5 });
+            expect(jSuites.mask.autoCasting("2 3/8")).toEqual({ mask: '# ??/??', value: 2.375 });
+        });
+    });
+
+    describe('autoCasting Scientific notation', () => {
+        test('should detect scientific format', () => {
+            expect(jSuites.mask.autoCasting("1.23e+10")).toEqual({ mask: '0.00E+00', value: 12300000000 });
+            expect(jSuites.mask.autoCasting("-7.9998e+22")).toEqual({ mask: '0.0000E+00', value: -7.9998e+22 });
+        });
+    });
+
+    describe('autoCasting Numeric formats', () => {
+        test('should detect plain numbers', () => {
+            expect(jSuites.mask.autoCasting("123456")).toEqual({ mask: '0', value: 123456 });
+            expect(jSuites.mask.autoCasting("-789")).toEqual({ mask: '0', value: -789 });
+        });
+
+        test('should detect formatted numbers', () => {
+            expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25 });
+            expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25 });
+        });
+
+        test('should detect padded zeros', () => {
+            expect(jSuites.mask.autoCasting("000123")).toEqual({ mask: '000000', value: 123 });
+        });
+    });
+
+    describe('autoCasting Invalid or general formats', () => {
+        test('should return null for non-parsable input', () => {
+            expect(jSuites.mask.autoCasting("hello world")).toBeNull();
+            expect(jSuites.mask.autoCasting("**!@#")).toBeNull();
+        });
+    });
 
     test('jSuites.mask.render', () => {
         expect(jSuites.mask.render(123, { mask: '00000' }, true)).toBe('00123');
