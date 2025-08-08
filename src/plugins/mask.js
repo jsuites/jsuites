@@ -1836,94 +1836,90 @@ function Mask() {
         return null;
     }
 
-    Component.extract = function(v, options, returnObject) {
-        /*if (isBlank(v)) {
-            return v;
-        }
-        if (typeof(options) != 'object') {
-            return v;
+    const ParseValue = function(v, config) {
+        if (v === '') return '';
+
+        const decimal = config.decimal || '.';
+
+        v = ('' + v).split(decimal);
+
+        // Detect negative sign
+        let signal = v[0].includes('-');
+
+        v[0] = v[0].match(/[0-9]+/g);
+        if (v[0]) {
+            if (signal) v[0].unshift('-');
+            v[0] = v[0].join('');
         } else {
-            options = Object.assign({}, options);
+            v[0] = signal ? '-' : '';
+        }
 
-            if (! options.options) {
-                options.options = {};
+        if (v[1] !== undefined) {
+            v[1] = v[1].match(/[0-9]+/g);
+            v[1] = v[1] ? v[1].join('') : '';
+        }
+
+        return v[0] || v[1] ? v : '';
+    };
+
+    const Extract = function(v, config) {
+        const parsed = ParseValue(v, config);
+        if (parsed) {
+            if (parsed[0] === '-') {
+                parsed[0] = '-0';
             }
+            return parseFloat(parsed.join('.'));
         }
+        return null;
+    };
 
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
+    Component.extract = function(value, options, returnObject) {
+        if (!value || typeof options !== 'object') return value;
 
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
-        }
+        // Get decimal, group, type, etc.
+        const config = getConfig(options, value);
+        const type = config.type;
 
-        // Get decimal
-        getDecimal.call(options, options.mask);
-
-        var type = null;
-        var value = null;
-
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        }
+        let result;
+        let o;
 
         if (type === 'text') {
-            var o = {};
-            value = v;
+            result = value;
+            o = {};
         } else if (type === 'general') {
-            var o = obj(v, options, true);
-
-            value = v;
+            o = Component(value, options, true);
+            result = value;
         } else if (type === 'datetime') {
-            if (v instanceof Date) {
-                v = obj.getDateString(v, options.mask);
+            if (value instanceof Date) {
+                value = Component.getDateString(value, options.mask);
             }
 
-            var o = obj(v, options, true);
+            o = Component(value, options, true);
 
-            if (Helpers.isNumeric(v)) {
-                value = v;
-            } else {
-                value = extractDate.call(o);
-            }
+            result = typeof value === 'number' ? value : extractDate.call(o);
         } else if (type === 'scientific') {
-            value = v;
-            if (typeof(v) === 'string') {
-                value = Number(value);
-            }
-            var o = options;
+            result = typeof value === 'string' ? Number(value) : value;
+            o = options;
         } else {
-            value = Extract.call(options, v);
-            // Percentage
-            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
-                value /= 100;
+            // Default fallback — numeric/currency/percent/etc.
+            result = Extract(value, config);
+
+            // Adjust percent
+            if (type === 'percentage' && ('' + value).indexOf('%') !== -1) {
+                result = result / 100;
             }
-            var o = options;
+
+            o = options;
         }
 
-        o.value = value;
+        o.value = result;
 
-        if (! o.type && type) {
+        if (!o.type && type) {
             o.type = type;
         }
 
-        if (returnObject) {
-            return o;
-        } else {
-            return value;
-        }*/
-    }
+        return returnObject ? o : result;
+    };
 
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
