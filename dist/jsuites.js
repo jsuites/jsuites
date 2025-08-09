@@ -1492,6 +1492,7 @@ function HelpersDate() {
  (000) 00000-00
  $ (#,##0.00);$ (-#,##0.00)
  $ (-#,##0.00)
+ j.mask('1 1/2', { mask: '# ?/?' }) // nao ta correto
  */
 
 
@@ -3297,30 +3298,6 @@ function Mask() {
             mask,
             value: parsed
         };
-    };
-
-
-    /**
-     * Try to get which mask that can transform the number in that format
-     */
-    Component.autoCasting = function(value, returnObject) {
-        const methods = [
-            autoCastingDates,        // Most structured, the least ambiguous
-            autoCastingFractions,    // Specific pattern with slashes
-            autoCastingPercent,      // Recognizable with "%"
-            autoCastingScientific,
-            autoCastingNumber,       // Only picks up basic digits, decimals, leading 0s
-            autoCastingCurrency,     // Complex formats, but recognizable
-        ];
-
-        for (let method of methods) {
-            const test = method(value);
-            if (test) {
-                return test;
-            }
-        }
-
-        return null;
     }
 
     const ParseValue = function(v, config) {
@@ -3347,7 +3324,7 @@ function Mask() {
         }
 
         return v[0] || v[1] ? v : '';
-    };
+    }
 
     const Extract = function(v, config) {
         const parsed = ParseValue(v, config);
@@ -3358,7 +3335,30 @@ function Mask() {
             return parseFloat(parsed.join('.'));
         }
         return null;
-    };
+    }
+
+    /**
+     * Try to get which mask that can transform the number in that format
+     */
+    Component.autoCasting = function(value, returnObject) {
+        const methods = [
+            autoCastingDates,        // Most structured, the least ambiguous
+            autoCastingFractions,    // Specific pattern with slashes
+            autoCastingPercent,      // Recognizable with "%"
+            autoCastingScientific,
+            autoCastingNumber,       // Only picks up basic digits, decimals, leading 0s
+            autoCastingCurrency,     // Complex formats, but recognizable
+        ];
+
+        for (let method of methods) {
+            const test = method(value);
+            if (test) {
+                return test;
+            }
+        }
+
+        return null;
+    }
 
     Component.extract = function(value, options, returnObject) {
         if (!value || typeof options !== 'object') return value;
