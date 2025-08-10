@@ -1782,17 +1782,19 @@ function Mask() {
         const original = input.trim();
 
         const isNegative = /^\s*[-(]/.test(original);
-        let value = original.replace(/[()\-\s]/g, '');
+        const hasParens = /^\s*\(.+\)\s*$/.test(original);
+        let value = original.replace(/[()\-]/g, '').trim();
 
         // Known symbols
         const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
         let symbol = '';
 
         for (let s of knownSymbols) {
-            const regex = new RegExp(`^${s.replace(/[$]/g, '\\$')}(\\s?)`);
+            const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+            const regex = new RegExp(`^${escaped}(\\s?)`);
             const match = value.match(regex);
             if (match) {
-                symbol = s + (match[1] || ' ');
+                symbol = s + (match[1] || '');
                 value = value.replace(regex, '');
                 break;
             }
@@ -1800,9 +1802,9 @@ function Mask() {
 
         // Generic symbol/prefix (e.g., "U$", "US$")
         if (!symbol) {
-            const prefixMatch = value.match(/^([^\d\s.,-]{1,4})\s?/);
+            const prefixMatch = value.match(/^([^\d\s.,-]{1,4})(\s?)/);
             if (prefixMatch) {
-                symbol = prefixMatch[1] + ' ';
+                symbol = prefixMatch[1] + (prefixMatch[2] || '');
                 value = value.replace(prefixMatch[0], '');
             }
         }
@@ -1813,6 +1815,8 @@ function Mask() {
             value = value.replace(codeMatch[1], '').trim();
             if (!symbol) symbol = codeMatch[1] + ' ';
         }
+
+        value = value.replace(/\s+/g, '');
 
         // Infer separators
         let group = ',', decimal = '.';
@@ -1863,7 +1867,11 @@ function Mask() {
         const decimalPlaces = normalized.includes('.') ? normalized.split('.')[1].length : 0;
         const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
         const groupMask = '#' + group + '##0';
-        const mask = `${symbol}${groupMask}${maskDecimal}`;
+        let mask = `${symbol}${groupMask}${maskDecimal}`;
+
+        if (isNegative) {
+            mask = hasParens ? `(${mask})` : `-${mask}`;
+        }
 
         return {
             mask,
