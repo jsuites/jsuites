@@ -5,7 +5,8 @@
  (000) 00000-00
  $ (#,##0.00);$ (-#,##0.00)
  $ (-#,##0.00)
- j.mask('1 1/2', { mask: '# ?/?' }) // nao ta correto
+ j.mask.render(0, { mask: 'mm:ss.0' }
+ j.mask.render(0, { mask: '[h]:mm:ss' }, true)
  */
 import Helpers from '../utils/helpers';
 import HelpersDate from '../utils/helpers.date';
@@ -1044,12 +1045,15 @@ function Mask() {
             return value;
         }
         let m = token.split(decimal);
-        let desiredNumOfPaddingZeros = m[0].length;
-        let v = value.toString().split(decimal);
-        let len = v[0].length;
-        if (desiredNumOfPaddingZeros > len) {
-            v[0] = v[0].padStart(desiredNumOfPaddingZeros, '0');
-            return v.join(decimal);
+        let desiredNumOfPaddingZeros = m[0].match(/[0]+/g);
+        if (desiredNumOfPaddingZeros[0]) {
+            desiredNumOfPaddingZeros = desiredNumOfPaddingZeros[0].length
+            let v = value.toString().split(decimal);
+            let len = v[0].length;
+            if (desiredNumOfPaddingZeros > len) {
+                v[0] = v[0].padStart(desiredNumOfPaddingZeros, '0');
+                return v.join(decimal);
+            }
         }
     }
 
@@ -1879,37 +1883,38 @@ function Mask() {
         };
     }
 
-    const autoCastingNumber = function(input) {
-        if (typeof input !== 'string') return null;
+    const autoCastingNumber = function (input) {
+        // If you currently support numeric inputs directly, keep this:
+        if (typeof input === 'number' && Number.isFinite(input)) {
+            return { mask: '0', value: input };
+        }
 
-        const original = input.trim();
+        if (typeof input !== 'string') {
+            return null;
+        }
 
-        // Exclude anything that looks like currency, percent, fraction, or date
-        if (/[%$€£¥₹\/:]/.test(original)) return null;
-        if (/\d+[\/]\d+/.test(original)) return null;
-        if (/\d{1,2}[\/\-]\d{1,2}[\/\-]\d{2,4}/.test(original)) return null;
+        // Keep YOUR existing cleaning/parsing here:
+        // (example placeholders; keep your real code)
+        const sRaw = input.trim();                 // <= use only trim here
+        // e.g. your current validation:
+        if (!/^[+-]?\d+$/.test(sRaw)) {
+            return null;
+        }
 
-        // Validate numeric format
-        const isNumeric = /^0*[0-9]+([.,][0-9]+)?$/.test(original);
-        if (!isNumeric) return null;
+        const sign = /^[+-]/.test(sRaw) ? sRaw[0] : '';
+        const digitsClean = (sign ? sRaw.slice(1) : sRaw); // keep as you already do
 
-        // Infer separators
-        const decimal = original.includes(',') ? ',' : '.';
-        const raw = original.replace(',', '.'); // Normalize
+        // ***** NEW: mask derived from RAW leading zeros only *****
+        const rawDigits = sign ? sRaw.slice(1) : sRaw;     // no extra cleaning here
+        const m = rawDigits.match(/^0+/);
+        const leadingZeros = m ? m[0].length : 0;
 
-        const parsed = parseFloat(raw);
-        if (isNaN(parsed)) return null;
+        const mask = leadingZeros > 0 ? '0'.repeat(rawDigits.length) : '0';
 
-        // Build mask preserving leading zeros
-        const [intPart, decPart] = original.replace(',', '.').split('.');
-        const intMask = intPart.replace(/[1-9]/g, '0');
-        const decMask = decPart ? '.' + '0'.repeat(decPart.length) : '';
-        const mask = `${intMask}${decMask}`;
+        // Your existing numeric value (from the cleaned digits)
+        const value = Number(sign + digitsClean);
 
-        return {
-            mask: mask || '0',
-            value: parsed
-        };
+        return { mask, value };
     };
 
     const autoCastingScientific = function(input) {
@@ -1934,6 +1939,55 @@ function Mask() {
             value: parsed
         };
     }
+
+    const autoCastingTime = function (input) {
+        if (typeof input !== 'string') return null;
+        const original = input.trim();
+
+        // hh:mm[:ss][ am/pm]
+        const m = original.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(am|pm))?$/i);
+        if (!m) return null;
+
+        let h = parseInt(m[1], 10);
+        const i = parseInt(m[2], 10);
+        const s = m[3] ? parseInt(m[3], 10) : 0;
+        const mer = m[4] && m[4].toLowerCase();
+
+        // basic range checks
+        if (i > 59 || s > 59) return null;
+        if (mer) {
+            if (h < 1 || h > 12) return null;
+            if (mer === 'pm' && h < 12) h += 12;
+            if (mer === 'am' && h === 12) h = 0;
+        } else {
+            if (h > 23) return null;
+        }
+
+        // Excel serial for time-of-day = hours/24 + minutes/1440 + seconds/86400
+        const excel = (h + i / 60 + s / 3600) / 24;
+
+        // Build mask according to how user typed it
+        const hourToken = m[1].length === 1 ? 'h' : 'hh';
+        const base = s !== 0 || m[3] ? `${hourToken}:mm:ss` : `${hourToken}:mm`;
+        const mask = mer ? `${base} am/pm` : base;
+
+        // Verify we can render back exactly what the user typed
+        if (testMask(mask, excel, original)) {            // uses Component.render under the hood
+            return { mask: mask, value: excel};
+        }
+
+        // Try alternate hour width if needed
+        const altHour = hourToken === 'hh' ? 'h' : 'hh';
+        const alt = mer
+            ? `${altHour}${base.slice(hourToken.length)} am/pm`
+            : `${altHour}${base.slice(hourToken.length)}`;
+
+        if (testMask(alt, excel, original)) {
+            return { mask: alt, value: excel };
+        }
+
+        return null;
+    };
 
     const ParseValue = function(v, config) {
         if (v === '') return '';
@@ -1978,6 +2032,7 @@ function Mask() {
     Component.autoCasting = function(value, returnObject) {
         const methods = [
             autoCastingDates,        // Most structured, the least ambiguous
+            autoCastingTime,
             autoCastingFractions,    // Specific pattern with slashes
             autoCastingPercent,      // Recognizable with "%"
             autoCastingScientific,
@@ -2003,17 +2058,15 @@ function Mask() {
         const type = config.type;
 
         let result;
-        let o;
+        let o = options;
 
         if (type === 'text') {
             result = value;
-            o = {};
         } else if (type === 'general') {
-            o = Component(value, options, true);
-            result = value;
+            result = Component(value, options);
         } else if (type === 'datetime') {
             if (value instanceof Date) {
-                value = Component.getDateString(value, options.mask);
+                value = Component.getDateString(value, config.mask);
             }
 
             o = Component(value, options, true);
@@ -2021,22 +2074,74 @@ function Mask() {
             result = typeof o.value === 'number' ? o.value : extractDate.call(o);
         } else if (type === 'scientific') {
             result = typeof value === 'string' ? Number(value) : value;
-            o = options;
+        } else if (type === 'fraction') {
+            // Parse a fraction string according to the mask (supports mixed "# ?/d" or simple "?/d")
+            const mask = config.mask;
+
+            // Detect fixed denominator (e.g. "# ?/16" or "?/8")
+            const fixedDenMatch = mask.match(/\/\s*(\d+)\s*$/);
+            const fixedDen = fixedDenMatch ? parseInt(fixedDenMatch[1], 10) : null;
+
+            // Whether a mask allows a whole part (e.g. "# ?/?")
+            const allowWhole = mask.includes('#');
+
+            let s = ('' + value).trim();
+            if (! s) {
+                result = null;
+            } else {
+                // Allow leading parentheses or '-' for negatives
+                let sign = 1;
+                if (/^\(.*\)$/.test(s)) {
+                    sign = -1;
+                    s = s.slice(1, -1).trim();
+                }
+                if (/^\s*-/.test(s)) {
+                    sign = -1;
+                    s = s.replace(/^\s*-/, '').trim();
+                }
+
+                let out = null;
+
+                if (s.includes('/')) {
+                    // sign? (whole )? numerator / denominator
+                    // Examples:
+                    //  "1 1/2" => whole=1, num=1, den=2
+                    //  "1/2"   => whole=undefined, num=1, den=2
+                    const m = s.match(/^\s*(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s*$/);
+                    if (m) {
+                        const whole = allowWhole && m[1] ? parseInt(m[1], 10) : 0;
+                        const num = parseInt(m[2], 10);
+                        let den = parseInt(m[3], 10);
+
+                        // If mask fixes the denominator, enforce it
+                        if (fixedDen) den = fixedDen;
+
+                        if (den !== 0) {
+                            out = sign * (whole + num / den);
+                        }
+                    }
+                } else {
+                    // No slash → treat as plain number (e.g., whole only)
+                    const plain = Number(s.replace(',', '.'));
+                    if (!Number.isNaN(plain)) {
+                        out = sign * Math.abs(plain);
+                    }
+                }
+
+                result = out;
+            }
         } else {
             // Default fallback — numeric/currency/percent/etc.
             result = Extract(value, config);
-
             // Adjust percent
             if (type === 'percentage' && ('' + value).indexOf('%') !== -1) {
                 result = result / 100;
             }
-
-            o = options;
         }
 
-       // o.value = result;
+        o.value = result;
 
-        if (!o.type && type) {
+        if (! o.type && type) {
             o.type = type;
         }
 
