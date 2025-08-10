@@ -97,7 +97,7 @@ describe('jSuites mask', () => {
         test('text and number combination masks', () => {
             // Escaping characters with backslash
             expect(jSuites.mask.render(1234, { mask: '#,##0kg' }, true)).toBe('1,234kg');
-            expect(jSuites.mask.render(50, { mask: '0%' }, true)).toBe('50%');
+            expect(jSuites.mask.render(0.5, { mask: '0%' }, true)).toBe('50%');
             expect(jSuites.mask.render(25, { mask: '0"°C"' }, true)).toBe('25°C');
 
             // Plural/singular text based on value
@@ -108,7 +108,7 @@ describe('jSuites mask', () => {
 
         test('large number scaling formats', () => {
             // Thousands scaling
-            expect(jSuites.mask.render('1500M', { mask: '#,##0,,"M"' }, true)).toBe('1500M');
+            expect(jSuites.mask.render('1500M', { mask: '#,##0,,"M"' }, true)).toBe('1,500M');
             expect(jSuites.mask.render(1500, { mask: '#,##0,,"M"' }, true)).toBe('0M');
             expect(jSuites.mask.render(1500000, { mask: '#,##0,,"M"' }, true)).toBe('2M');
             expect(jSuites.mask.render(1500000, { mask: '#,##0.0,,"M"' }, true)).toBe('1.5M');

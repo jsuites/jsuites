@@ -2017,7 +2017,7 @@ function Mask() {
             }
 
             o = Component(value, options, true);
-console.log(o)
+
             result = typeof o.value === 'number' ? o.value : extractDate.call(o);
         } else if (type === 'scientific') {
             result = typeof value === 'string' ? Number(value) : value;
