@@ -135,60 +135,116 @@ function Mask() {
      * Caret position getter
      * `this` in this function should be the element with a caret
      */
-    const getCaret = function(e) {
-        if (this.tagName === 'DIV') {
-            let pos = null;
-            let s = this.getSelection();
-            if (s) {
-                if (s.rangeCount !== 0) {
-                    let r = s.getRangeAt(0);
-                    let p = r.cloneRange();
-                    p.selectNodeContents(e);
-                    p.setEnd(r.endContainer, r.endOffset);
-                    p = p.toString();
-                    if (p) {
-                        pos = p.length;
-                    } else {
-                        pos = e.textContent.length;
-                    }
-                }
-            }
-            return pos;
+    const getCaretPosition = function(editableDiv) {
+        let caretPos = 0;
+        let sel = window.getSelection();
+        if (sel && sel.rangeCount > 0) {
+            let range = sel.getRangeAt(0);
+            let preRange = range.cloneRange();
+            preRange.selectNodeContents(editableDiv);
+            preRange.setEnd(range.endContainer, range.endOffset);
+            caretPos = preRange.toString().length;
+        }
+        return caretPos;
+    }
+
+    /**
+     * Caret position getter
+     * `this` in this function should be the element with a caret
+     */
+    const getCaret = function(el) {
+        if (el.tagName === 'DIV') {
+            return getCaretPosition(el);
         } else {
-            return this.selectionStart;
+            return el.selectionStart;
         }
     }
 
     /**
      * Caret position setter
-     * `this` in this function should be the element with a caret
+     * `this` should be the element (input/textarea or contenteditable div)
      */
     const setCaret = function(index) {
-        // Get the current value
-        const n = this.value;
+        if (typeof index !== 'number') index = Number(index) || 0;
 
-        // Do not update caret
-        if (index > n.length) {
-            index = n.length;
+        // Inputs/Textareas
+        if (this.tagName !== 'DIV' || this.isContentEditable !== true) {
+            const n = this.value ?? '';
+            if (index < 0) index = 0;
+            if (index > n.length) index = n.length;
+            this.focus();
+            this.selectionStart = index;
+            this.selectionEnd = index;
+            return;
         }
 
-        if (!isNaN(index) && index >= 0) {
-            // Set caret
-            if (this.tagName === 'DIV') {
-                const s = window.getSelection();
-                const r = document.createRange();
+        // Contenteditable DIV
+        const el = /** @type {HTMLElement} */ (this);
+        const totalLen = (el.textContent || '').length;
 
-                if (this.childNodes[0]) {
-                    r.setStart(this.childNodes[0], index);
-                    s.removeAllRanges();
-                    s.addRange(r);
+        if (index < 0) index = 0;
+        if (index > totalLen) index = totalLen;
+
+        const sel = window.getSelection();
+        if (!sel) return;
+
+        const range = document.createRange();
+        el.focus();
+
+        // Empty element → ensure a text node to place the caret into
+        if (totalLen === 0) {
+            if (!el.firstChild) el.appendChild(document.createTextNode(''));
+            // place at start
+            range.setStart(el.firstChild, 0);
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+        }
+
+        // If caret is at the very end, this is fastest/cleanest
+        if (index === totalLen) {
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+            return;
+        }
+
+        // Walk text nodes to find the node that contains the index-th character
+        const walker = document.createTreeWalker(
+            el,
+            NodeFilter.SHOW_TEXT,
+            {
+                acceptNode(node) {
+                    // skip empty/whitespace-only nodes if you want; or just accept all text
+                    return node.nodeValue ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
                 }
-            } else {
-                this.selectionStart = index;
-                this.selectionEnd = index;
             }
+        );
+
+        let pos = 0;
+        let node = walker.nextNode();
+        while (node) {
+            const nextPos = pos + node.nodeValue.length;
+            if (index <= nextPos) {
+                const offset = index - pos; // char offset within this text node
+                range.setStart(node, offset);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                return;
+            }
+            pos = nextPos;
+            node = walker.nextNode();
         }
-    }
+
+        // Fallback: collapse at end if something unexpected happened
+        range.selectNodeContents(el);
+        range.collapse(false);
+        sel.removeAllRanges();
+        sel.addRange(range);
+    };
 
     /**
      * Methods to deal with different types of data
@@ -636,8 +692,96 @@ function Mask() {
         '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
         },
-        '#{0,1}.*?\\?+\\/[0-9?]+': function(v) {
-            parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
+        '#{0,1}.*?\\?+\\/[0-9?]+': function (v) {
+            if (isBlank(this.values[this.index])) {
+                this.values[this.index] = '';
+            }
+            // Current token
+            const token = this.tokens[this.index]; // e.g. "# ?/?", "?/2", "# ??/16"
+            // Current value
+            let cur = this.values[this.index];
+            // Parse RHS of mask to decide denominator rule
+            const rhsRaw = (token.split('/')[1] || '').replace(/\s+/g, '');
+            // allowDen: "?" for any, or a fixed number string like "2","4","8","16","32"
+            const allowDen = /^\d+$/.test(rhsRaw) ? rhsRaw : /^\?+$/.test(rhsRaw) ? '?' : '?';
+
+            // Only accept digits / space / slash; ignore everything else
+            if (!(/[0-9\/ ]/.test(v))) {
+                return;
+            }
+
+            // If we already have a slash and denominator is fixed but not yet appended,
+            // auto-complete immediately regardless of what the user typed now.
+            const hasSlashNow = cur.includes('/');
+            if (hasSlashNow && allowDen !== '?') {
+                const afterSlash = cur.slice(cur.indexOf('/') + 1);
+                if (afterSlash.length === 0) {
+                    this.values[this.index] = cur + allowDen;
+                    this.index++; // move to next token
+                    return;
+                }
+            }
+
+            // Empty -> only digits
+            if (cur.length === 0) {
+                if (/\d/.test(v)) this.values[this.index] = v;
+                return;
+            }
+
+            const hasSpace = cur.includes(' ');
+            const hasSlash = cur.includes('/');
+            const last = cur[cur.length - 1];
+
+            // Space rules: only one must be before slash, must follow a digit
+            if (v === ' ') {
+                if (!hasSpace && !hasSlash && /\d/.test(last)) {
+                    this.values[this.index] = cur + ' ';
+                }
+                return;
+            }
+
+            // Slash rules
+            if (v === '/') {
+                // only one slash, not right after a space, and must follow a digit
+                if (!hasSlash && last !== ' ' && /\d/.test(last)) {
+                    if (allowDen === '?') {
+                        // any denominator → just adds slash
+                        this.values[this.index] = cur + '/';
+                    } else {
+                        // fixed denominator → add slash + denom immediately and advance
+                        this.values[this.index] = cur + '/' + allowDen;
+                        this.index++; // conclude this token
+                    }
+                }
+                return;
+            }
+
+            // Digit rules
+            if (/\d/.test(v)) {
+                if (!hasSlash) {
+                    // Before slash: digits always fine
+                    this.values[this.index] = cur + v;
+                    return;
+                }
+
+                // After slash
+                if (allowDen === '?') {
+                    // Any denominator
+                    this.values[this.index] = cur + v;
+                    return;
+                }
+
+                // Fixed denominator: normally we auto-complete at slash time,
+                // but if somehow we're mid-entry, enforce the prefix and advance when complete.
+                const afterSlash = cur.slice(cur.indexOf('/') + 1);
+                const nextDen = afterSlash + v;
+                if (allowDen.startsWith(nextDen)) {
+                    this.values[this.index] = cur + v;
+                    if (nextDen.length === allowDen.length) {
+                        this.index++;
+                    }
+                }
+            }
         },
         '[0-9a-zA-Z\\$]+': function(v) {
             // Token to be added to the value
@@ -973,7 +1117,7 @@ function Mask() {
 
     const isNumber = function(num) {
         if (typeof(num) === 'string') {
-            num = num.trim();
+            num = num.replace("\u200B", "").trim();
         }
         return !isNaN(num) && num !== null && num !== '';
     }
@@ -1135,9 +1279,12 @@ function Mask() {
             } else {
                 // Optional
                 let optionalDecimalPlaces = mask.split(config.decimal);
-                optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g)[0].length;
-                if (numOfDecimalPlaces > optionalDecimalPlaces) {
-                    necessaryAdjustment = optionalDecimalPlaces;
+                optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g);
+                if (optionalDecimalPlaces) {
+                    optionalDecimalPlaces = optionalDecimalPlaces[0].length;
+                    if (numOfDecimalPlaces > optionalDecimalPlaces) {
+                        necessaryAdjustment = optionalDecimalPlaces;
+                    }
                 }
             }
             // Adjust decimal numbers if applicable
@@ -1617,7 +1764,6 @@ function Mask() {
                             return {
                                 mask: mask,
                                 value: excelNumber,
-                                type: 'datetime'
                             };
                         }
                     }
@@ -1912,20 +2058,20 @@ console.log(o)
             if (config.type === 'percentage') {
                 if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
                     value = value.replace('%', '');
-                } else if (fullMask) {
+                } else {
                     value = adjustPrecision(Number(value) * 100);
                 }
             } else {
                 if (config.mask.includes(',,M')) {
                     if (typeof(value) === 'string' && value.indexOf('M') !== -1) {
                         value = value.replace('M', '');
-                    } else if (fullMask) {
+                    } else {
                         value = Number(value) / 1000000;
                     }
                 } else if (config.mask.includes(',,,B')) {
                     if (typeof(value) === 'string' && value.indexOf('B') !== -1) {
                         value = value.replace('B', '');
-                    } else if (fullMask) {
+                    } else {
                         value = Number(value) / 1000000000;
                     }
                 }
@@ -2198,13 +2344,14 @@ console.log(o)
         // Get the mask
         let mask = element.getAttribute('data-mask');
         // Keep the current caret position
-        let caret = getCaret.call(element);
+        let caret = getCaret(element);
         if (caret) {
             value = value.substring(0, caret) + "\u200B" + value.substring(caret);
         }
 
         // Run mask
         let result = Component(value, { mask: mask }, true);
+
         // New value
         let newValue = result.values.join('');
         // Apply the result back to the element

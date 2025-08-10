@@ -43,6 +43,16 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('Render without full mask option', () => {
+        test('large number scaling formats', () => {
+            // Thousands scaling
+            expect(jSuites.mask.render('1500M', { mask: '#,##0,,"M"' })).toBe('1,500M');
+            expect(jSuites.mask.render(1500, { mask: '#,##0,,"M"' })).toBe('0.0015M');
+            // Millions scaling
+            expect(jSuites.mask.render(1500, { mask: '#,##0,,,"B"' })).toBe('0.0000015B');
+        });
+    });
+
     describe('Render with full mask option', () => {
         test('conditional formatting with brackets', () => {
             // Excel supports conditional formatting with comparison operators in brackets
@@ -98,8 +108,8 @@ describe('jSuites mask', () => {
 
         test('large number scaling formats', () => {
             // Thousands scaling
+            expect(jSuites.mask.render('1500M', { mask: '#,##0,,"M"' }, true)).toBe('1500M');
             expect(jSuites.mask.render(1500, { mask: '#,##0,,"M"' }, true)).toBe('0M');
-            expect(jSuites.mask.render(1500, { mask: '#,##0,,"M"' })).toBe('1,500M');
             expect(jSuites.mask.render(1500000, { mask: '#,##0,,"M"' }, true)).toBe('2M');
             expect(jSuites.mask.render(1500000, { mask: '#,##0.0,,"M"' }, true)).toBe('1.5M');
 
@@ -248,7 +258,7 @@ describe('jSuites mask', () => {
 
         test('percentage rendering', () => {
             expect(jSuites.mask.render('100%', { mask: '0%' }, true)).toEqual('100%');
-            expect(jSuites.mask.render('2.2%', { mask: '0.00%' }, true)).toEqual('2.2%');
+            expect(jSuites.mask.render('2.2%', { mask: '0.00%' }, true)).toEqual('2.20%');
             expect(jSuites.mask.render(2.2, { mask: '0.00%' }, true)).toEqual('220.00%');
             expect(jSuites.mask.render(0.1, { mask: '0%' }, true)).toBe('10%');
             expect(jSuites.mask.render(1, { mask: '0%' }, true)).toBe('100%');
@@ -291,14 +301,14 @@ describe('jSuites mask', () => {
     describe('Auto casting', () => {
         // Dates
         test('should detect common date formats', () => {
-            expect(jSuites.mask.autoCasting("25/12/2025")).toEqual({ mask: 'dd/mm/yyyy', value: 45651 });
-            expect(jSuites.mask.autoCasting("12/25/2025")).toEqual({ mask: 'mm/dd/yyyy', value: 45651 });
-            expect(jSuites.mask.autoCasting("2025-12-25")).toEqual({ mask: 'yyyy-mm-dd', value: 45651 });
+            expect(jSuites.mask.autoCasting("25/12/2025")).toEqual({ mask: 'dd/mm/yyyy', value: 46016 });
+            expect(jSuites.mask.autoCasting("12/25/2025")).toEqual({ mask: 'mm/dd/yyyy', value: 46016 });
+            expect(jSuites.mask.autoCasting("2025-12-25")).toEqual({ mask: 'yyyy-mm-dd', value: 46016 });
         });
 
         test('should detect dates with month names', () => {
-            expect(jSuites.mask.autoCasting("25 Dec 2025")).toEqual({ mask: 'dd mmm yyyy', value: 45651 });
-            expect(jSuites.mask.autoCasting("December 25, 2025")).toEqual({ mask: 'mmmm dd, yyyy', value: 45651 });
+            expect(jSuites.mask.autoCasting("25 Dec 2025")).toEqual({ mask: 'dd mmm yyyy', value: 46016 });
+            expect(jSuites.mask.autoCasting("December 25, 2025")).toEqual({ mask: 'mmmm dd, yyyy', value: 46016 });
         });
 
         test('should detect time formats', () => {
@@ -307,7 +317,7 @@ describe('jSuites mask', () => {
         });
 
         test('should detect combined datetime formats', () => {
-            expect(jSuites.mask.autoCasting("25/12/2025 14:30:00")).toEqual({ mask: 'dd/mm/yyyy hh:mm:ss', value: 45651.604 });
+            expect(jSuites.mask.autoCasting("25/12/2025 14:30:00")).toEqual({ mask: 'dd/mm/yyyy hh:mm:ss', value: 46016.604166666664 });
         });
 
         // Currency
@@ -334,13 +344,13 @@ describe('jSuites mask', () => {
 
         // Fractions
         test('should detect simple fractions', () => {
-            expect(jSuites.mask.autoCasting("1/2")).toEqual({ mask: '# ?/?', value: 0.5 });
-            expect(jSuites.mask.autoCasting("3/4")).toEqual({ mask: '# ?/?', value: 0.75 });
+            expect(jSuites.mask.autoCasting("1/2")).toEqual({ mask: '?/2', value: 0.5 });
+            expect(jSuites.mask.autoCasting("3/4")).toEqual({ mask: '?/4', value: 0.75 });
         });
 
         test('should detect mixed numbers', () => {
-            expect(jSuites.mask.autoCasting("1 1/2")).toEqual({ mask: '# ?/?', value: 1.5 });
-            expect(jSuites.mask.autoCasting("2 3/8")).toEqual({ mask: '# ??/??', value: 2.375 });
+            expect(jSuites.mask.autoCasting("1 1/2")).toEqual({ mask: '# ?/2', value: 1.5 });
+            expect(jSuites.mask.autoCasting("2 3/8")).toEqual({ mask: '# ?/8', value: 2.375 });
         });
 
         // Scientific
@@ -373,9 +383,9 @@ describe('jSuites mask', () => {
 
     describe('Extract', () => {
         test('Extract date value', () => {
-            expect(jSuites.mask.extract('25/12/2025', { mask: 'dd/mm/yyyy' })).toBeCloseTo(45651);
-            expect(jSuites.mask.extract('2025-12-25', { mask: 'yyyy-mm-dd' })).toBeCloseTo(45651);
-            expect(jSuites.mask.extract('Dec 25, 2025', { mask: 'mmm dd, yyyy' })).toBeCloseTo(45651);
+            expect(jSuites.mask.extract('25/12/2025', { mask: 'dd/mm/yyyy' })).toBeCloseTo(46016);
+            expect(jSuites.mask.extract('2025-12-25', { mask: 'yyyy-mm-dd' })).toBeCloseTo(46016);
+            expect(jSuites.mask.extract('Dec 25, 2025', { mask: 'mmm dd, yyyy' })).toBeCloseTo(46016);
         });
 
         test('Extract time value', () => {
@@ -384,7 +394,7 @@ describe('jSuites mask', () => {
         });
 
         test('Extract datetime value', () => {
-            expect(jSuites.mask.extract('25/12/2025 14:30:00', { mask: 'dd/mm/yyyy hh:mm:ss' })).toBeCloseTo(45651.60417, 10);
+            expect(jSuites.mask.extract('25/12/2025 14:30:00', { mask: 'dd/mm/yyyy hh:mm:ss' })).toBeCloseTo(46016.60417, 4);
         });
 
         test('Extract currency value', () => {
