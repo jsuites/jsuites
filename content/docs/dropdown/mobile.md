@@ -2,10 +2,6 @@ title: Responsive JavaScript Dropdown
 keywords: JavaScript, responsive dropdown, mobile dropdown, autocomplete functionality, dropdown customization
 description: Implement a fully responsive JavaScript dropdown optimized for mobile devices, featuring seamless autocomplete functionality and easy customization for an enhanced user experience.
 
-{.breadcrumb}
-- [JavaScript Dropdown](/docs/dropdown)
-- Examples
-
 # Responsive JavaScript Dropdown
 
 Implement a fully responsive JavaScript dropdown that adapts to mobile devices. During initialization, the dropdown's render mode can be tailored to suit various use cases, with options including default, picker, or searchbar.

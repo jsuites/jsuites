@@ -3,7 +3,7 @@ keywords: JavaScript plugins, JavaScript web components, JavaScript vanilla plug
 description: jSuites is a collection of lightweight, responsive, and cross-platform JavaScript plugins and web components. It includes versatile tools like calendars, date pickers, date-time pickers, colour pickers, and input masks, designed to efficiently meet diverse web development needs.
 canonical: https://jsuites.net
 
-<div class="homepage">
+<div class="home">
 
 <div class="row title-container">
     <div class="column f2">
@@ -726,7 +726,7 @@ export default {
 <div class="space200 line"></div>
 
 <div class="container center p20" style="max-width: 650px;">
-    <h2>Deliver high-quality interfaces<br>and applications to your end-user</h2>
+    <h2>Deliver high-quality interfaces and applications to your end-user</h2>
     <p>Explore the powerful and versatile components designed to elevate your productivity. From data management to collaboration, our ecosystem seamlessly integrates to meet your needs.</p>
 </div>
 
@@ -791,22 +791,22 @@ export default {
 
 <div class="box" data-number="2">
     <div>
-        <a href="https://jspreadsheet.com"><img src="img/logo/jspreadsheet-pro-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet Pro Logo"></a>
+        <a href="https://jspreadsheet.com"><img src="img/logo/jspreadsheet-pro-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet Pro Logo"></a><br>
         <b>Jspreadsheet Pro</b>
         <p>Enterprise JavaScript data grid component to integrate spreadsheet UI into your web-based application.</p>
     </div>
     <div>
-        <a href="https://intrasheets.com"><img src="img/logo/intrasheets-logo.svg" style="height: 44px; width: 44px;" alt="Intrasheets Logo"></a>
+        <a href="https://intrasheets.com"><img src="img/logo/intrasheets-logo.svg" style="height: 44px; width: 44px;" alt="Intrasheets Logo"></a><br>
         <b>Intrasheets</b>
         <p>Collaborate with ease using Intrasheets, an intuitive tool for managing spreadsheets across teams, ensuring that everyone stays on the same page.</p>
     </div>
     <div>
-        <a href="https://bossanova.uk/jspreadsheet/v4/"><img src="img/logo/jspreadsheet-ce-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet CE Logo"></a>
+        <a href="https://bossanova.uk/jspreadsheet/v4/"><img src="img/logo/jspreadsheet-ce-logo.svg" style="height: 44px; width: 44px;" alt="Jspreadsheet CE Logo"></a><br>
         <b>Jspreadsheet CE</b>
         <p>An open-source spreadsheet component that offers essential features for developers looking for flexibility without the need for a commercial license.</p>
     </div>
     <div>
-        <a href="https://lemonadejs.com"><img src="img/logo/lemonadejs-logo.svg" style="height: 44px; width: 44px;" alt="LemonadeJS Logo"></a>
+        <a href="https://lemonadejs.com"><img src="img/logo/lemonadejs-logo.svg" style="height: 44px; width: 44px;" alt="LemonadeJS Logo"></a><br>
         <b>Lemonade</b>
         <p>A light and easy-to-use solution for creating elegant UI elements, giving your web apps a refreshing boost in both style and functionality.</p>
     </div>

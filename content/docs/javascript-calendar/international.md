@@ -3,10 +3,6 @@ keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Ex
 description: Tailor your JavaScript calendar with customizable texts and international settings, ensuring a localized experience for global audiences.
 canonical: https://jsuites.net/docs/javascript-calendar/international
 
-{.breadcrumb}
-- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
-- Examples
-
 # International Calendar Customization
 
 Customize your JavaScript calendar by adjusting text and setting the week's starting day to match international preferences.

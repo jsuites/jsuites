@@ -3,12 +3,10 @@ keywords: JavaScript, Autocomplete, Element Picker, JavaScript Dropdown, JavaScr
 description: Explore comprehensive examples for managing JavaScript dropdowns, from basic setups to advanced configurations and autocomplete features. Learn to create dynamic select boxes with conditional logic for an enhanced user experience on your web application.
 canonical: https://jsuites.net/docs/dropdown
 
-![JavaScript Dropdown](img/js-dropdown.svg){.right}
-
 # JavaScript Dropdown
 
 The jSuites offer a lightweight **JavaScript Dropdown** plugin with a complete suite of customizable options that suites multiple
-application needs. The new versions enhances functionality with native autocomplete, multi-select capabilities, and adaptive
+application needs. The new version brings native autocomplete, multi-select capabilities, and adaptive
 rendering and other features such as:
 
 - Great performance;
@@ -82,20 +80,20 @@ Customize your dropdowns behavior with the following initial settings:
 
 Each option in the dropdown is define by one object and the possible attributes are the following:
 
-| Property            | Description                                                           |
-|---------------------|-----------------------------------------------------------------------|
-| `value: mixed`      | The item's value. Default format.                                     |
-| `text: string`      | The item's display label. Default format.                             |
-| `id: mixed`         | The item's identifier, used when `format` property is set to `1`.     |
-| `name: string`      | The item's name, used as a label when `format` property is set to `1`.|
-| `title: string`     | A brief description of the item.                                      |
-| `tooltip: string`   | Text displayed on mouseover.                                          |
-| `image: string`     | URL or path to the item's icon image.                                 |
-| `group: string`     | The name of the group this item belongs to.                           |
-| `synonym: array`    | Keywords associated with the item to aid in search.                   |
-| `disabled: boolean` | If `true`, the item is not selectable.                                |
-| `color: number`     | A numerical value representing the item's color.                      |
-| `icon: string`      | A keyword for a Material Design icon associated with the item.        |
+| Property            | Description                                                            |
+|---------------------|------------------------------------------------------------------------|
+| `value: mixed`      | The item's value. Default format.                                      |
+| `text: string`      | The item's display label. Default format.                              |
+| `id: mixed`         | The item's identifier, used when `format` property is set to `1`.      |
+| `name: string`      | The item's name, used as a label when `format` property is set to `1`. |
+| `title: string`     | A brief description of the item.                                       |
+| `tooltip: string`   | Text displayed on mouseover.                                           |
+| `image: string`     | URL or path to the item's icon image.                                  |
+| `group: string`     | The name of the group this item belongs to.                            |
+| `synonym: array`    | Keywords associated with the item to aid in search.                    |
+| `disabled: boolean` | If `true`, the item is not selectable.                                 |
+| `color: number`     | A numerical value representing the item's color.                       |
+| `icon: string`      | A keyword for a Material Design icon associated with the item.         |
 
 
 ## Examples

@@ -71,7 +71,7 @@ This example demonstrates how to create a basic organogram using the jSuites Org
 <script src="https://cdn.jsdelivr.net/npm/@jsuites/organogram/organogram.min.js"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@jsuites/organogram/organogram.min.css" type="text/css" />
 
-<div id='organogram' style="padding: 10px; border:1px solid #ccc;"></div>
+<div id='organogram'></div>
 
 <script>
 jSuites.organogram(document.getElementById('organogram'), {

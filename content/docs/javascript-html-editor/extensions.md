@@ -2,11 +2,8 @@ title: JavaScript Editor Extensions
 keywords: JavaScript, Editor, HTML, HTML editor
 description: This section brings more information about the HTML editor extensions and add-ons.
 
+# JavaScript Editor Extensions
 
-[JavaScript Editor Addons](/docs/javascript-html-editor)
-
-JavaScript Editor Extensions
-==========================
 This section provides a concise guide to effectively integrate and use extensions within the Editor plugin. Extensions serve as modular enhancements, adding tailored functionalities to the Editor. The focus is on a systematic breakdown, guiding users through seamless integration and utilization for advanced text processing.
 
 ## Documentation

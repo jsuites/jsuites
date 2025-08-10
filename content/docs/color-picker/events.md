@@ -3,10 +3,6 @@ keywords: JavaScript, color picker, color picker events, examples, event handlin
 description: Learn how to handle JavaScript events in your color picker plugin to create interactive and dynamic user interfaces.
 canonical: https://jsuites.net/docs/color-picker/events
 
-{.breadcrumb}
-- [JavaScript Color Picker](/docs/color-picker)
-- Examples
-
 # JavaScript Color Picker Events
 
 ## Events

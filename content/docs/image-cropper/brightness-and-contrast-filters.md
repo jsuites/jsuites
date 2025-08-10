@@ -3,10 +3,6 @@ keywords: Javascript, image cropper, cropper plugin, JS cropper, web components,
 description: Example on how to implement controls and how apply filters such as brightness and contrast programmatically.
 canonical: https://jsuites.net/docs/image-cropper/brightness-and-contrast-filters
 
-{.breadcrumb}
-- [JavaScript Image Cropper](/docs/image-cropper)
-- Examples
-
 # JavaScript Image Cropper: Brightness And Contrast
 
 ## Examples

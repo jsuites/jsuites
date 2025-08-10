@@ -2,10 +2,6 @@ title: JavaScript Dropdown Events
 keywords: JavaScript, dropdown events, event handling, application integration, UI components, JavaScript UI  
 description: Learn how to integrate JavaScript dropdowns into your application using event handling for enhanced interactivity and advance UI integrations.
 
-{.breadcrumb}
-- [JavaScript Dropdown](/docs/dropdown)
-- Examples
-
 # JavaScript Dropdown Events
 
 Integrate the JavaScript dropdown component into your web application using events.

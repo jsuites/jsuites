@@ -3,10 +3,6 @@ keywords: JavaScript, Calendar, Date Picker, DateTime Picker, Responsive Calenda
 description: Learn how to integrate a responsive JavaScript calendar optimized for mobile and smaller screens, delivering a seamless user experience across all devices.
 canonical: https://jsuites.net/docs/javascript-calendar/mobile
 
-{.breadcrumb}
-- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
-- Examples
-
 # Responsive JavaScript Calendar
 
 ## Full-Screen Mode

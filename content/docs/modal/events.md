@@ -3,10 +3,6 @@ keywords: JavaScript modal plugin, responsive modal, popup modal, modal events
 description: Discover how to use and manage events with the jSuites JavaScript modal plugin to create responsive and interactive modals.
 canonical: https://jsuites.net/docs/modal/events
 
-{.breadcrumb}
-- [JavaScript Modal](/docs/modal)
-- Examples
-
 # JavaScript Modal Events
 
 This example demonstrates loading content from a remote URL and configuring basic event handlers for the modal.

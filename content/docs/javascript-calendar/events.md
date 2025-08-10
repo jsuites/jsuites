@@ -3,10 +3,6 @@ keywords: JavaScript, Calendar, Date Picker, DateTime Picker, Timepicker, Calend
 description: Learn how events enable seamless integration of the JavaScript Calendar into your application using native event handling.
 canonical: https://jsuites.net/docs/javascript-calendar/events
 
-{.breadcrumb}
-- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
-- Examples
-
 # JavaScript Calendar Events
 
 This documentation provides examples of using events with the jSuites JavaScript Calendar plugin. Learn how to integrate interactive calendar features into your applications.

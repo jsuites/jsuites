@@ -3,10 +3,6 @@ keywords: JavaScript, color picker, color palettes, examples, customize colors, 
 description: Discover how to use and customize native `jSuites color` palettes in the JavaScript color picker plugin. Enhance integration and user experience with predefined and dynamic options.
 canonical: https://jsuites.net/docs/color-picker/color-palettes
 
-{.breadcrumb}
-- [JavaScript Color Picker](/docs/color-picker)
-- Examples
-
 # JavaScript Color Picker Palettes
 
 The `jSuites` JavaScript Color Picker plugin includes a collection of predefined color palettes to streamline your development process. These palettes are fully customizable, making it easy to match your application's branding or create dynamic user interfaces.

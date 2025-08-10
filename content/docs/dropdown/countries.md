@@ -2,10 +2,6 @@ title: Javascript Dropdown With Images
 keywords: Javascript, autocomplete dropdown, javascript dropdown, country search with flags
 description: Create a country dropdown with autocomplete and flag icons.
 
-{.breadcrumb}
-- [JavaScript Dropdown](/docs/dropdown)
-- Examples
-
 # JavaScript Dropdown With Images
 
 The following example creates a Country Dropdown list with JavaScript autocomplete search using a JSON for data handling and CDN-hosted images for visual representation. It can adapt its design for small-screen devices.

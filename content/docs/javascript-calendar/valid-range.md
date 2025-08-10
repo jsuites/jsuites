@@ -3,10 +3,6 @@ keywords: JavaScript, Calendar, Date, DateTime, Date Picker, DateTime Picker, Va
 description: Set a valid date range in your JavaScript calendar to grey out dates outside this range, ensuring a guided and precise user selection.
 canonical: https://jsuites.net/docs/javascript-calendar/valid-range
 
-{.breadcrumb}
-- [Back to the JavaScript Calendar documentation](/docs/javascript-calendar)
-- Examples
-
 # JavaScript Calendar: Range Validations
 
 The `validRange` property allows partial definitions, enabling you to set a start or an end date. This flexibility supports **ranges** that begin from a specific date or end at a particular date while leaving the other boundary open-ended.
