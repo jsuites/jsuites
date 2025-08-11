@@ -697,14 +697,22 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            // Current token
+
             const token = this.tokens[this.index]; // e.g. "# ?/?", "?/2", "# ??/16"
-            // Current value
             let cur = this.values[this.index];
+
             // Parse RHS of mask to decide denominator rule
             const rhsRaw = (token.split('/')[1] || '').replace(/\s+/g, '');
-            // allowDen: "?" for any, or a fixed number string like "2","4","8","16","32"
             const allowDen = /^\d+$/.test(rhsRaw) ? rhsRaw : /^\?+$/.test(rhsRaw) ? '?' : '?';
+
+            // ----- NEW: allow '-' as first char -----
+            if (v === '-') {
+                if (cur.length === 0) {
+                    this.values[this.index] = '-';
+                }
+                return; // never return false
+            }
+            // ----------------------------------------
 
             // Only accept digits / space / slash; ignore everything else
             if (!(/[0-9\/ ]/.test(v))) {
@@ -723,7 +731,7 @@ function Mask() {
                 }
             }
 
-            // Empty -> only digits
+            // Empty -> only digits (or a leading '-' handled above)
             if (cur.length === 0) {
                 if (/\d/.test(v)) this.values[this.index] = v;
                 return;
@@ -733,7 +741,7 @@ function Mask() {
             const hasSlash = cur.includes('/');
             const last = cur[cur.length - 1];
 
-            // Space rules: only one must be before slash, must follow a digit
+            // Space rules: only one, must be before slash, must follow a digit
             if (v === ' ') {
                 if (!hasSpace && !hasSlash && /\d/.test(last)) {
                     this.values[this.index] = cur + ' ';
@@ -741,15 +749,12 @@ function Mask() {
                 return;
             }
 
-            // Slash rules
+            // Slash rules: only one slash, not right after a space, must follow a digit
             if (v === '/') {
-                // only one slash, not right after a space, and must follow a digit
                 if (!hasSlash && last !== ' ' && /\d/.test(last)) {
                     if (allowDen === '?') {
-                        // any denominator → just adds slash
                         this.values[this.index] = cur + '/';
                     } else {
-                        // fixed denominator → add slash + denom immediately and advance
                         this.values[this.index] = cur + '/' + allowDen;
                         this.index++; // conclude this token
                     }
@@ -767,13 +772,11 @@ function Mask() {
 
                 // After slash
                 if (allowDen === '?') {
-                    // Any denominator
                     this.values[this.index] = cur + v;
                     return;
                 }
 
-                // Fixed denominator: normally we auto-complete at slash time,
-                // but if somehow we're mid-entry, enforce the prefix and advance when complete.
+                // Fixed denominator: enforce prefix and advance when complete
                 const afterSlash = cur.slice(cur.indexOf('/') + 1);
                 const nextDen = afterSlash + v;
                 if (allowDen.startsWith(nextDen)) {
@@ -2121,7 +2124,7 @@ function Mask() {
                         }
                     }
                 } else {
-                    // No slash → treat as plain number (e.g., whole only)
+                    // No slash → treats as a plain number (e.g., whole only)
                     const plain = Number(s.replace(',', '.'));
                     if (!Number.isNaN(plain)) {
                         out = sign * Math.abs(plain);
@@ -2151,6 +2154,11 @@ function Mask() {
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
     Component.render = function(value, options, fullMask) {
+        // Nothing to render
+        if (value === '' || value === undefined || value === null) {
+            return '';
+        }
+
         // Config
         const config = getConfig(options, value);
 
@@ -2197,10 +2205,11 @@ function Mask() {
             if (typeof value === 'number') {
                 // Temporary value
                 let temp = value;
-                if (fullMask) {
-                    if (config.type === 'fraction') {
-                        return formatFraction(value, config.mask);
-                    } else {
+
+                if (config.type === 'fraction') {
+                    temp = formatFraction(value, config.mask);
+                } else {
+                    if (fullMask) {
                         temp = adjustNumberOfDecimalPlaces(config, value);
 
                         if (config.type === 'scientific') {

@@ -783,39 +783,6 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(0.5, { mask: '@' }, true)).toBe('0.5');
             expect(jSuites.mask.render(0.5, { mask: '[h]:mm:ss' }, true)).toBe('12:00:00');
 
-            // For empty cell
-            // Additional test cases for null value
-            expect(jSuites.mask.render(undefined, { mask: '0' }, true)).toBe('0');
-            expect(jSuites.mask.render(undefined, { mask: '0.00' }, true)).toBe('0.00');
-            expect(jSuites.mask.render(undefined, { mask: '#,##0' }, true)).toBe('0');
-            expect(jSuites.mask.render(undefined, { mask: '#,##0.00' }, true)).toBe('0.00');
-            expect(jSuites.mask.render(undefined, { mask: '#,##0;-#,##0' }, true)).toBe('0');
-            expect(jSuites.mask.render(undefined, { mask: '#,##0;[Red]-#,##0' }, true)).toBe('0');
-            expect(jSuites.mask.render(undefined, { mask: '#,##0.00;-#,##0.00' }, true)).toBe('0.00');
-            expect(jSuites.mask.render(undefined, { mask: 'XDR#,##0;-XDR#,##0' }, true)).toBe('XDR0');
-            expect(jSuites.mask.render(undefined, { mask: 'XDR#,##0;[Red]-XDR#,##0' }, true)).toBe('XDR0');
-            expect(jSuites.mask.render(undefined, { mask: 'XDR#,##0.00;-XDR#,##0.00' }, true)).toBe('XDR0.00');
-            expect(jSuites.mask.render(undefined, { mask: 'XDR#,##0.00;[Red]-XDR#,##0.00' }, true)).toBe('XDR0.00');
-            expect(jSuites.mask.render(undefined, { mask: '0%' }, true)).toBe('0%');
-            expect(jSuites.mask.render(undefined, { mask: '0.00%' }, true)).toBe('0.00%');
-            expect(jSuites.mask.render(undefined, { mask: '0.00E+00' }, true)).toBe('0.00e+00');
-            expect(jSuites.mask.render(undefined, { mask: '##0.0E+0' }, true)).toBe('000.0e+0');
-            expect(jSuites.mask.render(undefined, { mask: '# ?/?' }, true)).toBe('0    ');
-            expect(jSuites.mask.render(undefined, { mask: '# ??/??' }, true)).toBe('0      ');
-            expect(jSuites.mask.render(undefined, { mask: 'dd/mm/yyyy' }, true)).toBe('00/01/1900');
-            expect(jSuites.mask.render(undefined, { mask: 'dd-mmm-yy' }, true)).toBe('00-Jan-00');
-            expect(jSuites.mask.render(undefined, { mask: 'dd-mmm' }, true)).toBe('00-Jan');
-            expect(jSuites.mask.render(undefined, { mask: 'mmm-yy' }, true)).toBe('Jan-00');
-            expect(jSuites.mask.render(undefined, { mask: 'h:mm am/pm' }, true)).toBe('12:00 am');
-            expect(jSuites.mask.render(undefined, { mask: 'h:mm:ss am/pm' }, true)).toBe('12:00:00 am');
-            expect(jSuites.mask.render(undefined, { mask: 'h:mm' }, true)).toBe('0:00');
-            expect(jSuites.mask.render(undefined, { mask: 'h:mm:ss' }, true)).toBe('0:00:00');
-            expect(jSuites.mask.render(undefined, { mask: 'dd/mm/yyyy h:mm' }, true)).toBe('00/01/1900 0:00');
-            expect(jSuites.mask.render(undefined, { mask: 'mm:ss' }, true)).toBe('00:00');
-            expect(jSuites.mask.render(undefined, { mask: '@' }, true)).toBe('0');
-            expect(jSuites.mask.render(undefined, { mask: '[h]:mm:ss' }, true)).toBe('0:00:00');
-        });
-
     })*/
 
 });

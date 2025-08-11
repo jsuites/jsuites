@@ -3608,7 +3608,7 @@ function Mask() {
                         }
                     }
                 } else {
-                    // No slash → treat as plain number (e.g., whole only)
+                    // No slash → treats as a plain number (e.g., whole only)
                     const plain = Number(s.replace(',', '.'));
                     if (!Number.isNaN(plain)) {
                         out = sign * Math.abs(plain);
@@ -3638,6 +3638,11 @@ function Mask() {
     // TODO: We have a large number like 1000000 and I want format it to 1,00 or 1M or… (display million/thousands/full numbers). In the excel we can do that with custom format cell “0,00..” However, when I tried applying similar formatting with the mask cell of Jspreadsheet, it didn't work. Could you advise how we can achieve this?
 
     Component.render = function(value, options, fullMask) {
+        // Nothing to render
+        if (value === '' || value === undefined || value === null) {
+            return '';
+        }
+
         // Config
         const config = getConfig(options, value);
 
@@ -3684,10 +3689,11 @@ function Mask() {
             if (typeof value === 'number') {
                 // Temporary value
                 let temp = value;
-                if (fullMask) {
-                    if (config.type === 'fraction') {
-                        return formatFraction(value, config.mask);
-                    } else {
+
+                if (config.type === 'fraction') {
+                    temp = formatFraction(value, config.mask);
+                } else {
+                    if (fullMask) {
                         temp = adjustNumberOfDecimalPlaces(config, value);
 
                         if (config.type === 'scientific') {
