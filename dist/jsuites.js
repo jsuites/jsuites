@@ -2184,14 +2184,22 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            // Current token
+
             const token = this.tokens[this.index]; // e.g. "# ?/?", "?/2", "# ??/16"
-            // Current value
             let cur = this.values[this.index];
+
             // Parse RHS of mask to decide denominator rule
             const rhsRaw = (token.split('/')[1] || '').replace(/\s+/g, '');
-            // allowDen: "?" for any, or a fixed number string like "2","4","8","16","32"
             const allowDen = /^\d+$/.test(rhsRaw) ? rhsRaw : /^\?+$/.test(rhsRaw) ? '?' : '?';
+
+            // ----- NEW: allow '-' as first char -----
+            if (v === '-') {
+                if (cur.length === 0) {
+                    this.values[this.index] = '-';
+                }
+                return; // never return false
+            }
+            // ----------------------------------------
 
             // Only accept digits / space / slash; ignore everything else
             if (!(/[0-9\/ ]/.test(v))) {
@@ -2210,7 +2218,7 @@ function Mask() {
                 }
             }
 
-            // Empty -> only digits
+            // Empty -> only digits (or a leading '-' handled above)
             if (cur.length === 0) {
                 if (/\d/.test(v)) this.values[this.index] = v;
                 return;
@@ -2220,7 +2228,7 @@ function Mask() {
             const hasSlash = cur.includes('/');
             const last = cur[cur.length - 1];
 
-            // Space rules: only one must be before slash, must follow a digit
+            // Space rules: only one, must be before slash, must follow a digit
             if (v === ' ') {
                 if (!hasSpace && !hasSlash && /\d/.test(last)) {
                     this.values[this.index] = cur + ' ';
@@ -2228,15 +2236,12 @@ function Mask() {
                 return;
             }
 
-            // Slash rules
+            // Slash rules: only one slash, not right after a space, must follow a digit
             if (v === '/') {
-                // only one slash, not right after a space, and must follow a digit
                 if (!hasSlash && last !== ' ' && /\d/.test(last)) {
                     if (allowDen === '?') {
-                        // any denominator → just adds slash
                         this.values[this.index] = cur + '/';
                     } else {
-                        // fixed denominator → add slash + denom immediately and advance
                         this.values[this.index] = cur + '/' + allowDen;
                         this.index++; // conclude this token
                     }
@@ -2254,13 +2259,11 @@ function Mask() {
 
                 // After slash
                 if (allowDen === '?') {
-                    // Any denominator
                     this.values[this.index] = cur + v;
                     return;
                 }
 
-                // Fixed denominator: normally we auto-complete at slash time,
-                // but if somehow we're mid-entry, enforce the prefix and advance when complete.
+                // Fixed denominator: enforce prefix and advance when complete
                 const afterSlash = cur.slice(cur.indexOf('/') + 1);
                 const nextDen = afterSlash + v;
                 if (allowDen.startsWith(nextDen)) {
@@ -3717,7 +3720,18 @@ function Mask() {
             processNumOfPaddingZeros(control);
         }
 
-        return getValue(control);
+        value = getValue(control);
+
+        if (options.input && options.input.tagName) {
+            if (options.input.contentEditable) {
+                options.input.textContent = value;
+            } else {
+                options.input.value = value;
+            }
+            jSuites.focus(options.input);
+        }
+
+        return value;
     }
 
     // Helper to extract date from a string
@@ -13630,7 +13644,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jSuites = {
+var jsuites_jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
@@ -13641,7 +13655,7 @@ var jSuites = {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jSuites[k[i]] = o[k[i]];
+                jsuites_jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -13676,8 +13690,8 @@ var jSuites = {
 }
 
 // Legacy
-jSuites.image = Upload;
-jSuites.image.create = function(data) {
+jsuites_jSuites.image = Upload;
+jsuites_jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -13687,9 +13701,9 @@ jSuites.image.create = function(data) {
     return img;
 }
 
-jSuites.tracker = plugins_form;
-jSuites.loading = animation.loading;
-jSuites.sha512 = (sha512_default());
+jsuites_jSuites.tracker = plugins_form;
+jsuites_jSuites.loading = animation.loading;
+jsuites_jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -13790,7 +13804,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -13976,7 +13990,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jSuites.findElement(element, 'jpanel');
+            let item = jsuites_jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -14036,7 +14050,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jSuites.findElement(element, 'jpanel');
+        let item = jsuites_jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -14094,7 +14108,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jSuites.findElement(e.target, function(o) {
+            item = jsuites_jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -14138,7 +14152,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jSuites.mask.oninput(e);
+            jsuites_jSuites.mask.oninput(e);
         }
     }
 
@@ -14156,7 +14170,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jSuites);
+/* harmony default export */ var jsuites = (jsuites_jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()

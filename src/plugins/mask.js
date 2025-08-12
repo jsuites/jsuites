@@ -2233,7 +2233,18 @@ function Mask() {
             processNumOfPaddingZeros(control);
         }
 
-        return getValue(control);
+        value = getValue(control);
+
+        if (options.input && options.input.tagName) {
+            if (options.input.contentEditable) {
+                options.input.textContent = value;
+            } else {
+                options.input.value = value;
+            }
+            jSuites.focus(options.input);
+        }
+
+        return value;
     }
 
     // Helper to extract date from a string
