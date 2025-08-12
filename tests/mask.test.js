@@ -296,6 +296,23 @@ describe('jSuites mask', () => {
             //expect(jSuites.mask.render('3661', { mask: '[ss]' })).toBe('3661'); // Total seconds
         });
 
+
+        test('should handle various time fractions accurately', () => {
+            const testCases = [
+                { excel: 44927.0, expectedHour: '00' }, // Midnight
+                { excel: 44927.125, expectedHour: '03' }, // 3 AM (0.125 = 3/24)
+                { excel: 44927.25, expectedHour: '06' }, // 6 AM
+                { excel: 44927.375, expectedHour: '09' }, // 9 AM
+                { excel: 44927.5, expectedHour: '12' }, // Noon
+                { excel: 44927.75, expectedHour: '18' }, // 6 PM
+                { excel: 44927.958333, expectedHour: '23' } // 11 PM (23/24) - reduced precision
+            ];
+
+            testCases.forEach(testCase => {
+                expect(jSuites.mask.render(testCase.excel, { mask: 'hh' }, true)).toBe(testCase.expectedHour);
+            });
+        });
+
     });
 
     describe('Auto casting', () => {

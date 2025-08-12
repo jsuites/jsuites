@@ -39,14 +39,15 @@ function HelpersDate() {
     }
 
     Component.toArray = function (value) {
-        var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
-        var time = date[1];
-        var date = date[0].split('-');
-        var y = parseInt(date[0]);
-        var m = parseInt(date[1]);
-        var d = parseInt(date[2]);
-        var h = 0;
-        var i = 0;
+        let date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
+        let time = date[1];
+        date = date[0].split('-');
+
+        let y = parseInt(date[0]);
+        let m = parseInt(date[1]);
+        let d = parseInt(date[2]);
+        let h = 0;
+        let i = 0;
 
         if (time) {
             time = time.split(':');
@@ -81,15 +82,34 @@ function HelpersDate() {
      *
      * IMPORTANT: Excel incorrectly considers 1900 to be a leap year
      */
-    Component.numToDate = function (excelSerialNumber) {
-        var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
-        if (jsDateInMilliseconds >= excelLeapYearBug) {
-            jsDateInMilliseconds -= millisecondsPerDay;
+    Component.numToDate = function(excelSerialNumber) {
+        // allow 0; only bail on null/undefined/empty
+        if (excelSerialNumber === null || excelSerialNumber === undefined || excelSerialNumber === '') {
+            return '';
         }
 
-        const d = new Date(jsDateInMilliseconds);
+        const MS_PER_DAY = 86_400_000;
+        const SEC_PER_DAY = 86_400;
 
-        var date = [
+        // Excel day 0 is 1899-12-31 (with the fake 1900-02-29 at serial 60)
+        const EXCEL_DAY0_UTC_MS = Date.UTC(1899, 11, 31);
+
+        let wholeDays = Math.floor(excelSerialNumber);
+        let fractionalDay = excelSerialNumber - wholeDays;
+
+        // Fix the 1900 leap-year bug: shift serials >= 60 back one day
+        if (wholeDays >= 60) wholeDays -= 1;
+
+        // Build midnight UTC of the day
+        let ms = EXCEL_DAY0_UTC_MS + wholeDays * MS_PER_DAY;
+
+        // Add time part using integer seconds to avoid FP jitter
+        const seconds = Math.round(fractionalDay * SEC_PER_DAY);
+        ms += seconds * 1000;
+
+        const d = new Date(ms);
+
+        const arr = [
             d.getUTCFullYear(),
             d.getUTCMonth() + 1,
             d.getUTCDate(),
@@ -98,7 +118,7 @@ function HelpersDate() {
             d.getUTCSeconds(),
         ];
 
-        return Component.now(date);
+        return Component.now(arr);
     }
 
     let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
