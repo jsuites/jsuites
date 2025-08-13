@@ -1896,10 +1896,7 @@ function Mask() {
             return null;
         }
 
-        // Keep YOUR existing cleaning/parsing here:
-        // (example placeholders; keep your real code)
-        const sRaw = input.trim();                 // <= use only trim here
-        // e.g. your current validation:
+        const sRaw = input.trim();
         if (!/^[+-]?\d+$/.test(sRaw)) {
             return null;
         }
@@ -2502,6 +2499,10 @@ function Mask() {
             }
         }
     }
+
+    Component.getType = getType;
+
+    Component.adjustPrecision = adjustPrecision;
 
     return Component;
 }
