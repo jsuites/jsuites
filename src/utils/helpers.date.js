@@ -2,15 +2,15 @@ import Helpers from "./helpers";
 import Dictionary from '../utils/dictionary';
 
 function HelpersDate() {
-    var Component = {};
+    const Component = {};
 
     Component.now = function (date, dateOnly) {
-        var y = null;
-        var m = null;
-        var d = null;
-        var h = null;
-        var i = null;
-        var s = null;
+        let y = null;
+        let m = null;
+        let d = null;
+        let h = null;
+        let i = null;
+        let s = null;
 
         if (Array.isArray(date)) {
             y = date[0];
@@ -31,7 +31,7 @@ function HelpersDate() {
             s = date.getSeconds();
         }
 
-        if (dateOnly == true) {
+        if (dateOnly === true) {
             return Helpers.two(y) + '-' + Helpers.two(m) + '-' + Helpers.two(d);
         } else {
             return Helpers.two(y) + '-' + Helpers.two(m) + '-' + Helpers.two(d) + ' ' + Helpers.two(h) + ':' + Helpers.two(i) + ':' + Helpers.two(s);
@@ -57,9 +57,9 @@ function HelpersDate() {
         return [y, m, d, h, i, 0];
     }
 
-    var excelInitialTime = Date.UTC(1900, 0, 0);
-    var excelLeapYearBug = Date.UTC(1900, 1, 29);
-    var millisecondsPerDay = 86400000;
+    const excelInitialTime = Date.UTC(1900, 0, 0);
+    const excelLeapYearBug = Date.UTC(1900, 1, 29);
+    const millisecondsPerDay = 86400000;
 
     /**
      * Date to number
@@ -68,7 +68,7 @@ function HelpersDate() {
         if (typeof (jsDate) === 'string') {
             jsDate = new Date(jsDate + '  GMT+0');
         }
-        var jsDateInMilliseconds = jsDate.getTime();
+        let jsDateInMilliseconds = jsDate.getTime();
         if (jsDateInMilliseconds >= excelLeapYearBug) {
             jsDateInMilliseconds += millisecondsPerDay;
         }
