@@ -1,8 +1,14 @@
-import Helpers from "./helpers";
-import Dictionary from '../utils/dictionary';
-
 function HelpersDate() {
     const Component = {};
+
+    // Transform in two digits
+    Component.two = function(value) {
+        value = '' + value;
+        if (value.length === 1) {
+            value = '0' + value;
+        }
+        return value;
+    }
 
     Component.now = function (date, dateOnly) {
         let y = null;
@@ -32,9 +38,9 @@ function HelpersDate() {
         }
 
         if (dateOnly === true) {
-            return Helpers.two(y) + '-' + Helpers.two(m) + '-' + Helpers.two(d);
+            return Component.two(y) + '-' + Component.two(m) + '-' + Component.two(d);
         } else {
-            return Helpers.two(y) + '-' + Helpers.two(m) + '-' + Helpers.two(d) + ' ' + Helpers.two(h) + ':' + Helpers.two(i) + ':' + Helpers.two(s);
+            return Component.two(y) + '-' + Component.two(m) + '-' + Component.two(d) + ' ' + Component.two(h) + ':' + Component.two(i) + ':' + Component.two(s);
         }
     }
 
@@ -124,10 +130,19 @@ function HelpersDate() {
     let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
+    const translate = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+
     Object.defineProperty(Component, 'weekdays', {
         get: function () {
             return weekdays.map(function(v) {
-                return Dictionary.translate(v);
+                return translate(v);
             });
         },
     });
@@ -135,7 +150,7 @@ function HelpersDate() {
     Object.defineProperty(Component, 'weekdaysShort', {
         get: function () {
             return weekdays.map(function(v) {
-                return Dictionary.translate(v).substring(0,3);
+                return translate(v).substring(0,3);
             });
         },
     });
@@ -143,7 +158,7 @@ function HelpersDate() {
     Object.defineProperty(Component, 'months', {
         get: function () {
             return months.map(function(v) {
-                return Dictionary.translate(v);
+                return translate(v);
             });
         },
     });
@@ -151,7 +166,7 @@ function HelpersDate() {
     Object.defineProperty(Component, 'monthsShort', {
         get: function () {
             return months.map(function(v) {
-                return Dictionary.translate(v).substring(0,3);
+                return translate(v).substring(0,3);
             });
         },
     });
