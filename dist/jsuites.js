@@ -3920,8 +3920,7 @@ function Mask() {
         if (value) {
             try {
                 // Data
-                console.log(value)
-                o.data = extractDateAndTime(value);
+                  o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
                     throw new Error('Invalid date');
@@ -4060,7 +4059,28 @@ function Mask() {
         return value;
     }
 
-    Component.oninput = function(e) {
+    Component.getDate = function(value, format) {
+        if (! format) {
+            format = 'YYYY-MM-DD';
+        }
+
+        let ret = value;
+        if (ret && Number(ret) == ret) {
+            ret = helpers_date.numToDate(ret);
+        }
+
+        // Try a formatted date
+        if (! helpers_date.isValidDateFormat(ret)) {
+            let tmp = Component.extractDateFromString(ret, format);
+            if (tmp) {
+                ret = tmp;
+            }
+        }
+
+        return Component.getDateString(ret, format);
+    }
+
+    Component.oninput = function(e, mask) {
         // Element
         let element = e.target;
         // Property
@@ -4072,7 +4092,9 @@ function Mask() {
         // Value
         let value = element[property];
         // Get the mask
-        let mask = element.getAttribute('data-mask');
+        if (! mask) {
+            mask = element.getAttribute('data-mask');
+        }
         // Keep the current caret position
         let caret = getCaret(element);
         if (caret) {

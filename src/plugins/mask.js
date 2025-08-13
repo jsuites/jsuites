@@ -8,7 +8,7 @@
  j.mask.render(0, { mask: 'mm:ss.0' }
  j.mask.render(0, { mask: '[h]:mm:ss' }, true)
  */
-import HelpersDate from '../utils/helpers.date';
+import Helpers from '../utils/helpers.date';
 
 function Mask() {
     // Currency
@@ -32,10 +32,10 @@ function Mask() {
     }
 
     // Labels
-    const weekDaysFull = HelpersDate.weekdays;
-    const weekDays = HelpersDate.weekdaysShort;
-    const monthsFull = HelpersDate.months;
-    const months = HelpersDate.monthsShort;
+    const weekDaysFull = Helpers.weekdays;
+    const weekDays = Helpers.weekdaysShort;
+    const monthsFull = Helpers.months;
+    const months = Helpers.monthsShort;
 
     // Helpers
 
@@ -935,8 +935,8 @@ function Mask() {
             if (this.date[0] && this.date[1] && ! this.date[2]) {
                 this.date[2] = 1;
             }
-            var t = HelpersDate.now(this.date);
-            v = HelpersDate.dateToNum(t);
+            var t = Helpers.now(this.date);
+            v = Helpers.dateToNum(t);
         }
 
         if (isNaN(v)) {
@@ -1760,7 +1760,7 @@ function Mask() {
                         hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
 
                         // Convert to Excel serial number
-                        const excelNumber = HelpersDate.dateToNum(isoDate);
+                        const excelNumber = Helpers.dateToNum(isoDate);
 
                         // Verify by rendering back
                         const rendered = Component.render(excelNumber, { mask: mask }, true);
@@ -2250,7 +2250,7 @@ function Mask() {
         // Check if in format Excel (Need difference with format date or type detected is numeric)
         if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
             var d = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return d.getFullYear() + "-" + HelpersDate.two(d.getMonth()) + "-" + HelpersDate.two(d.getDate()) + ' 00:00:00';
+            return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
         }
 
         let complete = false;
@@ -2264,7 +2264,7 @@ function Mask() {
                 o.date[2] = 1;
             }
 
-            return o.date[0] + '-' + HelpersDate.two(o.date[1]) + '-' + HelpersDate.two(o.date[2]) + ' ' + HelpersDate.two(o.date[3]) + ':' + HelpersDate.two(o.date[4]) + ':' + HelpersDate.two(o.date[5]);
+            return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
         }
 
         return '';
@@ -2296,9 +2296,9 @@ function Mask() {
 
         // Date instance
         if (value instanceof Date) {
-            value = HelpersDate.now(value);
+            value = Helpers.now(value);
         } else if (isNumber(value)) {
-            value = HelpersDate.numToDate(value);
+            value = Helpers.numToDate(value);
         }
 
         // Tokens
@@ -2321,8 +2321,7 @@ function Mask() {
         if (value) {
             try {
                 // Data
-                console.log(value)
-                o.data = extractDateAndTime(value);
+                  o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
                     throw new Error('Invalid date');
@@ -2361,33 +2360,33 @@ function Mask() {
                     } else if (s === 'Y') {
                         v = this.data[0].substring(3, 4);
                     } else if (t === 'MON') {
-                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toUpperCase();
+                        v = Helpers.months[calendar.getMonth()].substr(0, 3).toUpperCase();
                     } else if (t === 'mon') {
-                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3).toLowerCase();
+                        v = Helpers.months[calendar.getMonth()].substr(0, 3).toLowerCase();
                     } else if (t === 'MONTH') {
-                        v = HelpersDate.months[calendar.getMonth()].toUpperCase();
+                        v = Helpers.months[calendar.getMonth()].toUpperCase();
                     } else if (t === 'month') {
-                        v = HelpersDate.months[calendar.getMonth()].toLowerCase();
+                        v = Helpers.months[calendar.getMonth()].toLowerCase();
                     } else if (s === 'MMMMM') {
-                        v = HelpersDate.months[calendar.getMonth()].substr(0, 1);
+                        v = Helpers.months[calendar.getMonth()].substr(0, 1);
                     } else if (s === 'MMMM' || t === 'Month') {
-                        v = HelpersDate.months[calendar.getMonth()];
+                        v = Helpers.months[calendar.getMonth()];
                     } else if (s === 'MMM' || t == 'Mon') {
-                        v = HelpersDate.months[calendar.getMonth()].substr(0, 3);
+                        v = Helpers.months[calendar.getMonth()].substr(0, 3);
                     } else if (s === 'MM') {
-                        v = HelpersDate.two(this.data[1]);
+                        v = Helpers.two(this.data[1]);
                     } else if (s === 'M') {
                         v = calendar.getMonth() + 1;
                     } else if (t === 'DAY') {
-                        v = HelpersDate.weekdays[calendar.getDay()].toUpperCase();
+                        v = Helpers.weekdays[calendar.getDay()].toUpperCase();
                     } else if (t === 'day') {
-                        v = HelpersDate.weekdays[calendar.getDay()].toLowerCase();
+                        v = Helpers.weekdays[calendar.getDay()].toLowerCase();
                     } else if (s === 'DDDD' || t == 'Day') {
-                        v = HelpersDate.weekdays[calendar.getDay()];
+                        v = Helpers.weekdays[calendar.getDay()];
                     } else if (s === 'DDD') {
-                        v = HelpersDate.weekdays[calendar.getDay()].substr(0, 3);
+                        v = Helpers.weekdays[calendar.getDay()].substr(0, 3);
                     } else if (s === 'DD') {
-                        v = HelpersDate.two(this.data[2]);
+                        v = Helpers.two(this.data[2]);
                     } else if (s === 'D') {
                         v = parseInt(this.data[2]);
                     } else if (s === 'Q') {
@@ -2401,13 +2400,13 @@ function Mask() {
                                 v = 12;
                             }
                         }
-                        v = HelpersDate.two(v);
+                        v = Helpers.two(v);
                     } else if (s === 'HH12') {
                         v = this.data[3]%24;
                         if (v > 12) {
-                            v = HelpersDate.two(v - 12);
+                            v = Helpers.two(v - 12);
                         } else {
-                            v = HelpersDate.two(v);
+                            v = Helpers.two(v);
                         }
                     } else if (s === 'H') {
                         v = this.data[3]%24;
@@ -2421,11 +2420,11 @@ function Mask() {
                     } else if (s === '[H]') {
                         v = this.data[3];
                     } else if (s === 'MI') {
-                        v = HelpersDate.two(this.data[4]);
+                        v = Helpers.two(this.data[4]);
                     } else if (s === 'I') {
                         v = parseInt(this.data[4]);
                     } else if (s === 'SS') {
-                        v = HelpersDate.two(this.data[5]);
+                        v = Helpers.two(this.data[5]);
                     } else if (s === 'S') {
                         v = parseInt(this.data[5]);
                     } else if (s === 'MS') {
@@ -2437,7 +2436,7 @@ function Mask() {
                             v = 'AM';
                         }
                     } else if (s === 'WD') {
-                        v = HelpersDate.weekdays[calendar.getDay()];
+                        v = Helpers.weekdays[calendar.getDay()];
                     }
 
                     if (v === null) {
@@ -2461,7 +2460,28 @@ function Mask() {
         return value;
     }
 
-    Component.oninput = function(e) {
+    Component.getDate = function(value, format) {
+        if (! format) {
+            format = 'YYYY-MM-DD';
+        }
+
+        let ret = value;
+        if (ret && Number(ret) == ret) {
+            ret = Helpers.numToDate(ret);
+        }
+
+        // Try a formatted date
+        if (! Helpers.isValidDateFormat(ret)) {
+            let tmp = Component.extractDateFromString(ret, format);
+            if (tmp) {
+                ret = tmp;
+            }
+        }
+
+        return Component.getDateString(ret, format);
+    }
+
+    Component.oninput = function(e, mask) {
         // Element
         let element = e.target;
         // Property
@@ -2473,7 +2493,9 @@ function Mask() {
         // Value
         let value = element[property];
         // Get the mask
-        let mask = element.getAttribute('data-mask');
+        if (! mask) {
+            mask = element.getAttribute('data-mask');
+        }
         // Keep the current caret position
         let caret = getCaret(element);
         if (caret) {
