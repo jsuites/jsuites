@@ -8,7 +8,6 @@
  j.mask.render(0, { mask: 'mm:ss.0' }
  j.mask.render(0, { mask: '[h]:mm:ss' }, true)
  */
-import Helpers from '../utils/helpers';
 import HelpersDate from '../utils/helpers.date';
 
 function Mask() {
@@ -2251,7 +2250,7 @@ function Mask() {
         // Check if in format Excel (Need difference with format date or type detected is numeric)
         if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
             var d = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
+            return d.getFullYear() + "-" + HelpersDate.two(d.getMonth()) + "-" + HelpersDate.two(d.getDate()) + ' 00:00:00';
         }
 
         let complete = false;
@@ -2265,7 +2264,7 @@ function Mask() {
                 o.date[2] = 1;
             }
 
-            return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
+            return o.date[0] + '-' + HelpersDate.two(o.date[1]) + '-' + HelpersDate.two(o.date[2]) + ' ' + HelpersDate.two(o.date[3]) + ':' + HelpersDate.two(o.date[4]) + ':' + HelpersDate.two(o.date[5]);
         }
 
         return '';
@@ -2298,7 +2297,7 @@ function Mask() {
         // Date instance
         if (value instanceof Date) {
             value = HelpersDate.now(value);
-        } else if (Helpers.isNumeric(value)) {
+        } else if (isNumber(value)) {
             value = HelpersDate.numToDate(value);
         }
 
@@ -2322,6 +2321,7 @@ function Mask() {
         if (value) {
             try {
                 // Data
+                console.log(value)
                 o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
@@ -2375,7 +2375,7 @@ function Mask() {
                     } else if (s === 'MMM' || t == 'Mon') {
                         v = HelpersDate.months[calendar.getMonth()].substr(0, 3);
                     } else if (s === 'MM') {
-                        v = Helpers.two(this.data[1]);
+                        v = HelpersDate.two(this.data[1]);
                     } else if (s === 'M') {
                         v = calendar.getMonth() + 1;
                     } else if (t === 'DAY') {
@@ -2387,7 +2387,7 @@ function Mask() {
                     } else if (s === 'DDD') {
                         v = HelpersDate.weekdays[calendar.getDay()].substr(0, 3);
                     } else if (s === 'DD') {
-                        v = Helpers.two(this.data[2]);
+                        v = HelpersDate.two(this.data[2]);
                     } else if (s === 'D') {
                         v = parseInt(this.data[2]);
                     } else if (s === 'Q') {
@@ -2401,13 +2401,13 @@ function Mask() {
                                 v = 12;
                             }
                         }
-                        v = Helpers.two(v);
+                        v = HelpersDate.two(v);
                     } else if (s === 'HH12') {
                         v = this.data[3]%24;
                         if (v > 12) {
-                            v = Helpers.two(v - 12);
+                            v = HelpersDate.two(v - 12);
                         } else {
-                            v = Helpers.two(v);
+                            v = HelpersDate.two(v);
                         }
                     } else if (s === 'H') {
                         v = this.data[3]%24;
@@ -2421,11 +2421,11 @@ function Mask() {
                     } else if (s === '[H]') {
                         v = this.data[3];
                     } else if (s === 'MI') {
-                        v = Helpers.two(this.data[4]);
+                        v = HelpersDate.two(this.data[4]);
                     } else if (s === 'I') {
                         v = parseInt(this.data[4]);
                     } else if (s === 'SS') {
-                        v = Helpers.two(this.data[5]);
+                        v = HelpersDate.two(this.data[5]);
                     } else if (s === 'S') {
                         v = parseInt(this.data[5]);
                     } else if (s === 'MS') {
@@ -2453,6 +2453,7 @@ function Mask() {
 
                 value = o.value.join('');
             } catch (e) {
+                console.log(e)
                 value = '';
             }
         }

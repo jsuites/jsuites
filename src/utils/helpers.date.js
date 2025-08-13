@@ -1,8 +1,13 @@
-function HelpersDate() {
-    const Component = {};
+const Helpers = (function() {
+    const component = {};
+
+    // Excel like dates
+    const excelInitialTime = Date.UTC(1900, 0, 0);
+    const excelLeapYearBug = Date.UTC(1900, 1, 29);
+    const millisecondsPerDay = 86400000;
 
     // Transform in two digits
-    Component.two = function(value) {
+    component.two = function(value) {
         value = '' + value;
         if (value.length === 1) {
             value = '0' + value;
@@ -10,7 +15,28 @@ function HelpersDate() {
         return value;
     }
 
-    Component.now = function (date, dateOnly) {
+    component.isValidDate = function(d) {
+        return d instanceof Date && !isNaN(d.getTime());
+    }
+
+    component.isValidDateFormat = function(date, format) {
+        if (typeof date === 'string') {
+            // Check format: YYYY-MM-DD using regex
+            const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (match) {
+                const year = Number(match[1]);
+                const month = Number(match[2]) - 1;
+                const day = Number(match[3]);
+                const parsed = new Date(Date.UTC(year, month, day));
+                // Return
+                return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month && parsed.getUTCDate() === day;
+            }
+        }
+
+        return false;
+    }
+
+    component.toString = function (date, dateOnly) {
         let y = null;
         let m = null;
         let d = null;
@@ -29,26 +55,26 @@ function HelpersDate() {
             if (! date) {
                 date = new Date();
             }
-            y = date.getFullYear();
-            m = date.getMonth() + 1;
-            d = date.getDate();
-            h = date.getHours();
-            i = date.getMinutes();
-            s = date.getSeconds();
+            y = date.getUTCFullYear();
+            m = date.getUTCMonth() + 1;
+            d = date.getUTCDate();
+            h = date.getUTCHours();
+            i = date.getUTCMinutes();
+            s = date.getUTCSeconds();
         }
 
         if (dateOnly === true) {
-            return Component.two(y) + '-' + Component.two(m) + '-' + Component.two(d);
+            return component.two(y) + '-' + component.two(m) + '-' + component.two(d);
         } else {
-            return Component.two(y) + '-' + Component.two(m) + '-' + Component.two(d) + ' ' + Component.two(h) + ':' + Component.two(i) + ':' + Component.two(s);
+            return component.two(y) + '-' + component.two(m) + '-' + component.two(d) + ' ' + component.two(h) + ':' + component.two(i) + ':' + component.two(s);
         }
     }
 
-    Component.toArray = function (value) {
+    component.toArray = function (value) {
         let date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
         let time = date[1];
-        date = date[0].split('-');
 
+        date = date[0].split('-');
         let y = parseInt(date[0]);
         let m = parseInt(date[1]);
         let d = parseInt(date[2]);
@@ -63,15 +89,12 @@ function HelpersDate() {
         return [y, m, d, h, i, 0];
     }
 
-    const excelInitialTime = Date.UTC(1900, 0, 0);
-    const excelLeapYearBug = Date.UTC(1900, 1, 29);
-    const millisecondsPerDay = 86400000;
+    component.arrayToStringDate = function(arr) {
+        return component.toString(arr, false);
+    }
 
-    /**
-     * Date to number
-     */
-    Component.dateToNum = function (jsDate) {
-        if (typeof (jsDate) === 'string') {
+    component.dateToNum = function(jsDate) {
+        if (typeof(jsDate) === 'string') {
             jsDate = new Date(jsDate + '  GMT+0');
         }
         let jsDateInMilliseconds = jsDate.getTime();
@@ -83,12 +106,7 @@ function HelpersDate() {
         return jsDateInMilliseconds / millisecondsPerDay;
     }
 
-    /**
-     * Number to date
-     *
-     * IMPORTANT: Excel incorrectly considers 1900 to be a leap year
-     */
-    Component.numToDate = function(excelSerialNumber) {
+    component.numToDate = function(excelSerialNumber, asArray) {
         // allow 0; only bail on null/undefined/empty
         if (excelSerialNumber === null || excelSerialNumber === undefined || excelSerialNumber === '') {
             return '';
@@ -117,18 +135,78 @@ function HelpersDate() {
 
         const arr = [
             d.getUTCFullYear(),
-            d.getUTCMonth() + 1,
-            d.getUTCDate(),
-            d.getUTCHours(),
-            d.getUTCMinutes(),
-            d.getUTCSeconds(),
+            component.two(d.getUTCMonth() + 1),
+            component.two(d.getUTCDate()),
+            component.two(d.getUTCHours()),
+            component.two(d.getUTCMinutes()),
+            component.two(d.getUTCSeconds()),
         ];
 
-        return Component.now(arr);
+        return asArray ? arr : component.toString(arr, false);
     }
 
-    let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+    component.prettify = function (d, texts) {
+        if (! texts) {
+            texts = {
+                justNow: 'Just now',
+                xMinutesAgo: '{0}m ago',
+                xHoursAgo: '{0}h ago',
+                xDaysAgo: '{0}d ago',
+                xWeeksAgo: '{0}w ago',
+                xMonthsAgo: '{0} mon ago',
+                xYearsAgo: '{0}y ago',
+            }
+        }
+
+        if (d.indexOf('GMT') === -1 && d.indexOf('Z') === -1) {
+            d += ' GMT';
+        }
+
+        let d1 = new Date();
+        let d2 = new Date(d);
+        let total = parseInt((d1 - d2) / 1000 / 60);
+
+        const format = (t, o) => {
+            return t.replace('{0}', o);
+        }
+
+        if (! total) {
+            return texts.justNow;
+        } else if (total < 90) {
+            return format(texts.xMinutesAgo, total);
+        } else if (total < 1440) { // One day
+            return format(texts.xHoursAgo, Math.round(total / 60));
+        } else if (total < 20160) { // 14 days
+            return format(texts.xDaysAgo, Math.round(total / 1440));
+        } else if (total < 43200) { // 30 days
+            return format(texts.xWeeksAgo, Math.round(total / 10080));
+        } else if (total < 1036800) { // 24 months
+            return format(texts.xMonthsAgo, Math.round(total / 43200));
+        } else { // 24 months+
+            return format(texts.xYearsAgo, Math.round(total / 525600));
+        }
+    }
+
+    component.prettifyAll = function () {
+        let elements = document.querySelectorAll('.prettydate');
+        for (let i = 0; i < elements.length; i++) {
+            if (elements[i].getAttribute('data-date')) {
+                elements[i].innerHTML = component.prettify(elements[i].getAttribute('data-date'));
+            } else {
+                if (elements[i].innerHTML) {
+                    elements[i].setAttribute('title', elements[i].innerHTML);
+                    elements[i].setAttribute('data-date', elements[i].innerHTML);
+                    elements[i].innerHTML = component.prettify(elements[i].innerHTML);
+                }
+            }
+        }
+    }
+
+    // Compatibility with jSuites
+    component.now = component.toString;
+
+    const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
     const translate = function(t) {
         if (typeof(document) !== "undefined" && document.dictionary) {
@@ -138,8 +216,7 @@ function HelpersDate() {
         }
     }
 
-
-    Object.defineProperty(Component, 'weekdays', {
+    Object.defineProperty(component, 'weekdays', {
         get: function () {
             return weekdays.map(function(v) {
                 return translate(v);
@@ -147,7 +224,7 @@ function HelpersDate() {
         },
     });
 
-    Object.defineProperty(Component, 'weekdaysShort', {
+    Object.defineProperty(component, 'weekdaysShort', {
         get: function () {
             return weekdays.map(function(v) {
                 return translate(v).substring(0,3);
@@ -155,7 +232,7 @@ function HelpersDate() {
         },
     });
 
-    Object.defineProperty(Component, 'months', {
+    Object.defineProperty(component, 'months', {
         get: function () {
             return months.map(function(v) {
                 return translate(v);
@@ -163,7 +240,7 @@ function HelpersDate() {
         },
     });
 
-    Object.defineProperty(Component, 'monthsShort', {
+    Object.defineProperty(component, 'monthsShort', {
         get: function () {
             return months.map(function(v) {
                 return translate(v).substring(0,3);
@@ -171,7 +248,7 @@ function HelpersDate() {
         },
     });
 
-    return Component;
-}
+    return component;
+})();
 
-export default HelpersDate();
+export default Helpers;

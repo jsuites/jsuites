@@ -37,10 +37,7 @@ let isProduction = process.env.NODE_ENV === 'production';
 
 const webpack = {
     target: ['web', 'es5'],
-    entry: { 
-        jsuites: isProduction ? './src/jsuites.js' : './src/index.js',
-        mask: './src/mask.js'
-    },
+    entry: { jsuites: isProduction ? './src/jsuites.js' : './src/index.js' },
     mode: isProduction ? 'production' : 'development',
     output: {
         library: 'jSuites',
