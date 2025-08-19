@@ -609,7 +609,11 @@ function Path(pathString, value, remove) {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             // Check if the current object is valid and has the key
-            if (currentObject != null && isValidPathObj(currentObject) && Object.prototype.hasOwnProperty.call(currentObject, key)) {
+            if (
+                currentObject != null &&
+                isValidPathObj(currentObject) &&
+                Object.prototype.hasOwnProperty.call(currentObject, key)
+            ) {
                 currentObject = currentObject[key];
             } else {
                 // Return undefined if the path is invalid or currentObject is null/undefined
@@ -632,7 +636,10 @@ function Path(pathString, value, remove) {
         }
 
         // If the key exists but is null/undefined or a non-object, replace it with an empty object
-        if (Object.prototype.hasOwnProperty.call(currentObject, key) && (currentObject[key] == null || ! isValidPathObj(currentObject[key]))) {
+        if (
+            Object.prototype.hasOwnProperty.call(currentObject, key) &&
+            (currentObject[key] == null || ! isValidPathObj(currentObject[key]))
+        ) {
             currentObject[key] = {};
         } else if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
             // If the key doesn't exist, create an empty object
