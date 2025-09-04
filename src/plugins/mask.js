@@ -1417,7 +1417,7 @@ function Mask() {
     }
 
     const extractDateAndTime = function(value) {
-        value = '' + value.substring(0,19);
+        value = value.toString().substring(0,19);
         let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
         value = value.split(splitStr);
 
