@@ -255,7 +255,7 @@ export default function Tabs(el, options) {
             h.setAttribute('role', 'tab');
             h.setAttribute('aria-controls', contentId);
 
-            h.innerHTML = title;
+            h.textContent = title;
             h.content = div;
 
             if (typeof(position) === 'undefined') {
@@ -439,7 +439,7 @@ export default function Tabs(el, options) {
                 var iconContainer = document.createElement('div');
                 var icon = document.createElement('i');
                 icon.classList.add('material-icons');
-                icon.innerHTML = obj.options.data[i].icon;
+                icon.textContent = obj.options.data[i].icon;
                 iconContainer.appendChild(icon);
                 headerItem.appendChild(iconContainer);
             }
