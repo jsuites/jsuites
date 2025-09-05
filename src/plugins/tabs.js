@@ -357,7 +357,7 @@ export default function Tabs(el, options) {
     obj.setBorder = setBorder;
 
     obj.init = function() {
-        el.innerHTML = '';
+        el.textContent = '';
 
         // Make sure the component is blank
         obj.headers = document.createElement('div');

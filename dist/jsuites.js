@@ -3351,6 +3351,10 @@ function Mask() {
         return value;
     }
 
+    obj.autoCasting = function() {
+        return false;
+    }
+
     return obj;
 }
 
@@ -4826,7 +4830,7 @@ function Tabs(el, options) {
             h.setAttribute('role', 'tab');
             h.setAttribute('aria-controls', contentId);
 
-            h.innerHTML = title;
+            h.textContent = title;
             h.content = div;
 
             if (typeof(position) === 'undefined') {
@@ -4928,7 +4932,7 @@ function Tabs(el, options) {
     obj.setBorder = setBorder;
 
     obj.init = function() {
-        el.innerHTML = '';
+        el.textContent = '';
 
         // Make sure the component is blank
         obj.headers = document.createElement('div');
@@ -5010,7 +5014,7 @@ function Tabs(el, options) {
                 var iconContainer = document.createElement('div');
                 var icon = document.createElement('i');
                 icon.classList.add('material-icons');
-                icon.innerHTML = obj.options.data[i].icon;
+                icon.textContent = obj.options.data[i].icon;
                 iconContainer.appendChild(icon);
                 headerItem.appendChild(iconContainer);
             }
@@ -8086,13 +8090,16 @@ function Picker(el, options) {
         var item;
 
         if (obj.options.content) {
-            item = '<i class="material-icons">' + obj.options.content + '</i>';
+            item = document.createElement('i');
+            item.textContent = obj.options.content;
+            item.classList.add('material-icons');
         } else {
             item = obj.getLabel(v, null);
         }
+
         // Label
         if (isDOM(item)) {
-            dropdownHeader.innerHTML = '';
+            dropdownHeader.textContent = '';
             dropdownHeader.appendChild(item);
         } else {
             dropdownHeader.innerHTML = item;
@@ -8540,7 +8547,105 @@ function Toolbar(el, options) {
 
     return obj;
 }
+;// CONCATENATED MODULE: ./src/utils/filter.js
+
+// Valid tags
+const validTags = [
+    'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+    'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
+    'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+    'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
+    'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
+    'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
+    'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
+];
+// Valid properties
+const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
+// Valid CSS attributes
+const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
+
+const parse = function(element, img) {
+    // Remove elements that are not white-listed
+    if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
+        if (element.innerText) {
+            element.innerHTML = element.innerText;
+        }
+    }
+    // Remove attributes
+    if (element.attributes && element.attributes.length) {
+        let style = null;
+        // Process style attribute
+        let elementStyle = element.getAttribute('style');
+        if (elementStyle) {
+            style = [];
+            let t = elementStyle.split(';');
+            for (let j = 0; j < t.length; j++) {
+                let v = t[j].trim().split(':');
+                if (validStyle.indexOf(v[0].trim()) >= 0) {
+                    let k = v.shift();
+                    v = v.join(':');
+                    style.push(k + ':' + v);
+                }
+            }
+        }
+        // Process image
+        if (element.tagName.toUpperCase() === 'IMG') {
+            if (! element.src) {
+                element.parentNode.removeChild(element);
+            } else {
+                // Check if is data
+                element.setAttribute('tabindex', '900');
+                // Check attributes for persistence
+                img.push(element.src);
+            }
+        }
+        // Remove attributes
+        let attr = [];
+        for (let i = 0; i < element.attributes.length; i++) {
+            attr.push(element.attributes[i].name);
+        }
+        if (attr.length) {
+            attr.forEach(function (v) {
+                if (validProperty.indexOf(v) === -1) {
+                    element.removeAttribute(v);
+                } else {
+                    // Protection XSS
+                    let at = element.getAttribute(v);
+                    if (at.indexOf('<') !== -1) {
+                        element.setAttribute(v, at.replace('<', '&#60;'));
+                    }
+                }
+            });
+        }
+        element.style = '';
+        // Add valid style
+        if (style && style.length) {
+            element.setAttribute('style', style.join(';'));
+        }
+    }
+    // Parse children
+    if (element.children.length) {
+        for (let i = element.children.length; i > 0; i--) {
+            parse(element.children[i - 1], img);
+        }
+    }
+}
+
+const filter = function(data, img) {
+    if (data) {
+        data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
+    }
+    let parser = new DOMParser();
+    let d = parser.parseFromString(data, "text/html");
+    parse(d, img);
+    let div = document.createElement('div');
+    div.innerHTML = d.firstChild.innerHTML;
+    return div;
+}
+
+/* harmony default export */ var utils_filter = (filter);
 ;// CONCATENATED MODULE: ./src/plugins/editor.js
+
 
 
 
@@ -8702,16 +8807,13 @@ function Editor() {
          * Extract images from a HTML string
          */
         var extractImageFromHtml = function(html) {
+            let img = [];
             // Create temp element
             var div = document.createElement('div');
-            div.innerHTML = html;
-
-            // Extract images
-            var img = div.querySelectorAll('img');
-
+            utils_filter(html, img);
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addImage(img[i].src);
+                    obj.addImage(img[i]);
                 }
             }
         }
@@ -9074,104 +9176,11 @@ function Editor() {
             helpers.click(obj.file);
         }
 
-        // Valid tags
-        const validTags = [
-            'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
-            'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
-            'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
-            'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
-            'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
-            'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
-            'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
-        ];
-        // Valid properties
-        const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
-        // Valid CSS attributes
-        const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
-
-        const parse = function(element) {
-            // Remove elements that are not white-listed
-            if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
-                if (element.innerText) {
-                    element.innerHTML = element.innerText;
-                }
-            }
-            // Remove attributes
-            if (element.attributes && element.attributes.length) {
-                let style = null;
-                // Process style attribute
-                let elementStyle = element.getAttribute('style');
-                if (elementStyle) {
-                    style = [];
-                    let t = elementStyle.split(';');
-                    for (let j = 0; j < t.length; j++) {
-                        let v = t[j].trim().split(':');
-                        if (validStyle.indexOf(v[0].trim()) >= 0) {
-                            let k = v.shift();
-                            v = v.join(':');
-                            style.push(k + ':' + v);
-                        }
-                    }
-                }
-                // Process image
-                if (element.tagName.toUpperCase() === 'IMG') {
-                    if (! obj.options.acceptImages || !element.src) {
-                        element.parentNode.removeChild(element);
-                    } else {
-                        // Check if is data
-                        element.setAttribute('tabindex', '900');
-                        // Check attributes for persistence
-                        obj.addImage(element.src);
-                    }
-                }
-                // Remove attributes
-                let attr = [];
-                for (let i = 0; i < element.attributes.length; i++) {
-                    attr.push(element.attributes[i].name);
-                }
-                if (attr.length) {
-                    attr.forEach(function (v) {
-                        if (validProperty.indexOf(v) === -1) {
-                            element.removeAttribute(v);
-                        } else {
-                            // Protection XSS
-                            if (element.attributes && element.attributes[i] && element.attributes[i].value.indexOf('<') !== -1) {
-                                element.attributes[i].value.replace('<', '&#60;');
-                            }
-                        }
-                    });
-                }
-                element.style = '';
-                // Add valid style
-                if (style && style.length) {
-                    element.setAttribute('style', style.join(';'));
-                }
-            }
-            // Parse children
-            if (element.children.length) {
-                for (let i = element.children.length; i > 0; i--) {
-                    parse(element.children[i - 1]);
-                }
-            }
-        }
-
         var select = function(e) {
             var s = window.getSelection()
             var r = document.createRange();
             r.selectNode(e);
             s.addRange(r)
-        }
-
-        var filter = function(data) {
-            if (data) {
-                data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
-            }
-            var parser = new DOMParser();
-            var d = parser.parseFromString(data, "text/html");
-            parse(d);
-            var div = document.createElement('div');
-            div.innerHTML = d.firstChild.innerHTML;
-            return div;
         }
 
         var editorPaste = function(e) {
@@ -9205,7 +9214,13 @@ function Editor() {
                             document.execCommand('insertText', false, html.join(''));
                         }
                     } else {
-                        var d = filter(html);
+                        let img = [];
+                        var d = utils_filter(html, img);
+                        if (img.length) {
+                            for (var i = 0; i < img.length; i++) {
+                                obj.addImage(img[i]);
+                            }
+                        }
                         // Paste to the editor
                         //insertNodeAtCaret(d);
                         document.execCommand('insertHtml', false, d.innerHTML);
@@ -9247,25 +9262,25 @@ function Editor() {
         }
 
         var editorDrop = function(e) {
-            if (editorAction || obj.options.dropZone == false) {
+            if (editorAction || obj.options.dropZone === false) {
                 // Do nothing
             } else {
                 // Position caret on the drop
-                var range = null;
+                let range = null;
                 if (document.caretRangeFromPoint) {
                     range=document.caretRangeFromPoint(e.clientX, e.clientY);
                 } else if (e.rangeParent) {
                     range=document.createRange();
                     range.setStart(e.rangeParent,e.rangeOffset);
                 }
-                var sel = window.getSelection();
+                let sel = window.getSelection();
                 sel.removeAllRanges();
                 sel.addRange(range);
                 sel.anchorNode.parentNode.focus();
 
-                var html = (e.originalEvent || e).dataTransfer.getData('text/html');
-                var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
-                var file = (e.originalEvent || e).dataTransfer.files;
+                let html = (e.originalEvent || e).dataTransfer.getData('text/html');
+                let text = (e.originalEvent || e).dataTransfer.getData('text/plain');
+                let file = (e.originalEvent || e).dataTransfer.files;
 
                 if (file.length) {
                     obj.addFile(file);
@@ -12667,6 +12682,7 @@ function Tags(el, options) {
 
 
 
+
 function Upload(el, options) {
     var obj = {};
     obj.options = {};
@@ -12902,15 +12918,11 @@ function Upload(el, options) {
             }
 
             // Create temp element
-            var div = document.createElement('div');
-            div.innerHTML = html;
-
-            // Extract images
-            var img = div.querySelectorAll('img');
-
+            let img = [];
+            utils_filter(html, img);
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addFromUrl(img[i].src);
+                    obj.addFromUrl(img[i]);
                 }
             }
         }
@@ -13010,7 +13022,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.12.0',
+    version: '5.13.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
