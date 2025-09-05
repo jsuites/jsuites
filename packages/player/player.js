@@ -523,8 +523,8 @@
 
             songImage.src = audioObj.image;
             songTitle.href = '/songs/' + audioObj.id;
-            songTitle.innerHTML = audioObj.title;
-            songArtist.innerHTML = audioObj.author;
+            songTitle.textContent = audioObj.title;
+            songArtist.textContent = audioObj.author;
 
             queue.href = obj.options.queueRedirect;
         }

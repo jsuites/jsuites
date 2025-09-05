@@ -1,6 +1,7 @@
 import Ajax from './ajax';
 import Helpers from '../utils/helpers';
 import Dictionary from '../utils/dictionary';
+import filter from '../utils/filter';
 
 export default function Upload(el, options) {
     var obj = {};
@@ -237,15 +238,11 @@ export default function Upload(el, options) {
             }
 
             // Create temp element
-            var div = document.createElement('div');
-            div.innerHTML = html;
-
-            // Extract images
-            var img = div.querySelectorAll('img');
-
+            let img = [];
+            filter(html, img);
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addFromUrl(img[i].src);
+                    obj.addFromUrl(img[i]);
                 }
             }
         }

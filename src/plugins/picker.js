@@ -186,13 +186,16 @@ export default function Picker(el, options) {
         var item;
 
         if (obj.options.content) {
-            item = '<i class="material-icons">' + obj.options.content + '</i>';
+            item = document.createElement('i');
+            item.textContent = obj.options.content;
+            item.classList.add('material-icons');
         } else {
             item = obj.getLabel(v, null);
         }
+
         // Label
         if (isDOM(item)) {
-            dropdownHeader.innerHTML = '';
+            dropdownHeader.textContent = '';
             dropdownHeader.appendChild(item);
         } else {
             dropdownHeader.innerHTML = item;
