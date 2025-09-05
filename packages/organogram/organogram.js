@@ -54,21 +54,63 @@ if (! jSuites) {
         }
 
         var getContent = function(node) {
-            var role = node.role;
-            var color = node.color || 'lightgreen';
+            console.log(node)
+
+            let role = node.role;
+            let color = node.color;
             if (obj.options.roles && node.role >= 0) {
-                var o = getRoleById(node.role);
+                let o = getRoleById(node.role);
                 if (o) {
                     role = o.name;
-                    var color = o.color;
+                    color = o.color;
                 }
             }
 
-            return `<div class="jorg-user-status" style="background:${color}"></div>
-                <div class="jorg-user-info">
-                    <div class='jorg-user-img'><img src="${node.img ? node.img : '#'}" ondragstart="return false" /></div>
-                    <div class='jorg-user-content'><span>${node.name}</span><span>${role}</span></div>
-                </div>`;
+            if (! color) {
+                color = node.status;
+            }
+
+            if (! color) {
+                color = 'lightgreen';
+            }
+
+            let status = document.createElement('div');
+            status.classList.add('jorg-user-status');
+            status.style.backgroundColor = color;
+
+            let info = document.createElement('div');
+            info.classList.add('jorg-user-info');
+
+            let imgContainer = document.createElement('div');
+            imgContainer.classList.add('jorg-user-img');
+
+            let img = document.createElement('img');
+            img.src = node.img ? node.img : '#';
+            img.ondragstart = function() {
+                return false;
+            }
+            imgContainer.appendChild(img);
+
+            let content = document.createElement('div');
+            content.classList.add('jorg-user-content');
+
+            let nameContainer = document.createElement('span');
+            nameContainer.textContent = node.name;
+
+            let roleContainer = document.createElement('span');
+            roleContainer.textContent = role;
+
+            content.appendChild(nameContainer);
+            content.appendChild(roleContainer);
+
+            info.appendChild(imgContainer);
+            info.appendChild(content);
+
+            let container = document.createElement('div');
+            container.appendChild(status);
+            container.appendChild(info);
+
+            return container;
         }
 
         // Creates the shape of a node to be added to the organogram chart tree
@@ -76,7 +118,7 @@ if (! jSuites) {
             var li = document.createElement('li');
             var span = document.createElement('span');
             span.className = 'jorg-tf-nc';
-            span.innerHTML = getContent(node);
+            span.appendChild(getContent(node));
             span.setAttribute('id', node.id);
             var ul = document.createElement('ul');
             li.appendChild(span);
@@ -331,7 +373,7 @@ if (! jSuites) {
          * Refreshes the organozation chart
          */
         obj.update = function() {
-            el.children[0].innerHTML = '';
+            el.children[0].textContent = '';
             render(0,el.children[0]);
         }
 
