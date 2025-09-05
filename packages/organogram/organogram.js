@@ -54,8 +54,6 @@ if (! jSuites) {
         }
 
         var getContent = function(node) {
-            console.log(node)
-
             let role = node.role;
             let color = node.color;
             if (obj.options.roles && node.role >= 0) {

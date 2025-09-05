@@ -19,10 +19,10 @@
         "javascript plugins, organogram, javascript organogram plugin"
     ],
     "dependencies": {
-        "jsuites": "^5.12.0"
+        "jsuites": "^5.13.0"
     },
     "main": "organogram.js",
-    "version": "1.7.0",
+    "version": "1.7.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net/v4",
