@@ -178,53 +178,80 @@
         }
 
         // Initializes the plugin
-        var init = (function() {
+        const init = function () {
             var defaults = {
                 title: '',
                 tooltip: false,
                 colors: ['#FFECB3', '#FFD54F', '#FFC107', '#FFA000', '#FF6F00'],
                 data: [],
                 date: new Date().toISOString().slice(0, 10),
-                onload: null,
+                onload: null
+            };
+
+            // Merge options -> obj.options
+            obj.options = {};
+            for (var k in defaults) {
+                obj.options[k] = (options && options.hasOwnProperty(k)) ? options[k] : defaults[k];
             }
 
-            // Fill the obj.options object
-            for (var property in defaults) {
-                if (options && options.hasOwnProperty(property)) {
-                    obj.options[property] = options[property];
-                } else {
-                    obj.options[property] = defaults[property];
-                }
-            }
-            
-            // Add the plugin class to the tag that will receive it
+            // Reset container and add base class
+            el.textContent = '';
             el.classList.add('jheatmap');
 
-            // Apply the plugin header if it was passed as an argument
-            if (obj.options.title !== '') {
-                var pluginHeader = '<div class="jheatmap-header">' + obj.options.title + '</div>';
-
-                el.innerHTML = pluginHeader;
+            // Header
+            if (obj.options.title) {
+                var header = document.createElement('div');
+                header.className = 'jheatmap-header';
+                header.textContent = obj.options.title;
+                el.appendChild(header);
             }
 
-            // Apply the plugin body if it was passed as an argument
+            // Body
             if (obj.options.data) {
-                el.innerHTML += '<div class="jheatmap-body"></div>';
+                var body = document.createElement('div');
+                body.className = 'jheatmap-body';
+                el.appendChild(body);
+                // keep your existing function
                 createBody();
             }
 
-            // Apply the plugin tooltip if it was passed as an argument
+            // Tooltip (color legend)
             if (obj.options.tooltip) {
-                var pluginFooter = '<div class="jheatmap-footer"><div>Less</div><table><tr><td style="background-color:' + obj.options.colors[0] + '"></td><td style="background-color:' + obj.options.colors[1] + '"></td><td style="background-color:' + obj.options.colors[2] + '"></td><td style="background-color:' + obj.options.colors[3] + '"></td><td style="background-color:' + obj.options.colors[4] + '"></td></tr></table><div>More</div></div>';
+                var footer = document.createElement('div');
+                footer.className = 'jheatmap-footer';
 
-                el.innerHTML += pluginFooter;
+                var less = document.createElement('div');
+                less.textContent = 'Less';
+                footer.appendChild(less);
+
+                var table = document.createElement('table');
+                var tbody = document.createElement('tbody');
+                var tr = document.createElement('tr');
+
+                (obj.options.colors || []).slice(0, 5).forEach(function (c) {
+                    var td = document.createElement('td');
+                    td.style.backgroundColor = c;
+                    tr.appendChild(td);
+                });
+
+                tbody.appendChild(tr);
+                table.appendChild(tbody);
+                footer.appendChild(table);
+
+                var more = document.createElement('div');
+                more.textContent = 'More';
+                footer.appendChild(more);
+
+                el.appendChild(footer);
             }
 
-            // Call the onload function, if it was passed as an argument
-            if (obj.options.onload) {
+            // onload callback
+            if (typeof obj.options.onload === 'function') {
                 obj.options.onload(el, obj);
             }
-        })();
+        };
+
+        init();
 
         return obj;
     });
