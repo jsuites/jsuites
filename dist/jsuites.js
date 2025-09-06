@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 794:
+/***/ 195:
 /***/ (function(module) {
 
 /**
@@ -358,7 +358,7 @@ var jSuites;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 !function() {
 "use strict";
 
@@ -367,7 +367,7 @@ __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ jsuites; }
 });
 
-;// ./src/utils/dictionary.js
+;// CONCATENATED MODULE: ./src/utils/dictionary.js
 // Update dictionary
 var setDictionary = function(d) {
     if (! document.dictionary) {
@@ -393,7 +393,7 @@ var translate = function(t) {
 
 
 /* harmony default export */ var dictionary = ({ setDictionary, translate });
-;// ./src/utils/tracking.js
+;// CONCATENATED MODULE: ./src/utils/tracking.js
  const Tracking = function(component, state) {
     if (state === true) {
         window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
@@ -414,7 +414,7 @@ var translate = function(t) {
 }
 
 /* harmony default export */ var tracking = (Tracking);
-;// ./src/utils/helpers.js
+;// CONCATENATED MODULE: ./src/utils/helpers.js
 var Helpers = {};
 
 // Two digits
@@ -583,7 +583,7 @@ Helpers.findElement = function(element, condition) {
 }
 
 /* harmony default export */ var helpers = (Helpers);
-;// ./src/utils/path.js
+;// CONCATENATED MODULE: ./src/utils/path.js
 const isValidPathObj = function(o) {
     return typeof o === 'object' || typeof o === 'function';
 }
@@ -671,7 +671,7 @@ function Path(pathString, value, remove) {
     currentObject[finalKey] = value;
     return true;
 }
-;// ./src/utils/sorting.js
+;// CONCATENATED MODULE: ./src/utils/sorting.js
 function Sorting(el, options) {
     var obj = {};
     obj.options = {};
@@ -828,7 +828,7 @@ function Sorting(el, options) {
 
     return el;
 }
-;// ./src/utils/lazyloading.js
+;// CONCATENATED MODULE: ./src/utils/lazyloading.js
 function LazyLoading(el, options) {
     var obj = {}
 
@@ -895,7 +895,7 @@ function LazyLoading(el, options) {
 
     return obj;
 }
-;// ./src/plugins/ajax.js
+;// CONCATENATED MODULE: ./src/plugins/ajax.js
 function Ajax() {
     var Component = (function(options, complete) {
         if (Array.isArray(options)) {
@@ -1208,7 +1208,7 @@ function Ajax() {
 }
 
 /* harmony default export */ var ajax = (Ajax());
-;// ./src/plugins/animation.js
+;// CONCATENATED MODULE: ./src/plugins/animation.js
 function Animation() {
     const Component = {
         loading: {}
@@ -1341,7 +1341,7 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
-;// ./src/utils/helpers.date.js
+;// CONCATENATED MODULE: ./src/utils/helpers.date.js
 
 
 
@@ -1484,7 +1484,7 @@ function HelpersDate() {
 }
 
 /* harmony default export */ var helpers_date = (HelpersDate());
-;// ./src/plugins/mask.js
+;// CONCATENATED MODULE: ./src/plugins/mask.js
 
 
 
@@ -3360,7 +3360,7 @@ function Mask() {
 
 /* harmony default export */ var mask = (Mask());
 
-;// ./src/plugins/calendar.js
+;// CONCATENATED MODULE: ./src/plugins/calendar.js
 
 
 
@@ -4509,7 +4509,7 @@ function Calendar() {
 }
 
 /* harmony default export */ var calendar = (Calendar());
-;// ./src/plugins/palette.js
+;// CONCATENATED MODULE: ./src/plugins/palette.js
 // More palettes https://coolors.co/ or https://gka.github.io/palettes/#/10|s|003790,005647,ffffe0|ffffe0,ff005e,93003a|1|1
 
 function Palette() {
@@ -4572,7 +4572,7 @@ function Palette() {
 }
 
 /* harmony default export */ var palette = (Palette());
-;// ./src/plugins/tabs.js
+;// CONCATENATED MODULE: ./src/plugins/tabs.js
 
 
 
@@ -5144,7 +5144,7 @@ function Tabs(el, options) {
 
     return obj;
 }
-;// ./src/plugins/color.js
+;// CONCATENATED MODULE: ./src/plugins/color.js
 
 
 
@@ -5844,7 +5844,7 @@ function Color(el, options) {
 
     return obj;
 }
-;// ./src/plugins/contextmenu.js
+;// CONCATENATED MODULE: ./src/plugins/contextmenu.js
 
 
 
@@ -6145,7 +6145,7 @@ function Contextmenu() {
 }
 
 /* harmony default export */ var contextmenu = (Contextmenu());
-;// ./src/plugins/dropdown.js
+;// CONCATENATED MODULE: ./src/plugins/dropdown.js
 
 
 
@@ -7955,7 +7955,7 @@ function Dropdown() {
 }
 
 /* harmony default export */ var dropdown = (Dropdown());
-;// ./src/plugins/picker.js
+;// CONCATENATED MODULE: ./src/plugins/picker.js
 
 
 
@@ -8288,7 +8288,7 @@ function Picker(el, options) {
 
     return obj;
 }
-;// ./src/plugins/toolbar.js
+;// CONCATENATED MODULE: ./src/plugins/toolbar.js
 
 
 
@@ -8601,7 +8601,7 @@ function Toolbar(el, options) {
 
     return obj;
 }
-;// ./src/utils/filter.js
+;// CONCATENATED MODULE: ./src/utils/filter.js
 
 // Valid tags
 const validTags = [
@@ -8698,7 +8698,7 @@ const filter = function(data, img) {
 }
 
 /* harmony default export */ var utils_filter = (filter);
-;// ./src/plugins/editor.js
+;// CONCATENATED MODULE: ./src/plugins/editor.js
 
 
 
@@ -9943,7 +9943,7 @@ function Editor() {
 
 /* harmony default export */ var editor = (Editor());
 
-;// ./src/plugins/floating.js
+;// CONCATENATED MODULE: ./src/plugins/floating.js
 function Floating() {
     var Component = (function (el, options) {
         var obj = {};
@@ -10090,7 +10090,7 @@ function Floating() {
 }
 
 /* harmony default export */ var floating = (Floating());
-;// ./src/plugins/validations.js
+;// CONCATENATED MODULE: ./src/plugins/validations.js
 
 
 function Validations() {
@@ -10411,7 +10411,7 @@ function Validations() {
 }
 
 /* harmony default export */ var validations = (Validations());
-;// ./src/plugins/form.js
+;// CONCATENATED MODULE: ./src/plugins/form.js
 
 
 
@@ -10832,7 +10832,7 @@ function Form() {
 }
 
 /* harmony default export */ var plugins_form = (Form());
-;// ./src/plugins/modal.js
+;// CONCATENATED MODULE: ./src/plugins/modal.js
 
 
 
@@ -11118,7 +11118,7 @@ function Modal() {
 }
 
 /* harmony default export */ var modal = (Modal());
-;// ./src/plugins/notification.js
+;// CONCATENATED MODULE: ./src/plugins/notification.js
 
 
 
@@ -11267,7 +11267,7 @@ function Notification() {
 }
 
 /* harmony default export */ var notification = (Notification());
-;// ./src/plugins/progressbar.js
+;// CONCATENATED MODULE: ./src/plugins/progressbar.js
 function Progressbar(el, options) {
     var obj = {};
     obj.options = {};
@@ -11382,7 +11382,7 @@ function Progressbar(el, options) {
 
     return obj;
 }
-;// ./src/plugins/rating.js
+;// CONCATENATED MODULE: ./src/plugins/rating.js
 function Rating(el, options) {
     // Already created, update options
     if (el.rating) {
@@ -11526,7 +11526,7 @@ function Rating(el, options) {
 
     return obj;
 }
-;// ./src/plugins/search.js
+;// CONCATENATED MODULE: ./src/plugins/search.js
 
 
 
@@ -11811,7 +11811,7 @@ function Search(el, options) {
 
     return obj;
 }
-;// ./src/plugins/slider.js
+;// CONCATENATED MODULE: ./src/plugins/slider.js
 function Slider(el, options) {
     var obj = {};
     obj.options = {};
@@ -12033,7 +12033,7 @@ function Slider(el, options) {
 
     return obj;
 }
-;// ./src/plugins/tags.js
+;// CONCATENATED MODULE: ./src/plugins/tags.js
 
 
 
@@ -12731,7 +12731,7 @@ function Tags(el, options) {
 
     return obj;
 }
-;// ./src/plugins/upload.js
+;// CONCATENATED MODULE: ./src/plugins/upload.js
 
 
 
@@ -13016,9 +13016,9 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(794);
+var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
-;// ./src/jsuites.js
+;// CONCATENATED MODULE: ./src/jsuites.js
 
 
 
@@ -13076,7 +13076,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.0',
+    version: '5.13.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
