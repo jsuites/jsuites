@@ -9,7 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 195:
+/***/ 794:
 /***/ (function(module) {
 
 /**
@@ -358,7 +358,7 @@ var jSuites;
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry need to be wrapped in an IIFE because it need to be in strict mode.
+// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 !function() {
 "use strict";
 
@@ -367,7 +367,7 @@ __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ jsuites; }
 });
 
-;// CONCATENATED MODULE: ./src/utils/dictionary.js
+;// ./src/utils/dictionary.js
 // Update dictionary
 var setDictionary = function(d) {
     if (! document.dictionary) {
@@ -393,7 +393,7 @@ var translate = function(t) {
 
 
 /* harmony default export */ var dictionary = ({ setDictionary, translate });
-;// CONCATENATED MODULE: ./src/utils/tracking.js
+;// ./src/utils/tracking.js
  const Tracking = function(component, state) {
     if (state === true) {
         window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
@@ -414,7 +414,7 @@ var translate = function(t) {
 }
 
 /* harmony default export */ var tracking = (Tracking);
-;// CONCATENATED MODULE: ./src/utils/helpers.js
+;// ./src/utils/helpers.js
 var Helpers = {};
 
 // Two digits
@@ -583,7 +583,7 @@ Helpers.findElement = function(element, condition) {
 }
 
 /* harmony default export */ var helpers = (Helpers);
-;// CONCATENATED MODULE: ./src/utils/path.js
+;// ./src/utils/path.js
 const isValidPathObj = function(o) {
     return typeof o === 'object' || typeof o === 'function';
 }
@@ -671,7 +671,7 @@ function Path(pathString, value, remove) {
     currentObject[finalKey] = value;
     return true;
 }
-;// CONCATENATED MODULE: ./src/utils/sorting.js
+;// ./src/utils/sorting.js
 function Sorting(el, options) {
     var obj = {};
     obj.options = {};
@@ -828,7 +828,7 @@ function Sorting(el, options) {
 
     return el;
 }
-;// CONCATENATED MODULE: ./src/utils/lazyloading.js
+;// ./src/utils/lazyloading.js
 function LazyLoading(el, options) {
     var obj = {}
 
@@ -895,7 +895,7 @@ function LazyLoading(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/ajax.js
+;// ./src/plugins/ajax.js
 function Ajax() {
     var Component = (function(options, complete) {
         if (Array.isArray(options)) {
@@ -1208,7 +1208,7 @@ function Ajax() {
 }
 
 /* harmony default export */ var ajax = (Ajax());
-;// CONCATENATED MODULE: ./src/plugins/animation.js
+;// ./src/plugins/animation.js
 function Animation() {
     const Component = {
         loading: {}
@@ -1341,7 +1341,7 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
-;// CONCATENATED MODULE: ./src/utils/helpers.date.js
+;// ./src/utils/helpers.date.js
 
 
 
@@ -1484,7 +1484,7 @@ function HelpersDate() {
 }
 
 /* harmony default export */ var helpers_date = (HelpersDate());
-;// CONCATENATED MODULE: ./src/plugins/mask.js
+;// ./src/plugins/mask.js
 
 
 
@@ -3360,7 +3360,7 @@ function Mask() {
 
 /* harmony default export */ var mask = (Mask());
 
-;// CONCATENATED MODULE: ./src/plugins/calendar.js
+;// ./src/plugins/calendar.js
 
 
 
@@ -4509,7 +4509,7 @@ function Calendar() {
 }
 
 /* harmony default export */ var calendar = (Calendar());
-;// CONCATENATED MODULE: ./src/plugins/palette.js
+;// ./src/plugins/palette.js
 // More palettes https://coolors.co/ or https://gka.github.io/palettes/#/10|s|003790,005647,ffffe0|ffffe0,ff005e,93003a|1|1
 
 function Palette() {
@@ -4572,7 +4572,7 @@ function Palette() {
 }
 
 /* harmony default export */ var palette = (Palette());
-;// CONCATENATED MODULE: ./src/plugins/tabs.js
+;// ./src/plugins/tabs.js
 
 
 
@@ -5144,7 +5144,7 @@ function Tabs(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/color.js
+;// ./src/plugins/color.js
 
 
 
@@ -5844,7 +5844,7 @@ function Color(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/contextmenu.js
+;// ./src/plugins/contextmenu.js
 
 
 
@@ -6058,6 +6058,60 @@ function Contextmenu() {
                     }
 
                     itemContainer.appendChild(el_submenu);
+
+                    // Submenu positioning logic:
+                    // Case 1: Default (enough space to the right) - submenu opens to the right of the parent menu item.
+                    // Case 2: Not enough space to the right, but enough to the left - submenu opens to the left of the parent menu item.
+                    // Case 3: Not enough space on either side (e.g., very narrow viewport) - submenu opens below the parent menu item.
+                    itemContainer.addEventListener('mouseenter', function () {
+                        // Reset to default
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = itemContainer.offsetWidth + 'px';
+
+                        // Temporarily show submenu to measure
+                        el_submenu.style.display = 'block';
+                        el_submenu.style.opacity = '0';
+                        el_submenu.style.pointerEvents = 'none';
+
+                        // Use getBoundingClientRect to determine position
+                        var parentRect = itemContainer.getBoundingClientRect();
+                        var submenuRect = el_submenu.getBoundingClientRect();
+                        var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+                        // Calculate the right edge if rendered to the right
+                        var rightEdge = parentRect.right + submenuRect.width;
+                        var leftEdge = parentRect.left - submenuRect.width;
+
+                        // If rendering to the right would overflow, render to the left
+                        if (rightEdge > viewportWidth && leftEdge >= 0) {
+                            el_submenu.style.left = 'auto';
+                            el_submenu.style.right = '99%';
+                        } 
+                        // If both right and left would overflow, render to the right of the left border (worst case)
+                        else if (rightEdge > viewportWidth && leftEdge < 0) {
+                            el_submenu.style.left = '32px';
+                            el_submenu.style.right = 'auto';
+                            el_submenu.style.top = '100%';
+                        }
+                        // Default: render to the right
+                        else {
+                            el_submenu.style.left = '99%';
+                            el_submenu.style.right = 'auto';
+                        }
+
+                        // Restore visibility
+                        el_submenu.style.opacity = '';
+                        el_submenu.style.pointerEvents = '';
+                        el_submenu.style.display = '';
+                    });
+
+                    // Also reset submenu position on mouseleave to avoid stale styles
+                    itemContainer.addEventListener('mouseleave', function () {
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = '';
+                    });
                 } else if (item.shortcut) {
                     var itemShortCut = document.createElement('span');
                     itemShortCut.innerHTML = item.shortcut;
@@ -6091,7 +6145,7 @@ function Contextmenu() {
 }
 
 /* harmony default export */ var contextmenu = (Contextmenu());
-;// CONCATENATED MODULE: ./src/plugins/dropdown.js
+;// ./src/plugins/dropdown.js
 
 
 
@@ -7901,7 +7955,7 @@ function Dropdown() {
 }
 
 /* harmony default export */ var dropdown = (Dropdown());
-;// CONCATENATED MODULE: ./src/plugins/picker.js
+;// ./src/plugins/picker.js
 
 
 
@@ -8234,7 +8288,7 @@ function Picker(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/toolbar.js
+;// ./src/plugins/toolbar.js
 
 
 
@@ -8547,7 +8601,7 @@ function Toolbar(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/utils/filter.js
+;// ./src/utils/filter.js
 
 // Valid tags
 const validTags = [
@@ -8644,7 +8698,7 @@ const filter = function(data, img) {
 }
 
 /* harmony default export */ var utils_filter = (filter);
-;// CONCATENATED MODULE: ./src/plugins/editor.js
+;// ./src/plugins/editor.js
 
 
 
@@ -9889,7 +9943,7 @@ function Editor() {
 
 /* harmony default export */ var editor = (Editor());
 
-;// CONCATENATED MODULE: ./src/plugins/floating.js
+;// ./src/plugins/floating.js
 function Floating() {
     var Component = (function (el, options) {
         var obj = {};
@@ -10036,7 +10090,7 @@ function Floating() {
 }
 
 /* harmony default export */ var floating = (Floating());
-;// CONCATENATED MODULE: ./src/plugins/validations.js
+;// ./src/plugins/validations.js
 
 
 function Validations() {
@@ -10357,7 +10411,7 @@ function Validations() {
 }
 
 /* harmony default export */ var validations = (Validations());
-;// CONCATENATED MODULE: ./src/plugins/form.js
+;// ./src/plugins/form.js
 
 
 
@@ -10778,7 +10832,7 @@ function Form() {
 }
 
 /* harmony default export */ var plugins_form = (Form());
-;// CONCATENATED MODULE: ./src/plugins/modal.js
+;// ./src/plugins/modal.js
 
 
 
@@ -11064,7 +11118,7 @@ function Modal() {
 }
 
 /* harmony default export */ var modal = (Modal());
-;// CONCATENATED MODULE: ./src/plugins/notification.js
+;// ./src/plugins/notification.js
 
 
 
@@ -11213,7 +11267,7 @@ function Notification() {
 }
 
 /* harmony default export */ var notification = (Notification());
-;// CONCATENATED MODULE: ./src/plugins/progressbar.js
+;// ./src/plugins/progressbar.js
 function Progressbar(el, options) {
     var obj = {};
     obj.options = {};
@@ -11328,7 +11382,7 @@ function Progressbar(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/rating.js
+;// ./src/plugins/rating.js
 function Rating(el, options) {
     // Already created, update options
     if (el.rating) {
@@ -11472,7 +11526,7 @@ function Rating(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/search.js
+;// ./src/plugins/search.js
 
 
 
@@ -11757,7 +11811,7 @@ function Search(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/slider.js
+;// ./src/plugins/slider.js
 function Slider(el, options) {
     var obj = {};
     obj.options = {};
@@ -11979,7 +12033,7 @@ function Slider(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/tags.js
+;// ./src/plugins/tags.js
 
 
 
@@ -12677,7 +12731,7 @@ function Tags(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/plugins/upload.js
+;// ./src/plugins/upload.js
 
 
 
@@ -12962,9 +13016,9 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(195);
+var sha512 = __webpack_require__(794);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
-;// CONCATENATED MODULE: ./src/jsuites.js
+;// ./src/jsuites.js
 
 
 

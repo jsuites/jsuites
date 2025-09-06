@@ -211,6 +211,60 @@ function Contextmenu() {
                     }
 
                     itemContainer.appendChild(el_submenu);
+
+                    // Submenu positioning logic:
+                    // Case 1: Default (enough space to the right) - submenu opens to the right of the parent menu item.
+                    // Case 2: Not enough space to the right, but enough to the left - submenu opens to the left of the parent menu item.
+                    // Case 3: Not enough space on either side (e.g., very narrow viewport) - submenu opens below the parent menu item.
+                    itemContainer.addEventListener('mouseenter', function () {
+                        // Reset to default
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = itemContainer.offsetWidth + 'px';
+
+                        // Temporarily show submenu to measure
+                        el_submenu.style.display = 'block';
+                        el_submenu.style.opacity = '0';
+                        el_submenu.style.pointerEvents = 'none';
+
+                        // Use getBoundingClientRect to determine position
+                        var parentRect = itemContainer.getBoundingClientRect();
+                        var submenuRect = el_submenu.getBoundingClientRect();
+                        var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+                        // Calculate the right edge if rendered to the right
+                        var rightEdge = parentRect.right + submenuRect.width;
+                        var leftEdge = parentRect.left - submenuRect.width;
+
+                        // If rendering to the right would overflow, render to the left
+                        if (rightEdge > viewportWidth && leftEdge >= 0) {
+                            el_submenu.style.left = 'auto';
+                            el_submenu.style.right = '99%';
+                        } 
+                        // If both right and left would overflow, render to the right of the left border (worst case)
+                        else if (rightEdge > viewportWidth && leftEdge < 0) {
+                            el_submenu.style.left = '32px';
+                            el_submenu.style.right = 'auto';
+                            el_submenu.style.top = '100%';
+                        }
+                        // Default: render to the right
+                        else {
+                            el_submenu.style.left = '99%';
+                            el_submenu.style.right = 'auto';
+                        }
+
+                        // Restore visibility
+                        el_submenu.style.opacity = '';
+                        el_submenu.style.pointerEvents = '';
+                        el_submenu.style.display = '';
+                    });
+
+                    // Also reset submenu position on mouseleave to avoid stale styles
+                    itemContainer.addEventListener('mouseleave', function () {
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = '';
+                    });
                 } else if (item.shortcut) {
                     var itemShortCut = document.createElement('span');
                     itemShortCut.innerHTML = item.shortcut;
