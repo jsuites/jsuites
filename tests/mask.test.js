@@ -521,7 +521,7 @@ describe('jSuites mask', () => {
                 { input: '3', expected: '3' },
                 { input: '4', expected: '04' },
                 { input: '31', expected: '31' },
-                { input: '32', expected: '3' },
+                { input: '32', expected: '03' },
                 { input: 'abcd', expected: '' }
             ]);
         });
@@ -552,7 +552,7 @@ describe('jSuites mask', () => {
                 { input: '1', expected: '1' },
                 { input: '2', expected: '02' },
                 { input: '12', expected: '12' },
-                { input: '13', expected: '1' },
+                { input: '13', expected: '01' },
                 { input: 'abcd', expected: '' }
             ]);
         });

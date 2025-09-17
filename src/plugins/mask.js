@@ -31,6 +31,21 @@ function Mask() {
         general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\(', '_\\)', '\\(', '\\)', '_-', '.']
     }
 
+    // All expressions
+    const allExpressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
+
+    // Pre-compile all regexes once at initialization for better performance
+    const compiledTokens = {};
+    const tokenPriority = ['fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
+
+    // Initialize compiled regexes
+    for (const type of tokenPriority) {
+        compiledTokens[type] = tokens[type].map(pattern => ({
+            regex: new RegExp('^' + pattern + '$', 'gi'),
+            method: pattern
+        }));
+    }
+
     const hiddenCaret = "\u200B";
 
     // Labels
@@ -977,10 +992,10 @@ function Mask() {
 
     // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
 
+
+
     const getTokens = function(str) {
-        const expressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
-        // Expression to extract all tokens from the string
-        return str.match(new RegExp(expressions.join('|'), 'gi'));
+        return str.match(new RegExp(allExpressions, 'gi'));
     }
 
     /**
@@ -988,35 +1003,23 @@ function Mask() {
      */
     const getMethod = function(str, temporary) {
         str = str.toString().toUpperCase();
-        const types = Object.keys(tokens);
 
         // Check for datetime mask
-        let datetime = true;
-        for (let i = 0; i < temporary.length; i++) {
-            let type = temporary[i].type;
-            if (! (type === 'datetime' || type === 'general')) {
-                datetime = false;
-            }
-        }
+        const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general');
 
-        // Remove date time from the possible types
-        if (datetime !== true) {
-            let index = types.indexOf('datetime');
-            types.splice(index, 1);
-        }
+        // Use priority order for faster matching with pre-compiled regexes
+        for (const type of tokenPriority) {
+            if (!datetime && type === 'datetime') continue;
 
-        // Get the method based on the token
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i];
-
-            for (let j = 0; j < tokens[type].length; j++) {
-                let e = new RegExp('^' + tokens[type][j] + '$', 'gi'); // Anchor regex
-                let r = str.match(e);
-                if (r) {
-                    return { type: type, method: tokens[type][j] }
+            for (const compiled of compiledTokens[type]) {
+                let regex = compiled.regex;
+                regex.lastIndex = 0; // Reset regex state
+                if (regex.test(str)) {
+                    return { type: type, method: compiled.method };
                 }
             }
         }
+        return null;
     }
 
     const fixMinuteToken = function(t) {
@@ -1529,15 +1532,12 @@ function Mask() {
                 }
             }
         }
-
         if (control.caret) {
             let index = control.caret.index;
             let position = control.caret.position;
             let value = control.values[index] ?? '';
             // Re-apply the caret to the original position
             control.values[index] = value.substring(0, position) + hiddenCaret + value.substring(position);
-        } else {
-            control.values.push(hiddenCaret);
         }
 
         control.value = getValue(control);
@@ -2317,6 +2317,11 @@ function Mask() {
         return '';
     }
 
+    // Tokens
+    const dateTokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+    // All date tokens
+    const allDateTokens = dateTokens.join('|')
+
     Component.getDateString = function(value, options) {
         if (! options) {
             options = {};
@@ -2348,11 +2353,9 @@ function Mask() {
             value = Helpers.numToDate(value);
         }
 
-        // Tokens
-        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
 
         // Expression to extract all tokens from the string
-        let e = new RegExp(tokens.join('|'), 'gi');
+        let e = new RegExp(allDateTokens, 'gi');
         // Extract
         let t = format.match(e);
 
