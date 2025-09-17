@@ -46,6 +46,16 @@ function Mask() {
         }));
     }
 
+    // Pre-compile regex for getTokens function
+    const allExpressionsRegex = new RegExp(allExpressions, 'gi');
+
+    // Pre-compile currency symbol regexes for autoCastingCurrency
+    const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
+    const currencyRegexes = knownSymbols.map(s => ({
+        symbol: s,
+        regex: new RegExp(`^${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\s?)`)
+    }));
+
     const hiddenCaret = "\u200B";
 
     // Labels
@@ -995,7 +1005,8 @@ function Mask() {
 
 
     const getTokens = function(str) {
-        return str.match(new RegExp(allExpressions, 'gi'));
+        allExpressionsRegex.lastIndex = 0; // Reset for global regex
+        return str.match(allExpressionsRegex);
     }
 
     /**
@@ -1838,13 +1849,10 @@ function Mask() {
         const hasParens = /^\s*\(.+\)\s*$/.test(original);
         let value = original.replace(/[()\-]/g, '').trim();
 
-        // Known symbols
-        const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
+        // Use pre-compiled currency regexes
         let symbol = '';
 
-        for (let s of knownSymbols) {
-            const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            const regex = new RegExp(`^${escaped}(\\s?)`);
+        for (let {symbol: s, regex} of currencyRegexes) {
             const match = value.match(regex);
             if (match) {
                 symbol = s + (match[1] || '');

@@ -1630,6 +1630,33 @@ function Mask() {
         general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\(', '_\\)', '\\(', '\\)', '_-', '.']
     }
 
+    // All expressions
+    const allExpressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
+
+    // Pre-compile all regexes once at initialization for better performance
+    const compiledTokens = {};
+    const tokenPriority = ['fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
+
+    // Initialize compiled regexes
+    for (const type of tokenPriority) {
+        compiledTokens[type] = tokens[type].map(pattern => ({
+            regex: new RegExp('^' + pattern + '$', 'gi'),
+            method: pattern
+        }));
+    }
+
+    // Pre-compile regex for getTokens function
+    const allExpressionsRegex = new RegExp(allExpressions, 'gi');
+
+    // Pre-compile currency symbol regexes for autoCastingCurrency
+    const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
+    const currencyRegexes = knownSymbols.map(s => ({
+        symbol: s,
+        regex: new RegExp(`^${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\s?)`)
+    }));
+
+    const hiddenCaret = "\u200B";
+
     // Labels
     const weekDaysFull = helpers_date.weekdays;
     const weekDays = helpers_date.weekdaysShort;
@@ -1637,6 +1664,29 @@ function Mask() {
     const months = helpers_date.monthsShort;
 
     // Helpers
+
+    const focus = function(el) {
+        if (el.textContent.length) {
+            // Handle contenteditable elements
+            const range = document.createRange();
+            const sel = window.getSelection();
+
+            let node = el;
+            // Go as deep as possible to the last text node
+            while (node.lastChild) node = node.lastChild;
+            // Ensure it's a text node
+            if (node.nodeType === Node.TEXT_NODE) {
+                range.setStart(node, node.length);
+            } else {
+                range.setStart(node, node.childNodes.length);
+            }
+            range.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(range);
+
+            el.scrollLeft = el.scrollWidth;
+        }
+    }
 
     /**
     * Returns if the given value is considered blank
@@ -1766,7 +1816,6 @@ function Mask() {
     const setCaret = function(index) {
         if (typeof index !== 'number') index = Number(index) || 0;
 
-        // Inputs/Textareas
         if (this.tagName !== 'DIV' || this.isContentEditable !== true) {
             const n = this.value ?? '';
             if (index < 0) index = 0;
@@ -1953,14 +2002,18 @@ function Mask() {
                 }
             } else {
                 if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                    this.date[1] = this.values[this.index] += v;
+                    this.values[this.index] += v;
                     commit();
                 } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] += v;
+                    this.values[this.index] += v;
                     commit();
                 } else {
                     let test = parseInt(this.values[this.index]);
                     if (test > 0 && test <= 12) {
+                        if (! single) {
+                            test = '0' + test;
+                        }
+                        this.values[this.index] = test;
                         commit();
                         return false;
                     }
@@ -2011,6 +2064,10 @@ function Mask() {
                 } else {
                     let test = parseInt(this.values[this.index]);
                     if (test > 0 && test <= 31) {
+                        if (! single) {
+                            test = '0' + test;
+                        }
+                        this.values[this.index] = test;
                         commit();
                         return false;
                     }
@@ -2240,10 +2297,7 @@ function Mask() {
                     }
                     this.values[this.index] += this.decimal;
                 }
-            } else if (v === "\u200B") {
-                this.values[this.index] += v;
             }
-
         },
         '[0#]+([.,]{1}0*#*)?%': function(v) {
             parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
@@ -2399,7 +2453,7 @@ function Mask() {
             // Add the value
             this.values[this.index] += v;
             // Only if caret is before the change
-            let current = this.values[this.index].replace('\u200B','');
+            let current = this.values[this.index];
             // Add token to the values
             if (current !== word.substring(0,current.length)) {
                 this.values[this.index] = word;
@@ -2426,7 +2480,7 @@ function Mask() {
                 this.index++;
             }
         },
-        '\\*': function(v) {
+        '\\*': function() {
             this.values[this.index] = '';
             this.index++;
             return false;
@@ -2465,17 +2519,17 @@ function Mask() {
             }
             this.values[this.index] += v;
         },
-        '_\\(': function(v) {
+        '_\\(': function() {
             this.values[this.index] = ' ';
             this.index++;
             return false;
         },
-        '_\\)': function(v) {
+        '_\\)': function() {
             this.values[this.index] = ' ';
             this.index++;
             return false;
         },
-        '\\(': function(v) {
+        '\\(': function() {
             if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
                 this.values[this.index] = '';
             } else {
@@ -2484,7 +2538,7 @@ function Mask() {
             this.index++;
             return false;
         },
-        '\\)': function(v) {
+        '\\)': function() {
             if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
                 this.values[this.index] = '';
             } else {
@@ -2493,17 +2547,17 @@ function Mask() {
             this.index++;
             return false;
         },
-        '_-': function(v) {
+        '_-': function() {
             this.values[this.index] = ' ';
             this.index++;
             return false;
         },
-        ',,M': function(v) {
+        ',,M': function() {
             this.values[this.index] = 'M';
             this.index++;
             return false;
         },
-        ',,,B': function(v) {
+        ',,,B': function() {
             this.values[this.index] = 'B';
             this.index++;
             return false;
@@ -2547,10 +2601,11 @@ function Mask() {
 
     // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
 
+
+
     const getTokens = function(str) {
-        const expressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
-        // Expression to extract all tokens from the string
-        return str.match(new RegExp(expressions.join('|'), 'gi'));
+        allExpressionsRegex.lastIndex = 0; // Reset for global regex
+        return str.match(allExpressionsRegex);
     }
 
     /**
@@ -2558,35 +2613,23 @@ function Mask() {
      */
     const getMethod = function(str, temporary) {
         str = str.toString().toUpperCase();
-        const types = Object.keys(tokens);
 
         // Check for datetime mask
-        let datetime = true;
-        for (let i = 0; i < temporary.length; i++) {
-            let type = temporary[i].type;
-            if (! (type === 'datetime' || type === 'general')) {
-                datetime = false;
-            }
-        }
+        const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general');
 
-        // Remove date time from the possible types
-        if (datetime !== true) {
-            let index = types.indexOf('datetime');
-            types.splice(index, 1);
-        }
+        // Use priority order for faster matching with pre-compiled regexes
+        for (const type of tokenPriority) {
+            if (!datetime && type === 'datetime') continue;
 
-        // Get the method based on the token
-        for (let i = 0; i < types.length; i++) {
-            let type = types[i];
-
-            for (let j = 0; j < tokens[type].length; j++) {
-                let e = new RegExp('^' + tokens[type][j] + '$', 'gi'); // Anchor regex
-                let r = str.match(e);
-                if (r) {
-                    return { type: type, method: tokens[type][j] }
+            for (const compiled of compiledTokens[type]) {
+                let regex = compiled.regex;
+                regex.lastIndex = 0; // Reset regex state
+                if (regex.test(str)) {
+                    return { type: type, method: compiled.method };
                 }
             }
         }
+        return null;
     }
 
     const fixMinuteToken = function(t) {
@@ -2722,7 +2765,7 @@ function Mask() {
 
     const isNumber = function(num) {
         if (typeof(num) === 'string') {
-            num = num.replace("\u200B", "").trim();
+            num = num.trim();
         }
         return !isNaN(num) && num !== null && num !== '';
     }
@@ -3016,7 +3059,7 @@ function Mask() {
     }
 
     const extractDateAndTime = function(value) {
-        value = '' + value.substring(0,19);
+        value = value.toString().substring(0,19);
         let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
         value = value.split(splitStr);
 
@@ -3064,11 +3107,20 @@ function Mask() {
             // Walk every character on the value
             let method;
             while (method = getMethodByPosition(control)) {
-                // Get the method name to handle the current token
-                let ret = method.call(control, control.value[control.position]);
-                // Next position
-                if (ret !== false) {
+                let char = control.value[control.position];
+                if (char === hiddenCaret) {
+                    control.caret = {
+                        index: control.index,
+                        position: control.values[control.index]?.length ?? 0,
+                    }
                     control.position++;
+                } else {
+                    // Get the method name to handle the current token
+                    let ret = method.call(control, char);
+                    // Next position
+                    if (ret !== false) {
+                        control.position++;
+                    }
                 }
             }
 
@@ -3089,6 +3141,13 @@ function Mask() {
                     }
                 }
             }
+        }
+        if (control.caret) {
+            let index = control.caret.index;
+            let position = control.caret.position;
+            let value = control.values[index] ?? '';
+            // Re-apply the caret to the original position
+            control.values[index] = value.substring(0, position) + hiddenCaret + value.substring(position);
         }
 
         control.value = getValue(control);
@@ -3202,7 +3261,6 @@ function Mask() {
                 const parts = str.split('-');
                 const p1 = parseInt(parts[0]);
                 const p2 = parseInt(parts[1]);
-                const p3 = parseInt(parts[2]);
 
                 if (p1 <= 12 && p2 <= 31 && p2 > 12) {
                     patterns.push('mm-dd-yyyy', 'mm-dd-yy', 'm-d-yyyy', 'm-d-yy');
@@ -3390,13 +3448,10 @@ function Mask() {
         const hasParens = /^\s*\(.+\)\s*$/.test(original);
         let value = original.replace(/[()\-]/g, '').trim();
 
-        // Known symbols
-        const knownSymbols = ['$', '€', '£', '¥', '₹', '₽', '₩', '₫', 'R$', 'CHF', 'AED'];
+        // Use pre-compiled currency regexes
         let symbol = '';
 
-        for (let s of knownSymbols) {
-            const escaped = s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-            const regex = new RegExp(`^${escaped}(\\s?)`);
+        for (let {symbol: s, regex} of currencyRegexes) {
             const match = value.match(regex);
             if (match) {
                 symbol = s + (match[1] || '');
@@ -3836,7 +3891,7 @@ function Mask() {
             } else {
                 options.input.value = value;
             }
-            jSuites.focus(options.input);
+            focus(options.input);
         }
 
         return value;
@@ -3869,6 +3924,11 @@ function Mask() {
         return '';
     }
 
+    // Tokens
+    const dateTokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+    // All date tokens
+    const allDateTokens = dateTokens.join('|')
+
     Component.getDateString = function(value, options) {
         if (! options) {
             options = {};
@@ -3900,11 +3960,9 @@ function Mask() {
             value = helpers_date.numToDate(value);
         }
 
-        // Tokens
-        let tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
 
         // Expression to extract all tokens from the string
-        let e = new RegExp(tokens.join('|'), 'gi');
+        let e = new RegExp(allDateTokens, 'gi');
         // Extract
         let t = format.match(e);
 
@@ -4098,7 +4156,7 @@ function Mask() {
         // Keep the current caret position
         let caret = getCaret(element);
         if (caret) {
-            value = value.substring(0, caret) + "\u200B" + value.substring(caret);
+            value = value.substring(0, caret) + hiddenCaret + value.substring(caret);
         }
 
         // Run mask
@@ -4109,15 +4167,17 @@ function Mask() {
         // Apply the result back to the element
         if (newValue !== value && ! e.inputType.includes('delete')) {
             // Set the caret to the position before transformation
-            let caret = newValue.indexOf("\u200B");
+            let caret = newValue.indexOf(hiddenCaret);
             if (caret !== -1) {
                 // Apply value
-                element[property] = newValue.replace("\u200B", "");
+                element[property] = newValue.replace(hiddenCaret, "");
                 // Set caret
                 setCaret.call(element, caret);
             } else {
                 // Apply value
                 element[property] = newValue;
+                // Make sure the caret is positioned in the end
+                focus(element);
             }
         }
     }
@@ -13780,7 +13840,7 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jsuites_jSuites = {
+var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
@@ -13791,7 +13851,7 @@ var jsuites_jSuites = {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jsuites_jSuites[k[i]] = o[k[i]];
+                jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -13826,8 +13886,8 @@ var jsuites_jSuites = {
 }
 
 // Legacy
-jsuites_jSuites.image = Upload;
-jsuites_jSuites.image.create = function(data) {
+jSuites.image = Upload;
+jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -13837,9 +13897,9 @@ jsuites_jSuites.image.create = function(data) {
     return img;
 }
 
-jsuites_jSuites.tracker = plugins_form;
-jsuites_jSuites.loading = animation.loading;
-jsuites_jSuites.sha512 = (sha512_default());
+jSuites.tracker = plugins_form;
+jSuites.loading = animation.loading;
+jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -13940,7 +14000,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -14126,7 +14186,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jsuites_jSuites.findElement(element, 'jpanel');
+            let item = jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -14186,7 +14246,7 @@ const Events = function() {
     const focus = function(e) {
         let element = getElement(e);
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -14244,7 +14304,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jsuites_jSuites.findElement(e.target, function(o) {
+            item = jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -14288,7 +14348,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jsuites_jSuites.mask.oninput(e);
+            jSuites.mask.oninput(e);
         }
     }
 
@@ -14306,7 +14366,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jsuites_jSuites);
+/* harmony default export */ var jsuites = (jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()
