@@ -1864,10 +1864,6 @@ function Mask() {
         return value;
     }
 
-    obj.autoCasting = function() {
-        return false;
-    }
-
     return obj;
 }
 

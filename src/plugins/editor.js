@@ -1145,13 +1145,13 @@ function Editor() {
 
         items.push({
             content: 'format_indent_decrease',
-            onclick: function() {
+            onclick: function(a,b,c) {
                 document.execCommand('outdent');
 
                 if (document.queryCommandState("outdent")) {
-                    this.classList.add('selected');
+                    c.classList.add('selected');
                 } else {
-                    this.classList.remove('selected');
+                    c.classList.remove('selected');
                 }
             }
         });

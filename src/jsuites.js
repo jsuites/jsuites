@@ -55,7 +55,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.1',
+    version: '5.13.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -455,7 +455,7 @@ const Events = function() {
 
     const focus = function(e) {
         let element = getElement(e);
-        // Check if this is the floating
+        // Check if this is floating
         let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);

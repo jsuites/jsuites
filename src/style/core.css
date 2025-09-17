@@ -179,6 +179,7 @@ div[data-before]:before {
 .jpanel:focus {
     outline: 2px solid black;
     outline-offset: -1px;
+    z-index: 1000 !important;
 }
 
 .jpanel-action {

@@ -3351,10 +3351,6 @@ function Mask() {
         return value;
     }
 
-    obj.autoCasting = function() {
-        return false;
-    }
-
     return obj;
 }
 
@@ -9846,13 +9842,13 @@ function Editor() {
 
         items.push({
             content: 'format_indent_decrease',
-            onclick: function() {
+            onclick: function(a,b,c) {
                 document.execCommand('outdent');
 
                 if (document.queryCommandState("outdent")) {
-                    this.classList.add('selected');
+                    c.classList.add('selected');
                 } else {
-                    this.classList.remove('selected');
+                    c.classList.remove('selected');
                 }
             }
         });
@@ -13476,7 +13472,7 @@ const Events = function() {
 
     const focus = function(e) {
         let element = getElement(e);
-        // Check if this is the floating
+        // Check if this is floating
         let item = jsuites_jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
