@@ -1,4 +1,4 @@
-const Helpers = (function() {
+const Helpers = (function () {
     const component = {};
 
     // Excel like dates
@@ -7,22 +7,22 @@ const Helpers = (function() {
     const millisecondsPerDay = 86400000;
 
     // Transform in two digits
-    component.two = function(value) {
+    component.two = function (value) {
         value = '' + value;
         if (value.length === 1) {
             value = '0' + value;
         }
         return value;
-    }
+    };
 
-    component.isValidDate = function(d) {
+    component.isValidDate = function (d) {
         return d instanceof Date && !isNaN(d.getTime());
-    }
+    };
 
-    component.isValidDateFormat = function(date, format) {
+    component.isValidDateFormat = function(date) {
         if (typeof date === 'string') {
             // Check format: YYYY-MM-DD using regex
-            const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            const match = date.substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
             if (match) {
                 const year = Number(match[1]);
                 const month = Number(match[2]) - 1;
@@ -52,7 +52,7 @@ const Helpers = (function() {
             i = date[4];
             s = date[5];
         } else {
-            if (! date) {
+            if (!date) {
                 date = new Date();
             }
             y = date.getUTCFullYear();
@@ -66,12 +66,14 @@ const Helpers = (function() {
         if (dateOnly === true) {
             return component.two(y) + '-' + component.two(m) + '-' + component.two(d);
         } else {
-            return component.two(y) + '-' + component.two(m) + '-' + component.two(d) + ' ' + component.two(h) + ':' + component.two(i) + ':' + component.two(s);
+            return (
+                component.two(y) + '-' + component.two(m) + '-' + component.two(d) + ' ' + component.two(h) + ':' + component.two(i) + ':' + component.two(s)
+            );
         }
-    }
+    };
 
     component.toArray = function (value) {
-        let date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
+        let date = value.split(value.indexOf('T') !== -1 ? 'T' : ' ');
         let time = date[1];
 
         date = date[0].split('-');
@@ -87,14 +89,14 @@ const Helpers = (function() {
             i = parseInt(time[1]);
         }
         return [y, m, d, h, i, 0];
-    }
+    };
 
-    component.arrayToStringDate = function(arr) {
+    component.arrayToStringDate = function (arr) {
         return component.toString(arr, false);
-    }
+    };
 
-    component.dateToNum = function(jsDate) {
-        if (typeof(jsDate) === 'string') {
+    component.dateToNum = function (jsDate) {
+        if (typeof jsDate === 'string') {
             jsDate = new Date(jsDate + '  GMT+0');
         }
         let jsDateInMilliseconds = jsDate.getTime();
@@ -104,9 +106,9 @@ const Helpers = (function() {
         jsDateInMilliseconds -= excelInitialTime;
 
         return jsDateInMilliseconds / millisecondsPerDay;
-    }
+    };
 
-    component.numToDate = function(excelSerialNumber, asArray) {
+    component.numToDate = function (excelSerialNumber, asArray) {
         // allow 0; only bail on null/undefined/empty
         if (excelSerialNumber === null || excelSerialNumber === undefined || excelSerialNumber === '') {
             return '';
@@ -143,10 +145,10 @@ const Helpers = (function() {
         ];
 
         return asArray ? arr : component.toString(arr, false);
-    }
+    };
 
     component.prettify = function (d, texts) {
-        if (! texts) {
+        if (!texts) {
             texts = {
                 justNow: 'Just now',
                 xMinutesAgo: '{0}m ago',
@@ -155,7 +157,7 @@ const Helpers = (function() {
                 xWeeksAgo: '{0}w ago',
                 xMonthsAgo: '{0} mon ago',
                 xYearsAgo: '{0}y ago',
-            }
+            };
         }
 
         if (d.indexOf('GMT') === -1 && d.indexOf('Z') === -1) {
@@ -168,24 +170,29 @@ const Helpers = (function() {
 
         const format = (t, o) => {
             return t.replace('{0}', o);
-        }
+        };
 
-        if (! total) {
+        if (!total) {
             return texts.justNow;
         } else if (total < 90) {
             return format(texts.xMinutesAgo, total);
-        } else if (total < 1440) { // One day
+        } else if (total < 1440) {
+            // One day
             return format(texts.xHoursAgo, Math.round(total / 60));
-        } else if (total < 20160) { // 14 days
+        } else if (total < 20160) {
+            // 14 days
             return format(texts.xDaysAgo, Math.round(total / 1440));
-        } else if (total < 43200) { // 30 days
+        } else if (total < 43200) {
+            // 30 days
             return format(texts.xWeeksAgo, Math.round(total / 10080));
-        } else if (total < 1036800) { // 24 months
+        } else if (total < 1036800) {
+            // 24 months
             return format(texts.xMonthsAgo, Math.round(total / 43200));
-        } else { // 24 months+
+        } else {
+            // 24 months+
             return format(texts.xYearsAgo, Math.round(total / 525600));
         }
-    }
+    };
 
     component.prettifyAll = function () {
         let elements = document.querySelectorAll('.prettydate');
@@ -200,7 +207,7 @@ const Helpers = (function() {
                 }
             }
         }
-    }
+    };
 
     // Compatibility with jSuites
     component.now = component.toString;
@@ -208,17 +215,17 @@ const Helpers = (function() {
     const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-    const translate = function(t) {
-        if (typeof(document) !== "undefined" && document.dictionary) {
+    const translate = function (t) {
+        if (typeof document !== 'undefined' && document.dictionary) {
             return document.dictionary[t] || t;
         } else {
             return t;
         }
-    }
+    };
 
     Object.defineProperty(component, 'weekdays', {
         get: function () {
-            return weekdays.map(function(v) {
+            return weekdays.map(function (v) {
                 return translate(v);
             });
         },
@@ -226,15 +233,15 @@ const Helpers = (function() {
 
     Object.defineProperty(component, 'weekdaysShort', {
         get: function () {
-            return weekdays.map(function(v) {
-                return translate(v).substring(0,3);
+            return weekdays.map(function (v) {
+                return translate(v).substring(0, 3);
             });
         },
     });
 
     Object.defineProperty(component, 'months', {
         get: function () {
-            return months.map(function(v) {
+            return months.map(function (v) {
                 return translate(v);
             });
         },
@@ -242,8 +249,8 @@ const Helpers = (function() {
 
     Object.defineProperty(component, 'monthsShort', {
         get: function () {
-            return months.map(function(v) {
-                return translate(v).substring(0,3);
+            return months.map(function (v) {
+                return translate(v).substring(0, 3);
             });
         },
     });
