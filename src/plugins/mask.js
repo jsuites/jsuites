@@ -1141,7 +1141,11 @@ function Mask() {
     }
 
     const getValue = function(control) {
-        return control.values.join('');
+        let value = control.values.join('');
+        if (isNumeric(control.type) && value.indexOf('--') !== false) {
+            value = value.replace('--','-');
+        }
+        return value;
     }
 
     const inputIsANumber = function(num) {
@@ -1557,10 +1561,6 @@ function Mask() {
         }
 
         control.value = getValue(control);
-
-        if (isNumeric(control.type) && control.value.indexOf('--') !== false) {
-            control.value = control.value.replace('--','-');
-        }
 
         if (returnObject) {
             return control;
@@ -2055,9 +2055,32 @@ function Mask() {
     const ParseValue = function(v, config) {
         if (v === '') return '';
 
+        const originalInput = '' + v;
         const decimal = config.decimal || '.';
 
-        v = ('' + v).split(decimal);
+        // Validate that the input looks like a reasonable number format before extracting digits
+        // Reject strings that are clearly not intended to be numbers (e.g., "test123", "abc", etc.)
+        const hasLetters = /[a-zA-Z]/.test(originalInput);
+        const hasDigits = /[0-9]/.test(originalInput);
+
+        if (hasLetters && hasDigits) {
+            // Mixed letters and digits - check if it's a valid numeric format
+            // Allow currency symbols, currency codes (3 letters), percentage, and separators
+
+            // Remove all valid numeric characters and symbols
+            let cleaned = originalInput.replace(/[\d\s.,\-+()]/g, ''); // Remove digits, spaces, separators, signs, parentheses
+            cleaned = cleaned.replace(/R\$/gi, ''); // Remove R$ specifically (before general $ removal)
+            cleaned = cleaned.replace(/[€$£¥₹₽₩₫¢]/g, ''); // Remove currency symbols
+            cleaned = cleaned.replace(/%/g, ''); // Remove percentage
+            cleaned = cleaned.replace(/\b[A-Z]{3}\b/g, ''); // Remove 3-letter currency codes (USD, BRL, etc.)
+
+            // If anything remains, it's likely invalid (like "test" in "test123")
+            if (cleaned.trim().length > 0) {
+                return null; // Reject patterns like "test123", "abc123", etc.
+            }
+        }
+
+        v = originalInput.split(decimal);
 
         // Detect negative sign
         let signal = v[0].includes('-');
