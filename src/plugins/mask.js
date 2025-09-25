@@ -14,7 +14,7 @@ function Mask() {
     // Currency
     const tokens = {
         // Text
-        text: [ '@', '&' ],
+        text: [ '@', '&', '\\\\[.\\s\\S]' ],
         // Number
         fraction: [ '#{0,1}.*?\\?+\\/[0-9?]+' ],
         // Currency tokens
@@ -962,6 +962,11 @@ function Mask() {
             this.values[this.index] = 'B';
             this.index++;
             return false;
+        },
+        '\\\\[.\\s\\S]': function(v) {
+            this.values[this.index] = this.tokens[this.index].replace('\\', '');
+            this.index++;
+            return false;
         }
     }
 
@@ -1234,7 +1239,7 @@ function Mask() {
                 control.parenthesisForNegativeNumbers = true;
             }
             // Match brackets that should be removed (NOT the time format codes)
-            reg = /\[(?!(?:s|ss|h|hh|m|mm)\])([^\]]*)\]/g;
+            reg = /\[(?!(?:s|ss|h|hh|m|mm)])([^\]]*)]/g;
             if (mask.match(reg)) {
                 mask = mask.replace(reg, ''); // Removes brackets and content
             }
