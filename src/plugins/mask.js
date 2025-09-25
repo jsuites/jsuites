@@ -13,8 +13,10 @@ import Helpers from '../utils/helpers.date';
 function Mask() {
     // Currency
     const tokens = {
+        // Escape
+        escape: [ '\\\\[.\\s\\S]' ],
         // Text
-        text: [ '@', '&', '\\\\[.\\s\\S]' ],
+        text: [ '@', '&' ],
         // Number
         fraction: [ '#{0,1}.*?\\?+\\/[0-9?]+' ],
         // Currency tokens
@@ -32,11 +34,11 @@ function Mask() {
     }
 
     // All expressions
-    const allExpressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
+    const allExpressions = [].concat(tokens.escape, tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
 
     // Pre-compile all regexes once at initialization for better performance
     const compiledTokens = {};
-    const tokenPriority = ['fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
+    const tokenPriority = ['escape', 'fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
 
     // Initialize compiled regexes
     for (const type of tokenPriority) {
@@ -1155,7 +1157,7 @@ function Mask() {
         // Process other types
         for (var i = 0; i < control.methods.length; i++) {
             let m = control.methods[i];
-            if (m && m.type !== 'general' && m.type !== type) {
+            if (m && m.type !== 'general' && m.type !== 'escape' && m.type !== type) {
                 if (type === 'general') {
                     type = m.type;
                 }  else {
@@ -1555,6 +1557,10 @@ function Mask() {
         }
 
         control.value = getValue(control);
+
+        if (isNumeric(control.type) && control.value.indexOf('--') !== false) {
+            control.value = control.value.replace('--','-');
+        }
 
         if (returnObject) {
             return control;

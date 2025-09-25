@@ -106,6 +106,18 @@ describe('jSuites mask', () => {
             //expect(jSuites.mask.render(0, { mask: '[=1]0" mile";0" miles"' })).toBe('0 miles');
         });
 
+        test('escaped characters in masks', () => {
+            // Test that \d is treated as literal 'd', not as a datetime token using render
+            expect(jSuites.mask.render(123, { mask: '\\d 0' }, true)).toBe('d 123');
+
+            // Test with input processing
+            expect(jSuites.mask('123', { mask: '\\d 0' }, true).value).toEqual('d 123');
+
+            // Test other escaped characters
+            expect(jSuites.mask.render(123, { mask: '\\A 0' }, true)).toBe('A 123');
+            expect(jSuites.mask('123', { mask: '\\A 0' }, true).value).toEqual('A 123');
+        });
+
         test('large number scaling formats', () => {
             // Thousands scaling
             expect(jSuites.mask.render('1500M', { mask: '#,##0,,"M"' }, true)).toBe('1,500M');

@@ -1612,6 +1612,8 @@ const helpers_date_Helpers = (function() {
 function Mask() {
     // Currency
     const tokens = {
+        // Escape
+        escape: [ '\\\\[.\\s\\S]' ],
         // Text
         text: [ '@', '&' ],
         // Number
@@ -1631,11 +1633,11 @@ function Mask() {
     }
 
     // All expressions
-    const allExpressions = [].concat(tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
+    const allExpressions = [].concat(tokens.escape, tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
 
     // Pre-compile all regexes once at initialization for better performance
     const compiledTokens = {};
-    const tokenPriority = ['fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
+    const tokenPriority = ['escape', 'fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
 
     // Initialize compiled regexes
     for (const type of tokenPriority) {
@@ -2561,6 +2563,11 @@ function Mask() {
             this.values[this.index] = 'B';
             this.index++;
             return false;
+        },
+        '\\\\[.\\s\\S]': function(v) {
+            this.values[this.index] = this.tokens[this.index].replace('\\', '');
+            this.index++;
+            return false;
         }
     }
 
@@ -2749,7 +2756,7 @@ function Mask() {
         // Process other types
         for (var i = 0; i < control.methods.length; i++) {
             let m = control.methods[i];
-            if (m && m.type !== 'general' && m.type !== type) {
+            if (m && m.type !== 'general' && m.type !== 'escape' && m.type !== type) {
                 if (type === 'general') {
                     type = m.type;
                 }  else {
@@ -2833,7 +2840,7 @@ function Mask() {
                 control.parenthesisForNegativeNumbers = true;
             }
             // Match brackets that should be removed (NOT the time format codes)
-            reg = /\[(?!(?:s|ss|h|hh|m|mm)\])([^\]]*)\]/g;
+            reg = /\[(?!(?:s|ss|h|hh|m|mm)])([^\]]*)]/g;
             if (mask.match(reg)) {
                 mask = mask.replace(reg, ''); // Removes brackets and content
             }
@@ -3149,6 +3156,10 @@ function Mask() {
         }
 
         control.value = getValue(control);
+
+        if (isNumeric(control.type) && control.value.indexOf('--') !== false) {
+            control.value = control.value.replace('--','-');
+        }
 
         if (returnObject) {
             return control;
@@ -3702,7 +3713,14 @@ function Mask() {
     }
 
     Component.extract = function(value, options, returnObject) {
-        if (!value || typeof options !== 'object') return value;
+        if (! value || typeof options !== 'object') {
+            return value;
+        }
+
+        let mask = options.mask.split(';')[0];
+        if (mask) {
+            options.mask = mask;
+        }
 
         // Get decimal, group, type, etc.
         const config = getConfig(options, value);
