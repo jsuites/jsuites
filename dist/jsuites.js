@@ -14020,23 +14020,41 @@ function Mask() {
             }
         }
 
-        // Generic symbol/prefix (e.g., "U$", "US$")
+        // Generic symbol/prefix (e.g., "U$", "R$")
+        // Only match 1-2 letters followed by a currency symbol
         if (!symbol) {
-            const prefixMatch = value.match(/^([^\d\s.,-]{1,4})(\s?)/);
+            const prefixMatch = value.match(/^([A-Z]{1,2}[€$£¥₹₽₩₫¢])(\s?)/i);
             if (prefixMatch) {
                 symbol = prefixMatch[1] + (prefixMatch[2] || '');
                 value = value.replace(prefixMatch[0], '');
             }
         }
 
-        // Code suffix (e.g., USD, BRL)
-        const codeMatch = value.match(/([A-Z]{3})$/);
-        if (codeMatch) {
-            value = value.replace(codeMatch[1], '').trim();
-            if (!symbol) symbol = codeMatch[1] + ' ';
+        // Code prefix (e.g., BRL 1, USD 100)
+        if (!symbol) {
+            const codePrefixMatch = value.match(/^([A-Z]{3})(\s+)/i);
+            if (codePrefixMatch) {
+                symbol = codePrefixMatch[1] + ' ';
+                value = value.replace(codePrefixMatch[0], '');
+            }
+        }
+
+        // Code suffix (e.g., 1 USD, 100 BRL)
+        if (!symbol) {
+            const codeSuffixMatch = value.match(/([A-Z]{3})$/i);
+            if (codeSuffixMatch) {
+                value = value.replace(codeSuffixMatch[1], '').trim();
+                symbol = codeSuffixMatch[1] + ' ';
+            }
         }
 
         value = value.replace(/\s+/g, '');
+
+        // If there's no currency symbol and value contains invalid characters (like /), reject it
+        // This prevents date-like values "1/1/1" from being detected as currency
+        if (!symbol && /[^0-9.,-]/.test(value)) {
+            return null;
+        }
 
         // Infer separators
         let group = ',', decimal = '.';
@@ -14219,7 +14237,7 @@ function Mask() {
 
             // Remove all valid numeric characters and symbols
             let cleaned = originalInput.replace(/[\d\s.,\-+()]/g, ''); // Remove digits, spaces, separators, signs, parentheses
-            cleaned = cleaned.replace(/[A-Z]{1,3}[€$£¥₹₽₩₫¢]/gi, ''); // Remove 1-3 letter prefix + currency symbol (R$, U$, USD$, etc.)
+            cleaned = cleaned.replace(/[A-Z]{1,2}[€$£¥₹₽₩₫¢]/gi, ''); // Remove 1-2 letter prefix + currency symbol (R$, U$, etc.)
             cleaned = cleaned.replace(/[€$£¥₹₽₩₫¢]/g, ''); // Remove remaining currency symbols
             cleaned = cleaned.replace(/%/g, ''); // Remove percentage
             cleaned = cleaned.replace(/\b[A-Z]{3}\b/g, ''); // Remove 3-letter currency codes (USD, BRL, etc.)
@@ -24436,7 +24454,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.12.0',
+    version: '6.0.0-beta.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
