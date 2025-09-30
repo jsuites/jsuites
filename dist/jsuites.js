@@ -14309,7 +14309,7 @@ function Mask() {
             return value;
         }
 
-        if (! config.mask) {
+        if (! options.mask) {
             return value;
         }
 
@@ -14419,12 +14419,12 @@ function Mask() {
             return '';
         }
 
+        // Config
+        const config = getConfig(options, value);
+
         if (! config.mask) {
             return value;
         }
-
-        // Config
-        const config = getConfig(options, value);
 
         // Percentage
         if (config.type === 'datetime') {
