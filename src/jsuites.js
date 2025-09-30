@@ -1,3 +1,5 @@
+import '@lemonadejs/studio';
+
 import dictionary from './utils/dictionary';
 import tracking from './utils/tracking';
 import helpers from './utils/helpers';
@@ -49,13 +51,14 @@ import './style/slider.css';
 import './style/tabs.css';
 import './style/tags.css';
 import './style/toolbar.css';
+import '@lemonadejs/studio/dist/style.css';
 
 var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.12.0',
+    version: '6.0.0-beta.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

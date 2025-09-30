@@ -2069,8 +2069,8 @@ function Mask() {
 
             // Remove all valid numeric characters and symbols
             let cleaned = originalInput.replace(/[\d\s.,\-+()]/g, ''); // Remove digits, spaces, separators, signs, parentheses
-            cleaned = cleaned.replace(/R\$/gi, ''); // Remove R$ specifically (before general $ removal)
-            cleaned = cleaned.replace(/[€$£¥₹₽₩₫¢]/g, ''); // Remove currency symbols
+            cleaned = cleaned.replace(/[A-Z]{1,3}[€$£¥₹₽₩₫¢]/gi, ''); // Remove 1-3 letter prefix + currency symbol (R$, U$, USD$, etc.)
+            cleaned = cleaned.replace(/[€$£¥₹₽₩₫¢]/g, ''); // Remove remaining currency symbols
             cleaned = cleaned.replace(/%/g, ''); // Remove percentage
             cleaned = cleaned.replace(/\b[A-Z]{3}\b/g, ''); // Remove 3-letter currency codes (USD, BRL, etc.)
 
