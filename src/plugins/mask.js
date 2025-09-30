@@ -2159,6 +2159,10 @@ function Mask() {
             return value;
         }
 
+        if (! config.mask) {
+            return value;
+        }
+
         let mask = options.mask.split(';')[0];
         if (mask) {
             options.mask = mask;
@@ -2263,6 +2267,10 @@ function Mask() {
         // Nothing to render
         if (value === '' || value === undefined || value === null) {
             return '';
+        }
+
+        if (! config.mask) {
+            return value;
         }
 
         // Config

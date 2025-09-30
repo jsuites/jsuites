@@ -26,13 +26,13 @@
     },
     "main": "dist/jsuites.js",
     "types": "dist/jsuites.d.ts",
-    "version": "6.0.0-beta.0",
+    "version": "6.0.0-beta.1",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "dependencies": {
-        "@lemonadejs/studio": "^5.4.0-beta.0"
+        "@lemonadejs/studio": "^5.4.0"
     },
     "devDependencies": {
         "@testing-library/dom": "^9.3.4",
