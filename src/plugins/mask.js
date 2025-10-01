@@ -76,6 +76,9 @@ function Mask() {
 
     const hiddenCaret = "\u200B";
 
+    // Locale for date parsing
+    const userLocale = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+
     // Labels
     const weekDaysFull = Helpers.weekdays;
     const weekDays = Helpers.weekdaysShort;
@@ -420,7 +423,10 @@ function Mask() {
             if (isBlank(this.values[this.index])) {
                 this.values[this.index] = '';
             }
-            if (parseInt(v) >= 0 && parseInt(v) <= 10) {
+
+            let number = parseInt(v);
+
+            if (number >= 0 && number <= 10) {
                 if (this.values[this.index].length < s) {
                     this.values[this.index] += v;
                 }
@@ -479,21 +485,23 @@ function Mask() {
                 this.index++;
             }
 
+            let number = parseInt(v);
+
             if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
+                if (number > 1 && number < 10) {
                     if (! single) {
                         v = '0' + v;
                     }
                     this.values[this.index] = v;
                     commit();
-                } else if (parseInt(v) < 2) {
+                } else if (number < 2) {
                     this.values[this.index] = v;
                 }
             } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
+                if (this.values[this.index] == 1 && number < 3) {
                     this.values[this.index] += v;
                     commit();
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
+                } else if (this.values[this.index] == 0 && number > 0 && number < 10) {
                     this.values[this.index] += v;
                     commit();
                 } else {
@@ -530,24 +538,26 @@ function Mask() {
                 this.index++;
             }
 
+            let number = parseInt(v);
+
             if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 3 && parseInt(v) < 10) {
+                if (number > 3 && number < 10) {
                     if (! single) {
                         v = '0' + v;
                     }
                     this.values[this.index] = v;
                     commit();
-                } else if (parseInt(v) < 10) {
+                } else if (number < 10) {
                     this.values[this.index] = v;
                 }
             } else {
-                if (this.values[this.index] == 3 && parseInt(v) < 2) {
+                if (this.values[this.index] == 3 && number < 2) {
                     this.values[this.index] += v;
                     commit();
-                } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && parseInt(v) < 10) {
+                } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && number < 10) {
                     this.values[this.index] += v;
                     commit();
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
+                } else if (this.values[this.index] == 0 && number > 0 && number < 10) {
                     this.values[this.index] += v;
                     commit();
                 } else {
@@ -574,21 +584,24 @@ function Mask() {
         },
         'HH12': function(v, two) {
             let test = false;
+
+            let number = parseInt(v);
+
             if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
+                if (number > 1 && number < 10) {
                     if (two) {
                         v = 0 + v;
                     }
                     this.date[3] = this.values[this.index] = v;
                     this.index++;
-                } else if (parseInt(v) < 10) {
+                } else if (number < 10) {
                     this.values[this.index] = v;
                 }
             } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
+                if (this.values[this.index] == 1 && number < 3) {
                     this.date[3] = this.values[this.index] += v;
                     this.index++;
-                } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
+                } else if (this.values[this.index] < 1 && number < 10) {
                     this.date[3] = this.values[this.index] += v;
                     this.index++;
                 } else {
@@ -608,25 +621,28 @@ function Mask() {
         },
         'HH24': function(v, two) {
             let test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
+
+            let number = parseInt(v)
+
+            if (number >= 0 && number < 10) {
                 if (isBlank(this.values[this.index])) {
-                    if (parseInt(v) > 2 && parseInt(v) < 10) {
+                    if (number > 2 && number < 10) {
                         if (two) {
                             v = 0 + v;
                         }
                         this.date[3] = this.values[this.index] = v;
                         this.index++;
-                    } else if (parseInt(v) < 10) {
+                    } else if (number < 10) {
                         this.values[this.index] = v;
                     }
                 } else {
-                    if (this.values[this.index] == 2 && parseInt(v) < 4) {
+                    if (this.values[this.index] == 2 && number < 4) {
                         if (! two && this.values[this.index] === '0') {
                             this.values[this.index] = '';
                         }
                         this.date[3] = this.values[this.index] += v;
                         this.index++;
-                    } else if (this.values[this.index] < 2 && parseInt(v) < 10) {
+                    } else if (this.values[this.index] < 2 && number < 10) {
                         if (! two && this.values[this.index] === '0') {
                             this.values[this.index] = '';
                         }
@@ -672,19 +688,22 @@ function Mask() {
         },
         'N60': function(v, i, two) {
             let test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
+
+            let number = parseInt(v);
+
+            if (number >= 0 && number < 10) {
                 if (isBlank(this.values[this.index])) {
-                    if (parseInt(v) > 5 && parseInt(v) < 10) {
+                    if (number > 5 && number < 10) {
                         if (two) {
                             v = '0' + v;
                         }
                         this.date[i] = this.values[this.index] = v;
                         this.index++;
-                    } else if (parseInt(v) < 10) {
+                    } else if (number < 10) {
                         this.values[this.index] = v;
                     }
                 } else {
-                    if (this.values[this.index] < 6 && parseInt(v) < 10) {
+                    if (this.values[this.index] < 6 && number < 10) {
                         if (! two && this.values[this.index] === '0') {
                             this.values[this.index] = '';
                         }
@@ -740,7 +759,10 @@ function Mask() {
             if (typeof(this.values[this.index]) === 'undefined') {
                 this.values[this.index] = '';
             }
-            if (parseInt(v) >= 0 && parseInt(v) < 7) {
+
+            let number = parseInt(v);
+
+            if (number >= 0 && number < 7) {
                 this.values[this.index] = v;
             }
             if (this.values[this.index].length == 1) {
@@ -1111,10 +1133,8 @@ function Mask() {
      * Get the method of one given token
      */
     const getMethod = function(str, temporary) {
-        str = str.toString().toUpperCase();
-
         // Check cache first
-        if (methodCache[str] !== undefined) {
+        if (typeof methodCache[str] !== 'undefined') {
             return methodCache[str];
         }
 
@@ -1138,15 +1158,43 @@ function Mask() {
     }
 
     const fixMinuteToken = function(t) {
-        for (let i = 0; i < t.length; i++) {
-            if (t[i] === 'M' || t[i] === 'MM') {
-                // Not a month, correct to minutes
-                if ((t[i - 1] && t[i - 1].indexOf('H') >= 0) ||
-                    (t[i - 2] && t[i - 2].indexOf('H') >= 0) ||
-                    (t[i + 1] && t[i + 1].indexOf('S') >= 0) ||
-                    (t[i + 2] && t[i + 2].indexOf('S') >= 0)) {
-                    // Apply minute token
-                    t[i] = t[i] === 'M' ? 'I': 'MI';
+        const len = t.length;
+        for (let i = 0; i < len; i++) {
+            const token = t[i];
+            if (token === 'M' || token === 'MM') {
+                // Check if this M is a minute (near H or S) rather than month
+                let isMinute = false;
+
+                // Check previous 2 tokens for H (hour indicator)
+                if (i > 0) {
+                    const prev1 = t[i - 1];
+                    // Use includes for fast check - covers H, HH, HH24, HH12, [H], etc
+                    if (prev1 && prev1.includes('H')) {
+                        isMinute = true;
+                    } else if (i > 1) {
+                        const prev2 = t[i - 2];
+                        if (prev2 && prev2.includes('H')) {
+                            isMinute = true;
+                        }
+                    }
+                }
+
+                // Check next 2 tokens for S (seconds indicator) if not already determined
+                if (!isMinute && i < len - 1) {
+                    const next1 = t[i + 1];
+                    // Use includes for fast check - covers S, SS, MS, etc
+                    if (next1 && next1.includes('S')) {
+                        isMinute = true;
+                    } else if (i < len - 2) {
+                        const next2 = t[i + 2];
+                        if (next2 && next2.includes('S')) {
+                            isMinute = true;
+                        }
+                    }
+                }
+
+                if (isMinute) {
+                    t[i] = token === 'M' ? 'I' : 'MI';
                 }
             }
         }
@@ -1261,9 +1309,10 @@ function Mask() {
         // Process other types
         for (var i = 0; i < control.methods.length; i++) {
             let m = control.methods[i];
-            if (m && m.type !== 'general' && m.type !== 'escape' && m.type !== type) {
+            let t = m.type;
+            if (m && t !== 'general' && t !== 'escape' && t !== type) {
                 if (type === 'general') {
-                    type = m.type;
+                    type = t;
                 }  else {
                     type = 'general';
                     break;
@@ -1323,8 +1372,8 @@ function Mask() {
         // Controls of Excel that should be ignored
         let mask = control.mask;
         if (mask) {
-            if (control.mask.indexOf(';') !== -1) {
-                let d = control.mask.split(';');
+            if (mask.indexOf(';') !== -1) {
+                let d = mask.split(';');
 
                 // Mask
                 mask = d[0];
@@ -1349,9 +1398,9 @@ function Mask() {
             // Get only the first mask for now and remove
             control.mask = mask;
             // Get tokens which are the methods for parsing
-            control.tokens = getTokens(control.mask);
+            let tokens = control.tokens = getTokens(mask);
             // Get methods from the tokens
-            control.methods = getMethodsFromTokens(control.tokens);
+            control.methods = getMethodsFromTokens(tokens);
             // Type
             control.type = getType(control);
         }
@@ -1749,8 +1798,7 @@ function Mask() {
                     patterns.push('dd/mm/yyyy', 'dd/mm/yy', 'd/m/yyyy', 'd/m/yy');
                 } else if (p1 <= 12 && p2 <= 12) {
                     // Ambiguous - could be either, use locale preference
-                    const locale = navigator.language || 'en-US';
-                    if (locale.startsWith('en-US')) {
+                    if (userLocale.startsWith('en-US')) {
                         patterns.push('mm/dd/yyyy', 'dd/mm/yyyy', 'mm/dd/yy', 'dd/mm/yy');
                     } else {
                         patterns.push('dd/mm/yyyy', 'mm/dd/yyyy', 'dd/mm/yy', 'mm/dd/yy');
@@ -1886,8 +1934,7 @@ function Mask() {
 
         // If no patterns detected, try some common formats as fallback
         if (candidateMasks.length === 0) {
-            const locale = navigator.language || 'en-US';
-            if (locale.startsWith('en-US')) {
+            if (userLocale.startsWith('en-US')) {
                 candidateMasks.push(
                     'mm/dd/yyyy', 'mm-dd-yyyy', 'yyyy-mm-dd',
                     'mm/dd/yy', 'mm-dd-yy',
@@ -1951,102 +1998,159 @@ function Mask() {
     const autoCastingCurrency = function (input) {
         if (typeof input !== 'string') return null;
 
-        const original = input.trim();
+        const str = input.trim();
+        if (!str) return null;
 
-        const isNegative = negativeRegex.test(original);
-        const hasParens = parensRegex.test(original);
-        let value = original.replace(parensDashRegex, '').trim();
-
-        // Use pre-compiled currency regexes
+        const len = str.length;
+        let isNegative = false;
+        let hasParens = false;
         let symbol = '';
+        let numericPart = '';
+        let letterBuffer = '';
+        let firstCommaPos = -1;
+        let lastCommaPos = -1;
+        let firstDotPos = -1;
+        let lastDotPos = -1;
+        let commaCount = 0;
+        let dotCount = 0;
+        let hasInvalidChars = false;
 
-        for (let {symbol: s, regex} of currencyRegexes) {
-            const match = value.match(regex);
-            if (match) {
-                symbol = s + (match[1] || '');
-                value = value.replace(regex, '');
-                break;
+        // Single pass through the string
+        for (let i = 0; i < len; i++) {
+            const char = str[i];
+
+            // Check for negative signs and parentheses
+            if (char === '-' && !numericPart && !symbol) {
+                isNegative = true;
+                continue;
+            }
+            if (char === '(') {
+                hasParens = true;
+                isNegative = true;
+                continue;
+            }
+            if (char === ')') continue;
+
+            // Skip whitespace
+            if (char === ' ' || char === '\t') {
+                if (letterBuffer) {
+                    letterBuffer += char;
+                }
+                continue;
+            }
+
+            // Currency symbols
+            if (char === '$' || char === '€' || char === '£' || char === '¥' ||
+                char === '₹' || char === '₽' || char === '₩' || char === '₫' || char === '¢') {
+                if (letterBuffer) {
+                    symbol = letterBuffer + char;
+                    letterBuffer = '';
+                } else {
+                    symbol = char;
+                }
+                // Check if next char is a space to include it in symbol
+                if (i + 1 < len && (str[i + 1] === ' ' || str[i + 1] === '\t')) {
+                    symbol += ' ';
+                    i++; // Skip the space
+                }
+                continue;
+            }
+
+            // Letters (potential currency codes like USD, BRL, CHF)
+            if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                letterBuffer += char;
+                continue;
+            }
+
+            // Digits
+            if (char >= '0' && char <= '9') {
+                // If we have letter buffer and no symbol yet, it might be a currency code
+                if (letterBuffer && !symbol) {
+                    const upperBuffer = letterBuffer.trim().toUpperCase();
+                    // Check for known currency codes or letter+symbol combinations
+                    if (upperBuffer.length === 3 || upperBuffer.length === 2) {
+                        symbol = upperBuffer + ' ';
+                        letterBuffer = '';
+                    }
+                }
+                numericPart += char;
+                continue;
+            }
+
+            // Comma and dot separators
+            if (char === ',') {
+                if (firstCommaPos === -1) firstCommaPos = numericPart.length;
+                lastCommaPos = numericPart.length;
+                commaCount++;
+                numericPart += char;
+                continue;
+            }
+            if (char === '.') {
+                if (firstDotPos === -1) firstDotPos = numericPart.length;
+                lastDotPos = numericPart.length;
+                dotCount++;
+                numericPart += char;
+                continue;
+            }
+
+            // Invalid character
+            hasInvalidChars = true;
+        }
+
+        // Check if there's a trailing currency code (e.g., "100 USD")
+        if (letterBuffer && !symbol) {
+            const upperBuffer = letterBuffer.trim().toUpperCase();
+            if (upperBuffer.length === 3) {
+                symbol = upperBuffer + ' ';
             }
         }
 
-        // Generic symbol/prefix (e.g., "U$", "R$")
-        // Only match 1-2 letters followed by a currency symbol
-        if (!symbol) {
-            const prefixMatch = value.match(prefixRegex);
-            if (prefixMatch) {
-                symbol = prefixMatch[1] + (prefixMatch[2] || '');
-                value = value.replace(prefixMatch[0], '');
-            }
-        }
-
-        // Code prefix (e.g., BRL 1, USD 100)
-        if (!symbol) {
-            const codePrefixMatch = value.match(codePrefixRegex);
-            if (codePrefixMatch) {
-                symbol = codePrefixMatch[1] + ' ';
-                value = value.replace(codePrefixMatch[0], '');
-            }
-        }
-
-        // Code suffix (e.g., 1 USD, 100 BRL)
-        if (!symbol) {
-            const codeSuffixMatch = value.match(codeSuffixRegex);
-            if (codeSuffixMatch) {
-                value = value.replace(codeSuffixMatch[1], '').trim();
-                symbol = codeSuffixMatch[1] + ' ';
-            }
-        }
-
-        value = value.replace(whitespaceRegex, '');
-
-        // If there's no currency symbol and value contains invalid characters (like /), reject it
-        // This prevents date-like values "1/1/1" from being detected as currency
-        if (!symbol && invalidCharsRegex.test(value)) {
+        // If no symbol and has invalid chars, reject
+        if (!symbol && hasInvalidChars) {
             return null;
         }
 
-        // Infer separators
-        let group = ',', decimal = '.';
-        const hasComma = value.indexOf(',') !== -1;
-        const hasDot = value.indexOf('.') !== -1;
+        // If no numeric part, reject
+        if (!numericPart) return null;
 
-        if (hasComma && hasDot) {
-            const lastComma = value.lastIndexOf(',');
-            const lastDot = value.lastIndexOf('.');
-            if (lastComma > lastDot) {
-                group = '.';
+        // Infer decimal and group separators
+        let decimal = '.';
+        let group = ',';
+
+        if (commaCount > 0 && dotCount > 0) {
+            // Both present: the one that appears last is decimal
+            if (lastCommaPos > lastDotPos) {
                 decimal = ',';
-            }
-            // else already set correctly
-        } else if (hasDot) {
-            const parts = value.split('.');
-            const lastPart = parts[parts.length - 1];
-            if (threeDigitsRegex.test(lastPart)) {
                 group = '.';
-                decimal = ',';
             }
-            // else already set correctly
-        } else if (hasComma) {
-            const parts = value.split(',');
-            const lastPart = parts[parts.length - 1];
-            if (threeDigitsRegex.test(lastPart)) {
-                // Already set correctly
+        } else if (dotCount === 1 && commaCount === 0) {
+            // Only one dot: check if it's followed by exactly 3 digits
+            const afterDot = numericPart.substring(lastDotPos + 1);
+            if (afterDot.length === 3) {
+                // Likely a thousands separator
+                decimal = ',';
+                group = '.';
+            }
+        } else if (commaCount === 1 && dotCount === 0) {
+            // Only one comma: check if it's followed by exactly 3 digits
+            const afterComma = numericPart.substring(lastCommaPos + 1);
+            if (afterComma.length !== 3) {
+                // Likely a decimal separator
+                decimal = ',';
+                group = '.';
+            }
+        }
+
+        // Normalize: remove group separator, convert decimal to '.'
+        let normalized = '';
+        for (let i = 0; i < numericPart.length; i++) {
+            const char = numericPart[i];
+            if (char === group) continue;
+            if (char === decimal) {
+                normalized += '.';
             } else {
-                group = '.';
-                decimal = ',';
+                normalized += char;
             }
-        }
-
-        // Normalize and parse
-        // Optimize: avoid creating regex for simple character replacement
-        let normalized = value;
-        if (group === ',') {
-            normalized = normalized.replace(/,/g, '');
-        } else {
-            normalized = normalized.replace(/\./g, '');
-        }
-        if (decimal !== '.') {
-            normalized = normalized.replace(decimal, '.');
         }
 
         const parsed = parseFloat(normalized);
@@ -2054,11 +2158,12 @@ function Mask() {
 
         const finalValue = isNegative ? -parsed : parsed;
 
-        // Build dynamic group + decimal mask
-        const decimalPlaces = normalized.includes('.') ? normalized.split('.')[1].length : 0;
+        // Build mask
+        const dotPos = normalized.indexOf('.');
+        const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
         const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
         const groupMask = '#' + group + '##0';
-        let mask = `${symbol}${groupMask}${maskDecimal}`;
+        let mask = symbol + groupMask + maskDecimal;
 
         if (isNegative) {
             mask = hasParens ? `(${mask})` : `-${mask}`;
