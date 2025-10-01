@@ -38,33 +38,19 @@ function Mask() {
 
     // Pre-compile all regexes once at initialization for better performance
     const compiledTokens = {};
-    const literalTokens = {}; // Fast lookup for literal (non-regex) tokens
     const tokenPriority = ['escape', 'fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
 
-    // Check if a pattern is a simple literal (alphanumeric only, no regex special chars)
-    const isSimpleLiteral = function(pattern) {
-        // Only treat pure alphanumeric strings as literals for O(1) lookup
-        return /^[A-Z0-9]+$/i.test(pattern);
-    };
+    // Cache for getMethod results
+    const methodCache = {};
+    // Cache for getTokens results
+    const tokensCache = {};
 
-    // Initialize compiled regexes and literal lookups
+    // Initialize compiled regexes
     for (const type of tokenPriority) {
-        compiledTokens[type] = [];
-        literalTokens[type] = {};
-
-        for (const pattern of tokens[type]) {
-            if (isSimpleLiteral(pattern)) {
-                // Store as literal for O(1) lookup - convert to uppercase for matching
-                const literal = pattern.toUpperCase();
-                literalTokens[type][literal] = pattern;
-            } else {
-                // Store as regex (without 'g' flag to avoid state issues)
-                compiledTokens[type].push({
-                    regex: new RegExp('^' + pattern + '$', 'i'),
-                    method: pattern
-                });
-            }
-        }
+        compiledTokens[type] = tokens[type].map(pattern => ({
+            regex: new RegExp('^' + pattern + '$', 'i'),
+            method: pattern
+        }));
     }
 
     // Pre-compile regex for getTokens function
@@ -76,6 +62,17 @@ function Mask() {
         symbol: s,
         regex: new RegExp(`^${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\s?)`)
     }));
+
+    // Pre-compile regexes for autoCastingCurrency
+    const negativeRegex = /^\s*[-(]/;
+    const parensRegex = /^\s*\(.+\)\s*$/;
+    const parensDashRegex = /[()\-]/g;
+    const prefixRegex = /^([A-Z]{1,2}[€$£¥₹₽₩₫¢])(\s?)/i;
+    const codePrefixRegex = /^([A-Z]{3})(\s+)/i;
+    const codeSuffixRegex = /([A-Z]{3})$/i;
+    const whitespaceRegex = /\s+/g;
+    const invalidCharsRegex = /[^0-9.,-]/;
+    const threeDigitsRegex = /^\d{3}$/;
 
     const hiddenCaret = "\u200B";
 
@@ -1099,8 +1096,15 @@ function Mask() {
     // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
 
     const getTokens = function(str) {
+        // Check cache first
+        if (typeof tokensCache[str] !== 'undefined') {
+            return tokensCache[str];
+        }
+
         allExpressionsRegex.lastIndex = 0; // Reset for global regex
-        return str.match(allExpressionsRegex);
+        const result = str.match(allExpressionsRegex);
+        tokensCache[str] = result;
+        return result;
     }
 
     /**
@@ -1109,25 +1113,27 @@ function Mask() {
     const getMethod = function(str, temporary) {
         str = str.toString().toUpperCase();
 
+        // Check cache first
+        if (methodCache[str] !== undefined) {
+            return methodCache[str];
+        }
+
         // Check for datetime mask
         const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general');
 
-        // Use priority order for faster matching
+        // Use priority order for faster matching with pre-compiled regexes
         for (const type of tokenPriority) {
             if (!datetime && type === 'datetime') continue;
 
-            // First check literal tokens (O(1) lookup)
-            if (literalTokens[type][str]) {
-                return { type: type, method: literalTokens[type][str] };
-            }
-
-            // Then check regex patterns
             for (const compiled of compiledTokens[type]) {
                 if (compiled.regex.test(str)) {
-                    return { type: type, method: compiled.method };
+                    const result = { type: type, method: compiled.method };
+                    methodCache[str] = result;
+                    return result;
                 }
             }
         }
+        methodCache[str] = null;
         return null;
     }
 
@@ -1151,9 +1157,9 @@ function Mask() {
      */
     const getMethodsFromTokens = function(t) {
         // Uppercase
-        for (let i = 0; i < t.length; i++) {
-            t[i] = t[i].toString().toUpperCase();
-        }
+        t = t.map(v => {
+            return v.toString().toUpperCase();
+        });
 
         // Compatibility with Excel
         fixMinuteToken(t);
@@ -1947,9 +1953,9 @@ function Mask() {
 
         const original = input.trim();
 
-        const isNegative = /^\s*[-(]/.test(original);
-        const hasParens = /^\s*\(.+\)\s*$/.test(original);
-        let value = original.replace(/[()\-]/g, '').trim();
+        const isNegative = negativeRegex.test(original);
+        const hasParens = parensRegex.test(original);
+        let value = original.replace(parensDashRegex, '').trim();
 
         // Use pre-compiled currency regexes
         let symbol = '';
@@ -1966,7 +1972,7 @@ function Mask() {
         // Generic symbol/prefix (e.g., "U$", "R$")
         // Only match 1-2 letters followed by a currency symbol
         if (!symbol) {
-            const prefixMatch = value.match(/^([A-Z]{1,2}[€$£¥₹₽₩₫¢])(\s?)/i);
+            const prefixMatch = value.match(prefixRegex);
             if (prefixMatch) {
                 symbol = prefixMatch[1] + (prefixMatch[2] || '');
                 value = value.replace(prefixMatch[0], '');
@@ -1975,7 +1981,7 @@ function Mask() {
 
         // Code prefix (e.g., BRL 1, USD 100)
         if (!symbol) {
-            const codePrefixMatch = value.match(/^([A-Z]{3})(\s+)/i);
+            const codePrefixMatch = value.match(codePrefixRegex);
             if (codePrefixMatch) {
                 symbol = codePrefixMatch[1] + ' ';
                 value = value.replace(codePrefixMatch[0], '');
@@ -1984,50 +1990,47 @@ function Mask() {
 
         // Code suffix (e.g., 1 USD, 100 BRL)
         if (!symbol) {
-            const codeSuffixMatch = value.match(/([A-Z]{3})$/i);
+            const codeSuffixMatch = value.match(codeSuffixRegex);
             if (codeSuffixMatch) {
                 value = value.replace(codeSuffixMatch[1], '').trim();
                 symbol = codeSuffixMatch[1] + ' ';
             }
         }
 
-        value = value.replace(/\s+/g, '');
+        value = value.replace(whitespaceRegex, '');
 
         // If there's no currency symbol and value contains invalid characters (like /), reject it
         // This prevents date-like values "1/1/1" from being detected as currency
-        if (!symbol && /[^0-9.,-]/.test(value)) {
+        if (!symbol && invalidCharsRegex.test(value)) {
             return null;
         }
 
         // Infer separators
         let group = ',', decimal = '.';
+        const hasComma = value.indexOf(',') !== -1;
+        const hasDot = value.indexOf('.') !== -1;
 
-        if (value.includes(',') && value.includes('.')) {
+        if (hasComma && hasDot) {
             const lastComma = value.lastIndexOf(',');
             const lastDot = value.lastIndexOf('.');
             if (lastComma > lastDot) {
                 group = '.';
                 decimal = ',';
-            } else {
-                group = ',';
-                decimal = '.';
             }
-        } else if (value.includes('.')) {
+            // else already set correctly
+        } else if (hasDot) {
             const parts = value.split('.');
             const lastPart = parts[parts.length - 1];
-            if (/^\d{3}$/.test(lastPart)) {
+            if (threeDigitsRegex.test(lastPart)) {
                 group = '.';
                 decimal = ',';
-            } else {
-                group = ',';
-                decimal = '.';
             }
-        } else if (value.includes(',')) {
+            // else already set correctly
+        } else if (hasComma) {
             const parts = value.split(',');
             const lastPart = parts[parts.length - 1];
-            if (/^\d{3}$/.test(lastPart)) {
-                group = ',';
-                decimal = '.';
+            if (threeDigitsRegex.test(lastPart)) {
+                // Already set correctly
             } else {
                 group = '.';
                 decimal = ',';
@@ -2035,9 +2038,16 @@ function Mask() {
         }
 
         // Normalize and parse
-        const normalized = value
-            .replace(new RegExp(`\\${group}`, 'g'), '')
-            .replace(decimal, '.');
+        // Optimize: avoid creating regex for simple character replacement
+        let normalized = value;
+        if (group === ',') {
+            normalized = normalized.replace(/,/g, '');
+        } else {
+            normalized = normalized.replace(/\./g, '');
+        }
+        if (decimal !== '.') {
+            normalized = normalized.replace(decimal, '.');
+        }
 
         const parsed = parseFloat(normalized);
         if (isNaN(parsed)) return null;
