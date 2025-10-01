@@ -14796,7 +14796,12 @@ function Mask() {
         }
     }
 
-    Component.getType = getType;
+    Component.getType = function(config) {
+        // Get configuration
+        const control = getConfig(config, null);
+
+        return control.type;
+    };
 
     Component.adjustPrecision = adjustPrecision;
 
@@ -24462,7 +24467,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.1',
+    version: '6.0.0-beta.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
