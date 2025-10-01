@@ -2646,7 +2646,12 @@ function Mask() {
         }
     }
 
-    Component.getType = getType;
+    Component.getType = function(config) {
+        // Get configuration
+        const control = getConfig(config, null);
+
+        return control.type;
+    };
 
     Component.adjustPrecision = adjustPrecision;
 
