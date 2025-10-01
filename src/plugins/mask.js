@@ -44,6 +44,8 @@ function Mask() {
     const methodCache = {};
     // Cache for getTokens results
     const tokensCache = {};
+    // Cache for autoCasting results
+    const autoCastingCache = {};
 
     // Initialize compiled regexes
     for (const type of tokenPriority) {
@@ -1118,13 +1120,14 @@ function Mask() {
     // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
 
     const getTokens = function(str) {
-        // Check cache first
-        if (typeof tokensCache[str] !== 'undefined') {
-            return tokensCache[str];
+        // Check cache first - direct access, undefined check is fast
+        let result = tokensCache[str];
+        if (result !== undefined) {
+            return result;
         }
 
         allExpressionsRegex.lastIndex = 0; // Reset for global regex
-        const result = str.match(allExpressionsRegex);
+        result = str.match(allExpressionsRegex);
         tokensCache[str] = result;
         return result;
     }
@@ -1133,9 +1136,12 @@ function Mask() {
      * Get the method of one given token
      */
     const getMethod = function(str, temporary) {
-        // Check cache first
-        if (typeof methodCache[str] !== 'undefined') {
-            return methodCache[str];
+        str = str.toString().toUpperCase();
+
+        // Check cache first - direct access, undefined check is fast
+        let cached = methodCache[str];
+        if (cached !== undefined) {
+            return cached;
         }
 
         // Check for datetime mask
@@ -2342,6 +2348,13 @@ function Mask() {
      * Try to get which mask that can transform the number in that format
      */
     Component.autoCasting = function(value, returnObject) {
+        // Check cache first - use string value as key
+        const cacheKey = String(value);
+        let cached = autoCastingCache[cacheKey];
+        if (cached !== undefined) {
+            return cached;
+        }
+
         const methods = [
             autoCastingDates,        // Most structured, the least ambiguous
             autoCastingTime,
@@ -2352,14 +2365,18 @@ function Mask() {
             autoCastingCurrency,     // Complex formats, but recognizable
         ];
 
+        let result = null;
         for (let method of methods) {
             const test = method(value);
             if (test) {
-                return test;
+                result = test;
+                break;
             }
         }
 
-        return null;
+        // Cache the result (even if null)
+        autoCastingCache[cacheKey] = result;
+        return result;
     }
 
     Component.extract = function(value, options, returnObject) {
