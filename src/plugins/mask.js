@@ -38,14 +38,33 @@ function Mask() {
 
     // Pre-compile all regexes once at initialization for better performance
     const compiledTokens = {};
+    const literalTokens = {}; // Fast lookup for literal (non-regex) tokens
     const tokenPriority = ['escape', 'fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
 
-    // Initialize compiled regexes
+    // Check if a pattern is a simple literal (alphanumeric only, no regex special chars)
+    const isSimpleLiteral = function(pattern) {
+        // Only treat pure alphanumeric strings as literals for O(1) lookup
+        return /^[A-Z0-9]+$/i.test(pattern);
+    };
+
+    // Initialize compiled regexes and literal lookups
     for (const type of tokenPriority) {
-        compiledTokens[type] = tokens[type].map(pattern => ({
-            regex: new RegExp('^' + pattern + '$', 'gi'),
-            method: pattern
-        }));
+        compiledTokens[type] = [];
+        literalTokens[type] = {};
+
+        for (const pattern of tokens[type]) {
+            if (isSimpleLiteral(pattern)) {
+                // Store as literal for O(1) lookup - convert to uppercase for matching
+                const literal = pattern.toUpperCase();
+                literalTokens[type][literal] = pattern;
+            } else {
+                // Store as regex (without 'g' flag to avoid state issues)
+                compiledTokens[type].push({
+                    regex: new RegExp('^' + pattern + '$', 'i'),
+                    method: pattern
+                });
+            }
+        }
     }
 
     // Pre-compile regex for getTokens function
@@ -99,10 +118,80 @@ function Mask() {
     }
 
     /**
+    * Clean mask - extremely fast implementation using only char operations
+    * Removes quotes, detects parenthesis for negative numbers, and removes brackets (except time format codes)
+    * Sets control.parenthesisForNegativeNumbers and returns cleaned mask
+    */
+    const cleanMask = function(mask, control) {
+        const len = mask.length;
+        let result = '';
+
+        for (let i = 0; i < len; i++) {
+            const char = mask[i];
+
+            // Remove quotes
+            if (char === '"') {
+                continue;
+            }
+
+            // Handle brackets - remove them unless they're time format codes
+            if (char === '[') {
+                // Check if it's a time format code: [s], [ss], [h], [hh], [m], [mm]
+                let isTimeFormat = false;
+                if (i + 2 < len && mask[i + 2] === ']') {
+                    const c = mask[i + 1];
+                    if (c === 's' || c === 'h' || c === 'm') {
+                        isTimeFormat = true;
+                    }
+                } else if (i + 3 < len && mask[i + 3] === ']') {
+                    const c1 = mask[i + 1];
+                    const c2 = mask[i + 2];
+                    if ((c1 === 's' && c2 === 's') || (c1 === 'h' && c2 === 'h') || (c1 === 'm' && c2 === 'm')) {
+                        isTimeFormat = true;
+                    }
+                }
+
+                if (isTimeFormat) {
+                    result += char;
+                } else {
+                    // Skip content and closing bracket
+                    while (i < len && mask[i] !== ']') {
+                        i++;
+                    }
+                    continue;
+                }
+            }
+            // Check for parenthesis (not preceded by underscore and no underscore inside)
+            else if (char === '(') {
+                if (i === 0 || mask[i - 1] !== '_') {
+                    let hasUnderscore = false;
+                    let depth = 1;
+                    for (let j = i + 1; j < len && depth > 0; j++) {
+                        if (mask[j] === '(') depth++;
+                        if (mask[j] === ')') depth--;
+                        if (mask[j] === '_') {
+                            hasUnderscore = true;
+                            break;
+                        }
+                    }
+                    if (!hasUnderscore) {
+                        control.parenthesisForNegativeNumbers = true;
+                    }
+                }
+                result += char;
+            } else {
+                result += char;
+            }
+        }
+
+        return result;
+    }
+
+    /**
     * Receives a string from a method type and returns if it's a numeric method
     */
     const isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === '' || t === 'numeric';
+        return t === 'currency' || t === 'percentage' || t === 'numeric' || t === 'scientific';
     }
 
     const adjustPrecision = function(num) {
@@ -1023,14 +1112,18 @@ function Mask() {
         // Check for datetime mask
         const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general');
 
-        // Use priority order for faster matching with pre-compiled regexes
+        // Use priority order for faster matching
         for (const type of tokenPriority) {
             if (!datetime && type === 'datetime') continue;
 
+            // First check literal tokens (O(1) lookup)
+            if (literalTokens[type][str]) {
+                return { type: type, method: literalTokens[type][str] };
+            }
+
+            // Then check regex patterns
             for (const compiled of compiledTokens[type]) {
-                let regex = compiled.regex;
-                regex.lastIndex = 0; // Reset regex state
-                if (regex.test(str)) {
+                if (compiled.regex.test(str)) {
                     return { type: type, method: compiled.method };
                 }
             }
@@ -1058,9 +1151,9 @@ function Mask() {
      */
     const getMethodsFromTokens = function(t) {
         // Uppercase
-        t = t.map(v => {
-            return v.toString().toUpperCase();
-        });
+        for (let i = 0; i < t.length; i++) {
+            t[i] = t[i].toString().toUpperCase();
+        }
 
         // Compatibility with Excel
         fixMinuteToken(t);
@@ -1083,8 +1176,9 @@ function Mask() {
             methodName = control.methods[control.index].method;
         }
 
-        if (methodName && typeof(parseMethods[methodName]) === 'function') {
-            return parseMethods[methodName];
+        let m = parseMethods[methodName];
+        if (typeof(m) === 'function') {
+            return m;
         }
 
         return false;
@@ -1221,34 +1315,31 @@ function Mask() {
         }
 
         // Controls of Excel that should be ignored
-        if (control.mask) {
-            let d = control.mask.split(';');
-            // Mask
-            let mask = d[0];
+        let mask = control.mask;
+        if (mask) {
+            if (control.mask.indexOf(';') !== -1) {
+                let d = control.mask.split(';');
 
-            if (typeof(value) === 'number' || isNumber(value)) {
-                if (Number(value) < 0 && d[1]) {
-                    mask = d[1];
-                } else if (Number(value) === 0 && d[2]) {
-                    mask = d[2];
-                }
-            } else {
-                if (d[3]) {
-                    mask = d[3];
+                // Mask
+                mask = d[0];
+
+                if (typeof (value) === 'number' || isNumber(value)) {
+                    if (Number(value) < 0 && d[1]) {
+                        mask = d[1];
+                    } else if (Number(value) === 0 && d[2]) {
+                        mask = d[2];
+                    } else {
+                        mask = d[0];
+                    }
+                } else {
+                    if (typeof(d[3]) !== 'undefined') {
+                        mask = d[3];
+                    }
                 }
             }
+
             // Cleaning the mask
-            mask = mask.replace(new RegExp('"', 'mgi'), "");
-            // Parenthesis
-            let reg = /(?<!_)\((?![^()]*_)([^'"]*?)\)/g;
-            if (mask.match(reg)) {
-                control.parenthesisForNegativeNumbers = true;
-            }
-            // Match brackets that should be removed (NOT the time format codes)
-            reg = /\[(?!(?:s|ss|h|hh|m|mm)])([^\]]*)]/g;
-            if (mask.match(reg)) {
-                mask = mask.replace(reg, ''); // Removes brackets and content
-            }
+            mask = cleanMask(mask, control);
             // Get only the first mask for now and remove
             control.mask = mask;
             // Get tokens which are the methods for parsing
@@ -1259,8 +1350,10 @@ function Mask() {
             control.type = getType(control);
         }
 
-        // Decimal
-        control.decimal = getDecimal.call(control);
+        // Decimal only for numbers
+        if (isNumeric(control.type)) {
+            control.decimal = getDecimal.call(control);
+        }
 
         return control;
     }
