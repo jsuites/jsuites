@@ -14170,6 +14170,7 @@ function Mask() {
         let commaCount = 0;
         let dotCount = 0;
         let hasInvalidChars = false;
+        let hasCurrencySymbol = false;
 
         // Single pass through the string
         for (let i = 0; i < len; i++) {
@@ -14198,6 +14199,12 @@ function Mask() {
             // Currency symbols
             if (char === '$' || char === '€' || char === '£' || char === '¥' ||
                 char === '₹' || char === '₽' || char === '₩' || char === '₫' || char === '¢') {
+                hasCurrencySymbol = true;
+                // Validate letter buffer: max 2 letters before symbol
+                const trimmedBuffer = letterBuffer.trim();
+                if (trimmedBuffer.length > 2) {
+                    return null;
+                }
                 if (letterBuffer) {
                     symbol = letterBuffer + char;
                     letterBuffer = '';
@@ -14212,23 +14219,23 @@ function Mask() {
                 continue;
             }
 
-            // Letters (potential currency codes like USD, BRL, CHF)
+            // Letters (only valid BEFORE currency symbol, max 2 letters)
             if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                // Letters after symbol or numeric part are invalid
+                if (hasCurrencySymbol || numericPart) {
+                    return null;
+                }
                 letterBuffer += char;
                 continue;
             }
 
             // Digits
             if (char >= '0' && char <= '9') {
-                // If we have letter buffer and no symbol yet, it might be a currency code
-                if (letterBuffer && !symbol) {
-                    const upperBuffer = letterBuffer.trim().toUpperCase();
-                    // Check for known currency codes or letter+symbol combinations
-                    if (upperBuffer.length === 3 || upperBuffer.length === 2) {
-                        symbol = upperBuffer + ' ';
-                        letterBuffer = '';
-                    }
+                // Reject if we have letters but no currency symbol
+                if (letterBuffer && !hasCurrencySymbol) {
+                    return null;
                 }
+                letterBuffer = '';
                 numericPart += char;
                 continue;
             }
@@ -14253,21 +14260,21 @@ function Mask() {
             hasInvalidChars = true;
         }
 
-        // Check if there's a trailing currency code (e.g., "100 USD")
-        if (letterBuffer && !symbol) {
-            const upperBuffer = letterBuffer.trim().toUpperCase();
-            if (upperBuffer.length === 3) {
-                symbol = upperBuffer + ' ';
-            }
+        // Reject if no currency symbol was found
+        if (!hasCurrencySymbol) {
+            return null;
         }
 
-        // If no symbol and has invalid chars, reject
-        if (!symbol && hasInvalidChars) {
+        // Reject if there are any invalid characters
+        if (hasInvalidChars) {
             return null;
         }
 
         // If no numeric part, reject
         if (!numericPart) return null;
+
+        // Ensure numeric part contains at least one digit (not just separators)
+        if (!/\d/.test(numericPart)) return null;
 
         // Infer decimal and group separators
         let decimal = '.';
@@ -14342,24 +14349,78 @@ function Mask() {
         }
 
         const sRaw = input.trim();
-        if (!/^[+-]?\d+$/.test(sRaw)) {
-            return null;
+
+        // Check for simple integers first (with optional sign)
+        if (/^[+-]?\d+$/.test(sRaw)) {
+            const sign = /^[+-]/.test(sRaw) ? sRaw[0] : '';
+            const digitsClean = (sign ? sRaw.slice(1) : sRaw);
+            const rawDigits = sign ? sRaw.slice(1) : sRaw;
+            const m = rawDigits.match(/^0+/);
+            const leadingZeros = m ? m[0].length : 0;
+            const mask = leadingZeros > 0 ? '0'.repeat(rawDigits.length) : '0';
+            const value = Number(sign + digitsClean);
+            return { mask, value };
         }
 
-        const sign = /^[+-]/.test(sRaw) ? sRaw[0] : '';
-        const digitsClean = (sign ? sRaw.slice(1) : sRaw); // keep as you already do
+        // Check for formatted numbers with thousand separators (no letters, no symbols)
+        // Examples: "1,000.25", "1.000,25", "-1,234.56"
+        if (/^[+-]?[\d,.]+$/.test(sRaw)) {
+            let isNegative = sRaw[0] === '-';
+            let numStr = isNegative ? sRaw.slice(1) : sRaw;
 
-        // ***** NEW: mask derived from RAW leading zeros only *****
-        const rawDigits = sign ? sRaw.slice(1) : sRaw;     // no extra cleaning here
-        const m = rawDigits.match(/^0+/);
-        const leadingZeros = m ? m[0].length : 0;
+            // Count separators
+            const commaCount = (numStr.match(/,/g) || []).length;
+            const dotCount = (numStr.match(/\./g) || []).length;
 
-        const mask = leadingZeros > 0 ? '0'.repeat(rawDigits.length) : '0';
+            // Must have at least one digit
+            if (!/\d/.test(numStr)) return null;
 
-        // Your existing numeric value (from the cleaned digits)
-        const value = Number(sign + digitsClean);
+            // Infer decimal and group separators
+            let decimal = '.';
+            let group = ',';
 
-        return { mask, value };
+            const lastCommaPos = numStr.lastIndexOf(',');
+            const lastDotPos = numStr.lastIndexOf('.');
+
+            if (commaCount > 0 && dotCount > 0) {
+                // Both present: the one that appears last is decimal
+                if (lastCommaPos > lastDotPos) {
+                    decimal = ',';
+                    group = '.';
+                }
+            } else if (dotCount === 1 && commaCount === 0) {
+                // Only one dot: check if it's followed by exactly 3 digits (thousands separator)
+                const afterDot = numStr.substring(lastDotPos + 1);
+                if (afterDot.length === 3 && !/[,.]/.test(afterDot)) {
+                    decimal = ',';
+                    group = '.';
+                }
+            } else if (commaCount === 1 && dotCount === 0) {
+                // Only one comma: check if it's NOT followed by exactly 3 digits (decimal separator)
+                const afterComma = numStr.substring(lastCommaPos + 1);
+                if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
+                    decimal = ',';
+                    group = '.';
+                }
+            }
+
+            // Normalize: remove group separator, convert decimal to '.'
+            let normalized = numStr.replace(new RegExp('\\' + group, 'g'), '').replace(decimal, '.');
+            const parsed = parseFloat(normalized);
+            if (isNaN(parsed)) return null;
+
+            const value = isNegative ? -parsed : parsed;
+
+            // Build mask
+            const dotPos = normalized.indexOf('.');
+            const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
+            const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
+            const mask = (group ? '#' + group + '##0' : '0') + maskDecimal;
+
+            return { mask, value };
+        }
+
+        return null;
     };
 
     const autoCastingScientific = function(input) {
@@ -24692,7 +24753,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.3',
+    version: '6.0.0-beta.5',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

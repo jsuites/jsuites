@@ -362,6 +362,39 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.autoCasting("($5,000.75)")).toEqual({ mask: '($#,##0.00)', value: -5000.75 });
         });
 
+        test('should detect currency with letter prefixes', () => {
+            expect(jSuites.mask.autoCasting("R$ 1,500.00")).toEqual({ mask: 'R$ #,##0.00', value: 1500 });
+            expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ #,##0', value: 100 });
+        });
+
+        test('should reject letters without currency symbol', () => {
+            expect(jSuites.mask.autoCasting("PL 1")).toBeNull();
+            expect(jSuites.mask.autoCasting("BRL 1")).toBeNull();
+            expect(jSuites.mask.autoCasting("USD 100")).toBeNull();
+        });
+
+        test('should reject letters after numbers', () => {
+            expect(jSuites.mask.autoCasting("$111A")).toBeNull();
+            expect(jSuites.mask.autoCasting("$ 100 USD")).toBeNull();
+            expect(jSuites.mask.autoCasting("€ 50 EUR")).toBeNull();
+        });
+
+        test('should reject more than 2 letters before symbol', () => {
+            expect(jSuites.mask.autoCasting("USA$ 100")).toBeNull();
+            expect(jSuites.mask.autoCasting("BRL$ 50")).toBeNull();
+        });
+
+        test('should reject currency with no digits', () => {
+            expect(jSuites.mask.autoCasting("$ ,.")).toBeNull();
+            expect(jSuites.mask.autoCasting("€ ")).toBeNull();
+            expect(jSuites.mask.autoCasting("$")).toBeNull();
+        });
+
+        test('should reject invalid characters in numbers', () => {
+            expect(jSuites.mask.autoCasting("$000A")).toBeNull();
+            expect(jSuites.mask.autoCasting("$ 1@2")).toBeNull();
+        });
+
         // Percent
         test('should detect whole number percent', () => {
             expect(jSuites.mask.autoCasting("50%")).toEqual({ mask: '0%', value: 0.5 });
