@@ -8325,6 +8325,8 @@ function Toolbar(el, options) {
     var toolbarArrow = document.createElement('div');
     toolbarArrow.classList.add('jtoolbar-item');
     toolbarArrow.classList.add('jtoolbar-arrow');
+    toolbarArrow.classList.add('material-icons');
+    toolbarArrow.textContent = 'more_vert';
 
     var toolbarFloating = document.createElement('div');
     toolbarFloating.classList.add('jtoolbar-floating');
@@ -13072,7 +13074,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.3',
+    version: '5.13.4',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

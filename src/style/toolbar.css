@@ -156,11 +156,10 @@
 .jtoolbar .jtoolbar-arrow {
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black' width='18px' height='18px'%3E%3Cpath d='M0 0h24v24H0z' fill='none'/%3E%3Cpath d='M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z'/%3E%3C/svg%3E");
     width: 24px;
     height: 16px;
     margin-left: 4px;
-    border-left: 1px solid #f2f2f2;
+    border-left: 1px solid var(--jss-border-color, #ccc);
 }
 
 .jtoolbar-floating {
