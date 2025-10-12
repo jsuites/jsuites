@@ -177,8 +177,9 @@ div[data-before]:before {
 }
 
 .jpanel:focus {
-    outline: 2px solid black;
+    outline: 2px solid var(--jss-border-outline, #000);
     outline-offset: -1px;
+    z-index: 1000 !important;
 }
 
 .jpanel-action {
@@ -249,7 +250,7 @@ div[data-before]:before {
 
 .jpanel-action[data-action="rotate"]:before {
     content: 'refresh';
-    font-family: 'Material Icons';
+    font-family: 'Material Icons', 'Material Symbols Outlined', "FontAwesome";
     font-size: 24px;
 }
 
@@ -257,10 +258,10 @@ div[data-before]:before {
     position: absolute;
     content: '';
     bottom: -22px;
-    left: calc(50%);
+    left: calc(50% - 1px);
     width: 1px;
-    height: 28px;
-    background-color: black;
+    height: 26px;
+    background-color: var(--jss-font-color, #000);
 }
 
 .material-icons {
@@ -278,7 +279,6 @@ div[data-before]:before {
     -webkit-font-feature-settings: 'liga';
     -webkit-font-smoothing: antialiased;
 }
-
 /** Loading */
 .jloading {
     position:fixed;
@@ -2961,18 +2961,16 @@ div[data-before]:before {
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
     height: 18px;
-    padding: 0px;
+    padding: 0;
     margin-left: 4px;
     margin-right: 4px;
-    background-color: #ddd;
+    background-color: var(--jss-border-color, #ccc);
 }
 
 .jtoolbar .jtoolbar-label {
     padding-left: 8px;
     padding-right: 8px;
 }
-
-
 
 .jtoolbar-mobile a
 {
@@ -3009,7 +3007,7 @@ div[data-before]:before {
 }
 
 .jtoolbar-item:hover {
-    background-color:#f2f2f2;
+    background-color: var(--jss-background-color-highlight, #e8e8e8);
 }
 
 .jtoolbar .jpicker {
@@ -3053,11 +3051,9 @@ div[data-before]:before {
 .jtoolbar .jtoolbar-arrow {
     background-repeat: no-repeat;
     background-position: center;
-    background-image: url("data:image/svg+xml,%0A%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 24 24%27 fill=%27black%27 width=%2718px%27 height=%2718px%27%3E%3Cpath d=%27M0 0h24v24H0z%27 fill=%27none%27/%3E%3Cpath d=%27M12 8c1.1 0 2-.9 2-2s-.9-2-2-2-2 .9-2 2 .9 2 2 2zm0 2c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z%27/%3E%3C/svg%3E");
     width: 24px;
-    height: 16px;
     margin-left: 4px;
-    border-left: 1px solid #f2f2f2;
+    border-left: 1px solid var(--jss-border-color, #ccc);
 }
 
 .jtoolbar-floating {
@@ -3065,7 +3061,7 @@ div[data-before]:before {
     display: none;
     box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
     border-radius: 4px;
-    background-color: #fff;
+    background-color: var(--jss-background-color-header);
     padding: 4px;
     z-index: 50;
     text-align: left;

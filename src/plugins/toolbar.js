@@ -39,6 +39,11 @@ export default function Toolbar(el, options) {
     toolbarArrow.classList.add('jtoolbar-item');
     toolbarArrow.classList.add('jtoolbar-arrow');
 
+    let arrow = document.createElement('i');
+    arrow.classList.add('material-icons');
+    arrow.textContent = 'more_vert';
+    toolbarArrow.appendChild(arrow);
+
     var toolbarFloating = document.createElement('div');
     toolbarFloating.classList.add('jtoolbar-floating');
     toolbarArrow.appendChild(toolbarFloating);
@@ -224,7 +229,7 @@ export default function Toolbar(el, options) {
 
         toolbarFloating.style.right = '0';
 
-        toolbarArrow.children[0].focus();
+        toolbarArrow.children[1].focus();
         // Start tracking
         Tracking(obj, true);
     }
@@ -279,7 +284,7 @@ export default function Toolbar(el, options) {
             obj.selectItem(element);
         }
 
-        if (e.target.classList.contains('jtoolbar-arrow')) {
+        if (e.target.classList.contains('jtoolbar-arrow') || e.target.parentNode.classList.contains('jtoolbar-arrow')) {
             obj.open();
         }
     }

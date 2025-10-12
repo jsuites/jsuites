@@ -20009,6 +20009,11 @@ function Toolbar(el, options) {
     toolbarArrow.classList.add('jtoolbar-item');
     toolbarArrow.classList.add('jtoolbar-arrow');
 
+    let arrow = document.createElement('i');
+    arrow.classList.add('material-icons');
+    arrow.textContent = 'more_vert';
+    toolbarArrow.appendChild(arrow);
+
     var toolbarFloating = document.createElement('div');
     toolbarFloating.classList.add('jtoolbar-floating');
     toolbarArrow.appendChild(toolbarFloating);
@@ -20194,7 +20199,7 @@ function Toolbar(el, options) {
 
         toolbarFloating.style.right = '0';
 
-        toolbarArrow.children[0].focus();
+        toolbarArrow.children[1].focus();
         // Start tracking
         tracking(obj, true);
     }
@@ -20249,7 +20254,7 @@ function Toolbar(el, options) {
             obj.selectItem(element);
         }
 
-        if (e.target.classList.contains('jtoolbar-arrow')) {
+        if (e.target.classList.contains('jtoolbar-arrow') || e.target.parentNode.classList.contains('jtoolbar-arrow')) {
             obj.open();
         }
     }
@@ -24753,7 +24758,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.5',
+    version: '6.0.0-beta.6',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

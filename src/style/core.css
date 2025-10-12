@@ -177,8 +177,9 @@ div[data-before]:before {
 }
 
 .jpanel:focus {
-    outline: 2px solid black;
+    outline: 2px solid var(--jss-border-outline, #000);
     outline-offset: -1px;
+    z-index: 1000 !important;
 }
 
 .jpanel-action {
@@ -249,7 +250,7 @@ div[data-before]:before {
 
 .jpanel-action[data-action="rotate"]:before {
     content: 'refresh';
-    font-family: 'Material Icons';
+    font-family: 'Material Icons', 'Material Symbols Outlined', "FontAwesome";
     font-size: 24px;
 }
 
@@ -257,10 +258,10 @@ div[data-before]:before {
     position: absolute;
     content: '';
     bottom: -22px;
-    left: calc(50%);
+    left: calc(50% - 1px);
     width: 1px;
-    height: 28px;
-    background-color: black;
+    height: 26px;
+    background-color: var(--jss-font-color, #000);
 }
 
 .material-icons {
