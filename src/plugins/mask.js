@@ -1661,12 +1661,18 @@ function Mask() {
         return [y,m,d,h,i,s];
     }
 
+    const format = function(str, config) {
+        let ret = new Intl.NumberFormat(config.locale, config.options || {}).format(str);
+
+        config.values.push(ret);
+    }
+
     const Component = function(str, config, returnObject) {
         // Get configuration
         const control = getConfig(config, str);
 
         if (control.locale) {
-            // Process the locale
+            format(str, control);
         } else if (control.mask) {
             // Walk every character on the value
             let method;
@@ -2408,7 +2414,7 @@ function Mask() {
     /**
      * Try to get which mask that can transform the number in that format
      */
-    Component.autoCasting = function(value, returnObject) {
+    Component.autoCasting = function(value) {
         // Check cache first - use string value as key
         const cacheKey = String(value);
         let cached = autoCastingCache[cacheKey];
@@ -2445,108 +2451,113 @@ function Mask() {
             return value;
         }
 
-        if (! options.mask) {
-            return value;
-        }
+        if (options.locale) {
+            const config = getConfig(options, value);
+            config.value = Extract(value, config);
 
-        let mask = options.mask.split(';')[0];
-        if (mask) {
-            options.mask = mask;
-        }
-
-        // Get decimal, group, type, etc.
-        const config = getConfig(options, value);
-        const type = config.type;
-
-        let result;
-        let o = options;
-
-        if (type === 'text') {
-            result = value;
-        } else if (type === 'general') {
-            result = Component(value, options);
-        } else if (type === 'datetime') {
-            if (value instanceof Date) {
-                value = Component.getDateString(value, config.mask);
+            return returnObject ? config : config.value;
+        } else if (options.mask) {
+            let mask = options.mask.split(';')[0];
+            if (mask) {
+                options.mask = mask;
             }
 
-            o = Component(value, options, true);
+            // Get decimal, group, type, etc.
+            const config = getConfig(options, value);
+            const type = config.type;
 
-            result = typeof o.value === 'number' ? o.value : extractDate.call(o);
-        } else if (type === 'scientific') {
-            result = typeof value === 'string' ? Number(value) : value;
-        } else if (type === 'fraction') {
-            // Parse a fraction string according to the mask (supports mixed "# ?/d" or simple "?/d")
-            const mask = config.mask;
+            let result;
+            let o = options;
 
-            // Detect fixed denominator (e.g. "# ?/16" or "?/8")
-            const fixedDenMatch = mask.match(/\/\s*(\d+)\s*$/);
-            const fixedDen = fixedDenMatch ? parseInt(fixedDenMatch[1], 10) : null;
-
-            // Whether a mask allows a whole part (e.g. "# ?/?")
-            const allowWhole = mask.includes('#');
-
-            let s = ('' + value).trim();
-            if (! s) {
-                result = null;
-            } else {
-                // Allow leading parentheses or '-' for negatives
-                let sign = 1;
-                if (/^\(.*\)$/.test(s)) {
-                    sign = -1;
-                    s = s.slice(1, -1).trim();
-                }
-                if (/^\s*-/.test(s)) {
-                    sign = -1;
-                    s = s.replace(/^\s*-/, '').trim();
+            if (type === 'text') {
+                result = value;
+            } else if (type === 'general') {
+                result = Component(value, options);
+            } else if (type === 'datetime') {
+                if (value instanceof Date) {
+                    value = Component.getDateString(value, config.mask);
                 }
 
-                let out = null;
+                o = Component(value, options, true);
 
-                if (s.includes('/')) {
-                    // sign? (whole )? numerator / denominator
-                    // Examples:
-                    //  "1 1/2" => whole=1, num=1, den=2
-                    //  "1/2"   => whole=undefined, num=1, den=2
-                    const m = s.match(/^\s*(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s*$/);
-                    if (m) {
-                        const whole = allowWhole && m[1] ? parseInt(m[1], 10) : 0;
-                        const num = parseInt(m[2], 10);
-                        let den = parseInt(m[3], 10);
+                result = typeof o.value === 'number' ? o.value : extractDate.call(o);
+            } else if (type === 'scientific') {
+                result = typeof value === 'string' ? Number(value) : value;
+            } else if (type === 'fraction') {
+                // Parse a fraction string according to the mask (supports mixed "# ?/d" or simple "?/d")
+                const mask = config.mask;
 
-                        // If mask fixes the denominator, enforce it
-                        if (fixedDen) den = fixedDen;
+                // Detect fixed denominator (e.g. "# ?/16" or "?/8")
+                const fixedDenMatch = mask.match(/\/\s*(\d+)\s*$/);
+                const fixedDen = fixedDenMatch ? parseInt(fixedDenMatch[1], 10) : null;
 
-                        if (den !== 0) {
-                            out = sign * (whole + num / den);
+                // Whether a mask allows a whole part (e.g. "# ?/?")
+                const allowWhole = mask.includes('#');
+
+                let s = ('' + value).trim();
+                if (!s) {
+                    result = null;
+                } else {
+                    // Allow leading parentheses or '-' for negatives
+                    let sign = 1;
+                    if (/^\(.*\)$/.test(s)) {
+                        sign = -1;
+                        s = s.slice(1, -1).trim();
+                    }
+                    if (/^\s*-/.test(s)) {
+                        sign = -1;
+                        s = s.replace(/^\s*-/, '').trim();
+                    }
+
+                    let out = null;
+
+                    if (s.includes('/')) {
+                        // sign? (whole )? numerator / denominator
+                        // Examples:
+                        //  "1 1/2" => whole=1, num=1, den=2
+                        //  "1/2"   => whole=undefined, num=1, den=2
+                        const m = s.match(/^\s*(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s*$/);
+                        if (m) {
+                            const whole = allowWhole && m[1] ? parseInt(m[1], 10) : 0;
+                            const num = parseInt(m[2], 10);
+                            let den = parseInt(m[3], 10);
+
+                            // If mask fixes the denominator, enforce it
+                            if (fixedDen) den = fixedDen;
+
+                            if (den !== 0) {
+                                out = sign * (whole + num / den);
+                            }
+                        }
+                    } else {
+                        // No slash → treats as a plain number (e.g., whole only)
+                        const plain = Number(s.replace(',', '.'));
+                        if (!Number.isNaN(plain)) {
+                            out = sign * Math.abs(plain);
                         }
                     }
-                } else {
-                    // No slash → treats as a plain number (e.g., whole only)
-                    const plain = Number(s.replace(',', '.'));
-                    if (!Number.isNaN(plain)) {
-                        out = sign * Math.abs(plain);
-                    }
+
+                    result = out;
                 }
+            } else {
+                // Default fallback — numeric/currency/percent/etc.
+                result = Extract(value, config);
+                // Adjust percent
+                if (type === 'percentage' && ('' + value).indexOf('%') !== -1) {
+                    result = result / 100;
+                }
+            }
 
-                result = out;
+            o.value = result;
+
+            if (!o.type && type) {
+                o.type = type;
             }
-        } else {
-            // Default fallback — numeric/currency/percent/etc.
-            result = Extract(value, config);
-            // Adjust percent
-            if (type === 'percentage' && ('' + value).indexOf('%') !== -1) {
-                result = result / 100;
-            }
+
+            return returnObject ? o : result;
         }
 
-        o.value = result;
-
-        if (! o.type && type) {
-            o.type = type;
-        }
-
-        return returnObject ? o : result;
+        return value;
     };
 
     Component.render = function(value, options, fullMask) {
@@ -2558,90 +2569,90 @@ function Mask() {
         // Config
         const config = getConfig(options, value);
 
-        if (! config.mask) {
-            return value;
-        }
-
-        // Percentage
-        if (config.type === 'datetime') {
-            var t = Component.getDateString(value, config.mask);
-            if (t) {
-                value = t;
-            } else {
-                return '';
-            }
-        } else if (config.type === 'text') {
-            // Parse number
-            if (typeof(value) === 'number') {
-                value = value.toString();
-            }
-        } else {
-            if (config.type === 'percentage') {
-                if (typeof(value) === 'string' && value.indexOf('%') !== -1) {
-                    value = value.replace('%', '');
+        if (config.locale) {
+            value = Component(value, options);
+        } else if (config.mask) {
+            // Percentage
+            if (config.type === 'datetime') {
+                var t = Component.getDateString(value, config.mask);
+                if (t) {
+                    value = t;
                 } else {
-                    value = adjustPrecision(Number(value) * 100);
+                    return '';
+                }
+            } else if (config.type === 'text') {
+                // Parse number
+                if (typeof (value) === 'number') {
+                    value = value.toString();
                 }
             } else {
-                if (config.mask.includes(',,M')) {
-                    if (typeof(value) === 'string' && value.indexOf('M') !== -1) {
-                        value = value.replace('M', '');
+                if (config.type === 'percentage') {
+                    if (typeof (value) === 'string' && value.indexOf('%') !== -1) {
+                        value = value.replace('%', '');
                     } else {
-                        value = Number(value) / 1000000;
+                        value = adjustPrecision(Number(value) * 100);
                     }
-                } else if (config.mask.includes(',,,B')) {
-                    if (typeof(value) === 'string' && value.indexOf('B') !== -1) {
-                        value = value.replace('B', '');
-                    } else {
-                        value = Number(value) / 1000000000;
-                    }
-                }
-            }
-
-            if (typeof(value) === 'string' && isNumber(value)) {
-                value = Number(value);
-            }
-
-            if (typeof value === 'number') {
-                // Temporary value
-                let temp = value;
-
-                if (config.type === 'fraction') {
-                    temp = formatFraction(value, config.mask);
                 } else {
-                    if (fullMask) {
-                        temp = adjustNumberOfDecimalPlaces(config, value);
-
-                        if (config.type === 'scientific') {
-                            return temp;
+                    if (config.mask.includes(',,M')) {
+                        if (typeof (value) === 'string' && value.indexOf('M') !== -1) {
+                            value = value.replace('M', '');
+                        } else {
+                            value = Number(value) / 1000000;
+                        }
+                    } else if (config.mask.includes(',,,B')) {
+                        if (typeof (value) === 'string' && value.indexOf('B') !== -1) {
+                            value = value.replace('B', '');
+                        } else {
+                            value = Number(value) / 1000000000;
                         }
                     }
                 }
 
-                value = toPlainString(temp);
+                if (typeof (value) === 'string' && isNumber(value)) {
+                    value = Number(value);
+                }
 
-                if (config.decimal === ',') {
-                    value = value.replace('.', config.decimal);
+                if (typeof value === 'number') {
+                    // Temporary value
+                    let temp = value;
+
+                    if (config.type === 'fraction') {
+                        temp = formatFraction(value, config.mask);
+                    } else {
+                        if (fullMask) {
+                            temp = adjustNumberOfDecimalPlaces(config, value);
+
+                            if (config.type === 'scientific') {
+                                return temp;
+                            }
+                        }
+                    }
+
+                    value = toPlainString(temp);
+
+                    if (config.decimal === ',') {
+                        value = value.replace('.', config.decimal);
+                    }
                 }
             }
-        }
 
-        // Process mask
-        let control = Component(value, options, true);
-        // Complement render
-        if (fullMask) {
-            processNumOfPaddingZeros(control);
-        }
-
-        value = getValue(control);
-
-        if (options.input && options.input.tagName) {
-            if (options.input.contentEditable) {
-                options.input.textContent = value;
-            } else {
-                options.input.value = value;
+            // Process mask
+            let control = Component(value, options, true);
+            // Complement render
+            if (fullMask) {
+                processNumOfPaddingZeros(control);
             }
-            focus(options.input);
+
+            value = getValue(control);
+
+            if (options.input && options.input.tagName) {
+                if (options.input.contentEditable) {
+                    options.input.textContent = value;
+                } else {
+                    options.input.value = value;
+                }
+                focus(options.input);
+            }
         }
 
         return value;
