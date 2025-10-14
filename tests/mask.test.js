@@ -490,6 +490,66 @@ describe('jSuites mask', () => {
         });
     })
 
+    describe('Extract with locale', () => {
+        test('Extract pt-BR currency (R$)', () => {
+            expect(jSuites.mask.extract('R$ 1.024,00', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(1024);
+            expect(jSuites.mask.extract('R$ 1.234,56', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(1234.56);
+            expect(jSuites.mask.extract('R$ 999.999,99', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(999999.99);
+        });
+
+        test('Extract en-US currency ($)', () => {
+            expect(jSuites.mask.extract('$1,024.00', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(1024);
+            expect(jSuites.mask.extract('$1,234.56', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(1234.56);
+            expect(jSuites.mask.extract('$999,999.99', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(999999.99);
+        });
+
+        test('Extract de-DE currency (€)', () => {
+            expect(jSuites.mask.extract('1.024,00 €', { locale: 'de-DE', options: { style: 'currency', currency: 'EUR' } })).toBe(1024);
+            expect(jSuites.mask.extract('1.234,56 €', { locale: 'de-DE', options: { style: 'currency', currency: 'EUR' } })).toBe(1234.56);
+            expect(jSuites.mask.extract('999.999,99 €', { locale: 'de-DE', options: { style: 'currency', currency: 'EUR' } })).toBe(999999.99);
+        });
+
+        test('Extract fr-FR currency (€)', () => {
+            // French uses non-breaking space as thousands separator
+            expect(jSuites.mask.extract('1 024,00 €', { locale: 'fr-FR', options: { style: 'currency', currency: 'EUR' } })).toBe(1024);
+            expect(jSuites.mask.extract('1 234,56 €', { locale: 'fr-FR', options: { style: 'currency', currency: 'EUR' } })).toBe(1234.56);
+        });
+
+        test('Extract pt-BR decimal numbers', () => {
+            expect(jSuites.mask.extract('1.024,00', { locale: 'pt-BR', options: { style: 'decimal' } })).toBe(1024);
+            expect(jSuites.mask.extract('1.234,56', { locale: 'pt-BR', options: { style: 'decimal' } })).toBe(1234.56);
+            expect(jSuites.mask.extract('123,45', { locale: 'pt-BR', options: { style: 'decimal' } })).toBe(123.45);
+        });
+
+        test('Extract en-US decimal numbers', () => {
+            expect(jSuites.mask.extract('1,024.00', { locale: 'en-US', options: { style: 'decimal' } })).toBe(1024);
+            expect(jSuites.mask.extract('1,234.56', { locale: 'en-US', options: { style: 'decimal' } })).toBe(1234.56);
+            expect(jSuites.mask.extract('123.45', { locale: 'en-US', options: { style: 'decimal' } })).toBe(123.45);
+        });
+
+        test('Extract negative numbers with locale', () => {
+            expect(jSuites.mask.extract('-R$ 1.024,00', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(-1024);
+            expect(jSuites.mask.extract('-$1,024.00', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(-1024);
+            expect(jSuites.mask.extract('-1.024,00 €', { locale: 'de-DE', options: { style: 'currency', currency: 'EUR' } })).toBe(-1024);
+        });
+
+        test('Extract percent with locale', () => {
+            expect(jSuites.mask.extract('50%', { locale: 'en-US', options: { style: 'percent' } })).toBe(0.5);
+            expect(jSuites.mask.extract('25,5%', { locale: 'pt-BR', options: { style: 'percent' } })).toBe(0.255);
+            expect(jSuites.mask.extract('12,34%', { locale: 'de-DE', options: { style: 'percent' } })).toBe(0.1234);
+        });
+
+        test('Extract large numbers with locale', () => {
+            expect(jSuites.mask.extract('R$ 1.234.567,89', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(1234567.89);
+            expect(jSuites.mask.extract('$1,234,567.89', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(1234567.89);
+        });
+
+        test('Extract zero with locale', () => {
+            expect(jSuites.mask.extract('R$ 0,00', { locale: 'pt-BR', options: { style: 'currency', currency: 'BRL' } })).toBe(0);
+            expect(jSuites.mask.extract('$0.00', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } })).toBe(0);
+        });
+    })
+
     describe('Event handling', () => {
         // Helper function to create and test input
         const testInputMask = (mask, testCases) => {

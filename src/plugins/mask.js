@@ -1412,7 +1412,7 @@ function Mask() {
         }
 
         // Decimal only for numbers
-        if (isNumeric(control.type)) {
+        if (isNumeric(control.type) || control.locale) {
             control.decimal = getDecimal.call(control);
         }
 
@@ -2454,7 +2454,9 @@ function Mask() {
         if (options.locale) {
             const config = getConfig(options, value);
             config.value = Extract(value, config);
-
+            if (value.toString().indexOf('%') !== -1) {
+                config.value /= 100;
+            }
             return returnObject ? config : config.value;
         } else if (options.mask) {
             let mask = options.mask.split(';')[0];
