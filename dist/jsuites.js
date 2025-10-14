@@ -4956,7 +4956,7 @@ if (!Modal && "function" === 'function') {
             let a = Object.values(options);
             return method(...a);
         } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
+            return this.dispatchEvent(new CustomEvents(type, options));
         }
     }
 
@@ -5562,7 +5562,22 @@ if (!Modal && "function" === 'function') {
             });
         }
 
+        const normalizeData = function(result) {
+            if (result && result.length) {
+                return result.map((v) => {
+                    if (typeof v === 'string' || typeof v === 'number') {
+                        return { value: v, text: v };
+                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
+                        return { value: v.id, text: v.name };
+                    } else {
+                        return v;
+                    }
+                });
+            }
+        }
+
         const loadData = function(result) {
+            result = normalizeData(result);
             // Loading controls
             lazyloading = lazyLoading(self);
             // Loading new data from a remote source
@@ -5586,6 +5601,7 @@ if (!Modal && "function" === 'function') {
         }
 
         const resetData = function(result) {
+            result = normalizeData(result);
             // Reset cursor
             removeCursor(true);
             let r = data.filter(item => {
@@ -5600,6 +5616,12 @@ if (!Modal && "function" === 'function') {
             self.rows = r;
             // Remove loading spin
             self.input.classList.remove('lm-dropdown-loading');
+
+            // Event
+            Dispatch.call(self, self.onsearch, 'search', {
+                instance: self,
+                result: result,
+            });
         }
 
         const getInput = function() {
@@ -5608,54 +5630,64 @@ if (!Modal && "function" === 'function') {
 
         const search = function(query) {
             if (! self.isClosed() && self.autocomplete) {
-                // Filter options
-                let temp;
 
-                const find = (prop) => {
-                    if (prop) {
-                        if (Array.isArray(prop)) {
-                            // match if ANY element contains the query (case-insensitive)
-                            return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
+                // Remote or normal search
+                if (self.remote === true) {
+                    // Clear existing timeout
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                    }
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Headers
+                    let http = {
+                        headers: {
+                            'Content-Type': 'text/json',
                         }
-                        // handle strings/numbers/others
-                        return prop.toString().toLowerCase().includes(query);
                     }
-                    return false;
-                };
-
-                if (! query) {
-                    temp = data;
-                } else {
-                    temp = data.filter(item => {
-                        return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
+                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
+                        instance: self,
+                        http: http,
+                        query: query,
                     });
-                }
 
-                let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
-                    instance: self,
-                    query: query,
-                    result: temp,
-                });
-
-                if (typeof(ret) !== 'undefined') {
                     if (ret === false) {
-                        // Do nothing
-                        return false;
-                    } else if (Array.isArray(ret)) {
-                        temp = ret;
+                        return;
                     }
-                }
 
-                // Cursor
-                removeCursor(true);
-                // Update the data from the dropdown
-                self.rows = temp;
-                // Event
-                Dispatch.call(self, self.onsearch, 'search', {
-                    instance: self,
-                    query: query,
-                    result: temp,
-                });
+                    // Debounce the search with 300ms delay
+                    searchTimeout = setTimeout(() => {
+                        fetch(`${self.url}?q=${query}`, http).then(r => r.json()).then(resetData);
+                    }, 300);
+                } else {
+                    // Filter options
+                    let temp;
+
+                    const find = (prop) => {
+                        if (prop) {
+                            if (Array.isArray(prop)) {
+                                // match if ANY element contains the query (case-insensitive)
+                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
+                            }
+                            // handle strings/numbers/others
+                            return prop.toString().toLowerCase().includes(query);
+                        }
+                        return false;
+                    };
+
+                    if (! query) {
+                        temp = data;
+                    } else {
+                        temp = data.filter(item => {
+                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
+                        });
+                    }
+
+                    // Cursor
+                    removeCursor(true);
+                    // Update the data from the dropdown
+                    self.rows = temp;
+                }
             }
         }
 
@@ -5752,27 +5784,7 @@ if (!Modal && "function" === 'function') {
             },
             input: (e) => {
                 if (e.target.classList.contains('lm-dropdown-input')) {
-                    let query = e.target.textContent.toLowerCase();
-                    // Remote or normal search
-                    if (self.remote === true) {
-                        // Clear existing timeout
-                        if (searchTimeout) {
-                            clearTimeout(searchTimeout);
-                        }
-                        // Loading spin
-                        self.input.classList.add('lm-dropdown-loading');
-                        // Debounce the search with 300ms delay
-                        searchTimeout = setTimeout(() => {
-                            // Load remote data
-                            fetch(`${self.url}?q=${query}`, {
-                                headers: {
-                                    'Content-Type': 'text/json',
-                                }
-                            }).then(r => r.json()).then(resetData);
-                        }, 300);
-                    } else {
-                        search(query);
-                    }
+                    search(e.target.textContent.toLowerCase());
                 }
             },
         }
@@ -7684,12 +7696,12 @@ if (!Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 879:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_279287__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_279683__) {
 
 
 
 if (! Contextmenu && "function" === 'function') {
-    var Contextmenu = __nested_webpack_require_279287__(319);
+    var Contextmenu = __nested_webpack_require_279683__(319);
 }
 
 ; (function (global, factory) {
@@ -7942,7 +7954,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_287421__(moduleId) {
+/******/ 	function __nested_webpack_require_287817__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -7956,7 +7968,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_287421__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_287817__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -7966,11 +7978,11 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nested_webpack_require_287421__.n = function(module) {
+/******/ 		__nested_webpack_require_287817__.n = function(module) {
 /******/ 			var getter = module && module.__esModule ?
 /******/ 				function() { return module['default']; } :
 /******/ 				function() { return module; };
-/******/ 			__nested_webpack_require_287421__.d(getter, { a: getter });
+/******/ 			__nested_webpack_require_287817__.d(getter, { a: getter });
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
@@ -7978,9 +7990,9 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
-/******/ 		__nested_webpack_require_287421__.d = function(exports, definition) {
+/******/ 		__nested_webpack_require_287817__.d = function(exports, definition) {
 /******/ 			for(var key in definition) {
-/******/ 				if(__nested_webpack_require_287421__.o(definition, key) && !__nested_webpack_require_287421__.o(exports, key)) {
+/******/ 				if(__nested_webpack_require_287817__.o(definition, key) && !__nested_webpack_require_287817__.o(exports, key)) {
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
@@ -7989,7 +8001,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
-/******/ 		__nested_webpack_require_287421__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 		__nested_webpack_require_287817__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
 /************************************************************************/
@@ -7997,24 +8009,24 @@ var __nested_webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 !function() {
 "use strict";
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_287421__(673);
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_287421__(98);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_287421__(319);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_287421__(960);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_287421__(392);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_287421__(711);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_287421__(979);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_287421__(879);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_287421__(712);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_287421__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_287817__(673);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_287817__(98);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_287817__(319);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_287817__(960);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_287817__(392);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_287817__(711);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_287817__(979);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_287817__(879);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_287817__(712);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_287817__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
 
 
 
@@ -9499,12 +9511,12 @@ studio = __nested_webpack_exports__["default"];
                                         // Bind event
                                         if (typeof(handler) === 'function') {
                                             eventHandler = function(e) {
-                                                handler.call(element, e, lemon.self);
+                                                return handler.call(element, e, lemon.self);
                                             }
                                         } else {
                                             // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP). TODO: unify order of arguments
                                             eventHandler = function (e) {
-                                                Function('self', 'e', value).call(element, lemon.self, e);
+                                                return Function('self', 'e', value).call(element, lemon.self, e);
                                             }
                                         }
 
@@ -24758,7 +24770,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.6',
+    version: '6.0.0-beta.7',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
