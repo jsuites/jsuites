@@ -3191,13 +3191,26 @@ if (! Modal && "function" === 'function') {
             // Update the headers of the calendar
             let value = d.toISOString().substring(0,10).split('-');
             let time = d.toISOString().substring(11,19).split(':');
-            // Update the month label
-            self.month = Helpers.months[parseInt(value[1])-1];
-            // Update the year label
-            self.year = parseInt(value[0]);
-            // Hour
-            self.hour = parseInt(time[0]);
-            self.minute = parseInt(time[1]);
+            let month = Helpers.months[parseInt(value[1])-1];
+            let year = parseInt(value[0]);
+            let hour = parseInt(time[0]);
+            let minute = parseInt(time[1]);
+
+            if (self.month !== month) {
+                // Update the month label
+                self.month = month;
+            }
+            if (self.year !== year) {
+                // Update the year label
+                self.year = year;
+
+            }
+            if (self.hour !== hour) {
+                self.hour = hour;
+            }
+            if (self.minute !== minute) {
+                self.minute = minute;
+            }
 
             // Load data
             if (! self.view) {
@@ -3397,7 +3410,7 @@ if (! Modal && "function" === 'function') {
 
         const renderValue = function() {
             let value = null;
-            if (self.range) {
+            if (self.range === true) {
                 if (Array.isArray(self.rangeValues)) {
                     if (self.numeric) {
                         value = self.rangeValues;
@@ -3418,7 +3431,7 @@ if (! Modal && "function" === 'function') {
         }
 
         const updateValue = function(v) {
-            if (self.range) {
+            if (self.range === true) {
                 if (v) {
                     if (! Array.isArray(v)) {
                         v = v.toString().split(',');
@@ -3478,7 +3491,7 @@ if (! Modal && "function" === 'function') {
             let input = getInput();
             let value = self.value;
             if (input) {
-                let v;
+                let v = value;
                 if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
                     isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
                     v = input.value;
@@ -3487,7 +3500,7 @@ if (! Modal && "function" === 'function') {
                     v = input.textContent;
                 }
 
-                let ret = value;
+                let ret = v;
                 if (ret && Number(ret) == ret) {
                     ret = Helpers.numToDate(ret);
                 }
@@ -3736,42 +3749,46 @@ if (! Modal && "function" === 'function') {
         }
 
         self.setValue = function(v) {
-            // Destroy range
-            destroyRange();
-            // Update the internal controllers
-            updateValue(v);
             // Events
             if (v !== self.value) {
                 // Update value
                 self.value = v;
-                // Events
-                Dispatch.call(self, change, 'change', {
+            }
+        }
+
+        const dispatchOnChangeEvent = function() {
+            // Destroy range
+            destroyRange();
+            // Update the internal controllers
+            updateValue(self.value);
+            // Events
+            Dispatch.call(self, change, 'change', {
+                instance: self,
+                value: self.value,
+            });
+            // Update input
+            let input = getInput();
+            if (input) {
+                let v = self.value;
+                if (self.format && v) {
+                    if (self.range === true) {
+                        if (v[0]) {
+                            v[0] = Mask.render(v[0], self.format);
+                        }
+                        if (v[1]) {
+                            v[1] = Mask.render(v[1], self.format);
+                        }
+                    } else {
+                        v = Mask.render(v, self.format);
+                    }
+                }
+                // Update input value
+                input.value = v;
+                // Dispatch event
+                Dispatch.call(input, null, 'change', {
                     instance: self,
                     value: self.value,
                 });
-                // Update input
-                let input = getInput();
-                if (input) {
-                    if (self.format && v) {
-                        if (self.range) {
-                            if (v[0]) {
-                                v[0] = Mask.render(v[0], self.format);
-                            }
-                            if (v[1]) {
-                                v[1] = Mask.render(v[1], self.format);
-                            }
-                        } else {
-                            v = Mask.render(v, self.format);
-                        }
-                    }
-                    // Update input value
-                    input.value = v;
-                    // Dispatch event
-                    Dispatch.call(input, null, 'change', {
-                        instance: self,
-                        value: self.value,
-                    });
-                }
             }
         }
 
@@ -3792,11 +3809,17 @@ if (! Modal && "function" === 'function') {
                     self.options = views[self.view].call(self, date);
                 }
             } else if (prop === 'value') {
-                self.setValue(self.value);
+                dispatchOnChangeEvent();
             } else if (prop === 'startingDay') {
                 self.weekdays = getWeekdays(self.startingDay ?? 0);
             }
         });
+
+        // Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
 
         onload(function() {
             if (self.type !== "inline") {
@@ -3824,9 +3847,7 @@ if (! Modal && "function" === 'function') {
 
             // Create input controls
             if (self.input && self.initInput !== false) {
-                if (self.input === 'auto') {
-                    self.input = document.createElement('input');
-                    self.input.type = 'text';
+                if (! self.input.parentNode) {
                     self.el.parentNode.insertBefore(self.input, self.el);
                 }
 
@@ -3992,16 +4013,16 @@ if (! Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 98:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_154331__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_154769__) {
 
 
 
 if (! Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_154331__(392);
+    var Modal = __nested_webpack_require_154769__(392);
 }
 
 if (! Tabs && "function" === 'function') {
-    var Tabs = __nested_webpack_require_154331__(979);
+    var Tabs = __nested_webpack_require_154769__(979);
 }
 
 ; (function (global, factory) {
@@ -4257,8 +4278,11 @@ if (! Tabs && "function" === 'function') {
         const set = function(v) {
             value = v;
             // Close
-            if (self.closeOnChange) {
-                self.close({ origin: 'button' });
+            if (self.closeOnChange === true) {
+                // Update value
+                self.setValue(v);
+                // Close modal
+                self.close({ origin: 'select' });
             }
         }
 
@@ -4342,6 +4366,12 @@ if (! Tabs && "function" === 'function') {
             }
         });
 
+        // Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
         onload(() => {
             if (self.type !== "inline") {
                 // Create modal instance
@@ -4360,9 +4390,7 @@ if (! Tabs && "function" === 'function') {
 
             // Create input controls
             if (self.input && self.initInput !== false) {
-                if (self.input === 'auto') {
-                    self.input = document.createElement('input');
-                    self.input.type = 'text';
+                if (! self.input.parentNode) {
                     self.el.parentNode.insertBefore(self.input, self.el);
                 }
 
@@ -4427,12 +4455,12 @@ if (! Tabs && "function" === 'function') {
 /***/ }),
 
 /***/ 319:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_170620__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_171222__) {
 
 
 
 if (! Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_170620__(392);
+    var Modal = __nested_webpack_require_171222__(392);
 }
 
 ; (function (global, factory) {
@@ -4910,7 +4938,7 @@ if (! Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 960:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_186973__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_187575__) {
 
 /**
  * Implement page up and down navigation
@@ -4920,7 +4948,7 @@ if (! Modal && "function" === 'function') {
 
 
 if (!Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_186973__(392);
+    var Modal = __nested_webpack_require_187575__(392);
 }
 
 ; (function (global, factory) {
@@ -7700,12 +7728,12 @@ if (!Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 879:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_279938__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_280540__) {
 
 
 
 if (! Contextmenu && "function" === 'function') {
-    var Contextmenu = __nested_webpack_require_279938__(319);
+    var Contextmenu = __nested_webpack_require_280540__(319);
 }
 
 ; (function (global, factory) {
@@ -7958,7 +7986,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_288072__(moduleId) {
+/******/ 	function __nested_webpack_require_288674__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -7972,7 +8000,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_288072__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_288674__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -7982,11 +8010,11 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nested_webpack_require_288072__.n = function(module) {
+/******/ 		__nested_webpack_require_288674__.n = function(module) {
 /******/ 			var getter = module && module.__esModule ?
 /******/ 				function() { return module['default']; } :
 /******/ 				function() { return module; };
-/******/ 			__nested_webpack_require_288072__.d(getter, { a: getter });
+/******/ 			__nested_webpack_require_288674__.d(getter, { a: getter });
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
@@ -7994,9 +8022,9 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
-/******/ 		__nested_webpack_require_288072__.d = function(exports, definition) {
+/******/ 		__nested_webpack_require_288674__.d = function(exports, definition) {
 /******/ 			for(var key in definition) {
-/******/ 				if(__nested_webpack_require_288072__.o(definition, key) && !__nested_webpack_require_288072__.o(exports, key)) {
+/******/ 				if(__nested_webpack_require_288674__.o(definition, key) && !__nested_webpack_require_288674__.o(exports, key)) {
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
@@ -8005,7 +8033,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
-/******/ 		__nested_webpack_require_288072__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 		__nested_webpack_require_288674__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
 /************************************************************************/
@@ -8013,24 +8041,24 @@ var __nested_webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 !function() {
 "use strict";
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_288072__(673);
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_288072__(98);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_288072__(319);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_288072__(960);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_288072__(392);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_288072__(711);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_288072__(979);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_288072__(879);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_288072__(712);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_288072__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_288674__(673);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_288674__(98);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_288674__(319);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_288674__(960);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_288674__(392);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_288674__(711);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_288674__(979);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_288674__(879);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_288674__(712);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_288674__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
 
 
 
@@ -9514,20 +9542,24 @@ studio = __nested_webpack_exports__["default"];
                                         let eventHandler;
                                         // Bind event
                                         if (typeof(handler) === 'function') {
-                                            eventHandler = function(e) {
-                                                return handler.call(element, e, lemon.self);
+                                            eventHandler = function(e, a, b) {
+                                                return handler.call(element, e, lemon.self, a, b);
                                             }
                                         } else {
-                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP). TODO: unify order of arguments
-                                            eventHandler = function (e) {
-                                                return Function('self', 'e', value).call(element, lemon.self, e);
+                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
+                                            eventHandler = function (e, a, b) {
+                                                return Function('self', 'e', value).call(element, e, lemon.self, a, b);
                                             }
                                         }
 
                                         if (isValidEventName(element, prop.name)) {
                                             element.addEventListener(event.substring(2), eventHandler);
                                         } else {
-                                            element[event] = eventHandler;
+                                            if (element.tagName?.includes('-')) {
+                                                element[event] = handler;
+                                            } else {
+                                                element[event] = eventHandler;
+                                            }
                                         }
                                     } else {
                                         item.self[event] = handler || value;

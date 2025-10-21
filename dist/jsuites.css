@@ -3365,6 +3365,15 @@ body.lm-application {
     background-size: 200% 100%;
 }
 
+.lm-icon {
+    font-family: "Material Symbols Outlined", "Material Icons", "FontAwesome";
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-style: normal;
+}
+
 @keyframes lm-loading {
     from {
         background-position: 100% 0;
