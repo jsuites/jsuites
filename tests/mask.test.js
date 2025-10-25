@@ -330,41 +330,41 @@ describe('jSuites mask', () => {
     describe('Auto casting', () => {
         // Dates
         test('should detect common date formats', () => {
-            expect(jSuites.mask.autoCasting("25/12/2025")).toEqual({ mask: 'dd/mm/yyyy', value: 46016 });
-            expect(jSuites.mask.autoCasting("12/25/2025")).toEqual({ mask: 'mm/dd/yyyy', value: 46016 });
-            expect(jSuites.mask.autoCasting("2025-12-25")).toEqual({ mask: 'yyyy-mm-dd', value: 46016 });
+            expect(jSuites.mask.autoCasting("25/12/2025")).toEqual({ mask: 'dd/mm/yyyy', value: 46016, type: 'date', category: 'datetime' });
+            expect(jSuites.mask.autoCasting("12/25/2025")).toEqual({ mask: 'mm/dd/yyyy', value: 46016, type: 'date', category: 'datetime' });
+            expect(jSuites.mask.autoCasting("2025-12-25")).toEqual({ mask: 'yyyy-mm-dd', value: 46016, type: 'date', category: 'datetime' });
         });
 
         test('should detect dates with month names', () => {
-            expect(jSuites.mask.autoCasting("25 Dec 2025")).toEqual({ mask: 'dd mmm yyyy', value: 46016 });
-            expect(jSuites.mask.autoCasting("December 25, 2025")).toEqual({ mask: 'mmmm dd, yyyy', value: 46016 });
+            expect(jSuites.mask.autoCasting("25 Dec 2025")).toEqual({ mask: 'dd mmm yyyy', value: 46016, type: 'date', category: 'datetime' });
+            expect(jSuites.mask.autoCasting("December 25, 2025")).toEqual({ mask: 'mmmm dd, yyyy', value: 46016, type: 'date', category: 'datetime' });
         });
 
         test('should detect time formats', () => {
-            expect(jSuites.mask.autoCasting("14:30:45")).toEqual({ mask: 'hh:mm:ss', value: 0.6046874999999999 }); // 14.5/24
-            expect(jSuites.mask.autoCasting("2:30 PM")).toEqual({ mask: 'h:mm am/pm', value: 0.6041666666666666 }); // 14.5/24
+            expect(jSuites.mask.autoCasting("14:30:45")).toEqual({ mask: 'hh:mm:ss', value: 0.6046874999999999, type: 'time', category: 'datetime' }); // 14.5/24
+            expect(jSuites.mask.autoCasting("2:30 PM")).toEqual({ mask: 'h:mm am/pm', value: 0.6041666666666666, type: 'time', category: 'datetime' }); // 14.5/24
         });
 
         test('should detect combined datetime formats', () => {
-            expect(jSuites.mask.autoCasting("25/12/2025 14:30:00")).toEqual({ mask: 'dd/mm/yyyy hh:mm:ss', value: 46016.604166666664 });
+            expect(jSuites.mask.autoCasting("25/12/2025 14:30:00")).toEqual({ mask: 'dd/mm/yyyy hh:mm:ss', value: 46016.604166666664, type: 'date', category: 'datetime' });
         });
 
         // Currency
         test('should detect currency with dot separator', () => {
-            expect(jSuites.mask.autoCasting("$ 1,234.56")).toEqual({ mask: '$ #,##0.00', value: 1234.56 });
+            expect(jSuites.mask.autoCasting("$ 1,234.56")).toEqual({ mask: '$ #,##0.00', value: 1234.56, type: 'currency', category: 'numeric' });
         });
 
         test('should detect currency with comma separator (EU style)', () => {
-            expect(jSuites.mask.autoCasting("€ 1.234,56")).toEqual({ mask: '€ #.##0,00', value: 1234.56 });
+            expect(jSuites.mask.autoCasting("€ 1.234,56")).toEqual({ mask: '€ #.##0,00', value: 1234.56, type: 'currency', category: 'numeric' });
         });
 
         test('should detect negative currency', () => {
-            expect(jSuites.mask.autoCasting("($5,000.75)")).toEqual({ mask: '($#,##0.00)', value: -5000.75 });
+            expect(jSuites.mask.autoCasting("($5,000.75)")).toEqual({ mask: '($#,##0.00)', value: -5000.75, type: 'currency', category: 'numeric' });
         });
 
         test('should detect currency with letter prefixes', () => {
-            expect(jSuites.mask.autoCasting("R$ 1,500.00")).toEqual({ mask: 'R$ #,##0.00', value: 1500 });
-            expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ #,##0', value: 100 });
+            expect(jSuites.mask.autoCasting("R$ 1,500.00")).toEqual({ mask: 'R$ #,##0.00', value: 1500, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ 0', value: 100, type: 'currency', category: 'numeric' });
         });
 
         test('should reject letters without currency symbol', () => {
@@ -397,49 +397,116 @@ describe('jSuites mask', () => {
 
         // Percent
         test('should detect whole number percent', () => {
-            expect(jSuites.mask.autoCasting("50%")).toEqual({ mask: '0%', value: 0.5 });
+            expect(jSuites.mask.autoCasting("50%")).toEqual({ mask: '0%', value: 0.5, type: 'percent', category: 'numeric' });
         });
 
         test('should detect decimal percent', () => {
-            expect(jSuites.mask.autoCasting("25.5%")).toEqual({ mask: '0.0%', value: 0.255 });
+            expect(jSuites.mask.autoCasting("25.5%")).toEqual({ mask: '0.0%', value: 0.255, type: 'percent', category: 'numeric' });
         });
 
         // Fractions
         test('should detect simple fractions', () => {
-            expect(jSuites.mask.autoCasting("1/2")).toEqual({ mask: '?/2', value: 0.5 });
-            expect(jSuites.mask.autoCasting("3/4")).toEqual({ mask: '?/4', value: 0.75 });
+            expect(jSuites.mask.autoCasting("1/2")).toEqual({ mask: '?/2', value: 0.5, type: 'fraction', category: 'fraction' });
+            expect(jSuites.mask.autoCasting("3/4")).toEqual({ mask: '?/4', value: 0.75, type: 'fraction', category: 'fraction' });
         });
 
         test('should detect mixed numbers', () => {
-            expect(jSuites.mask.autoCasting("1 1/2")).toEqual({ mask: '# ?/2', value: 1.5 });
-            expect(jSuites.mask.autoCasting("2 3/8")).toEqual({ mask: '# ?/8', value: 2.375 });
+            expect(jSuites.mask.autoCasting("1 1/2")).toEqual({ mask: '# ?/2', value: 1.5, type: 'fraction', category: 'fraction' });
+            expect(jSuites.mask.autoCasting("2 3/8")).toEqual({ mask: '# ?/8', value: 2.375, type: 'fraction', category: 'fraction' });
         });
 
         // Scientific
         test('should detect scientific format', () => {
-            expect(jSuites.mask.autoCasting("1.23e+10")).toEqual({ mask: '0.00E+00', value: 12300000000 });
-            expect(jSuites.mask.autoCasting("-7.9998e+22")).toEqual({ mask: '0.0000E+00', value: -7.9998e+22 });
+            expect(jSuites.mask.autoCasting("1.23e+10")).toEqual({ mask: '0.00E+00', value: 12300000000, type: 'scientific', category: 'scientific' });
+            expect(jSuites.mask.autoCasting("-7.9998e+22")).toEqual({ mask: '0.0000E+00', value: -7.9998e+22, type: 'scientific', category: 'scientific' });
         });
 
         // Numeric
         test('should detect plain numbers', () => {
-            expect(jSuites.mask.autoCasting("123456")).toEqual({ mask: '0', value: 123456 });
-            expect(jSuites.mask.autoCasting("-789")).toEqual({ mask: '0', value: -789 });
+            expect(jSuites.mask.autoCasting("123456")).toEqual({ mask: '0', value: 123456, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("-789")).toEqual({ mask: '0', value: -789, type: 'number', category: 'numeric' });
         });
 
         test('should detect formatted numbers', () => {
-            expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25 });
-            expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25 });
+            expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25, type: 'number', category: 'numeric' });
         });
 
         test('should detect padded zeros', () => {
-            expect(jSuites.mask.autoCasting("000123")).toEqual({ mask: '000000', value: 123 });
+            expect(jSuites.mask.autoCasting("000123")).toEqual({ mask: '000000', value: 123, type: 'number', category: 'numeric' });
         });
 
         // General
         test('should return null for non-parsable input', () => {
             expect(jSuites.mask.autoCasting("hello world")).toBeNull();
             expect(jSuites.mask.autoCasting("**!@#")).toBeNull();
+        });
+
+        // Simple number masks (without group separators)
+        test('should detect simple decimal numbers without group separators', () => {
+            expect(jSuites.mask.autoCasting("1.1")).toEqual({ mask: '0.0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1,1")).toEqual({ mask: '0,0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("12.34")).toEqual({ mask: '0.00', value: 12.34, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("12,34")).toEqual({ mask: '0,00', value: 12.34, type: 'number', category: 'numeric' });
+        });
+
+        test('should use group separator mask only when actually present', () => {
+            // With group separator
+            expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25, type: 'number', category: 'numeric' });
+
+            // Without group separator
+            expect(jSuites.mask.autoCasting("100.25")).toEqual({ mask: '0.00', value: 100.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("100,25")).toEqual({ mask: '0,00', value: 100.25, type: 'number', category: 'numeric' });
+        });
+    });
+
+    describe('decimal parameter filtering', () => {
+        test('should filter out comma decimal masks when decimal parameter is dot', () => {
+            // Should accept dot decimals
+            expect(jSuites.mask.autoCasting("1.1", '.')).toEqual({ mask: '0.0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1,000.25", '.')).toEqual({ mask: '#,##0.00', value: 1000.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("$ 1,234.56", '.')).toEqual({ mask: '$ #,##0.00', value: 1234.56, type: 'currency', category: 'numeric' });
+
+            // Should reject comma decimals
+            expect(jSuites.mask.autoCasting("1,1", '.')).toBeNull();
+            expect(jSuites.mask.autoCasting("1.000,25", '.')).toBeNull();
+            expect(jSuites.mask.autoCasting("€ 1.234,56", '.')).toBeNull();
+        });
+
+        test('should filter out dot decimal masks when decimal parameter is comma', () => {
+            // Should accept comma decimals
+            expect(jSuites.mask.autoCasting("1,1", ',')).toEqual({ mask: '0,0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.000,25", ',')).toEqual({ mask: '#.##0,00', value: 1000.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("€ 1.234,56", ',')).toEqual({ mask: '€ #.##0,00', value: 1234.56, type: 'currency', category: 'numeric' });
+
+            // Should reject dot decimals
+            expect(jSuites.mask.autoCasting("1.1", ',')).toBeNull();
+            expect(jSuites.mask.autoCasting("1,000.25", ',')).toBeNull();
+            expect(jSuites.mask.autoCasting("$ 1,234.56", ',')).toBeNull();
+        });
+
+        test('should work normally when decimal parameter is not provided', () => {
+            // Should accept both
+            expect(jSuites.mask.autoCasting("1.1")).toEqual({ mask: '0.0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1,1")).toEqual({ mask: '0,0', value: 1.1, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25, type: 'number', category: 'numeric' });
+        });
+
+        test('should cache results separately for different decimal parameters', () => {
+            // Call with dot decimal
+            expect(jSuites.mask.autoCasting("1.23", '.')).toEqual({ mask: '0.00', value: 1.23, type: 'number', category: 'numeric' });
+
+            // Call with comma decimal - should return null
+            expect(jSuites.mask.autoCasting("1.23", ',')).toBeNull();
+
+            // Call without decimal parameter - should work
+            expect(jSuites.mask.autoCasting("1.23")).toEqual({ mask: '0.00', value: 1.23, type: 'number', category: 'numeric' });
+
+            // Verify cache is working by calling same values again
+            expect(jSuites.mask.autoCasting("1.23", '.')).toEqual({ mask: '0.00', value: 1.23, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.23", ',')).toBeNull();
         });
     });
 

@@ -12263,17 +12263,6 @@ function Mask() {
         regex: new RegExp(`^${s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&')}(\\s?)`)
     }));
 
-    // Pre-compile regexes for autoCastingCurrency
-    const negativeRegex = /^\s*[-(]/;
-    const parensRegex = /^\s*\(.+\)\s*$/;
-    const parensDashRegex = /[()\-]/g;
-    const prefixRegex = /^([A-Z]{1,2}[€$£¥₹₽₩₫¢])(\s?)/i;
-    const codePrefixRegex = /^([A-Z]{3})(\s+)/i;
-    const codeSuffixRegex = /([A-Z]{3})$/i;
-    const whitespaceRegex = /\s+/g;
-    const invalidCharsRegex = /[^0-9.,-]/;
-    const threeDigitsRegex = /^\d{3}$/;
-
     const hiddenCaret = "\u200B";
 
     // Locale for date parsing
@@ -13957,7 +13946,7 @@ function Mask() {
             }
 
             if (testMask(mask, decimalValue, value.trim())) {
-                return { mask, value: decimalValue };
+                return { mask, value: decimalValue, type: 'fraction', category: 'fraction' };
             }
         }
         return null;
@@ -13975,7 +13964,7 @@ function Mask() {
             const mask = decimalPlaces > 0 ? `0.${'0'.repeat(decimalPlaces)}%` : '0%';
 
             if (testMask(mask, decimalValue, value.trim())) {
-                return { mask: mask, value: decimalValue };
+                return { mask: mask, value: decimalValue, type: 'percent', category: 'numeric' };
             }
         }
         return null;
@@ -14193,6 +14182,8 @@ function Mask() {
                             return {
                                 mask: mask,
                                 value: excelNumber,
+                                type: 'date',
+                                category: 'datetime'
                             };
                         }
                     }
@@ -14205,7 +14196,7 @@ function Mask() {
         return null;
     };
 
-    const autoCastingCurrency = function (input) {
+    const autoCastingCurrency = function (input, filterDecimal) {
         if (typeof input !== 'string') return null;
 
         const str = input.trim();
@@ -14358,6 +14349,16 @@ function Mask() {
             }
         }
 
+        // Filter based on filterDecimal if provided
+        if (filterDecimal && decimal !== filterDecimal) {
+            return null;
+        }
+
+        // Check if group separator is actually used in the input
+        const hasGroupSeparator = (group === ',' && commaCount > 1) || (group === '.' && dotCount > 1) ||
+                                  (group === ',' && decimal === '.' && commaCount > 0) ||
+                                  (group === '.' && decimal === ',' && dotCount > 0);
+
         // Normalize: remove group separator, convert decimal to '.'
         let normalized = '';
         for (let i = 0; i < numericPart.length; i++) {
@@ -14379,7 +14380,7 @@ function Mask() {
         const dotPos = normalized.indexOf('.');
         const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
         const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
-        const groupMask = '#' + group + '##0';
+        const groupMask = hasGroupSeparator ? '#' + group + '##0' : '0';
         let mask = symbol + groupMask + maskDecimal;
 
         if (isNegative) {
@@ -14388,14 +14389,16 @@ function Mask() {
 
         return {
             mask,
-            value: finalValue
+            value: finalValue,
+            type: 'currency',
+            category: 'numeric'
         };
     }
 
-    const autoCastingNumber = function (input) {
+    const autoCastingNumber = function (input, filterDecimal) {
         // If you currently support numeric inputs directly, keep this:
         if (typeof input === 'number' && Number.isFinite(input)) {
-            return { mask: '0', value: input };
+            return { mask: '0', value: input, type: 'number', category: 'numeric' };
         }
 
         if (typeof input !== 'string') {
@@ -14413,7 +14416,7 @@ function Mask() {
             const leadingZeros = m ? m[0].length : 0;
             const mask = leadingZeros > 0 ? '0'.repeat(rawDigits.length) : '0';
             const value = Number(sign + digitsClean);
-            return { mask, value };
+            return { mask, value, type: 'number', category: 'numeric' };
         }
 
         // Check for formatted numbers with thousand separators (no letters, no symbols)
@@ -14458,6 +14461,16 @@ function Mask() {
                 }
             }
 
+            // Filter based on filterDecimal if provided
+            if (filterDecimal && decimal !== filterDecimal) {
+                return null;
+            }
+
+            // Check if group separator is actually used in the input
+            const hasGroupSeparator = (group === ',' && commaCount > 1) || (group === '.' && dotCount > 1) ||
+                                      (group === ',' && decimal === '.' && commaCount > 0) ||
+                                      (group === '.' && decimal === ',' && dotCount > 0);
+
             // Normalize: remove group separator, convert decimal to '.'
             let normalized = numStr.replace(new RegExp('\\' + group, 'g'), '').replace(decimal, '.');
             const parsed = parseFloat(normalized);
@@ -14469,9 +14482,9 @@ function Mask() {
             const dotPos = normalized.indexOf('.');
             const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
             const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
-            const mask = (group ? '#' + group + '##0' : '0') + maskDecimal;
+            const mask = (hasGroupSeparator ? '#' + group + '##0' : '0') + maskDecimal;
 
-            return { mask, value };
+            return { mask, value, type: 'number', category: 'numeric' };
         }
 
         return null;
@@ -14496,7 +14509,9 @@ function Mask() {
 
         return {
             mask,
-            value: parsed
+            value: parsed,
+            type: 'scientific',
+            category: 'scientific'
         };
     }
 
@@ -14533,7 +14548,7 @@ function Mask() {
 
         // Verify we can render back exactly what the user typed
         if (testMask(mask, excel, original)) {            // uses Component.render under the hood
-            return { mask: mask, value: excel};
+            return { mask: mask, value: excel, type: 'time', category: 'datetime' };
         }
 
         // Try alternate hour width if needed
@@ -14543,7 +14558,7 @@ function Mask() {
             : `${altHour}${base.slice(hourToken.length)}`;
 
         if (testMask(alt, excel, original)) {
-            return { mask: alt, value: excel };
+            return { mask: alt, value: excel, type: 'time', category: 'datetime' };
         }
 
         return null;
@@ -14611,10 +14626,12 @@ function Mask() {
 
     /**
      * Try to get which mask that can transform the number in that format
+     * @param {string|number} value - The value to detect the mask for
+     * @param {string} [decimal] - Optional decimal separator filter ('.' or ',')
      */
-    Component.autoCasting = function(value) {
-        // Check cache first - use string value as key
-        const cacheKey = String(value);
+    Component.autoCasting = function(value, decimal) {
+        // Check cache first - use string value and decimal as key
+        const cacheKey = decimal ? String(value) + '|' + decimal : String(value);
         let cached = autoCastingCache[cacheKey];
         if (cached !== undefined) {
             return cached;
@@ -14626,8 +14643,8 @@ function Mask() {
             autoCastingFractions,    // Specific pattern with slashes
             autoCastingPercent,      // Recognizable with "%"
             autoCastingScientific,
-            autoCastingNumber,       // Only picks up basic digits, decimals, leading 0s
-            autoCastingCurrency,     // Complex formats, but recognizable
+            (v) => autoCastingNumber(v, decimal),       // Only picks up basic digits, decimals, leading 0s
+            (v) => autoCastingCurrency(v, decimal),     // Complex formats, but recognizable
         ];
 
         let result = null;
