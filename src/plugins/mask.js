@@ -30,7 +30,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_\\(', '_\\)', '\\(', '\\)', '_-', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_[.\\s\\S]', '\\(', '\\)', '.']
     }
 
     // All expressions
@@ -1011,12 +1011,7 @@ function Mask() {
             }
             this.values[this.index] += v;
         },
-        '_\\(': function() {
-            this.values[this.index] = ' ';
-            this.index++;
-            return false;
-        },
-        '_\\)': function() {
+        '_[.\\s\\S]': function() {
             this.values[this.index] = ' ';
             this.index++;
             return false;
@@ -1036,11 +1031,6 @@ function Mask() {
             } else {
                 this.values[this.index] = ')';
             }
-            this.index++;
-            return false;
-        },
-        '_-': function() {
-            this.values[this.index] = ' ';
             this.index++;
             return false;
         },
