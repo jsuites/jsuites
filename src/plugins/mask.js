@@ -33,6 +33,675 @@ function Mask() {
         general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_[.\\s\\S]', '\\(', '\\)', '.']
     }
 
+    const countryCodes = {
+        "0409": [
+            "$",
+            ",",
+            "."
+        ],
+        "0809": [
+            "£",
+            ",",
+            "."
+        ],
+        "0C09": [
+            "$",
+            ",",
+            "."
+        ],
+        "1009": [
+            "$",
+            ",",
+            "."
+        ],
+        "1409": [
+            "$",
+            ",",
+            "."
+        ],
+        "1809": [
+            "€",
+            ",",
+            "."
+        ],
+        "1C09": [
+            "R",
+            " ",
+            "."
+        ],
+        "040C": [
+            "€",
+            " ",
+            ","
+        ],
+        "080C": [
+            "€",
+            " ",
+            ","
+        ],
+        "100C": [
+            "CHF",
+            "'",
+            "."
+        ],
+        "140C": [
+            "€",
+            " ",
+            ","
+        ],
+        "0C0C": [
+            "$",
+            " ",
+            ","
+        ],
+        "0407": [
+            "€",
+            ".",
+            ","
+        ],
+        "0C07": [
+            "€",
+            ".",
+            ","
+        ],
+        "0807": [
+            "CHF",
+            "'",
+            "."
+        ],
+        "1007": [
+            "€",
+            ".",
+            ","
+        ],
+        "0413": [
+            "€",
+            ".",
+            ","
+        ],
+        "0813": [
+            "€",
+            " ",
+            ","
+        ],
+        "0410": [
+            "€",
+            ".",
+            ","
+        ],
+        "0810": [
+            "CHF",
+            "'",
+            "."
+        ],
+        "0C0A": [
+            "€",
+            ".",
+            ","
+        ],
+        "080A": [
+            "$",
+            ",",
+            "."
+        ],
+        "2C0A": [
+            "$",
+            ".",
+            ","
+        ],
+        "340A": [
+            "$",
+            ".",
+            ","
+        ],
+        "240A": [
+            "$",
+            ".",
+            ","
+        ],
+        "300A": [
+            "$",
+            ",",
+            "."
+        ],
+        "280A": [
+            "S/",
+            ",",
+            "."
+        ],
+        "200A": [
+            "Bs.",
+            ".",
+            ","
+        ],
+        "140A": [
+            "₡",
+            ",",
+            "."
+        ],
+        "100A": [
+            "Q",
+            ",",
+            "."
+        ],
+        "1C0A": [
+            "RD$",
+            ",",
+            "."
+        ],
+        "3C0A": [
+            "$",
+            ",",
+            "."
+        ],
+        "440A": [
+            "C$",
+            ",",
+            "."
+        ],
+        "4C0A": [
+            "B/.",
+            ",",
+            "."
+        ],
+        "480A": [
+            "L",
+            ",",
+            "."
+        ],
+        "0816": [
+            "€",
+            ".",
+            ","
+        ],
+        "0416": [
+            "R$",
+            ".",
+            ","
+        ],
+        "0406": [
+            "kr",
+            ".",
+            ","
+        ],
+        "041D": [
+            "kr",
+            " ",
+            ","
+        ],
+        "0414": [
+            "kr",
+            " ",
+            ","
+        ],
+        "040B": [
+            "€",
+            " ",
+            ","
+        ],
+        "040F": [
+            "kr",
+            ".",
+            ","
+        ],
+        "0415": [
+            "zł",
+            " ",
+            ","
+        ],
+        "0405": [
+            "Kč",
+            " ",
+            ","
+        ],
+        "041B": [
+            "€",
+            " ",
+            ","
+        ],
+        "040E": [
+            "Ft",
+            " ",
+            ","
+        ],
+        "0424": [
+            "€",
+            ".",
+            ","
+        ],
+        "041A": [
+            "€",
+            ".",
+            ","
+        ],
+        "0418": [
+            "lei",
+            ".",
+            ","
+        ],
+        "0402": [
+            "лв.",
+            " ",
+            ","
+        ],
+        "0425": [
+            "€",
+            " ",
+            ","
+        ],
+        "0426": [
+            "€",
+            " ",
+            ","
+        ],
+        "0427": [
+            "€",
+            " ",
+            ","
+        ],
+        "0408": [
+            "€",
+            ".",
+            ","
+        ],
+        "043A": [
+            "€",
+            ",",
+            "."
+        ],
+        "043C": [
+            "€",
+            ",",
+            "."
+        ],
+        "0419": [
+            "₽",
+            " ",
+            ","
+        ],
+        "0422": [
+            "₴",
+            " ",
+            ","
+        ],
+        "0423": [
+            "Br",
+            " ",
+            ","
+        ],
+        "041F": [
+            "₺",
+            ".",
+            ","
+        ],
+        "042C": [
+            "₼",
+            " ",
+            ","
+        ],
+        "042F": [
+            "ден",
+            ".",
+            ","
+        ],
+        "0441": [
+            "Lek",
+            ".",
+            ","
+        ],
+        "141A": [
+            "KM",
+            ".",
+            ","
+        ],
+        "0401": [
+            "ر.س",
+            ",",
+            "."
+        ],
+        "0C01": [
+            "ج.م",
+            ",",
+            "."
+        ],
+        "1401": [
+            "دج",
+            " ",
+            ","
+        ],
+        "1801": [
+            "د.م.",
+            " ",
+            ","
+        ],
+        "1C01": [
+            "د.ت",
+            " ",
+            ","
+        ],
+        "2001": [
+            "﷼",
+            ",",
+            "."
+        ],
+        "3401": [
+            "KD",
+            ",",
+            "."
+        ],
+        "3801": [
+            "د.إ",
+            ",",
+            "."
+        ],
+        "3C01": [
+            "BD",
+            ",",
+            "."
+        ],
+        "4001": [
+            "ر.ق",
+            ",",
+            "."
+        ],
+        "2801": [
+            "£",
+            ",",
+            "."
+        ],
+        "2C01": [
+            "د.ا",
+            ",",
+            "."
+        ],
+        "3001": [
+            "ل.ل",
+            ",",
+            "."
+        ],
+        "2401": [
+            "﷼",
+            ",",
+            "."
+        ],
+        "1001": [
+            "ل.د",
+            ",",
+            "."
+        ],
+        "0429": [
+            "﷼",
+            ",",
+            "."
+        ],
+        "040D": [
+            "₪",
+            ",",
+            "."
+        ],
+        "0439": [
+            "₹",
+            ",",
+            "."
+        ],
+        "0445": [
+            "৳",
+            ",",
+            "."
+        ],
+        "0461": [
+            "रु",
+            ",",
+            "."
+        ],
+        "045B": [
+            "Rs",
+            ",",
+            "."
+        ],
+        "044E": [
+            "₹",
+            ",",
+            "."
+        ],
+        "0444": [
+            "₹",
+            ",",
+            "."
+        ],
+        "0449": [
+            "₹",
+            ",",
+            "."
+        ],
+        "044B": [
+            "₹",
+            ",",
+            "."
+        ],
+        "0421": [
+            "Rp",
+            ".",
+            ","
+        ],
+        "043E": [
+            "RM",
+            ",",
+            "."
+        ],
+        "0464": [
+            "₱",
+            ",",
+            "."
+        ],
+        "041E": [
+            "฿",
+            ",",
+            "."
+        ],
+        "042A": [
+            "₫",
+            ".",
+            ","
+        ],
+        "0453": [
+            "៛",
+            ",",
+            "."
+        ],
+        "0454": [
+            "₭",
+            ",",
+            "."
+        ],
+        "0455": [
+            "K",
+            ",",
+            "."
+        ],
+        "0404": [
+            "NT$",
+            ",",
+            "."
+        ],
+        "0C04": [
+            "HK$",
+            ",",
+            "."
+        ],
+        "0804": [
+            "¥",
+            ",",
+            "."
+        ],
+        "0411": [
+            "¥",
+            ",",
+            "."
+        ],
+        "0412": [
+            "₩",
+            ",",
+            "."
+        ],
+        "0437": [
+            "₾",
+            " ",
+            ","
+        ],
+        "042B": [
+            "֏",
+            " ",
+            ","
+        ],
+        "043F": [
+            "₸",
+            " ",
+            ","
+        ],
+        "0443": [
+            "so'm",
+            " ",
+            ","
+        ],
+        "0428": [
+            "ЅМ",
+            " ",
+            ","
+        ],
+        "0440": [
+            "сом",
+            " ",
+            ","
+        ],
+        "0466": [
+            "₦",
+            ",",
+            "."
+        ],
+        "0469": [
+            "₦",
+            ",",
+            "."
+        ],
+        "0468": [
+            "GH₵",
+            ",",
+            "."
+        ],
+        "180C": [
+            "F CFA",
+            " ",
+            ","
+        ]
+    }
+
+    /**
+     * Detect decimal and thousand separators in a mask pattern
+     */
+    const detectMaskSeparators = function(mask) {
+        // Decimal: separator in pattern 0[sep]0+ (can have trailing chars like _ )
+        // Look for the rightmost occurrence of this pattern
+        const decimalMatches = mask.match(/0([.,\s'])0+/g);
+        let decimal = null;
+        if (decimalMatches && decimalMatches.length > 0) {
+            // Get the last match (rightmost decimal pattern)
+            const lastMatch = decimalMatches[decimalMatches.length - 1];
+            const sepMatch = lastMatch.match(/0([.,\s'])0/);
+            decimal = sepMatch ? sepMatch[1] : null;
+        }
+
+        // Thousand: other separator that appears in #[sep]# or 0[sep]# patterns
+        let thousand = null;
+        for (const sep of [',', '.', ' ', "'"]) {
+            if (sep !== decimal) {
+                const escapedSep = sep === '.' ? '\\.' : sep;
+                const regex = new RegExp('[#0]' + escapedSep + '[#0]');
+                if (regex.test(mask)) {
+                    thousand = sep;
+                    break;
+                }
+            }
+        }
+
+        return { decimal, thousand };
+    }
+
+    /**
+     * Transform Excel currency locale patterns like [$$-409]#,##0.00
+     * countryCodes format: { "0409": ["$", ",", "."] } // [currency, thousand, decimal]
+     * [$$ = use locale's default currency, [$X = use literal X]
+     */
+    const transformExcelLocaleMask = function(mask) {
+        // Handle multiple patterns (e.g., positive;negative)
+        // Accept any alphanumeric for locale code to handle invalid codes gracefully
+        const pattern = /\[\$(.?)-([0-9A-Z]+)\]/gi;
+        let transformation = null;
+
+        // Find first pattern to determine locale
+        const firstMatch = mask.match(/\[\$(.?)-([0-9A-Z]+)\]/i);
+        if (!firstMatch) return mask;
+
+        const symbolChar = firstMatch[1] || '';
+        let localeCode = firstMatch[2].toUpperCase();
+
+        // Pad with leading zero if 3 digits (e.g., "409" → "0409")
+        if (localeCode.length === 3) {
+            localeCode = '0' + localeCode;
+        }
+
+        // Look up locale in countryCodes
+        const localeData = countryCodes[localeCode];
+
+        if (!localeData) {
+            // Unknown locale - fallback: strip ALL patterns, use literal symbol (or $)
+            const fallbackSymbol = symbolChar || '$';
+            // Replace all occurrences of the pattern with the symbol
+            return mask.replace(/\[\$(.?)-([0-9A-Z]+)\]/gi, fallbackSymbol);
+        }
+
+        // Extract from array: [currency, thousand, decimal]
+        const localeCurrency = localeData[0];
+        const localeThousand = localeData[1];
+        const localeDecimal = localeData[2];
+
+        // Determine currency symbol: $$ means use locale's default, else use literal
+        let currencySymbol;
+        if (symbolChar === '$') {
+            // $$ pattern - use locale's default currency
+            currencySymbol = localeCurrency;
+        } else {
+            // Literal symbol provided (e.g., [$€-407])
+            currencySymbol = symbolChar;
+        }
+
+        // Replace all locale patterns with currency symbol
+        let result = mask.replace(pattern, currencySymbol);
+
+        // Detect current separators in mask (after removing patterns)
+        const current = detectMaskSeparators(result);
+
+        // Transform separators to match locale using placeholders to avoid conflicts
+        const temp1 = '\uFFF0';  // Placeholder for thousand
+        const temp2 = '\uFFF1';  // Placeholder for decimal
+
+        // Step 1: Replace current separators with placeholders
+        if (current.thousand && current.thousand !== localeThousand) {
+            const from = current.thousand === '.' ? '\\.' : (current.thousand === ' ' ? ' ' : current.thousand);
+            result = result.replace(new RegExp(from, 'g'), temp1);
+        }
+        if (current.decimal && current.decimal !== localeDecimal) {
+            const from = current.decimal === '.' ? '\\.' : (current.decimal === ' ' ? ' ' : current.decimal);
+            result = result.replace(new RegExp(from, 'g'), temp2);
+        }
+
+        // Step 2: Replace placeholders with target separators
+        result = result.replace(new RegExp(temp1, 'g'), localeThousand);
+        result = result.replace(new RegExp(temp2, 'g'), localeDecimal);
+
+        return result;
+    }
+
     // All expressions
     const allExpressions = [].concat(tokens.escape, tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
 
@@ -1366,6 +2035,11 @@ function Mask() {
                         mask = d[3];
                     }
                 }
+            }
+
+            // Transform Excel locale patterns (e.g., [$$-409]#,##0.00) - only if pattern exists
+            if (mask.indexOf('[$') !== -1) {
+                mask = transformExcelLocaleMask(mask);
             }
 
             // Cleaning the mask

@@ -823,5 +823,103 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('Excel locale currency patterns', () => {
+        test('US locale (409) - no transformation needed', () => {
+            // US format: decimal = '.', thousand = ','
+            expect(jSuites.mask.render(100123, { mask: '[$$-409]#,##0.00' }, true)).toBe('$100,123.00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(100, { mask: '[$$-409]#,##0' }, true)).toBe('$100');
+        });
+
+        test('German locale (407) - swap separators', () => {
+            // German format: decimal = ',', thousand = '.'
+            // Input mask has US separators, should be transformed to German
+            expect(jSuites.mask.render(100123, { mask: '[$$-407]#,##0.00' }, true)).toBe('€100.123,00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-407]#,##0.00' }, true)).toBe('€1.234,56');
+            expect(jSuites.mask.render(100, { mask: '[$$-407]#,##0' }, true)).toBe('€100');
+        });
+
+        test('French locale (40C) - space as thousand separator', () => {
+            // French format: decimal = ',', thousand = ' '
+            expect(jSuites.mask.render(100123, { mask: '[$$-40C]#,##0.00' }, true)).toBe('€100 123,00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-40C]#,##0.00' }, true)).toBe('€1 234,56');
+        });
+
+        test('British locale (809) - pound symbol', () => {
+            // UK format: decimal = '.', thousand = ','
+            expect(jSuites.mask.render(100123, { mask: '[$£-809]#,##0.00' }, true)).toBe('£100,123.00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$£-809]#,##0.00' }, true)).toBe('£1,234.56');
+        });
+
+        test('Swiss locale (807) - apostrophe as thousand separator', () => {
+            // Swiss format: decimal = '.', thousand = '''
+            expect(jSuites.mask.render(100123, { mask: '[$$-807]#,##0.00' }, true)).toBe("CHF100'123.00");
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-807]#,##0.00' }, true)).toBe("CHF1'234.56");
+        });
+
+        test('Brazilian Portuguese (416) - comma as decimal', () => {
+            // Brazilian format: decimal = ',', thousand = '.'
+            expect(jSuites.mask.render(100123, { mask: '[$$-416]#,##0.00' }, true)).toBe('R$100.123,00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-416]#,##0.00' }, true)).toBe('R$1.234,56');
+        });
+
+        test('Japanese locale (411) - yen symbol', () => {
+            // Japanese format: decimal = '.', thousand = ','
+            expect(jSuites.mask.render(100123, { mask: '[$$-411]#,##0.00' }, true)).toBe('¥100,123.00');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-411]#,##0.00' }, true)).toBe('¥1,234.56');
+        });
+
+        test('masks with trailing characters', () => {
+            // Mask with underscore spacing: _- becomes space, * is consumed, _ becomes space
+            expect(jSuites.mask.render(100123, { mask: '_-[$£-407]* #.##0,00_ ' }, true)).toBe(' £ 100.123,00 ');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-409]#,##0.00_)' }, true)).toBe('$1,234.56 ');
+        });
+
+        test('negative numbers with locale patterns', () => {
+            // Negative formatting with German locale - locale transformation works, parentheses format is general mask limitation
+            expect(jSuites.mask.render(-1234.56, { mask: '[$$-407]#,##0.00;([$$-407]#,##0.00)' }, true)).toBe('€-1.234,56');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-407]#,##0.00;([$$-407]#,##0.00)' }, true)).toBe('€1.234,56');
+        });
+
+        test('currency symbol extraction from pattern', () => {
+            // Test various currency symbols
+            expect(jSuites.mask.render(1000, { mask: '[$€-407]#,##0.00' }, true)).toBe('€1.000,00');
+            expect(jSuites.mask.render(1000, { mask: '[$£-809]#,##0.00' }, true)).toBe('£1,000.00');
+            expect(jSuites.mask.render(1000, { mask: '[$¥-411]#,##0.00' }, true)).toBe('¥1,000.00');
+            expect(jSuites.mask.render(1000, { mask: '[$₹-439]#,##0.00' }, true)).toBe('₹1,000.00');
+        });
+
+        test('unknown locale code fallback', () => {
+            // Unknown locale code should just strip the pattern and use the symbol
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-999]#,##0.00' }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(1234.56, { mask: '[$€-ZZZ]#,##0.00' }, true)).toBe('€1,234.56');
+        });
+
+        test('masks without locale patterns remain unchanged', () => {
+            // Regular masks without locale patterns should work as before
+            expect(jSuites.mask.render(1234.56, { mask: '$#,##0.00' }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(1234.56, { mask: '€#.##0,00' }, true)).toBe('€1.234,56');
+        });
+
+        test('no decimal places with locale patterns', () => {
+            // Integer formatting with various locales
+            expect(jSuites.mask.render(123456, { mask: '[$$-409]#,##0' }, true)).toBe('$123,456');
+            expect(jSuites.mask.render(123456, { mask: '[$$-407]#,##0' }, true)).toBe('€123.456');
+            expect(jSuites.mask.render(123456, { mask: '[$$-40C]#,##0' }, true)).toBe('€123 456');
+        });
+
+        test('small numbers with locale patterns', () => {
+            expect(jSuites.mask.render(1.5, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1.50');
+            expect(jSuites.mask.render(0.99, { mask: '[$$-407]#,##0.00' }, true)).toBe('€0,99');
+            expect(jSuites.mask.render(0, { mask: '[$$-409]#,##0.00' }, true)).toBe('$0.00');
+        });
+
+        test('large numbers with locale patterns', () => {
+            expect(jSuites.mask.render(1234567.89, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1,234,567.89');
+            expect(jSuites.mask.render(9876543.21, { mask: '[$$-407]#,##0.00' }, true)).toBe('€9.876.543,21');
+            expect(jSuites.mask.render(5555555.55, { mask: '[$$-40C]#,##0.00' }, true)).toBe('€5 555 555,55');
+        });
+    });
+
 });
 
