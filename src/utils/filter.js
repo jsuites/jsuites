@@ -1,202 +1,96 @@
 
-// Whitelisted HTML tags
+// Valid tags
 const validTags = [
-    'html', 'body', 'address', 'span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+    'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
     'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
-    'figure', 'picture', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+    'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
     'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
     'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
     'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
     'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
 ];
+// Valid properties
+const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
+// Valid CSS attributes
+const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
 
-// Dangerous tags that should be completely removed
-const dangerousTags = [
-    'script', 'object', 'embed', 'applet', 'meta', 'base', 'link', 'iframe'
-];
-
-// Whitelisted attributes - only these are allowed
-const validAttributes = ['id', 'class', 'title', 'alt', 'style'];
-
-// Whitelisted CSS properties - only these are allowed in style attributes
-const validStyleProperties = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
-
-// Function to decode HTML entities
-function decodeHTMLEntities(text) {
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-}
-
-// Function to check if a URL scheme is dangerous
-function isDangerousScheme(url) {
-    if (!url) return false;
-    const decoded = decodeHTMLEntities(url.toLowerCase());
-    return decoded.startsWith('javascript:') || 
-           decoded.startsWith('data:text/') || 
-           decoded.startsWith('data:application/');
-}
-
-// Function to sanitize style attribute
-function sanitizeStyle(styleValue) {
-    if (!styleValue) return '';
-    
-    const decoded = decodeHTMLEntities(styleValue);
-    const safeCssProps = [];
-    const declarations = decoded.split(';');
-    
-    for (let declaration of declarations) {
-        const trimmed = declaration.trim();
-        if (!trimmed) continue;
-        
-        const colonIndex = trimmed.indexOf(':');
-        if (colonIndex === -1) continue;
-        
-        const property = trimmed.substring(0, colonIndex).trim();
-        const value = trimmed.substring(colonIndex + 1).trim();
-        
-        // Check if property is whitelisted
-        if (validStyleProperties.includes(property)) {
-            // Check for dangerous content in value
-            const decodedValue = decodeHTMLEntities(value.toLowerCase());
-            if (!decodedValue.includes('javascript:') && 
-                !decodedValue.includes('expression(') &&
-                !decodedValue.includes('url(javascript:') &&
-                !decodedValue.includes('binding:') &&
-                !decodedValue.includes('-moz-binding')) {
-                safeCssProps.push(`${property}:${value}`);
+const parse = function(element, img) {
+    // Remove elements that are not white-listed
+    if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
+        if (element.innerText) {
+            element.innerHTML = element.innerText;
+        }
+    }
+    // Remove attributes
+    if (element.attributes && element.attributes.length) {
+        let style = null;
+        // Process style attribute
+        let elementStyle = element.getAttribute('style');
+        if (elementStyle) {
+            style = [];
+            let t = elementStyle.split(';');
+            for (let j = 0; j < t.length; j++) {
+                let v = t[j].trim().split(':');
+                if (validStyle.indexOf(v[0].trim()) >= 0) {
+                    let k = v.shift();
+                    v = v.join(':');
+                    style.push(k + ':' + v);
+                }
             }
         }
-    }
-    
-    return safeCssProps.join(';');
-}
-
-// Function to recursively sanitize DOM elements
-function sanitizeElement(element, imgArray) {
-    if (!element || element.nodeType !== Node.ELEMENT_NODE) {
-        return false; // Element should not be kept
-    }
-    
-    const tagName = element.tagName.toLowerCase();
-    
-    // Remove dangerous tags entirely
-    if (dangerousTags.includes(tagName)) {
-        return false; // Element should not be kept
-    }
-    
-    // If tag is not whitelisted, extract text content but remove the tag
-    if (!validTags.includes(tagName)) {
-        const textContent = element.textContent || element.innerText || '';
-        if (textContent) {
-            // Replace with a text node
-            element.outerHTML = textContent;
-            return false; // Original element should not be kept, text content was extracted
-        } else {
-            return false; // Element should not be kept
-        }
-    }
-    
-    // Handle image elements specifically
-    if (tagName === 'img') {
-        const src = element.getAttribute('src');
-        if (!src || isDangerousScheme(src)) {
-            return false; // Remove dangerous or missing src images
-        } else {
-            // Collect safe image URLs
-            imgArray.push(src);
-        }
-    }
-    
-    // Remove all attributes that are not whitelisted
-    const attributes = Array.from(element.attributes);
-    for (let attr of attributes) {
-        const attrName = attr.name.toLowerCase();
-        
-        // Remove event handlers (attributes starting with 'on')
-        if (attrName.startsWith('on')) {
-            element.removeAttribute(attr.name);
-            continue;
-        }
-        
-        // Check if attribute is whitelisted
-        if (!validAttributes.includes(attrName)) {
-            element.removeAttribute(attr.name);
-            continue;
-        }
-        
-        // For whitelisted attributes, check for dangerous content
-        const attrValue = attr.value;
-        if (attrName === 'style') {
-            const sanitizedStyle = sanitizeStyle(attrValue);
-            if (sanitizedStyle) {
-                element.setAttribute('style', sanitizedStyle);
+        // Process image
+        if (element.tagName.toUpperCase() === 'IMG') {
+            if (! element.src) {
+                element.parentNode.removeChild(element);
             } else {
-                element.removeAttribute('style');
-            }
-        } else {
-            // For other whitelisted attributes, decode and check for dangerous schemes
-            const decodedValue = decodeHTMLEntities(attrValue);
-            if (isDangerousScheme(decodedValue) || decodedValue.includes('<script')) {
-                element.removeAttribute(attr.name);
+                // Check if is data
+                element.setAttribute('tabindex', '900');
+                // Check attributes for persistence
+                img.push(element.src);
             }
         }
-    }
-    
-    // Recursively process child elements (work backwards to avoid index issues)
-    const children = Array.from(element.children);
-    for (let i = children.length - 1; i >= 0; i--) {
-        const shouldKeepChild = sanitizeElement(children[i], imgArray);
-        if (!shouldKeepChild) {
-            children[i].remove();
+        // Remove attributes
+        let attr = [];
+        for (let i = 0; i < element.attributes.length; i++) {
+            attr.push(element.attributes[i].name);
+        }
+        if (attr.length) {
+            attr.forEach(function (v) {
+                if (validProperty.indexOf(v) === -1) {
+                    element.removeAttribute(v);
+                } else {
+                    // Protection XSS
+                    let at = element.getAttribute(v);
+                    if (at.indexOf('<') !== -1) {
+                        element.setAttribute(v, at.replace('<', '&#60;'));
+                    }
+                }
+            });
+        }
+        element.style = '';
+        // Add valid style
+        if (style && style.length) {
+            element.setAttribute('style', style.join(';'));
         }
     }
-    
-    return true; // Element should be kept
+    // Parse children
+    if (element.children.length) {
+        for (let i = element.children.length; i > 0; i--) {
+            parse(element.children[i - 1], img);
+        }
+    }
 }
 
-// Main filter function
-const filter = function(htmlString, imgArray) {
-    if (!htmlString) {
-        const div = document.createElement('div');
-        return div;
+const filter = function(data, img) {
+    if (data) {
+        data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
     }
-    
-    // Remove HTML comments
-    let cleanHtml = htmlString.replace(/<!--[\s\S]*?-->/g, '');
-    
-    // Parse HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(cleanHtml, 'text/html');
-    
-    // Create a container div for the sanitized content
-    const container = document.createElement('div');
-    
-    // Process all content in body and head
-    const allNodes = [];
-    if (doc.body) {
-        allNodes.push(...Array.from(doc.body.childNodes));
-    }
-    if (doc.head) {
-        allNodes.push(...Array.from(doc.head.childNodes));
-    }
-    
-    for (let child of allNodes) {
-        if (child.nodeType === Node.ELEMENT_NODE) {
-            // Clone the element to process it safely
-            const clonedChild = child.cloneNode(true);
-            const shouldKeep = sanitizeElement(clonedChild, imgArray);
-            if (shouldKeep) {
-                container.appendChild(clonedChild);
-            }
-        } else if (child.nodeType === Node.TEXT_NODE) {
-            container.appendChild(child.cloneNode(true));
-        }
-    }
-    
-    return container;
-};
+    let parser = new DOMParser();
+    let d = parser.parseFromString(data, "text/html");
+    parse(d, img);
+    let div = document.createElement('div');
+    div.innerHTML = d.firstChild.innerHTML;
+    return div;
+}
 
-// CommonJS export
-module.exports = filter;
-module.exports.default = filter;
+export default filter;
