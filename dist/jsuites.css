@@ -3958,7 +3958,7 @@ body.lm-dark-mode {
     position: relative;
 }
 
-.lm-menu-submenu > div.lm-menu-item a {
+.lm-menu-submenu > div.lm-menu-item span {
     text-decoration: none;
     flex: 1;
     cursor: pointer;
