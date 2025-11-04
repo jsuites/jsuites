@@ -3106,7 +3106,7 @@ div[data-before]:before {
 .lm-dark-mode {
     --lm-font-color: #ddd;
     --lm-font-grayout: #777;
-    --lm-border-color: #555;
+    --lm-border-color: #444;
     --lm-border-color-light: #222;
     --lm-border-color-highlight: #777;
     --lm-border-outline: #fff;
@@ -4434,7 +4434,7 @@ body.lm-dark-mode {
     min-height: 200px;
     border-radius: 5px;
     z-index: 15;
-    background-color: var(--lm-background-color, #fff);
+    background-color: var(--lm-background-color-input, #fff);
     box-sizing: border-box;
     box-shadow: 0 0 12px rgb(0 0 0 / 22%);
     opacity: 1;
