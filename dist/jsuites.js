@@ -15072,7 +15072,7 @@ function Mask() {
         }
 
         // Check for datetime mask
-        const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general');
+        const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general' || t.type === 'escape');
 
         // Use priority order for faster matching with pre-compiled regexes
         for (const type of tokenPriority) {
@@ -15191,19 +15191,21 @@ function Mask() {
     const processNumOfPaddingZeros = function(control) {
         let negativeSignal = false;
         control.methods.forEach((method, k) => {
-            if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
-                let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
-                if (ret) {
-                    control.values[k] = ret;
+            if (method) {
+                if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
+                    let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
+                    if (ret) {
+                        control.values[k] = ret;
+                    }
                 }
-            }
 
-            if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true) {
-                if (method.type === 'currency') {
-                    if (control.values[k].toString().includes('-')) {
-                        control.values[k] = control.values[k].replace('-', '');
+                if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true) {
+                    if (method.type === 'currency') {
+                        if (control.values[k].toString().includes('-')) {
+                            control.values[k] = control.values[k].replace('-', '');
 
-                        negativeSignal = true;
+                            negativeSignal = true;
+                        }
                     }
                 }
             }
@@ -15242,13 +15244,15 @@ function Mask() {
         // Process other types
         for (var i = 0; i < control.methods.length; i++) {
             let m = control.methods[i];
-            let t = m.type;
-            if (m && t !== 'general' && t !== 'escape' && t !== type) {
-                if (type === 'general') {
-                    type = t;
-                }  else {
-                    type = 'general';
-                    break;
+            if (m) {
+                let t = m.type;
+                if (t !== 'general' && t !== 'escape' && t !== type) {
+                    if (type === 'general') {
+                        type = t;
+                    } else {
+                        type = 'general';
+                        break;
+                    }
                 }
             }
         }
@@ -26581,7 +26585,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.16',
+    version: '6.0.0-beta.18',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
