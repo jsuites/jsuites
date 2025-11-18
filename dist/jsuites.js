@@ -78,6 +78,7 @@ if (! Modal && "function" === 'function') {
         }
     }
 
+    // Helpers
     const Helpers = (function () {
         const component = {};
 
@@ -3956,186 +3957,8 @@ if (! Modal && "function" === 'function') {
         return Component;
     }());
 
-    // Aditional Helpers
+    // Additional Helpers
     Helpers.getDate = Mask.getDate;
-
-    const isNumber = function (num) {
-        if (typeof(num) === 'string') {
-            num = num.trim();
-        }
-        return !isNaN(num) && num !== null && num !== '';
-    }
-
-    /**
-     * Create a data calendar object based on the view
-     */
-    const views = {
-        years: function(date) {
-            let year = date.getUTCFullYear();
-            let result = [];
-            let start = year % 16;
-            let complement = 16 - start;
-
-            for (let i = year-start; i < year+complement; i++) {
-                let item = {
-                    title: i,
-                    value: i
-                };
-                result.push(item);
-                // Select cursor
-                if (this.cursor.y === i) {
-                    // Select item
-                    item.selected = true;
-                    // Cursor
-                    this.cursor.index = result.length - 1;
-                }
-            }
-            return result;
-        },
-        months: function(date) {
-            let year = date.getUTCFullYear();
-            let result = [];
-            for (let i = 0; i < 12; i++) {
-                let item = {
-                    title: Helpers.months[i].substring(0,3),
-                    value: i
-                }
-                // Add the item to the data
-                result.push(item);
-                // Select cursor
-                if (this.cursor.y === year && this.cursor.m === i) {
-                    // Select item
-                    item.selected = true;
-                    // Cursor
-                    this.cursor.index = result.length - 1;
-                }
-            }
-
-            return result;
-        },
-        days: function(date) {
-            let year = date.getUTCFullYear();
-            let month = date.getUTCMonth();
-            let data = filterData.call(this, year, month);
-
-            // First day
-            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
-            let firstDayOfMonth = tmp.getUTCDay();
-            let firstDayOfWeek = this.startingDay ?? 0;
-
-            // Calculate offset based on desired first day of week
-            // firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
-
-            let result = [];
-            for (let i = -offset; i <= 41-offset; i++) {
-                // Get the day
-                tmp = new Date(Date.UTC(year, month, i + 1, 0, 0, 0));
-                // Day
-                let day = tmp.getUTCDate();
-                // Create the item
-                let item = {
-                    title: day,
-                    value: i + 1,
-                    number: Helpers.dateToNum(tmp.toISOString().substring(0, 10)),
-                }
-                // Add the item to the date
-                result.push(item);
-                // Check selections
-                if (tmp.getUTCMonth() !== month) {
-                    // Days are not in the current month
-                    item.grey = true;
-                } else {
-                    // Check for data
-                    let d = [ year, Helpers.two(month+1), Helpers.two(day)].join('-');
-                    if (data && data[d]) {
-                        item.data = data[d];
-                    }
-                }
-                // Month
-                let m = tmp.getUTCMonth();
-                // Select cursor
-                if (this.cursor.y === year && this.cursor.m === m && this.cursor.d === day) {
-                    // Select item
-                    item.selected = true;
-                    // Cursor
-                    this.cursor.index = result.length - 1;
-                }
-                // Valid ranges
-                if (this.validRange) {
-                    let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
-                    let test1;
-                    let test2;
-
-                    if (typeof this.validRange === 'function') {
-                        let ret = this.validRange(day,m,year,item);
-                        if (typeof ret !== 'undefined') {
-                            item.disabled = ret;
-                        }
-                    } else {
-                        if (! this.validRange[0] || current >= this.validRange[0].substr(0, 10)) {
-                            test1 = true;
-                        } else {
-                            test1 = false;
-                        }
-
-                        if (! this.validRange[1] || current <= this.validRange[1].substr(0, 10)) {
-                            test2 = true;
-                        } else {
-                            test2 = false;
-                        }
-
-                        if (! (test1 && test2)) {
-                            item.disabled = true;
-                        }
-                    }
-                }
-
-                // Select range
-                if (this.range && this.rangeValues) {
-                    // Mark the start and end points
-                    if (this.rangeValues[0] === item.number) {
-                        item.range = true;
-                        item.start = true;
-                    }
-                    if (this.rangeValues[1] === item.number) {
-                        item.range = true;
-                        item.end = true;
-                    }
-                    // Re-recreate teh range
-                    if (this.rangeValues[0] && this.rangeValues[1]) {
-                        if (this.rangeValues[0] <= item.number && this.rangeValues[1] >= item.number) {
-                            item.range = true;
-                        }
-                    }
-                }
-            }
-
-            return result;
-        },
-        hours: function() {
-            let result = [];
-            for (let i = 0; i < 24; i++) {
-                let item = {
-                    title: Helpers.two(i),
-                    value: i
-                };
-                result.push(item);
-            }
-            return result;
-        },
-        minutes: function() {
-            let result = [];
-            for (let i = 0; i < 60; i++) {
-                let item = {
-                    title: Helpers.two(i),
-                    value: i
-                };
-                result.push(item);
-            }
-            return result;
-        }
-    }
 
     const filterData = function(year, month) {
         // Data for the month
@@ -4167,35 +3990,208 @@ if (! Modal && "function" === 'function') {
         });
     }
 
-    // Define the hump based on the view
-    const getJump = function(e) {
-        if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-            return this.view === 'days' ? 7 : 4;
+    const Views = function(self) {
+        const view = {};
+
+        // Create years container
+        view.years = [];
+        view.months = [];
+        view.days = [];
+        view.hours = [];
+        view.minutes = [];
+
+        for (let i = 0; i < 16; i++) {
+            view.years.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
         }
 
-        return 1;
-    }
-
-    // Get the position of the data based on the view
-    const getPosition = function() {
-        let position = 2;
-        if (this.view === 'years') {
-            position = 0;
-        } else if (this.view === 'months') {
-            position = 1;
+        for (let i = 0; i < 12; i++) {
+            view.months.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
         }
-        return position;
+
+        for (let i = 0; i < 42; i++) {
+            view.days.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 24; i++) {
+            view.hours.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        for (let i = 0; i < 60; i++) {
+            view.minutes.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        view.years.update = function(date) {
+            let year = date.getUTCFullYear();
+            let start = year - (year % 16);
+
+            for (let i = 0; i < 16; i++) {
+                let item = view.years[i];
+                let value = start + i;
+
+                item.title = value
+                item.value = value;
+
+                if (self.cursor.y === value) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.months.update = function(date) {
+            let year = date.getUTCFullYear();
+
+            for (let i = 0; i < 12; i++) {
+                let item = view.months[i];
+
+                item.title = Helpers.months[i].substring(0,3);
+                item.value = i;
+
+                if (self.cursor.y === year && self.cursor.m === i) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.days.update = function(date) {
+            let year = date.getUTCFullYear();
+            let month = date.getUTCMonth();
+            let data = filterData.call(self, year, month);
+
+            // First day
+            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+            let firstDayOfMonth = tmp.getUTCDay();
+            let firstDayOfWeek = self.startingDay ?? 0;
+
+            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
+
+            let index = -1 * offset;
+
+            for (let i = 0; i < 42; i++) {
+                index++;
+                // Item
+                let item = view.days[i];
+                // Get the day
+                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
+                // Day
+                let day = tmp.getUTCDate();
+
+                // Create the item
+                item.title = day;
+                item.value = index;
+                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
+
+                // Reset range properties for each item
+                item.start = false;
+                item.end = false;
+                item.range = false;
+                item.last = false;
+                item.disabled = false;
+                item.data = null;
+
+                // Check selections
+                if (tmp.getUTCMonth() !== month) {
+                    // Days are not in the current month
+                    item.grey = true;
+                } else {
+                    // Check for data
+                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
+
+                    if (data && data[d]) {
+                        item.data = data[d];
+                    }
+
+                    item.grey = false;
+                }
+                // Month
+                let m = tmp.getUTCMonth();
+
+                // Select cursor
+                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+
+
+                // Valid ranges
+                if (self.validRange) {
+                    if (typeof self.validRange === 'function') {
+                        let ret = self.validRange(day,m,year,item);
+                        if (typeof ret !== 'undefined') {
+                            item.disabled = ret;
+                        }
+                    } else {
+                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
+
+                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
+                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
+
+                        if (! (test1 && test2)) {
+                            item.disabled = true;
+                        }
+                    }
+                }
+
+                // Select range
+                if (self.range && self.rangeValues) {
+                    // Only mark start/end if the number matches
+                    item.start = self.rangeValues[0] === item.number;
+                    item.end = self.rangeValues[1] === item.number;
+                    // Mark as part of range if between start and end
+                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
+                }
+            }
+        }
+
+        return view;
     }
 
-    const Calendar = function(children, { onchange, onload }) {
+    const isTrue = function(v) {
+        return v === true || v === 'true';
+    }
+
+    const isNumber = function (num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const Calendar = function(children, { onchange, onload, track }) {
         let self = this;
 
         // Event
         let change = self.onchange;
         self.onchange = null;
-
-        // Decide the type based on the size of the screen
-        let autoType = self.type === 'auto';
 
         // Weekdays
         self.weekdays = getWeekdays(self.startingDay ?? 0);
@@ -4206,62 +4202,121 @@ if (! Modal && "function" === 'function') {
         // Time
         self.time = !! self.time;
 
+        // Range values
+        self.rangeValues = null;
+
         // Calendar date
         let date = new Date();
 
-        // Format
-        if (! self.format) {
-            self.format = 'YYYY-MM-DD';
+        // Views
+        const views = Views(self);
+        const hours = views.hours;
+        const minutes = views.minutes;
+
+        // Initial view
+        self.view = 'days';
+
+        // Auto Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
         }
 
-        // Range
-        self.rangeValues = null;
 
-        /**
-         * Update the internal date
-         * @param {Date|string|number[]} d instance of Date
-         *
-         */
-        const setDate = function(d) {
-            if (Array.isArray(d)) {
-                d = new Date(Date.UTC(...d));
-            } else if (typeof(d) === 'string') {
-                d = new Date(d);
+        // Get the position of the data based on the view
+        const getPosition = function() {
+            let position = 2;
+            if (self.view === 'years') {
+                position = 0;
+            } else if (self.view === 'months') {
+                position = 1;
             }
-            // Update internal date
-            date = d;
-            // Update the headers of the calendar
-            let value = d.toISOString().substring(0,10).split('-');
-            let time = d.toISOString().substring(11,19).split(':');
-            let month = Helpers.months[parseInt(value[1])-1];
-            let year = parseInt(value[0]);
-            let hour = parseInt(time[0]);
-            let minute = parseInt(time[1]);
+            return position;
+        }
 
-            if (self.month !== month) {
-                // Update the month label
-                self.month = month;
-            }
-            if (self.year !== year) {
-                // Update the year label
-                self.year = year;
-
-            }
-            if (self.hour !== hour) {
-                self.hour = hour;
-            }
-            if (self.minute !== minute) {
-                self.minute = minute;
+        const setView = function(e) {
+            if (typeof e === 'object') {
+                e = this.getAttribute('data-view');
             }
 
-            // Load data
-            if (! self.view) {
-                // Start on the days view will start the data
-                self.view = 'days';
+            // Valid views
+            const validViews = ['days', 'months', 'years'];
+
+            // Define new view
+            if (validViews.includes(e) && self.view !== e) {
+                self.view = e;
+            }
+        }
+
+        const reloadView = function(reset) {
+            if (reset) {
+                // Update options to the view
+                self.options = views[self.view];
+            }
+            // Update the values of hte options of hte view
+            views[self.view]?.update.call(self, date);
+        }
+
+        const getValue = function() {
+            let value = null;
+            if (isTrue(self.range)) {
+                if (Array.isArray(self.rangeValues)) {
+                    if (isTrue(self.numeric)) {
+                        value = self.rangeValues;
+                    } else {
+                        value = [
+                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
+                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
+                        ];
+                    }
+                }
             } else {
-                // Reload the data for the same view
-                self.options = views[self.view].call(self, date);
+                value = getDate();
+                if (isTrue(self.numeric)) {
+                    value = Helpers.dateToNum(value);
+                }
             }
+            return value;
+        }
+
+        const setValue = function(v) {
+            let d = new Date();
+            if (v) {
+                if (isTrue(self.range)) {
+                    if (v) {
+                        if (! Array.isArray(v)) {
+                            v = v.toString().split(',');
+                        }
+                        self.rangeValues = [...v];
+
+                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
+                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
+                        }
+                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
+                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
+                        }
+
+                        v = v[0];
+                    }
+                } else if (typeof v === 'string' && v.includes(',')) {
+                    v = v.split(',')[0];
+                }
+
+                if (v) {
+                    v = isNumber(v) ? Helpers.numToDate(v) : v;
+                    d = new Date(v + '  GMT+0');
+                }
+
+                // if no date is defined
+                if (! Helpers.isValidDate(d)) {
+                    d = new Date();
+                }
+            }
+
+            // Update the internal calendar date
+            setDate(d, true);
+            // Update the view
+            reloadView();
         }
 
         const getDate = function() {
@@ -4275,47 +4330,129 @@ if (! Modal && "function" === 'function') {
             }
         }
 
-        /**
-         * Set the internal cursor
-         * @param {object} s
-         */
-        const setCursor = function(s) {
-            // Remove selection from the current object
-            let item = self.options[self.cursor.index];
-            if (typeof(item) !== 'undefined') {
-                item.selected = false;
+        const setDate = function(d, update) {
+            if (Array.isArray(d)) {
+                d = new Date(Date.UTC(...d));
+            } else if (typeof(d) === 'string') {
+                d = new Date(d);
             }
-            // Update the date based on the click
-            let v = updateDate(s.value, getPosition.call(self));
-            let d = new Date(Date.UTC(...v));
-            // Update cursor controller
-            self.cursor = {
-                y: d.getUTCFullYear(),
-                m: d.getUTCMonth(),
-                d: d.getUTCDate(),
-            };
+
+            // Update the date
+            let value = d.toISOString().substring(0,10).split('-');
+            let month = Helpers.months[parseInt(value[1])-1];
+            let year = parseInt(value[0]);
+
+            if (self.month !== month) {
+                self.month = month;
+            }
+            if (self.year !== year) {
+                self.year = year;
+            }
+
+            // Update the time
+            let time = d.toISOString().substring(11,19).split(':');
+            let hour = parseInt(time[0]);
+            let minute = parseInt(time[1]);
+
+            if (self.hour !== hour) {
+                self.hour = hour;
+            }
+            if (self.minute !== minute) {
+                self.minute = minute;
+            }
+
+            // Update internal date
+            date = d;
+
+            // Update cursor information
+            if (update) {
+                updateCursor();
+            }
+        }
+
+        const updateCursor = function() {
+            self.cursor.y = date.getUTCFullYear();
+            self.cursor.m = date.getUTCMonth();
+            self.cursor.d = date.getUTCDate();
+        }
+
+        const resetCursor = function() {
+            // Remove selection from the current object
+            let current = self.cursor.current;
+            // Current item
+            if (typeof current !== 'undefined') {
+                current.selected = false;
+            }
+        }
+
+        const setCursor = function(s) {
+            // Reset current visual cursor
+            resetCursor();
             // Update cursor based on the object position
             if (s) {
+                // Update current
+                self.cursor.current = s;
                 // Update selected property
                 s.selected = true;
-                // New cursor
-                self.cursor.index = self.options.indexOf(s);
+            }
+
+            updateCursor();
+
+            // Update range
+            if (isTrue(self.range)) {
+                updateRange(s)
             }
 
             Dispatch.call(self, self.onupdate, 'update', {
                 instance: self,
-                value: d.toISOString(),
+                value: date.toISOString(),
             });
-
-            return d;
         }
 
-        /**
-         * Update the current date
-         * @param {number} v new value for year, month or day
-         * @param {number} position (0,1,2 - year,month,day)
-         * @returns {number[]}
-         */
+        const select = function(e, s) {
+            // Get new date content
+            let d = updateDate(s.value, getPosition());
+            // New date
+            setDate(new Date(Date.UTC(...d)))
+            // Based where was the click
+            if (self.view !== 'days') {
+                // Back to the days
+                self.view = 'days';
+            } else if (! s.disabled) {
+                setCursor(s);
+
+                if (isTrue(self.range)) {
+                    // Start a new range
+                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
+                        destroyRange();
+                    }
+                    // Range
+                    s.range = true;
+                    // Update range
+                    if (! self.rangeValues) {
+                        s.start = true;
+                        self.rangeValues = [s.number, null];
+                    } else {
+                        s.end = true;
+                        self.rangeValues[1] = s.number;
+                    }
+                } else {
+                    update();
+                }
+            }
+        }
+
+        // Update Calendar
+        const update = function(e) {
+            self.setValue(getValue());
+            self.close({ origin: 'button' });
+        }
+
+        const reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
         const updateDate = function(v, position) {
             // Current internal date
             let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
@@ -4325,11 +4462,11 @@ if (! Modal && "function" === 'function') {
             return value;
         }
 
-        /**
-         * This method move the data from the view up or down
-         * @param direction
-         */
         const move = function(direction) {
+            // Reset visual cursor
+            resetCursor();
+
+            // Value
             let value;
 
             // Update the new internal date
@@ -4341,173 +4478,58 @@ if (! Modal && "function" === 'function') {
                 value = updateDate(date.getUTCFullYear()+direction, 0);
             } else if (self.view === 'years') {
                 // Select the new internal date
-                value = updateDate(date.getUTCDate()+(direction*16), 0);
+                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
             }
 
             // Update view
-            if (value) {
-                setDate(value);
-            }
+            setDate(value);
+
+            // Reload content of the view
+            reloadView();
         }
 
-        /**
-         * Keyboard handler
-         * @param {number} direction of the action
-         * @param {object} e keyboard event
-         */
-        const moveCursor = function(direction, e) {
-            direction = direction * getJump.call(self, e);
-            // Remove the selected from the current selection
-            let s = self.options[self.cursor.index];
-            // If the selection is going outside the viewport
-            if (typeof(s) === 'undefined' || ! s.selected) {
-                // Go back to the view
-                setDate([ self.cursor.y, self.cursor.m, self.cursor.d ]);
+        const getJump = function(e) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                return self.view === 'days' ? 7 : 4;
             }
 
-            // Jump to the index
-            let index = self.cursor.index + direction;
-
-            // See if the new position is in the viewport
-            if (typeof(self.options[index]) === 'undefined') {
-                // Adjust the index for next collection of data
-                if (self.view === 'days') {
-                    if (index < 0) {
-                        index = 42 + index;
-                    } else {
-                        index = index - 42;
-                    }
-                } else if (self.view === 'years') {
-                    if (index < 0) {
-                        index = 4 + index;
-                    } else {
-                        index = index - 4;
-                    }
-                } else if (self.view === 'months') {
-                    if (index < 0) {
-                        index = 12 + index;
-                    } else {
-                        index = index - 12;
-                    }
-                }
-
-                // Move the data up or down
-                move(direction > 0 ? 1 : -1);
-            }
-
-            // Update the date based on the click
-            setCursor(self.options[index]);
-
-            // Update ranges
-            updateRange(self.options[index])
+            return 1;
         }
 
-        /**
-         * Update the visible range
-         * @param s
-         */
-        const updateRange = function(s) {
-            if (self.range && self.view === 'days' && self.rangeValues) {
-                // Creating a range
-                if (self.rangeValues[0] && ! self.rangeValues[1]) {
-                    let number = s.number;
-                    if (number) {
-                        // Update range properties
-                        for (let i = 0; i < self.options.length; i++) {
-                            // Item number
-                            let v = self.options[i].number;
-                            // Update property condition
-                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
-
-                            if (v === number) {
-                                self.options[i].last = true;
-                            } else {
-                                self.options[i].last = false;
-                            }
-                        }
-                    }
+        const prev = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) - getJump(e);
+                if (position < 0) {
+                    // Next month
+                    move(-1);
+                    // New position
+                    position = total + position;
                 }
-            }
-        }
-
-        /**
-         * Destroy the range
-         */
-        const destroyRange = function() {
-            if (self.range) {
-                for (let i = 0; i < self.options.length; i++) {
-                    if (self.options[i].range !== false) {
-                        self.options[i].range = '';
-                    }
-                    if (self.options[i].start !== false) {
-                        self.options[i].start = '';
-                    }
-                    if (self.options[i].end !== false) {
-                        self.options[i].end = '';
-                    }
-                }
-                self.rangeValues = null;
-            }
-        }
-
-        const renderValue = function() {
-            let value = null;
-            if (self.range === true) {
-                if (Array.isArray(self.rangeValues)) {
-                    if (self.numeric) {
-                        value = self.rangeValues;
-                    } else {
-                        value = [
-                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
-                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
-                        ];
-                    }
-                }
+                // Update cursor
+                setCursor(self.options[position])
             } else {
-                value = getDate();
-                if (self.numeric) {
-                    value = Helpers.dateToNum(value);
-                }
+                move(-1);
             }
-            return value;
         }
 
-        const updateValue = function(v) {
-            if (self.range === true) {
-                if (v) {
-                    if (! Array.isArray(v)) {
-                        v = v.toString().split(',');
-                    }
-                    self.rangeValues = [...v];
-
-                    if (v[0] && typeof(v[0]) === 'string' && v[0].indexOf('-')) {
-                        self.rangeValues[0] = Helpers.dateToNum(v[0]);
-                    }
-                    if (v[1] && typeof(v[1]) === 'string' && v[1].indexOf('-')) {
-                        self.rangeValues[1] = Helpers.dateToNum(v[1]);
-                    }
-
-                    v = v[0];
+        const next = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) + getJump(e);
+                if (position >= total) {
+                    // Next month
+                    move(1);
+                    // New position
+                    position = position - total;
                 }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(1);
             }
-
-            let d;
-            if (v) {
-                v = isNumber(v) ? Helpers.numToDate(v) : v;
-                d = new Date(v + '  GMT+0');
-            }
-            // if no date is defined
-            if (! Helpers.isValidDate(d)) {
-                d = new Date();
-            }
-            // Update my index
-            self.cursor = {
-                y: d.getUTCFullYear(),
-                m: d.getUTCMonth(),
-                d: d.getUTCDate(),
-            };
-            // Update the internal calendar date
-            setDate(d);
         }
 
         const getInput = function() {
@@ -4523,39 +4545,108 @@ if (! Modal && "function" === 'function') {
             return input;
         }
 
-        const update = function() {
-            self.setValue(renderValue());
-            self.close({ origin: 'button' });
-        }
-
-        const onopen = function(modal) {
-            let isEditable = false;
-            let input = getInput();
-            let value = self.value;
-            if (input) {
-                let v = value;
-                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
-                    v = input.value;
-                } else if (input.isContentEditable) {
-                    isEditable = true;
-                    v = input.textContent;
-                }
-
-                let ret = v;
-                if (ret && Number(ret) == ret) {
-                    ret = Helpers.numToDate(ret);
-                }
-
-                // Try a formatted date
-                if (ret && ! Helpers.isValidDateFormat(ret)) {
-                    let tmp = Mask.extractDateFromString(ret, self.format);
-                    if (tmp) {
-                        ret = tmp;
+        const updateRange = function(s) {
+            if (self.range && self.view === 'days' && self.rangeValues) {
+                // Creating a range
+                if (self.rangeValues[0] && ! self.rangeValues[1]) {
+                    let number = s.number;
+                    if (number) {
+                        // Update range properties
+                        for (let i = 0; i < self.options.length; i++) {
+                            let v = self.options[i].number;
+                            // Update property condition
+                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
+                            self.options[i].last = (v === number);
+                        }
                     }
                 }
+            }
+        }
 
-                if (ret !== value) {
+        const destroyRange = function() {
+            if (self.range) {
+                for (let i = 0; i < self.options.length; i++) {
+                    if (self.options[i].range !== false) {
+                        self.options[i].range = false;
+                    }
+                    if (self.options[i].start !== false) {
+                        self.options[i].start = false;
+                    }
+                    if (self.options[i].end !== false) {
+                        self.options[i].end = false;
+                    }
+                    if (self.options[i].last !== false) {
+                        self.options[i].last = false;
+                    }
+                }
+                self.rangeValues = null;
+            }
+        }
+
+        const render = function(v) {
+            if (v) {
+                if (! Array.isArray(v)) {
+                    v = v.toString().split(',');
+                }
+
+                v = v.map(entry => {
+                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
+                }).join(',');
+            }
+            return v;
+        }
+
+        const normalize = function(v) {
+            if (! Array.isArray(v)) {
+                v = v.toString().split(',');
+            }
+
+            return v.map(item => {
+                if (Number(item) == item) {
+                    return Helpers.numToDate(item);
+                } else {
+                    if (Helpers.isValidDateFormat(item)) {
+                        return item;
+                    } else if (self.format) {
+                        let tmp = Mask.extractDateFromString(item, self.format);
+                        if (tmp) {
+                            return tmp;
+                        }
+                    }
+                }
+            })
+        }
+
+        const extractValueFromInput = function() {
+            let input = getInput();
+            if (input) {
+                let v;
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    v = input.value;
+                } else if (input.isContentEditable) {
+                    v = input.textContent;
+                }
+                if (v) {
+                    return normalize(v).join(',');
+                }
+                return v;
+            }
+        }
+
+        const onopen = function() {
+            let isEditable = false;
+            let value = self.value;
+
+            let input = getInput();
+            if (input) {
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
+                } else if (input.isContentEditable) {
+                    isEditable = true;
+                }
+
+                let ret = extractValueFromInput();
+                if (ret && ret !== value) {
                     value = ret;
                 }
             }
@@ -4565,7 +4656,8 @@ if (! Modal && "function" === 'function') {
             }
 
             // Update the internal date values
-            updateValue(value);
+            setValue(value);
+
             // Open event
             Dispatch.call(self, self.onopen, 'open', {
                 instance: self
@@ -4582,49 +4674,27 @@ if (! Modal && "function" === 'function') {
             });
         }
 
-        /**
-         * Select an item with the enter or mouse
-         * @param {object} e - mouse event
-         * @param {object} item - selected cell
-         */
-        const select = function(e, item) {
-            // Update cursor generic
-            let value = setCursor(item);
-            // Based where was the click
-            if (self.view !== 'days') {
-                // Update the internal date
-                setDate(value);
-                // Back to the days
-                self.view = 'days';
-            } else {
-                if (! item.disabled) {
-                    if (self.range === true) {
-                        let d = getDate();
-                        // Date to number
-                        let number = Helpers.dateToNum(d);
-                        // Start a new range
-                        if (self.rangeValues && (self.rangeValues[0] >= number || self.rangeValues[1])) {
-                            destroyRange();
-                        }
-                        // Range
-                        item.range = true;
-                        // Update range
-                        if (! self.rangeValues) {
-                            item.start = true;
-                            self.rangeValues = [number, null];
-                        } else {
-                            item.end = true;
-                            self.rangeValues[1] = number;
-                        }
-                    } else {
-                        update();
-                    }
-                }
+        const dispatchOnChangeEvent = function() {
+            // Destroy range
+            destroyRange();
+            // Update the internal controllers
+            setValue(self.value);
+            // Events
+            Dispatch.call(self, change, 'change', {
+                instance: self,
+                value: self.value,
+            });
+            // Update input
+            let input = getInput();
+            if (input) {
+                // Update input value
+                input.value = render(self.value);
+                // Dispatch event
+                Dispatch.call(input, null, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
             }
-        }
-
-        const isTrue = function(v) {
-            return v === true || v === 'true';
         }
 
         const events = {
@@ -4669,201 +4739,35 @@ if (! Modal && "function" === 'function') {
             input: (e) => {
                 let input = e.target;
                 if (input.classList.contains('lm-calendar-input')) {
-                    let value = null;
-                    // Content
-                    let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
-                    // Apply mask
-                    if (self.format) {
-                        Mask.oninput(e, self.format);
-                    }
-                    // Check if that is a valid date
-                    if (Helpers.isValidDateFormat(content)) {
-                        value = content;
-                    } else {
-                        let tmp = Mask.extractDateFromString(content, self.format);
-                        if (tmp) {
-                            value = tmp;
+                    if (! isTrue(self.range)) {
+                        // TODO: process with range
+                        // Apply mask
+                        if (self.format) {
+                            Mask.oninput(e, self.format);
+                        }
+                        let value = null;
+                        // Content
+                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
+                        // Check if that is a valid date
+                        if (Helpers.isValidDateFormat(content)) {
+                            value = content;
+                        } else if (self.format) {
+                            let tmp = Mask.extractDateFromString(content, self.format);
+                            if (tmp) {
+                                value = tmp;
+                            }
+                        }
+                        // Change the calendar view
+                        if (value) {
+                            setValue(value);
                         }
                     }
-                    // Change the calendar view
-                    if (value) {
-                        updateValue(value);
-                    }
                 }
             }
         }
 
-        /**
-         * Next handler
-         * @param {object?} e mouse event
-         */
-        self.next = function(e) {
-            if (! e || e.type === 'click') {
-                // Icon click
-                move(1);
-            } else {
-                // Keyboard handler
-                moveCursor(1, e);
-            }
-        }
-
-        /**
-         * Next handler
-         * @param {object?} e mouse event
-         */
-        self.prev = function(e) {
-            if (! e || e.type === 'click') {
-                // Icon click
-                move(-1);
-            } else {
-                // Keyboard handler
-                moveCursor(-1, e);
-            }
-        }
-
-        /**
-         * Open the modal
-         */
-        self.open = function(e) {
-            if (self.modal) {
-                if (autoType) {
-                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
-                }
-                self.modal.open();
-            }
-        }
-
-        /**
-         * Close the modal
-         */
-        self.close = function(options) {
-            if (self.modal) {
-                if (options && options.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.reset = function() {
-            self.setValue('');
-            self.close({ origin: 'button' });
-        }
-
-        /**
-         * Change the view
-         */
-        self.setView = function(e) {
-            if (typeof e === 'object') {
-                e = this.getAttribute('data-view');
-            }
-
-            const validViews = ['days', 'months', 'years'];
-            if (validViews.includes(e)) {
-                self.view = e;
-            }
-        }
-
-        /**
-         * Get value from cursor
-         * @returns {string}
-         */
-        self.getValue = function() {
-            let value = self.value;
-
-            if (isNumber(value)) {
-                if (! isTrue(self.numeric)) {
-                    value = Helpers.numToDate(value);
-                }
-            } else {
-                if (isTrue(self.numeric)) {
-                    value = Helpers.dateToNum(value);
-                }
-            }
-            return value;
-        }
-
-        self.setValue = function(v) {
-            // Events
-            if (v !== self.value) {
-                // Update value
-                self.value = v;
-            }
-        }
-
-        const dispatchOnChangeEvent = function() {
-            // Destroy range
-            destroyRange();
-            // Update the internal controllers
-            updateValue(self.value);
-            // Events
-            Dispatch.call(self, change, 'change', {
-                instance: self,
-                value: self.value,
-            });
-            // Update input
-            let input = getInput();
-            if (input) {
-                let v = self.value;
-                if (self.format && v) {
-                    if (self.range === true) {
-                        if (v[0]) {
-                            v[0] = Mask.render(v[0], self.format);
-                        }
-                        if (v[1]) {
-                            v[1] = Mask.render(v[1], self.format);
-                        }
-                    } else {
-                        v = Mask.render(v, self.format);
-                    }
-                }
-                // Update input value
-                input.value = v;
-                // Dispatch event
-                Dispatch.call(input, null, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-        }
-
-        self.update = update;
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        self.helpers = Helpers;
-
-        onchange(function(prop) {
-            if (prop === 'view') {
-                if (typeof(views[self.view]) === 'function') {
-                    // When change the view update the data
-                    self.options = views[self.view].call(self, date);
-                }
-            } else if (prop === 'value') {
-                dispatchOnChangeEvent();
-            } else if (prop === 'startingDay') {
-                self.weekdays = getWeekdays(self.startingDay ?? 0);
-            }
-        });
-
-        // Input
-        if (self.input === 'auto') {
-            self.input = document.createElement('input');
-            self.input.type = 'text';
-        }
-
-        onload(function() {
+        // Onload
+        onload(() => {
             if (self.type !== "inline") {
                 // Create modal instance
                 self.modal = {
@@ -4878,11 +4782,6 @@ if (! Modal && "function" === 'function') {
                 };
                 // Generate modal
                 Modal(self.el, self.modal);
-            }
-
-            // Correct casting
-            if (self.range === 'true') {
-                 self.range = true;
             }
 
             let ret;
@@ -4911,23 +4810,25 @@ if (! Modal && "function" === 'function') {
 
                     // Retrieve the value
                     if (self.value) {
-                        input.value = self.value;
-                    } else if (input.value && input.value !== self.value) {
-                        // Correct format
-                        if (self.format) {
-                            input.value = Helpers.getDate(input.value, self.format);
+                        input.value = render(self.value);
+                    } else {
+                        let value = extractValueFromInput();
+                        if (value && value !== self.value) {
+                            ret = value;
                         }
-                        ret = input.value;
                     }
                 }
             }
 
             // Update the internal date values
             if (ret) {
-                self.value = ret;
+                self.setValue(ret);
             } else {
-                updateValue(self.value);
+                setValue(self.value);
             }
+
+            // Reload view
+            reloadView(true);
 
             /**
              * Handler keyboard
@@ -4939,21 +4840,20 @@ if (! Modal && "function" === 'function') {
                     if (e.target !== self.content) {
                         self.content.focus();
                     }
-                    self.prev(e);
+                    prev(e);
                     prevent = true;
                 } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
                     if (e.target !== self.content) {
                         self.content.focus();
                     }
-                    self.next(e);
+                    next(e);
                     prevent = true;
                 } else if (e.key === 'Enter') {
                     if (e.target === self.content) {
                         // Item
-                        let item = self.options[self.cursor.index];
-                        if (item) {
+                        if (self.cursor.current) {
                             // Select
-                            select(e, item);
+                            select(e, self.cursor.current);
                             prevent = true;
                         }
                     }
@@ -4977,9 +4877,9 @@ if (! Modal && "function" === 'function') {
             self.content.addEventListener('wheel', function(e){
                 if (self.wheel !== false) {
                     if (e.deltaY < 0) {
-                        self.prev();
+                        prev(e);
                     } else {
-                        self.next();
+                        next(e);
                     }
                     e.preventDefault();
                 }
@@ -5006,22 +4906,102 @@ if (! Modal && "function" === 'function') {
             });
         });
 
-        // Populate components
-        const hours = views.hours();
-        const minutes = views.minutes();
+        onchange((prop) => {
+            if (prop === 'view') {
+                reloadView(true);
+            } else if (prop === 'startingDay') {
+                self.weekdays = getWeekdays(self.startingDay ?? 0);
+            } else if (prop === 'value') {
+                dispatchOnChangeEvent();
+            }
+        })
 
-        return render => render`<div class="lm-calendar" :value="self.value" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
+        // Tracking variables
+        track('value');
+
+        // Public methods
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (self.type === 'auto') {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                self.modal.open();
+            }
+        }
+
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            // Update value
+            if (v) {
+                let ret = normalize(v);
+                if (isTrue(self.numeric)) {
+                    ret = ret.map(entry => {
+                        return Helpers.dateToNum(entry);
+                    })
+                }
+
+                if (! Array.isArray(v)) {
+                    ret = ret.join(',');
+                }
+
+                if (ret == Number(ret)) {
+                    ret = Number(ret);
+                }
+
+                v = ret;
+            }
+
+            // Events
+            if (v !== self.value) {
+                self.value = v;
+            }
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        self.update = update;
+        self.next = next;
+        self.prev = prev;
+        self.reset = reset;
+        self.setView = setView;
+        self.helpers = Helpers;
+
+        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
             <div class="lm-calendar-options">
-                <button type="button" onclick="self.reset">${T('Reset')}</button>
+                <button type="button" onclick="${reset}">${T('Reset')}</button>
                 <button type="button" onclick="${update}">${T('Done')}</button>
             </div>
             <div class="lm-calendar-container" data-view="{{self.view}}">
                 <div class="lm-calendar-header">
                     <div>
-                        <div class="lm-calendar-labels"><button type="button" onclick="self.setView" data-view="months">{{self.month}}</button> <button type="button" onclick="self.setView" data-view="years">{{self.year}}</button></div> 
+                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
                         <div class="lm-calendar-navigation">
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="self.prev" tabindex="0">expand_less</button>
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="self.next" tabindex="0">expand_more</button>
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
                         </div>
                     </div>
                     <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
@@ -5055,16 +5035,16 @@ if (! Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 98:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_187946__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_186235__) {
 
 
 
 if (! Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_187946__(392);
+    var Modal = __nested_webpack_require_186235__(392);
 }
 
 if (! Tabs && "function" === 'function') {
-    var Tabs = __nested_webpack_require_187946__(979);
+    var Tabs = __nested_webpack_require_186235__(979);
 }
 
 ; (function (global, factory) {
@@ -5497,12 +5477,12 @@ if (! Tabs && "function" === 'function') {
 /***/ }),
 
 /***/ 319:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_204399__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_202688__) {
 
 
 
 if (! Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_204399__(392);
+    var Modal = __nested_webpack_require_202688__(392);
 }
 
 ; (function (global, factory) {
@@ -6025,7 +6005,7 @@ if (! Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 960:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_223190__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_221479__) {
 
 /**
  * Implement page up and down navigation
@@ -6035,7 +6015,7 @@ if (! Modal && "function" === 'function') {
 
 
 if (!Modal && "function" === 'function') {
-    var Modal = __nested_webpack_require_223190__(392);
+    var Modal = __nested_webpack_require_221479__(392);
 }
 
 ; (function (global, factory) {
@@ -8819,12 +8799,12 @@ if (!Modal && "function" === 'function') {
 /***/ }),
 
 /***/ 879:
-/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_316321__) {
+/***/ (function(module, __unused_webpack_exports, __nested_webpack_require_314610__) {
 
 
 
 if (! Contextmenu && "function" === 'function') {
-    var Contextmenu = __nested_webpack_require_316321__(319);
+    var Contextmenu = __nested_webpack_require_314610__(319);
 }
 
 ; (function (global, factory) {
@@ -9077,7 +9057,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	var __webpack_module_cache__ = {};
 /******/ 	
 /******/ 	// The require function
-/******/ 	function __nested_webpack_require_324455__(moduleId) {
+/******/ 	function __nested_webpack_require_322744__(moduleId) {
 /******/ 		// Check if module is in cache
 /******/ 		var cachedModule = __webpack_module_cache__[moduleId];
 /******/ 		if (cachedModule !== undefined) {
@@ -9091,7 +9071,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 		};
 /******/ 	
 /******/ 		// Execute the module function
-/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_324455__);
+/******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __nested_webpack_require_322744__);
 /******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
@@ -9101,11 +9081,11 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
 /******/ 		// getDefaultExport function for compatibility with non-harmony modules
-/******/ 		__nested_webpack_require_324455__.n = function(module) {
+/******/ 		__nested_webpack_require_322744__.n = function(module) {
 /******/ 			var getter = module && module.__esModule ?
 /******/ 				function() { return module['default']; } :
 /******/ 				function() { return module; };
-/******/ 			__nested_webpack_require_324455__.d(getter, { a: getter });
+/******/ 			__nested_webpack_require_322744__.d(getter, { a: getter });
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
@@ -9113,9 +9093,9 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
-/******/ 		__nested_webpack_require_324455__.d = function(exports, definition) {
+/******/ 		__nested_webpack_require_322744__.d = function(exports, definition) {
 /******/ 			for(var key in definition) {
-/******/ 				if(__nested_webpack_require_324455__.o(definition, key) && !__nested_webpack_require_324455__.o(exports, key)) {
+/******/ 				if(__nested_webpack_require_322744__.o(definition, key) && !__nested_webpack_require_322744__.o(exports, key)) {
 /******/ 					Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
 /******/ 				}
 /******/ 			}
@@ -9124,7 +9104,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
-/******/ 		__nested_webpack_require_324455__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
+/******/ 		__nested_webpack_require_322744__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
 /******/ 	
 /************************************************************************/
@@ -9132,24 +9112,24 @@ var __nested_webpack_exports__ = {};
 // This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
 !function() {
 "use strict";
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_324455__(673);
-/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_324455__(98);
-/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_324455__(319);
-/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_324455__(960);
-/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_324455__(392);
-/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_324455__(711);
-/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_324455__(979);
-/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_324455__(879);
-/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_324455__(712);
-/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_324455__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__ = __nested_webpack_require_322744__(673);
+/* harmony import */ var _plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_calendar_dist_index__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__ = __nested_webpack_require_322744__(98);
+/* harmony import */ var _plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_color_dist_index__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__ = __nested_webpack_require_322744__(319);
+/* harmony import */ var _plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_contextmenu_dist_index__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__ = __nested_webpack_require_322744__(960);
+/* harmony import */ var _plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_dropdown_dist_index__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__ = __nested_webpack_require_322744__(392);
+/* harmony import */ var _plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_modal_dist_index__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__ = __nested_webpack_require_322744__(711);
+/* harmony import */ var _plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_switch_dist_index__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__ = __nested_webpack_require_322744__(979);
+/* harmony import */ var _plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_tabs_dist_index__WEBPACK_IMPORTED_MODULE_6__);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__ = __nested_webpack_require_322744__(879);
+/* harmony import */ var _plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_topmenu_dist_index__WEBPACK_IMPORTED_MODULE_7__);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__ = __nested_webpack_require_322744__(712);
+/* harmony import */ var _plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__nested_webpack_require_322744__.n(_plugins_rating_dist_index__WEBPACK_IMPORTED_MODULE_8__);
 
 
 
@@ -26585,7 +26565,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.18',
+    version: '6.0.0-beta.19',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
