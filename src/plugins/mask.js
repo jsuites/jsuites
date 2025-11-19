@@ -1888,7 +1888,7 @@ function Mask() {
         }
         let m = token.split(decimal);
         let desiredNumOfPaddingZeros = m[0].match(/[0]+/g);
-        if (desiredNumOfPaddingZeros[0]) {
+        if (desiredNumOfPaddingZeros && desiredNumOfPaddingZeros[0]) {
             desiredNumOfPaddingZeros = desiredNumOfPaddingZeros[0].length
             let v = value.toString().split(decimal);
             let len = v[0].length;
@@ -3416,7 +3416,7 @@ function Mask() {
         if (value) {
             try {
                 // Data
-                  o.data = extractDateAndTime(value);
+                o.data = extractDateAndTime(value);
 
                 if (o.data[1] && o.data[1] > 12) {
                     throw new Error('Invalid date');
@@ -3437,6 +3437,14 @@ function Mask() {
                 // Calendar instance
                 let calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
 
+                if (o.data[0] === null && o.data[1] === null && o.data[2] === null) {
+                    // Do nothing
+                } else {
+                    if (isNaN(calendar.getTime())) {
+                        throw new Error('Invalid date');
+                    }
+                }
+
                 // Get method
                 const get = function (i) {
                     // Token
@@ -3449,37 +3457,73 @@ function Mask() {
                     if (s === 'YYYY') {
                         v = this.data[0];
                     } else if (s === 'YYY') {
-                        v = this.data[0].substring(1, 4);
+                        v = this.data[0];
+                        if (v) {
+                            v = v.substring(1, 4);
+                        }
                     } else if (s === 'YY') {
-                        v = this.data[0].substring(2, 4);
+                        v = this.data[0];
+                        if (v) {
+                            v = v.substring(2, 4);
+                        }
                     } else if (s === 'Y') {
-                        v = this.data[0].substring(3, 4);
+                        v = this.data[0];
+                        if (v) {
+                            v = v.substring(3, 4);
+                        }
                     } else if (t === 'MON') {
-                        v = Helpers.months[calendar.getMonth()].substr(0, 3).toUpperCase();
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.substr(0, 3).toUpperCase();
+                        }
                     } else if (t === 'mon') {
-                        v = Helpers.months[calendar.getMonth()].substr(0, 3).toLowerCase();
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.substr(0, 3).toLowerCase();
+                        }
                     } else if (t === 'MONTH') {
-                        v = Helpers.months[calendar.getMonth()].toUpperCase();
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.toUpperCase();
+                        }
                     } else if (t === 'month') {
-                        v = Helpers.months[calendar.getMonth()].toLowerCase();
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.toLowerCase();
+                        }
                     } else if (s === 'MMMMM') {
-                        v = Helpers.months[calendar.getMonth()].substr(0, 1);
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.substr(0, 1);
+                        }
                     } else if (s === 'MMMM' || t === 'Month') {
                         v = Helpers.months[calendar.getMonth()];
                     } else if (s === 'MMM' || t == 'Mon') {
-                        v = Helpers.months[calendar.getMonth()].substr(0, 3);
+                        v = Helpers.months[calendar.getMonth()];
+                        if (v) {
+                            v = v.substr(0, 3);
+                        }
                     } else if (s === 'MM') {
                         v = Helpers.two(this.data[1]);
                     } else if (s === 'M') {
                         v = calendar.getMonth() + 1;
                     } else if (t === 'DAY') {
-                        v = Helpers.weekdays[calendar.getDay()].toUpperCase();
+                        v = Helpers.weekdays[calendar.getDay()];
+                        if (v) {
+                            v = v.toUpperCase();
+                        }
                     } else if (t === 'day') {
-                        v = Helpers.weekdays[calendar.getDay()].toLowerCase();
+                        v = Helpers.weekdays[calendar.getDay()];
+                        if (v) {
+                            v = v.toLowerCase();
+                        }
                     } else if (s === 'DDDD' || t == 'Day') {
                         v = Helpers.weekdays[calendar.getDay()];
                     } else if (s === 'DDD') {
-                        v = Helpers.weekdays[calendar.getDay()].substr(0, 3);
+                        v = Helpers.weekdays[calendar.getDay()];
+                        if (v) {
+                            v = v.substr(0, 3);
+                        }
                     } else if (s === 'DD') {
                         v = Helpers.two(this.data[2]);
                     } else if (s === 'D') {
@@ -3547,7 +3591,6 @@ function Mask() {
 
                 value = o.value.join('');
             } catch (e) {
-                console.log(e)
                 value = '';
             }
         }
