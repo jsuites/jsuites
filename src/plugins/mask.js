@@ -824,9 +824,7 @@ function Mask() {
                             break;
                         }
                     }
-                    // Only set parenthesisForNegativeNumbers if we're in the negative format section
-                    // of an Excel-style mask (indicated by control.isNegativeFormat)
-                    if (!hasUnderscore && control.isNegativeFormat) {
+                    if (! hasUnderscore) {
                         control.parenthesisForNegativeNumbers = true;
                     }
                 }
@@ -1912,8 +1910,8 @@ function Mask() {
                     }
                 }
 
-                if ((control.type === 'currency' || control.type === 'numeric' || control.type === 'number') && control.parenthesisForNegativeNumbers === true) {
-                    if (method.type === 'currency' || method.type === 'numeric' || method.type === 'number') {
+                if (isNumeric(control.type) && control.parenthesisForNegativeNumbers === true) {
+                    if (isNumeric(method.type)) {
                         if (control.values[k].toString().includes('-')) {
                             control.values[k] = control.values[k].replace('-', '');
 
@@ -1925,7 +1923,7 @@ function Mask() {
         });
 
 
-        if ((control.type === 'currency' || control.type === 'numeric' || control.type === 'number') && control.parenthesisForNegativeNumbers === true && negativeSignal) {
+        if (isNumeric(control.type) && control.parenthesisForNegativeNumbers === true && negativeSignal) {
             control.methods.forEach((method, k) => {
                 if (! control.values[k] && control.tokens[k] === '(') {
                     control.values[k] = '(';
@@ -1938,8 +1936,13 @@ function Mask() {
 
     const getValue = function(control) {
         let value = control.values.join('');
-        if (isNumeric(control.type) && value.indexOf('--') !== false) {
-            value = value.replace('--','-');
+        if (isNumeric(control.type)) {
+            if (value.indexOf('--') !== false) {
+                value = value.replace('--', '-');
+            }
+            if (Number(control.raw) < 0 && value.includes('-')) {
+                value = '-' + value.replace('-', '');
+            }
         }
         return value;
     }
@@ -2031,7 +2034,6 @@ function Mask() {
                 if (typeof (value) === 'number' || isNumber(value)) {
                     if (Number(value) < 0 && d[1]) {
                         mask = d[1];
-                        control.isNegativeFormat = true;
                     } else if (Number(value) === 0 && d[2]) {
                         mask = d[2];
                     } else {
@@ -3312,7 +3314,7 @@ function Mask() {
 
         // Config
         const config = getConfig(options, value);
-        console.log(config)
+
         if (config.locale) {
             value = Component(value, options);
         } else if (config.mask) {
