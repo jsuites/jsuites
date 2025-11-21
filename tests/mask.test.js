@@ -380,6 +380,29 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.autoCasting("(R$5,000.75)")).toEqual({ mask: '(R$#,##0.00)', value: -5000.75, type: 'currency', category: 'numeric' });
         });
 
+        // Decimal parameter tests for currency
+        test('should respect decimal parameter for currency with parentheses', () => {
+            // When decimal is ',' the thousand separator should be '.'
+            expect(jSuites.mask.autoCasting("($400)", ',')).toEqual({ mask: '($#.##0)', value: -400, type: 'currency', category: 'numeric' });
+            // The ,000 is treated as literal text since , is the decimal separator
+            expect(jSuites.mask.autoCasting("($400,000)", ',')).toEqual({ mask: '($#.##0,000)', value: -400, type: 'currency', category: 'numeric' });
+
+            // When decimal is '.' the thousand separator should be ','
+            expect(jSuites.mask.autoCasting("($400)", '.')).toEqual({ mask: '($#,##0)', value: -400, type: 'currency', category: 'numeric' });
+        });
+
+        test('should respect decimal parameter for currency with separators', () => {
+            // Should work when input has correct separators
+            expect(jSuites.mask.autoCasting("$1,234.56", '.')).toEqual({ mask: '$ #,##0.00', value: 1234.56, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("$1.234,56", ',')).toEqual({ mask: '$ #.##0,00', value: 1234.56, type: 'currency', category: 'numeric' });
+        });
+
+        test('should reject currency with wrong decimal separator', () => {
+            // Should reject when input has wrong decimal separator
+            expect(jSuites.mask.autoCasting("$1,234.56", ',')).toBeNull();
+            expect(jSuites.mask.autoCasting("$1.234,56", '.')).toBeNull();
+        });
+
         test('should reject letters without currency symbol', () => {
             expect(jSuites.mask.autoCasting("PL 1")).toBeNull();
             expect(jSuites.mask.autoCasting("BRL 1")).toBeNull();
@@ -443,6 +466,22 @@ describe('jSuites mask', () => {
         test('should detect formatted numbers', () => {
             expect(jSuites.mask.autoCasting("1,000.25")).toEqual({ mask: '#,##0.00', value: 1000.25, type: 'number', category: 'numeric' });
             expect(jSuites.mask.autoCasting("1.000,25")).toEqual({ mask: '#.##0,00', value: 1000.25, type: 'number', category: 'numeric' });
+        });
+
+        // Decimal parameter tests for numbers
+        test('should respect decimal parameter for numbers', () => {
+            // The ,000 is treated as literal text since , is the decimal separator
+            expect(jSuites.mask.autoCasting("400,000", ',')).toEqual({ mask: '0,000', value: 400, type: 'number', category: 'numeric' });
+
+            // Should work when input has correct separators
+            expect(jSuites.mask.autoCasting("1,234.56", '.')).toEqual({ mask: '#,##0.00', value: 1234.56, type: 'number', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("1.234,56", ',')).toEqual({ mask: '#.##0,00', value: 1234.56, type: 'number', category: 'numeric' });
+        });
+
+        test('should reject numbers with wrong decimal separator', () => {
+            // Should reject when input has wrong decimal separator
+            expect(jSuites.mask.autoCasting("1,234.56", ',')).toBeNull();
+            expect(jSuites.mask.autoCasting("1.234,56", '.')).toBeNull();
         });
 
         test('should detect padded zeros', () => {

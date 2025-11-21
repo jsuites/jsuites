@@ -16054,33 +16054,62 @@ function Mask() {
         let decimal = '.';
         let group = ',';
 
-        if (commaCount > 0 && dotCount > 0) {
-            // Both present: the one that appears last is decimal
-            if (lastCommaPos > lastDotPos) {
-                decimal = ',';
-                group = '.';
-            }
-        } else if (dotCount === 1 && commaCount === 0) {
-            // Only one dot: check if it's followed by exactly 3 digits
-            const afterDot = numericPart.substring(lastDotPos + 1);
-            if (afterDot.length === 3) {
-                // Likely a thousands separator
-                decimal = ',';
-                group = '.';
-            }
-        } else if (commaCount === 1 && dotCount === 0) {
-            // Only one comma: check if it's followed by exactly 3 digits
-            const afterComma = numericPart.substring(lastCommaPos + 1);
-            if (afterComma.length !== 3) {
-                // Likely a decimal separator
-                decimal = ',';
-                group = '.';
-            }
-        }
+        // If filterDecimal is provided, use it to determine separators
+        if (filterDecimal) {
+            decimal = filterDecimal;
+            group = filterDecimal === ',' ? '.' : ',';
 
-        // Filter based on filterDecimal if provided
-        if (filterDecimal && decimal !== filterDecimal) {
-            return null;
+            // Validate that the input matches this interpretation
+            if (commaCount > 0 && dotCount > 0) {
+                // Both present: check if filterDecimal matches the last one (which should be decimal)
+                const lastIsComma = lastCommaPos > lastDotPos;
+                if ((filterDecimal === ',' && !lastIsComma) || (filterDecimal === '.' && lastIsComma)) {
+                    return null;
+                }
+            } else if (dotCount === 1 && commaCount === 0) {
+                // Only one dot: if NOT followed by exactly 3 digits, it's a decimal separator
+                const afterDot = numericPart.substring(lastDotPos + 1);
+                if (afterDot.length !== 3) {
+                    // It's a decimal separator, must match filterDecimal
+                    if (filterDecimal !== '.') {
+                        return null;
+                    }
+                }
+            } else if (commaCount === 1 && dotCount === 0) {
+                // Only one comma: if NOT followed by exactly 3 digits, it's a decimal separator
+                const afterComma = numericPart.substring(lastCommaPos + 1);
+                if (afterComma.length !== 3) {
+                    // It's a decimal separator, must match filterDecimal
+                    if (filterDecimal !== ',') {
+                        return null;
+                    }
+                }
+            }
+        } else {
+            // Infer from the input pattern
+            if (commaCount > 0 && dotCount > 0) {
+                // Both present: the one that appears last is decimal
+                if (lastCommaPos > lastDotPos) {
+                    decimal = ',';
+                    group = '.';
+                }
+            } else if (dotCount === 1 && commaCount === 0) {
+                // Only one dot: check if it's followed by exactly 3 digits
+                const afterDot = numericPart.substring(lastDotPos + 1);
+                if (afterDot.length === 3) {
+                    // Likely a thousands separator
+                    decimal = ',';
+                    group = '.';
+                }
+            } else if (commaCount === 1 && dotCount === 0) {
+                // Only one comma: check if it's followed by exactly 3 digits
+                const afterComma = numericPart.substring(lastCommaPos + 1);
+                if (afterComma.length !== 3) {
+                    // Likely a decimal separator
+                    decimal = ',';
+                    group = '.';
+                }
+            }
         }
 
         // Check if group separator is actually used in the input
@@ -16174,31 +16203,60 @@ function Mask() {
             const lastCommaPos = numStr.lastIndexOf(',');
             const lastDotPos = numStr.lastIndexOf('.');
 
-            if (commaCount > 0 && dotCount > 0) {
-                // Both present: the one that appears last is decimal
-                if (lastCommaPos > lastDotPos) {
-                    decimal = ',';
-                    group = '.';
-                }
-            } else if (dotCount === 1 && commaCount === 0) {
-                // Only one dot: check if it's followed by exactly 3 digits (thousands separator)
-                const afterDot = numStr.substring(lastDotPos + 1);
-                if (afterDot.length === 3 && !/[,.]/.test(afterDot)) {
-                    decimal = ',';
-                    group = '.';
-                }
-            } else if (commaCount === 1 && dotCount === 0) {
-                // Only one comma: check if it's NOT followed by exactly 3 digits (decimal separator)
-                const afterComma = numStr.substring(lastCommaPos + 1);
-                if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
-                    decimal = ',';
-                    group = '.';
-                }
-            }
+            // If filterDecimal is provided, use it to determine separators
+            if (filterDecimal) {
+                decimal = filterDecimal;
+                group = filterDecimal === ',' ? '.' : ',';
 
-            // Filter based on filterDecimal if provided
-            if (filterDecimal && decimal !== filterDecimal) {
-                return null;
+                // Validate that the input matches this interpretation
+                if (commaCount > 0 && dotCount > 0) {
+                    // Both present: check if filterDecimal matches the last one (which should be decimal)
+                    const lastIsComma = lastCommaPos > lastDotPos;
+                    if ((filterDecimal === ',' && !lastIsComma) || (filterDecimal === '.' && lastIsComma)) {
+                        return null;
+                    }
+                } else if (dotCount === 1 && commaCount === 0) {
+                    // Only one dot: if NOT followed by exactly 3 digits, it's a decimal separator
+                    const afterDot = numStr.substring(lastDotPos + 1);
+                    if (afterDot.length !== 3 || /[,.]/.test(afterDot)) {
+                        // It's a decimal separator, must match filterDecimal
+                        if (filterDecimal !== '.') {
+                            return null;
+                        }
+                    }
+                } else if (commaCount === 1 && dotCount === 0) {
+                    // Only one comma: if NOT followed by exactly 3 digits, it's a decimal separator
+                    const afterComma = numStr.substring(lastCommaPos + 1);
+                    if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
+                        // It's a decimal separator, must match filterDecimal
+                        if (filterDecimal !== ',') {
+                            return null;
+                        }
+                    }
+                }
+            } else {
+                // Infer from the input pattern
+                if (commaCount > 0 && dotCount > 0) {
+                    // Both present: the one that appears last is decimal
+                    if (lastCommaPos > lastDotPos) {
+                        decimal = ',';
+                        group = '.';
+                    }
+                } else if (dotCount === 1 && commaCount === 0) {
+                    // Only one dot: check if it's followed by exactly 3 digits (thousands separator)
+                    const afterDot = numStr.substring(lastDotPos + 1);
+                    if (afterDot.length === 3 && !/[,.]/.test(afterDot)) {
+                        decimal = ',';
+                        group = '.';
+                    }
+                } else if (commaCount === 1 && dotCount === 0) {
+                    // Only one comma: check if it's NOT followed by exactly 3 digits (decimal separator)
+                    const afterComma = numStr.substring(lastCommaPos + 1);
+                    if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
+                        decimal = ',';
+                        group = '.';
+                    }
+                }
             }
 
             // Check if group separator is actually used in the input
