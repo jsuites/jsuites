@@ -30,7 +30,7 @@ function Mask() {
         // Data tokens
         datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
         // Other
-        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[0-9a-zA-Z\\$]+', '_[.\\s\\S]', '\\(', '\\)', '.']
+        general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[a-zA-Z\\$]+', '_[.\\s\\S]', '\\(', '\\)', '.']
     }
 
     const countryCodes = {
@@ -1602,7 +1602,7 @@ function Mask() {
                 }
             }
         },
-        '[0-9a-zA-Z\\$]+': function(v) {
+        '[a-zA-Z\\$]+': function(v) {
             // Token to be added to the value
             let word = this.tokens[this.index];
             // Value
@@ -1629,13 +1629,13 @@ function Mask() {
             }
         },
         'A': function(v) {
-            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+            return parseMethods['[a-zA-Z\\$]+'].call(this, v);
         },
         'a': function(v) {
-            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+            return parseMethods['[a-zA-Z\\$]+'].call(this, v);
         },
         '.': function(v) {
-            return parseMethods['[0-9a-zA-Z\\$]+'].call(this, v);
+            return parseMethods['[a-zA-Z\\$]+'].call(this, v);
         },
         '&': function(v) {
             if (v.match(/^[a-zA-Z ]+$/)) {
@@ -3312,7 +3312,7 @@ function Mask() {
 
         // Config
         const config = getConfig(options, value);
-
+        console.log(config)
         if (config.locale) {
             value = Component(value, options);
         } else if (config.mask) {

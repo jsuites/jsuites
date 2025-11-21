@@ -67,6 +67,20 @@ describe('jSuites mask', () => {
             //expect(jSuites.mask.render(3, { mask: '[=1]"one";[=2]"two";#' })).toBe('3');
         });
 
+        test('currency masks without space', () => {
+            // $0 format without space should work
+            expect(jSuites.mask.render(34, { mask: '$0' }, true)).toBe('$34');
+            expect(jSuites.mask.render(-34, { mask: '$0' }, true)).toBe('-$34');
+
+            // $0.00 format without space should work
+            expect(jSuites.mask.render(34, { mask: '$0.00' }, true)).toBe('$34.00');
+            expect(jSuites.mask.render(-34, { mask: '$0.00' }, true)).toBe('-$34.00');
+
+            // With other currency symbols
+            expect(jSuites.mask.render(34, { mask: '€0.00' }, true)).toBe('€34.00');
+            expect(jSuites.mask.render(-34, { mask: '€0.00' }, true)).toBe('-€34.00');
+        });
+
         test('negative number formatting with brackets', () => {
             expect(jSuites.mask.render(-50.25, { mask: '(0)' }, true)).toBe('-(50)');
             expect(jSuites.mask.render(-100000, { mask: '_(0_)' }, true)).toBe(' -100000 ');
