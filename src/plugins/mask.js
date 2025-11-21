@@ -2848,11 +2848,6 @@ function Mask() {
             }
         }
 
-        // Check if group separator is actually used in the input
-        const hasGroupSeparator = (group === ',' && commaCount > 1) || (group === '.' && dotCount > 1) ||
-                                  (group === ',' && decimal === '.' && commaCount > 0) ||
-                                  (group === '.' && decimal === ',' && dotCount > 0);
-
         // Normalize: remove group separator, convert decimal to '.'
         let normalized = '';
         for (let i = 0; i < numericPart.length; i++) {
@@ -2874,12 +2869,7 @@ function Mask() {
         const dotPos = normalized.indexOf('.');
         const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
         const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
-        // When we have parentheses format, always use #,##0 format (not just 0)
-        // because ($0) doesn't render correctly, but ($#,##0) does
-        const groupMask = (hasGroupSeparator || hasParens) ? '#' + group + '##0' : '0';
-        // Ensure space between symbol and number mask if symbol doesn't already have trailing space
-        // Exception: Don't add space if we have parentheses (negative with parens format)
-        // because ($#,##0) format works without space
+        const groupMask = '#' + group + '##0';
         const needsSpace = symbol && !symbol.endsWith(' ') && !symbol.endsWith('\t') && !hasParens;
         let mask = symbol + (needsSpace ? ' ' : '') + groupMask + maskDecimal;
 
