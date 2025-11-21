@@ -824,7 +824,9 @@ function Mask() {
                             break;
                         }
                     }
-                    if (!hasUnderscore) {
+                    // Only set parenthesisForNegativeNumbers if we're in the negative format section
+                    // of an Excel-style mask (indicated by control.isNegativeFormat)
+                    if (!hasUnderscore && control.isNegativeFormat) {
                         control.parenthesisForNegativeNumbers = true;
                     }
                 }
@@ -1910,8 +1912,8 @@ function Mask() {
                     }
                 }
 
-                if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true) {
-                    if (method.type === 'currency') {
+                if ((control.type === 'currency' || control.type === 'numeric' || control.type === 'number') && control.parenthesisForNegativeNumbers === true) {
+                    if (method.type === 'currency' || method.type === 'numeric' || method.type === 'number') {
                         if (control.values[k].toString().includes('-')) {
                             control.values[k] = control.values[k].replace('-', '');
 
@@ -1923,7 +1925,7 @@ function Mask() {
         });
 
 
-        if (control.type === 'currency' && control.parenthesisForNegativeNumbers === true && negativeSignal) {
+        if ((control.type === 'currency' || control.type === 'numeric' || control.type === 'number') && control.parenthesisForNegativeNumbers === true && negativeSignal) {
             control.methods.forEach((method, k) => {
                 if (! control.values[k] && control.tokens[k] === '(') {
                     control.values[k] = '(';
@@ -2029,6 +2031,7 @@ function Mask() {
                 if (typeof (value) === 'number' || isNumber(value)) {
                     if (Number(value) < 0 && d[1]) {
                         mask = d[1];
+                        control.isNegativeFormat = true;
                     } else if (Number(value) === 0 && d[2]) {
                         mask = d[2];
                     } else {
