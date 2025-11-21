@@ -2687,7 +2687,7 @@ function Mask() {
             const char = str[i];
 
             // Check for negative signs and parentheses
-            if (char === '-' && !numericPart && !symbol) {
+            if (char === '-' && !numericPart) {
                 isNegative = true;
                 continue;
             }
@@ -2883,8 +2883,8 @@ function Mask() {
         const needsSpace = symbol && !symbol.endsWith(' ') && !symbol.endsWith('\t') && !hasParens;
         let mask = symbol + (needsSpace ? ' ' : '') + groupMask + maskDecimal;
 
-        if (isNegative) {
-            mask = hasParens ? `(${mask})` : `-${mask}`;
+        if (hasParens) {
+            mask = `(${mask})`;
         }
 
         return {
