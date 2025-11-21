@@ -16109,8 +16109,14 @@ function Mask() {
         const dotPos = normalized.indexOf('.');
         const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
         const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
-        const groupMask = hasGroupSeparator ? '#' + group + '##0' : '0';
-        let mask = symbol + groupMask + maskDecimal;
+        // When we have parentheses format, always use #,##0 format (not just 0)
+        // because ($0) doesn't render correctly, but ($#,##0) does
+        const groupMask = (hasGroupSeparator || hasParens) ? '#' + group + '##0' : '0';
+        // Ensure space between symbol and number mask if symbol doesn't already have trailing space
+        // Exception: Don't add space if we have parentheses (negative with parens format)
+        // because ($#,##0) format works without space
+        const needsSpace = symbol && !symbol.endsWith(' ') && !symbol.endsWith('\t') && !hasParens;
+        let mask = symbol + (needsSpace ? ' ' : '') + groupMask + maskDecimal;
 
         if (isNegative) {
             mask = hasParens ? `(${mask})` : `-${mask}`;
@@ -26608,7 +26614,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.19',
+    version: '6.0.0-beta.20',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

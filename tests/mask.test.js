@@ -367,6 +367,19 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ 0', value: 100, type: 'currency', category: 'numeric' });
         });
 
+        test('should detect currency without space after symbol', () => {
+            expect(jSuites.mask.autoCasting("$400")).toEqual({ mask: '$ 0', value: 400, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("$1,234")).toEqual({ mask: '$ #,##0', value: 1234, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("$1,234.56")).toEqual({ mask: '$ #,##0.00', value: 1234.56, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("R$400")).toEqual({ mask: 'R$ 0', value: 400, type: 'currency', category: 'numeric' });
+        });
+
+        test('should detect negative currency with parentheses (no space)', () => {
+            expect(jSuites.mask.autoCasting("($400)")).toEqual({ mask: '($#,##0)', value: -400, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("(R$400)")).toEqual({ mask: '(R$#,##0)', value: -400, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("(R$5,000.75)")).toEqual({ mask: '(R$#,##0.00)', value: -5000.75, type: 'currency', category: 'numeric' });
+        });
+
         test('should reject letters without currency symbol', () => {
             expect(jSuites.mask.autoCasting("PL 1")).toBeNull();
             expect(jSuites.mask.autoCasting("BRL 1")).toBeNull();
