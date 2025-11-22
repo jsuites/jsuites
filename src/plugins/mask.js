@@ -1912,7 +1912,7 @@ function Mask() {
 
                 if (isNumeric(control.type) && control.parenthesisForNegativeNumbers === true) {
                     if (isNumeric(method.type)) {
-                        if (control.values[k].toString().includes('-')) {
+                        if (control.values[k] && control.values[k].toString().includes('-')) {
                             control.values[k] = control.values[k].replace('-', '');
 
                             negativeSignal = true;
@@ -3380,6 +3380,15 @@ function Mask() {
             }
 
             value = getValue(control);
+
+            // If numeric mask but no numbers in input, return empty
+            if (isNumeric(control.type)) {
+                // Check if any numeric digit was actually extracted
+                const hasNumericValue = control.values.some(v => v && /\d/.test(v));
+                if (! hasNumericValue) {
+                    value = '';
+                }
+            }
 
             if (options.input && options.input.tagName) {
                 if (options.input.contentEditable) {

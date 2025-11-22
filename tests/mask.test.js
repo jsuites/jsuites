@@ -378,14 +378,14 @@ describe('jSuites mask', () => {
 
         test('should detect currency with letter prefixes', () => {
             expect(jSuites.mask.autoCasting("R$ 1,500.00")).toEqual({ mask: 'R$ #,##0.00', value: 1500, type: 'currency', category: 'numeric' });
-            expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ 0', value: 100, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("US$ 100")).toEqual({ mask: 'US$ #,##0', value: 100, type: 'currency', category: 'numeric' });
         });
 
         test('should detect currency without space after symbol', () => {
-            expect(jSuites.mask.autoCasting("$400")).toEqual({ mask: '$ 0', value: 400, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("$400")).toEqual({ mask: '$ #,##0', value: 400, type: 'currency', category: 'numeric' });
             expect(jSuites.mask.autoCasting("$1,234")).toEqual({ mask: '$ #,##0', value: 1234, type: 'currency', category: 'numeric' });
             expect(jSuites.mask.autoCasting("$1,234.56")).toEqual({ mask: '$ #,##0.00', value: 1234.56, type: 'currency', category: 'numeric' });
-            expect(jSuites.mask.autoCasting("R$400")).toEqual({ mask: 'R$ 0', value: 400, type: 'currency', category: 'numeric' });
+            expect(jSuites.mask.autoCasting("R$400")).toEqual({ mask: 'R$ #,##0', value: 400, type: 'currency', category: 'numeric' });
         });
 
         test('should detect negative currency with parentheses (no space)', () => {
@@ -984,6 +984,38 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(1234567.89, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1,234,567.89');
             expect(jSuites.mask.render(9876543.21, { mask: '[$$-407]#,##0.00' }, true)).toBe('€9.876.543,21');
             expect(jSuites.mask.render(5555555.55, { mask: '[$$-40C]#,##0.00' }, true)).toBe('€5 555 555,55');
+        });
+    });
+
+    describe('Empty input handling for numeric masks', () => {
+        test('should return empty string for non-numeric input on numeric masks', () => {
+            // Currency masks with only letters/non-numeric
+            expect(jSuites.mask.render('asdfasdfasdfasdf', { mask: '($#.##0)' }, true)).toBe('');
+            expect(jSuites.mask.render('abc', { mask: '$#,##0.00' }, true)).toBe('');
+            expect(jSuites.mask.render('xyz', { mask: '€#.##0,00' }, true)).toBe('');
+
+            // Plain numeric masks with non-numeric input
+            expect(jSuites.mask.render('hello', { mask: '#,##0.00' }, true)).toBe('');
+            expect(jSuites.mask.render('test', { mask: '0.00' }, true)).toBe('');
+
+            // Percentage masks with non-numeric input
+            expect(jSuites.mask.render('abc', { mask: '0%' }, true)).toBe('');
+            expect(jSuites.mask.render('xyz', { mask: '0.00%' }, true)).toBe('');
+
+            // Scientific notation with non-numeric input
+            expect(jSuites.mask.render('test', { mask: '0.00E+00' }, true)).toBe('');
+        });
+
+        test('should still work normally with numeric input', () => {
+            // Verify normal behavior is preserved
+            expect(jSuites.mask.render('123', { mask: '($#.##0)' }, true)).toBe('$123');
+            expect(jSuites.mask.render('1234.56', { mask: '$#,##0.00' }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(0.5, { mask: '0%' }, true)).toBe('50%');
+        });
+
+        test('should not affect text or date masks', () => {
+            // Text masks should still show literals even without numeric input
+            expect(jSuites.mask.render('abc', { mask: 'dd/mm/yyyy' }, true)).toBe('');
         });
     });
 
