@@ -15,7 +15,7 @@
 .indexing a {
     color: #000;
     border-left: 2px solid transparent;
-    padding-left: 10px;
+    padding: 4px 4px 4px 10px;
 }
 
 .indexing a.selected {
