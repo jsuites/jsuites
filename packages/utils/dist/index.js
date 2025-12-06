@@ -275,7 +275,7 @@
         return component;
     })();
 
-    function Mask() {
+    const Mask = (function() {
         // Currency
         const tokens = {
             // Escape
@@ -4006,7 +4006,7 @@
         Component.adjustPrecision = adjustPrecision;
 
         return Component;
-    }
+    })();
 
     return { Mask: Mask, Helpers: Helpers };
 })));
