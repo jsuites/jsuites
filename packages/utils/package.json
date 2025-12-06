@@ -1,0 +1,27 @@
+{
+    "name": "@jsuites/utils",
+    "title": "jSuites common utilities",
+    "description": "JavaScript common utilities",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/jsuites/jsuites.git"
+    },
+    "author": {
+        "name": "jSuites <contact@jsuites.net>"
+    },
+    "licenses": [
+        {
+            "type": "MIT",
+            "url": "https://github.com/jsuites/jsuites/blob/master/LICENSE"
+        }
+    ],
+    "keywords": [
+        "javascript utilities"
+    ],
+    "main": "dist/index.js",
+    "version": "6.0.0",
+    "bugs": "https://github.com/jsuites/jsuites/issues",
+    "homepage": "https://github.com/jsuites/jsuites",
+    "docs": "https://jsuites.net/",
+    "download": "https://github.com/jsuites/jsuites/archive/master.zip"
+}
