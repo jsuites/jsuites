@@ -1,5 +1,6 @@
-import HelpersDate from '../utils/helpers.date';
+import utils from '@jsuites/utils';
 
+const HelpersDate = utils.Helpers;
 function Validations() {
     /**
      * Options: Object,

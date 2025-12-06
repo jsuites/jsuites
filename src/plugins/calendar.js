@@ -1,9 +1,11 @@
 import Helpers from '../utils/helpers';
-import HelpersDate from '../utils/helpers.date';
 import Dictionary from '../utils/dictionary';
 import Tracking from '../utils/tracking';
 import Animation from './animation';
-import Mask from './mask';
+import utils from '@jsuites/utils';
+
+const Mask = utils.Mask;
+const HelpersDate = utils.Helpers;
 
 function Calendar() {
     var Component = (function (el, options) {
