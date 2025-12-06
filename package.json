@@ -33,7 +33,15 @@
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "dependencies": {
         "@jsuites/utils": "^6.0.1",
-        "@lemonadejs/studio": "^5.7.8"
+        "@lemonadejs/calendar": "^5.8.0",
+        "@lemonadejs/color": "^5.8.0",
+        "@lemonadejs/contextmenu": "^5.8.0",
+        "@lemonadejs/dropdown": "^5.8.0",
+        "@lemonadejs/modal": "^5.8.0",
+        "@lemonadejs/switch": "^5.8.0",
+        "@lemonadejs/tabs": "^5.8.0",
+        "@lemonadejs/topmenu": "^5.8.0",
+        "@lemonadejs/rating": "^5.8.1"
     },
     "devDependencies": {
         "@testing-library/dom": "^9.3.4",

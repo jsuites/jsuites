@@ -1,5 +1,3 @@
-import '@lemonadejs/studio';
-
 import dictionary from './utils/dictionary';
 import tracking from './utils/tracking';
 import helpers from './utils/helpers';
@@ -51,14 +49,36 @@ import './style/slider.css';
 import './style/tabs.css';
 import './style/tags.css';
 import './style/toolbar.css';
-import '@lemonadejs/studio/dist/style.css';
+
+
+import '@lemonadejs/calendar';
+import '@lemonadejs/color';
+import '@lemonadejs/contextmenu';
+import '@lemonadejs/dropdown';
+import '@lemonadejs/modal';
+import '@lemonadejs/switch';
+import '@lemonadejs/tabs';
+import '@lemonadejs/topmenu';
+import '@lemonadejs/rating';
+
+import './studio.css';
+import '@lemonadejs/calendar/dist/style.css';
+import '@lemonadejs/color/dist/style.css';
+import '@lemonadejs/contextmenu/dist/style.css';
+import '@lemonadejs/dropdown/dist/style.css';
+import '@lemonadejs/modal/dist/style.css';
+import '@lemonadejs/rating/dist/style.css';
+import '@lemonadejs/switch/dist/style.css';
+import '@lemonadejs/tabs/dist/style.css';
+import '@lemonadejs/topmenu/dist/style.css';
+
 
 var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.22',
+    version: '6.0.0-beta.23',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

@@ -1,0 +1,363 @@
+:root {
+    --lm-font-color: inherit;
+    --lm-main-color: #2196f3;
+    --lm-main-color-alpha: #2196f388;
+    --lm-main-color-highlight: #1f64e1;
+    --lm-secondary-color: #737373;
+
+    --lm-border-color: #ccc;
+    --lm-border-color-light: #e9e9e9;
+    --lm-border-color-highlight: #aaa;
+    --lm-border-outline: #000;
+    --lm-background-color: #fff;
+    --lm-background-color-header: #f8f8f8;
+    --lm-background-color-highlight: #ececec;
+    --lm-background-color-active: #dcdcdc;
+    --lm-background-color-input: initial;
+    --lm-icon-color: #777;
+
+    --lm-font-grayout: #777;
+    --lm-input-padding: 6px;
+    --lm-border-radius: 2px;
+    --lm-safe-area-top: 0;
+    --lm-safe-area-bottom: 0;
+    --lm-text-color: #000;
+}
+
+.lm-dark-mode {
+    --lm-font-color: #ddd;
+    --lm-font-grayout: #777;
+    --lm-border-color: #444;
+    --lm-border-color-light: #222;
+    --lm-border-color-highlight: #777;
+    --lm-border-outline: #fff;
+    --lm-background-color: #000;
+    --lm-background-color-header: #181818;
+    --lm-background-color-highlight: #282828;
+    --lm-background-color-active: #858585;
+    --lm-background-color-input: #181818;
+    --lm-icon-color: #ccc;
+}
+
+.lm-green {
+    --lm-main-color: #39a33b;
+    --lm-main-color-alpha: #39a33b88;
+    --lm-main-color-highlight: #2f8431;
+}
+
+@media (prefers-color-scheme: dark) {
+}
+
+
+body.lm-application {
+    margin: 0;
+    padding: 0;
+    font-family: Montserrat, sans-serif;
+    background: var(--lm-background-color);
+    color: var(--lm-font-color);
+}
+
+.lm-application input[type='text'],
+.lm-application input[type='number'],
+.lm-application input[type='password'],
+.lm-application select,
+.lm-application textarea,
+.lm-application button,
+.lm-input {
+    padding: var(--lm-input-padding) var(--lm-input-padding) var(--lm-input-padding) 8px;
+    box-sizing: border-box;
+    border: 1px solid var(--lm-border-color, #ccc);
+    background-color: var(--lm-background-color-input);
+    line-height: initial;
+    border-radius: 2px;
+    color: var(--lm-font-color);
+    font-family: inherit;
+    font-size: inherit;
+}
+
+.lm-application *:disabled {
+    color: #888;
+}
+
+[visible='false'] {
+    display: none;
+}
+
+[visible='true'] {
+    display: block;
+}
+
+.lm-container {
+    width: 100%;
+    margin: 0 auto;
+    box-sizing: border-box;
+}
+
+.lm-row {
+    display: flex;
+    flex-wrap: nowrap;
+    flex-direction: row;
+    justify-content: space-between;
+    box-sizing: border-box;
+}
+
+.lm-row.lm-container {
+    flex-wrap: nowrap;
+}
+
+.lm-row.lm-middle {
+    align-items: center;
+}
+
+.lm-row.lm-start {
+    justify-content: start;
+}
+
+.lm-column {
+    box-sizing: border-box;
+}
+
+.lm-column.lm-top {
+    align-self: flex-start;
+}
+
+.lm-column.lm-bottom {
+    align-self: flex-end;
+}
+
+.lm-form-group {
+    width: 100%;
+    padding-right: 8px;
+    padding-bottom: 8px;
+    box-sizing: border-box;
+}
+
+.lm-form-group input[type='text'],
+.lm-form-group input[type='time'],
+.lm-form-group input[type='date'],
+.lm-form-group input[type='password'],
+.lm-form-group input[type='number'],
+.lm-form-group select,
+.lm-form-group textarea,
+.lm-form-group {
+    width: 100%;
+}
+
+.lm-form-group label {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.lm-form-group label.lm-switch {
+    display: inline-flex;
+}
+
+.lm-f1 {
+    flex: 1;
+}
+
+.lm-f2 {
+    flex: 2;
+}
+
+.lm-f3 {
+    flex: 3;
+}
+
+.lm-f4 {
+    flex: 4;
+}
+
+.lm-f5 {
+    flex: 5;
+}
+
+.lm-f6 {
+    flex: 6;
+}
+
+.lm-f7 {
+    flex: 7;
+}
+
+.lm-f8 {
+    flex: 8;
+}
+
+.lm-p0 {
+    padding: 0;
+}
+
+.lm-p2 {
+    padding: 2px;
+}
+
+.lm-p4 {
+    padding: 4px;
+}
+
+.lm-p6 {
+    padding: 6px;
+}
+
+.lm-p8 {
+    padding: 8px;
+}
+
+.lm-p10 {
+    padding: 10px;
+}
+
+.lm-p15 {
+    padding: 15px;
+}
+
+.lm-p20 {
+    padding: 20px;
+}
+
+.lm-p25 {
+    padding: 25px;
+}
+
+.lm-p30 {
+    padding: 30px;
+}
+
+.lm-application .lm-button,
+.lm-button {
+    padding: var(--lm-input-padding) 20px;
+    border-radius: 2px;
+    cursor: pointer;
+    outline: none;
+
+    background-color: var(--lm-secondary-color, #737373);
+    border: 1px solid transparent;
+    color: #fff;
+}
+
+.lm-application .lm-button.red,
+.lm-button.red {
+    background-color: #a23131;
+    border: 1px solid transparent;
+    color: #fff;
+}
+
+.lm-application .lm-button.blue,
+.lm-button.blue {
+    border: 1px solid transparent;
+    color: #fff;
+    background-color: #1a73e8;
+}
+
+.lm-ripple {
+    background-position: center;
+    transition: background 0.8s;
+}
+
+.lm-ripple:hover {
+    background: var(--lm-background-color-highlight, #ebebeb) radial-gradient(circle, transparent 1%, var(--lm-background-color-highlight, #ebebeb) 1%) center/15000%;
+}
+
+.lm-ripple:active {
+    background-color: var(--lm-background-color-active, #e8e8e8);
+    background-size: 100%;
+    transition: background 0s;
+}
+
+.lm-cursor {
+    cursor: pointer;
+}
+
+.lm-center {
+    text-align: center;
+}
+
+.lm-loading::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    z-index: 9999;
+    animation: lm-loading 2s linear infinite;
+    background: #e0e0e0 repeating-linear-gradient(to right, var(--lm-main-color-highlight, #66b244), var(--lm-main-color-highlight, #66b244) 50%, #e0e0e0 50%, #e0e0e0);
+    background-size: 200% 100%;
+}
+
+.lm-icon {
+    font-family: "Material Symbols Outlined", "Material Icons", "FontAwesome";
+    font-size: 24px;
+    width: 24px;
+    height: 24px;
+    line-height: 24px;
+    font-style: normal;
+}
+
+@keyframes lm-loading {
+    from {
+        background-position: 100% 0;
+    }
+    to {
+        background-position: 0 0;
+    }
+}
+
+/** Dark mode */
+
+body.lm-dark-mode {
+    background-color: var(--lm-background-color);
+}
+
+.lm-dark-mode a {
+    color: white;
+}
+
+.lm-dark-mode .lm-button {
+    background-color: #555;
+    border: 1px solid transparent;
+    color: white;
+}
+
+@media (min-width: 320px) {
+    .lm-container {
+        padding: 0 2% 0 2%;
+    }
+}
+
+@media (min-width: 1200px) {
+    .lm-container {
+        padding: 0 5% 0 5%;
+    }
+}
+
+@media (max-width: 720px) {
+    .lm-row {
+        flex-wrap: wrap;
+    }
+
+    .lm-column {
+        min-width: 100%;
+    }
+
+    .lm-column .lm-form-group {
+        padding: 0;
+    }
+
+    ::placeholder {
+        text-transform: uppercase;
+    }
+
+    ::-webkit-input-placeholder {
+        text-transform: uppercase;
+    }
+
+    :-moz-placeholder {
+        text-transform: uppercase;
+    }
+
+    :-ms-input-placeholder {
+        text-transform: uppercase;
+    }
+}
