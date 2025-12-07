@@ -85,6 +85,29 @@ function Calendar() {
                 }
             }
 
+            // Register custom months and weekdays with the dictionary for translation
+            if (obj.options.monthsFull && obj.options.monthsFull !== defaults.monthsFull) {
+                const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const translations = {};
+                for (let i = 0; i < 12; i++) {
+                    if (obj.options.monthsFull[i]) {
+                        translations[englishMonths[i]] = obj.options.monthsFull[i];
+                    }
+                }
+                Dictionary.setDictionary(translations);
+            }
+
+            if (obj.options.weekdays && obj.options.weekdays !== defaults.weekdays) {
+                const englishWeekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const translations = {};
+                for (let i = 0; i < 7; i++) {
+                    if (obj.options.weekdays[i]) {
+                        translations[englishWeekdays[i]] = obj.options.weekdays[i];
+                    }
+                }
+                Dictionary.setDictionary(translations);
+            }
+
             // Reset button
             if (obj.options.resetButton == false) {
                 calendarReset.style.display = 'none';
