@@ -16,22 +16,9 @@
 </head>
 <body>
 
-
 <input id="test-input" type="text" data-mask="dd/mm/yyyy">
 
-
-<div contenteditable="true" data-mask="#,##0.00;\-#,##0.00;_ * \-??_  ;_ \@_ " style="border:1px solid gray"></div>
-
-
-<input type="button" onclick="test()">
-<script>
-    function test() {
-        console.time(); for (let i = 0; i < 200000; i++) { j.mask.autoCasting("DDD"); } console.timeEnd()
-    }
-</script>
-
 <script type="text/javascript" src="/jsuites.js"></script>
-<script type="text/javascript" src="/index.js"></script>
 
 </body>
 </html>

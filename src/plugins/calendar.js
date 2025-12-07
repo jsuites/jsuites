@@ -1051,14 +1051,14 @@ function Calendar() {
                 }
             }
 
+            // Controls - must be set before open() for correct height calculations
+            if (obj.options.controls == false) {
+                calendarContainer.classList.add('jcalendar-hide-controls');
+            }
+
             // Default opened
             if (obj.options.opened == true) {
                 obj.open();
-            }
-
-            // Controls
-            if (obj.options.controls == false) {
-                calendarContainer.classList.add('jcalendar-hide-controls');
             }
 
             // Change method

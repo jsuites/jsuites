@@ -155,4 +155,8 @@ describe('Calendar', () => {
 
         expect(calendar.getValue()).toBe('2022-12-25 00:00:00');
     });
+
+    // Note: Calendar positioning with controls=false cannot be properly tested in jsdom
+    // due to lack of real layout/positioning support. Manual testing in browser required.
+    // See public/index.html for visual test.
 });
