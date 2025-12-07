@@ -1534,7 +1534,7 @@
                     }
                 }
             },
-            'HH24': function(v, two) {
+            'HH24': function(v, two = true) {
                 let test = false;
 
                 let number = parseInt(v)
@@ -1542,7 +1542,7 @@
                 if (number >= 0 && number < 10) {
                     if (isBlank(this.values[this.index])) {
                         if (number > 2 && number < 10) {
-                            if (two) {
+                            if (two !== false) {
                                 v = 0 + v;
                             }
                             this.date[3] = this.values[this.index] = v;
@@ -1552,13 +1552,13 @@
                         }
                     } else {
                         if (this.values[this.index] == 2 && number < 4) {
-                            if (! two && this.values[this.index] === '0') {
+                            if (two === false && this.values[this.index] === '0') {
                                 this.values[this.index] = '';
                             }
                             this.date[3] = this.values[this.index] += v;
                             this.index++;
                         } else if (this.values[this.index] < 2 && number < 10) {
-                            if (! two && this.values[this.index] === '0') {
+                            if (two === false && this.values[this.index] === '0') {
                                 this.values[this.index] = '';
                             }
                             this.date[3] = this.values[this.index] += v;
@@ -1575,6 +1575,10 @@
                 if (test === true) {
                     var t = parseInt(this.values[this.index]);
                     if (t >= 0 && t < 24) {
+                        // Pad single digit with leading zero for HH24 format
+                        if (two !== false && this.values[this.index] && this.values[this.index].length === 1) {
+                            this.values[this.index] = '0' + this.values[this.index];
+                        }
                         this.date[3] = this.values[this.index];
                         this.index++;
                         return false;
@@ -1582,10 +1586,10 @@
                 }
             },
             'HH': function(v) {
-                parseMethods['HH24'].call(this, v, 1);
+                parseMethods['HH24'].call(this, v, true);
             },
             'H': function(v) {
-                parseMethods['HH24'].call(this, v, 0);
+                parseMethods['HH24'].call(this, v, false);
             },
             '\\[H\\]': function(v) {
                 if (this.values[this.index] == undefined) {
