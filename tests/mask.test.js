@@ -1029,5 +1029,69 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('Locale formatting with Intl.NumberFormat', () => {
+        test('should format simple numbers with locale', () => {
+            // Indian Rupee
+            expect(jSuites.mask.render(3, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*3/);
+            expect(jSuites.mask.render(100, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*100/);
+
+            // US Dollar
+            expect(jSuites.mask.render(50, { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toMatch(/\$.*50/);
+        });
+
+        test('should handle already-formatted strings with invisible characters', () => {
+            // Simulate string with zero-width space (common issue)
+            const stringWithInvisibleChar = '3\u200B'; // 3 with zero-width space
+            expect(jSuites.mask.render(stringWithInvisibleChar, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*3/);
+            expect(jSuites.mask.render(stringWithInvisibleChar, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).not.toContain('NaN');
+        });
+
+        test('should parse already-formatted currency strings', () => {
+            // When user types additional digits, the input contains formatted string
+            // The format function should extract numeric value from formatted strings like "₹3.00"
+            expect(jSuites.mask.render('₹3.00', { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*3/);
+            expect(jSuites.mask.render('$100.00', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toMatch(/\$.*100/);
+        });
+
+        test('should handle negative numbers in locale format', () => {
+            expect(jSuites.mask.render(-50, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/-?₹.*50/);
+            expect(jSuites.mask.render('-₹50.00', { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/-?₹.*50/);
+        });
+
+        test('should handle decimal numbers with different separators', () => {
+            // Period as decimal separator
+            expect(jSuites.mask.render('123.45', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toMatch(/\$.*123.*45/);
+
+            // Comma as decimal separator (German locale puts € at the end)
+            expect(jSuites.mask.render('123,45', { locale: 'de-DE', options: { style: 'currency', currency: 'EUR' }, decimal: ',' }, true)).toMatch(/123.*45.*€/);
+        });
+
+        test('should extract digits from complex formatted strings', () => {
+            // Multiple formatting elements: currency symbol, grouping, decimal
+            expect(jSuites.mask.render('₹1,234.56', { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*1.*234.*56/);
+            expect(jSuites.mask.render('$12,345.67', { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toMatch(/\$.*12.*345.*67/);
+        });
+
+        test('should handle zero and empty values', () => {
+            expect(jSuites.mask.render(0, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*0/);
+            expect(jSuites.mask.render('0', { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true)).toMatch(/₹.*0/);
+        });
+
+        test('should not return NaN for any valid input', () => {
+            const testCases = [
+                '3\u200B', // with invisible char
+                '₹3.00',   // formatted
+                '123',     // plain number
+                '-50',     // negative
+                '0',       // zero
+            ];
+
+            testCases.forEach(input => {
+                const result = jSuites.mask.render(input, { locale: 'en-IN', options: { style: 'currency', currency: 'INR' } }, true);
+                expect(result).not.toContain('NaN');
+            });
+        });
+    });
+
 });
 
