@@ -854,6 +854,16 @@ describe('jSuites mask', () => {
             ]);
         });
 
+        test('HH24 format with leading zero padding', () => {
+            // Test that single digit hours followed by separator get padded
+            testInputMask('hh24:mi', [
+                { input: '2:54', expected: '02:54' },
+                { input: '0:30', expected: '00:30' },
+                { input: '9:15', expected: '09:15' },
+                { input: '23:59', expected: '23:59' }
+            ]);
+        });
+
         test('mixed format ($ #,##0.00)', () => {
             testInputMask('$ #,##0.00', [
                 { input: '7581003', expected: '$ 7,581,003' },
