@@ -16,9 +16,16 @@
 </head>
 <body>
 
-<input id="test-input" type="text" data-mask="dd/mm/yyyy">
+<input id="test-input" type="text">
 
 <script type="text/javascript" src="/jsuites.js"></script>
+
+<script>
+    document.getElementById('test-input').mask = {
+        locale: 'en-IN',
+        options: { style:'currency', currency: 'INR' }
+    }
+</script>
 
 </body>
 </html>

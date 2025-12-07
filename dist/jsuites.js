@@ -10545,7 +10545,33 @@ if (! Contextmenu && "function" === 'function') {
         }
 
         const format = function(str, config) {
-            let ret = new Intl.NumberFormat(config.locale, config.options || {}).format(str);
+            // Extract numeric value from formatted or unformatted string (e.g., "₹3.00" -> 3)
+            // Using same logic as ParseValue to handle already-formatted strings
+            let numericValue;
+            const decimal = config.decimal || '.';
+            let v = String(str).split(decimal);
+
+            // Detect negative sign
+            let signal = v[0].includes('-');
+
+            // Extract digits only
+            v[0] = v[0].match(/[0-9]+/g);
+            if (v[0]) {
+                if (signal) v[0].unshift('-');
+                v[0] = v[0].join('');
+            } else {
+                v[0] = signal ? '-0' : '0';
+            }
+
+            if (v[1] !== undefined) {
+                v[1] = v[1].match(/[0-9]+/g);
+                v[1] = v[1] ? v[1].join('') : '';
+            }
+
+            // Convert to number
+            numericValue = v[0] || v[1] ? parseFloat(v.join('.')) : 0;
+
+            let ret = new Intl.NumberFormat(config.locale, config.options || {}).format(numericValue);
 
             config.values.push(ret);
         }
@@ -11931,7 +11957,7 @@ if (! Contextmenu && "function" === 'function') {
             let value = element[property];
             // Get the mask
             if (! mask) {
-                mask = element.getAttribute('data-mask');
+                mask = element.getAttribute('data-mask') || element.mask;
             }
             // Keep the current caret position
             let caret = getCaret(element);
@@ -11939,8 +11965,16 @@ if (! Contextmenu && "function" === 'function') {
                 value = value.substring(0, caret) + hiddenCaret + value.substring(caret);
             }
 
+            if (typeof mask === 'string') {
+                mask = { mask: mask };
+            }
+
+            if (mask.locale) {
+                return;
+            }
+
             // Run mask
-            let result = Component(value, { mask: mask }, true);
+            let result = Component(value, mask, true);
 
             // New value
             let newValue = result.values.join('');
