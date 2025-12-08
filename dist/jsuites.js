@@ -9,6 +9,7664 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
+/***/ 763:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! utils && "function" === 'function') {
+    var utils = __webpack_require__(559);
+}
+
+const Helpers = utils.Helpers;
+const Mask = utils.Mask;
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const filterData = function(year, month) {
+        // Data for the month
+        let data = {};
+        if (Array.isArray(this.data)) {
+            this.data.map(function (v) {
+                let d = year + '-' + Helpers.two(month + 1);
+                if (v.date.substring(0, 7) === d) {
+                    if (!data[v.date]) {
+                        data[v.date] = [];
+                    }
+                    data[v.date].push(v);
+                }
+            });
+        }
+        return data;
+    }
+
+    // Get the short weekdays name
+    const getWeekdays = function(firstDayOfWeek) {
+        const reorderedWeekdays = [];
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = (firstDayOfWeek + i) % 7;
+            reorderedWeekdays.push(Helpers.weekdays[dayIndex]);
+        }
+
+        return reorderedWeekdays.map(w => {
+            return { title: w.substring(0, 1) };
+        });
+    }
+
+    const Views = function(self) {
+        const view = {};
+
+        // Create years container
+        view.years = [];
+        view.months = [];
+        view.days = [];
+        view.hours = [];
+        view.minutes = [];
+
+        for (let i = 0; i < 16; i++) {
+            view.years.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 12; i++) {
+            view.months.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 42; i++) {
+            view.days.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 24; i++) {
+            view.hours.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        for (let i = 0; i < 60; i++) {
+            view.minutes.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        view.years.update = function(date) {
+            let year = date.getUTCFullYear();
+            let start = year - (year % 16);
+
+            for (let i = 0; i < 16; i++) {
+                let item = view.years[i];
+                let value = start + i;
+
+                item.title = value
+                item.value = value;
+
+                if (self.cursor.y === value) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.months.update = function(date) {
+            let year = date.getUTCFullYear();
+
+            for (let i = 0; i < 12; i++) {
+                let item = view.months[i];
+
+                item.title = Helpers.months[i].substring(0,3);
+                item.value = i;
+
+                if (self.cursor.y === year && self.cursor.m === i) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.days.update = function(date) {
+            let year = date.getUTCFullYear();
+            let month = date.getUTCMonth();
+            let data = filterData.call(self, year, month);
+
+            // First day
+            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+            let firstDayOfMonth = tmp.getUTCDay();
+            let firstDayOfWeek = self.startingDay ?? 0;
+
+            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
+
+            let index = -1 * offset;
+
+            for (let i = 0; i < 42; i++) {
+                index++;
+                // Item
+                let item = view.days[i];
+                // Get the day
+                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
+                // Day
+                let day = tmp.getUTCDate();
+
+                // Create the item
+                item.title = day;
+                item.value = index;
+                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
+
+                // Reset range properties for each item
+                item.start = false;
+                item.end = false;
+                item.range = false;
+                item.last = false;
+                item.disabled = false;
+                item.data = null;
+
+                // Check selections
+                if (tmp.getUTCMonth() !== month) {
+                    // Days are not in the current month
+                    item.grey = true;
+                } else {
+                    // Check for data
+                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
+
+                    if (data && data[d]) {
+                        item.data = data[d];
+                    }
+
+                    item.grey = false;
+                }
+                // Month
+                let m = tmp.getUTCMonth();
+
+                // Select cursor
+                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+
+
+                // Valid ranges
+                if (self.validRange) {
+                    if (typeof self.validRange === 'function') {
+                        let ret = self.validRange(day,m,year,item);
+                        if (typeof ret !== 'undefined') {
+                            item.disabled = ret;
+                        }
+                    } else {
+                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
+
+                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
+                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
+
+                        if (! (test1 && test2)) {
+                            item.disabled = true;
+                        }
+                    }
+                }
+
+                // Select range
+                if (self.range && self.rangeValues) {
+                    // Only mark start/end if the number matches
+                    item.start = self.rangeValues[0] === item.number;
+                    item.end = self.rangeValues[1] === item.number;
+                    // Mark as part of range if between start and end
+                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
+                }
+            }
+        }
+
+        return view;
+    }
+
+    const isTrue = function(v) {
+        return v === true || v === 'true';
+    }
+
+    const isNumber = function (num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const Calendar = function(children, { onchange, onload, track }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Weekdays
+        self.weekdays = getWeekdays(self.startingDay ?? 0);
+
+        // Cursor
+        self.cursor = {};
+
+        // Time
+        self.time = !! self.time;
+
+        // Range values
+        self.rangeValues = null;
+
+        // Calendar date
+        let date = new Date();
+
+        // Views
+        const views = Views(self);
+        const hours = views.hours;
+        const minutes = views.minutes;
+
+        // Initial view
+        self.view = 'days';
+
+        // Auto Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+
+        // Get the position of the data based on the view
+        const getPosition = function() {
+            let position = 2;
+            if (self.view === 'years') {
+                position = 0;
+            } else if (self.view === 'months') {
+                position = 1;
+            }
+            return position;
+        }
+
+        const setView = function(e) {
+            if (typeof e === 'object') {
+                e = this.getAttribute('data-view');
+            }
+
+            // Valid views
+            const validViews = ['days', 'months', 'years'];
+
+            // Define new view
+            if (validViews.includes(e) && self.view !== e) {
+                self.view = e;
+            }
+        }
+
+        const reloadView = function(reset) {
+            if (reset) {
+                // Update options to the view
+                self.options = views[self.view];
+            }
+            // Update the values of hte options of hte view
+            views[self.view]?.update.call(self, date);
+        }
+
+        const getValue = function() {
+            let value = null;
+            if (isTrue(self.range)) {
+                if (Array.isArray(self.rangeValues)) {
+                    if (isTrue(self.numeric)) {
+                        value = self.rangeValues;
+                    } else {
+                        value = [
+                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
+                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
+                        ];
+                    }
+                }
+            } else {
+                value = getDate();
+                if (isTrue(self.numeric)) {
+                    value = Helpers.dateToNum(value);
+                }
+            }
+            return value;
+        }
+
+        const setValue = function(v) {
+            let d = new Date();
+            if (v) {
+                if (isTrue(self.range)) {
+                    if (v) {
+                        if (! Array.isArray(v)) {
+                            v = v.toString().split(',');
+                        }
+                        self.rangeValues = [...v];
+
+                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
+                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
+                        }
+                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
+                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
+                        }
+
+                        v = v[0];
+                    }
+                } else if (typeof v === 'string' && v.includes(',')) {
+                    v = v.split(',')[0];
+                }
+
+                if (v) {
+                    v = isNumber(v) ? Helpers.numToDate(v) : v;
+                    d = new Date(v + '  GMT+0');
+                }
+
+                // if no date is defined
+                if (! Helpers.isValidDate(d)) {
+                    d = new Date();
+                }
+            }
+
+            // Update the internal calendar date
+            setDate(d, true);
+            // Update the view
+            reloadView();
+        }
+
+        const getDate = function() {
+            let v = [ self.cursor.y, self.cursor.m, self.cursor.d, self.hour, self.minute ];
+            let d = new Date(Date.UTC(...v));
+            // Update the headers of the calendar
+            if (self.time) {
+                return d.toISOString().substring(0, 19).replace('T', ' ');
+            } else {
+                return d.toISOString().substring(0, 10);
+            }
+        }
+
+        const setDate = function(d, update) {
+            if (Array.isArray(d)) {
+                d = new Date(Date.UTC(...d));
+            } else if (typeof(d) === 'string') {
+                d = new Date(d);
+            }
+
+            // Update the date
+            let value = d.toISOString().substring(0,10).split('-');
+            let month = Helpers.months[parseInt(value[1])-1];
+            let year = parseInt(value[0]);
+
+            if (self.month !== month) {
+                self.month = month;
+            }
+            if (self.year !== year) {
+                self.year = year;
+            }
+
+            // Update the time
+            let time = d.toISOString().substring(11,19).split(':');
+            let hour = parseInt(time[0]);
+            let minute = parseInt(time[1]);
+
+            if (self.hour !== hour) {
+                self.hour = hour;
+            }
+            if (self.minute !== minute) {
+                self.minute = minute;
+            }
+
+            // Update internal date
+            date = d;
+
+            // Update cursor information
+            if (update) {
+                updateCursor();
+            }
+        }
+
+        const updateCursor = function() {
+            self.cursor.y = date.getUTCFullYear();
+            self.cursor.m = date.getUTCMonth();
+            self.cursor.d = date.getUTCDate();
+        }
+
+        const resetCursor = function() {
+            // Remove selection from the current object
+            let current = self.cursor.current;
+            // Current item
+            if (typeof current !== 'undefined') {
+                current.selected = false;
+            }
+        }
+
+        const setCursor = function(s) {
+            // Reset current visual cursor
+            resetCursor();
+            // Update cursor based on the object position
+            if (s) {
+                // Update current
+                self.cursor.current = s;
+                // Update selected property
+                s.selected = true;
+            }
+
+            updateCursor();
+
+            // Update range
+            if (isTrue(self.range)) {
+                updateRange(s)
+            }
+
+            Dispatch.call(self, self.onupdate, 'update', {
+                instance: self,
+                value: date.toISOString(),
+            });
+        }
+
+        const select = function(e, s) {
+            // Get new date content
+            let d = updateDate(s.value, getPosition());
+            // New date
+            setDate(new Date(Date.UTC(...d)))
+            // Based where was the click
+            if (self.view !== 'days') {
+                // Back to the days
+                self.view = 'days';
+            } else if (! s.disabled) {
+                setCursor(s);
+
+                if (isTrue(self.range)) {
+                    // Start a new range
+                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
+                        destroyRange();
+                    }
+                    // Range
+                    s.range = true;
+                    // Update range
+                    if (! self.rangeValues) {
+                        s.start = true;
+                        self.rangeValues = [s.number, null];
+                    } else {
+                        s.end = true;
+                        self.rangeValues[1] = s.number;
+                    }
+                } else {
+                    update();
+                }
+            }
+        }
+
+        // Update Calendar
+        const update = function(e) {
+            self.setValue(getValue());
+            self.close({ origin: 'button' });
+        }
+
+        const reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        const updateDate = function(v, position) {
+            // Current internal date
+            let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
+            // Update internal date
+            value[position] = v;
+            // Return new value
+            return value;
+        }
+
+        const move = function(direction) {
+            // Reset visual cursor
+            resetCursor();
+
+            // Value
+            let value;
+
+            // Update the new internal date
+            if (self.view === 'days') {
+                // Select the new internal date
+                value = updateDate(date.getUTCMonth()+direction, 1);
+            } else if (self.view === 'months') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+direction, 0);
+            } else if (self.view === 'years') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
+            }
+
+            // Update view
+            setDate(value);
+
+            // Reload content of the view
+            reloadView();
+        }
+
+        const getJump = function(e) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                return self.view === 'days' ? 7 : 4;
+            }
+
+            return 1;
+        }
+
+        const prev = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) - getJump(e);
+                if (position < 0) {
+                    // Next month
+                    move(-1);
+                    // New position
+                    position = total + position;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(-1);
+            }
+        }
+
+        const next = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) + getJump(e);
+                if (position >= total) {
+                    // Next month
+                    move(1);
+                    // New position
+                    position = position - total;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(1);
+            }
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const updateRange = function(s) {
+            if (self.range && self.view === 'days' && self.rangeValues) {
+                // Creating a range
+                if (self.rangeValues[0] && ! self.rangeValues[1]) {
+                    let number = s.number;
+                    if (number) {
+                        // Update range properties
+                        for (let i = 0; i < self.options.length; i++) {
+                            let v = self.options[i].number;
+                            // Update property condition
+                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
+                            self.options[i].last = (v === number);
+                        }
+                    }
+                }
+            }
+        }
+
+        const destroyRange = function() {
+            if (self.range) {
+                for (let i = 0; i < self.options.length; i++) {
+                    if (self.options[i].range !== false) {
+                        self.options[i].range = false;
+                    }
+                    if (self.options[i].start !== false) {
+                        self.options[i].start = false;
+                    }
+                    if (self.options[i].end !== false) {
+                        self.options[i].end = false;
+                    }
+                    if (self.options[i].last !== false) {
+                        self.options[i].last = false;
+                    }
+                }
+                self.rangeValues = null;
+            }
+        }
+
+        const render = function(v) {
+            if (v) {
+                if (! Array.isArray(v)) {
+                    v = v.toString().split(',');
+                }
+
+                v = v.map(entry => {
+                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
+                }).join(',');
+            }
+            return v;
+        }
+
+        const normalize = function(v) {
+            if (! Array.isArray(v)) {
+                v = v.toString().split(',');
+            }
+
+            return v.map(item => {
+                if (Number(item) == item) {
+                    return Helpers.numToDate(item);
+                } else {
+                    if (Helpers.isValidDateFormat(item)) {
+                        return item;
+                    } else if (self.format) {
+                        let tmp = Mask.extractDateFromString(item, self.format);
+                        if (tmp) {
+                            return tmp;
+                        }
+                    }
+                }
+            })
+        }
+
+        const extractValueFromInput = function() {
+            let input = getInput();
+            if (input) {
+                let v;
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    v = input.value;
+                } else if (input.isContentEditable) {
+                    v = input.textContent;
+                }
+                if (v) {
+                    return normalize(v).join(',');
+                }
+                return v;
+            }
+        }
+
+        const onopen = function() {
+            let isEditable = false;
+            let value = self.value;
+
+            let input = getInput();
+            if (input) {
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
+                } else if (input.isContentEditable) {
+                    isEditable = true;
+                }
+
+                let ret = extractValueFromInput();
+                if (ret && ret !== value) {
+                    value = ret;
+                }
+            }
+
+            if (! isEditable) {
+                self.content.focus();
+            }
+
+            // Update the internal date values
+            setValue(value);
+
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Cancel range events
+            destroyRange();
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const dispatchOnChangeEvent = function() {
+            // Destroy range
+            destroyRange();
+            // Update the internal controllers
+            setValue(self.value);
+            // Events
+            Dispatch.call(self, change, 'change', {
+                instance: self,
+                value: self.value,
+            });
+            // Update input
+            let input = getInput();
+            if (input) {
+                // Update input value
+                input.value = render(self.value);
+                // Dispatch event
+                Dispatch.call(input, null, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+        }
+
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-calendar-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (! self.isClosed()) {
+                            self.content.focus();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            },
+            input: (e) => {
+                let input = e.target;
+                if (input.classList.contains('lm-calendar-input')) {
+                    if (! isTrue(self.range)) {
+                        // TODO: process with range
+                        // Apply mask
+                        if (self.format) {
+                            Mask.oninput(e, self.format);
+                        }
+                        let value = null;
+                        // Content
+                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
+                        // Check if that is a valid date
+                        if (Helpers.isValidDateFormat(content)) {
+                            value = content;
+                        } else if (self.format) {
+                            let tmp = Mask.extractDateFromString(content, self.format);
+                            if (tmp) {
+                                value = tmp;
+                            }
+                        }
+                        // Change the calendar view
+                        if (value) {
+                            setValue(value);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Onload
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    width: 300,
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            let ret;
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-calendar-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('input', events.input);
+                    input.addEventListener('keydown', events.keydown);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = render(self.value);
+                    } else {
+                        let value = extractValueFromInput();
+                        if (value && value !== self.value) {
+                            ret = value;
+                        }
+                    }
+                }
+            }
+
+            // Update the internal date values
+            if (ret) {
+                self.setValue(ret);
+            } else {
+                setValue(self.value);
+            }
+
+            // Reload view
+            reloadView(true);
+
+            /**
+             * Handler keyboard
+             * @param {object} e - event
+             */
+            self.el.addEventListener('keydown', function(e) {
+                let prevent = false;
+                if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    prev(e);
+                    prevent = true;
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    next(e);
+                    prevent = true;
+                } else if (e.key === 'Enter') {
+                    if (e.target === self.content) {
+                        // Item
+                        if (self.cursor.current) {
+                            // Select
+                            select(e, self.cursor.current);
+                            prevent = true;
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    if (! self.isClosed()) {
+                        self.close({ origin: 'escape' });
+                        prevent = true;
+                    }
+                }
+
+                if (prevent) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            });
+
+            /**
+             * Mouse wheel handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('wheel', function(e){
+                if (self.wheel !== false) {
+                    if (e.deltaY < 0) {
+                        prev(e);
+                    } else {
+                        next(e);
+                    }
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            /**
+             * Range handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('mouseover', function(e){
+                let parent = e.target.parentNode
+                if (parent === self.content) {
+                    let index = Array.prototype.indexOf.call(parent.children, e.target);
+                    updateRange(self.options[index]);
+                }
+            });
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        onchange((prop) => {
+            if (prop === 'view') {
+                reloadView(true);
+            } else if (prop === 'startingDay') {
+                self.weekdays = getWeekdays(self.startingDay ?? 0);
+            } else if (prop === 'value') {
+                dispatchOnChangeEvent();
+            }
+        })
+
+        // Tracking variables
+        track('value');
+
+        // Public methods
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (self.type === 'auto') {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                self.modal.open();
+            }
+        }
+
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            // Update value
+            if (v) {
+                let ret = normalize(v);
+                if (isTrue(self.numeric)) {
+                    ret = ret.map(entry => {
+                        return Helpers.dateToNum(entry);
+                    })
+                }
+
+                if (! Array.isArray(v)) {
+                    ret = ret.join(',');
+                }
+
+                if (ret == Number(ret)) {
+                    ret = Number(ret);
+                }
+
+                v = ret;
+            }
+
+            // Events
+            if (v !== self.value) {
+                self.value = v;
+            }
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        self.update = update;
+        self.next = next;
+        self.prev = prev;
+        self.reset = reset;
+        self.setView = setView;
+        self.helpers = Helpers;
+        self.helpers.getDate = Mask.getDate;
+
+        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
+            <div class="lm-calendar-options">
+                <button type="button" onclick="${reset}">${T('Reset')}</button>
+                <button type="button" onclick="${update}">${T('Done')}</button>
+            </div>
+            <div class="lm-calendar-container" data-view="{{self.view}}">
+                <div class="lm-calendar-header">
+                    <div>
+                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
+                        <div class="lm-calendar-navigation">
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
+                        </div>
+                    </div>
+                    <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
+                </div>
+                <div class="lm-calendar-content" :loop="self.options" tabindex="0" :ref="self.content">
+                    <div data-start="{{self.start}}" data-end="{{self.end}}" data-last="{{self.last}}" data-range="{{self.range}}" data-event="{{self.data}}" data-grey="{{self.grey}}" data-bold="{{self.bold}}" data-selected="{{self.selected}}" data-disabled="{{self.disabled}}" onclick="${select}">{{self.title}}</div>
+                </div>
+                <div class="lm-calendar-footer" data-visible="{{self.footer}}">
+                    <div class="lm-calendar-time" data-visible="{{self.time}}"><select :loop="${hours}" :bind="self.hour" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select>:<select :loop="${minutes}" :bind="self.minute" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select></div>
+                    <div class="lm-calendar-update"><input type="button" value="${T('Update')}" onclick="${update}" class="lm-ripple lm-input"></div>
+                </div>
+            </div>
+        </div>`
+    }
+
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Calendar: Calendar });
+    // Register the web component
+    lemonade.createWebComponent('calendar', Calendar);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Calendar, root, options)
+            return options;
+        } else {
+            return Calendar.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 541:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! Tabs && "function" === 'function') {
+    var Tabs = __webpack_require__(560);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            method(...a);
+        } else if (this.tagName) {
+            // Fallback: dispatch a custom event
+            const event = new CustomEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                detail: options,
+            });
+            this.dispatchEvent(event);
+        }
+    }
+
+    const defaultPalette =  [
+        ["#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1"],
+        ["#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc"],
+        ["#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5"],
+        ["#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae"],
+        ["#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c"],
+        ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b"],
+        ["#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a"],
+        ["#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64"],
+        ["#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f"],
+        ["#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238"],
+    ]
+
+    const Grid = function(children, { onchange }) {
+        const self = this;
+
+        if (! self.palette) {
+            self.palette = defaultPalette;
+        }
+
+        const select = (event) => {
+            if (event.target.tagName === 'TD') {
+                let color = event.target.getAttribute('data-value')
+
+                // Remove current selected mark
+                let selected = self.el.querySelector('.lm-color-selected');
+                if (selected) {
+                    selected.classList.remove('lm-color-selected');
+                }
+
+                // Mark cell as selected
+                if (color) {
+                    event.target.classList.add('lm-color-selected');
+                    self.set(color);
+                }
+            }
+        }
+
+        self.constructRows = function (e) {
+            let tbody = [];
+            e.textContent = '';
+            for (let j = 0; j < self.palette.length; j++) {
+                let tr = document.createElement('tr');
+                e.appendChild(tr);
+
+                for (let i = 0; i < self.palette[j].length; i++) {
+                    let color = self.palette[j][i];
+                    let td = document.createElement('td');
+                    td.setAttribute('data-value', color);
+                    td.style.backgroundColor = color;
+                    tr.appendChild(td);
+                }
+            }
+        }
+
+        onchange(property => {
+            if (property === 'palette') {
+                self.constructRows()
+            }
+        });
+
+        return render => render`<div class="lm-color-grid" :palette="self.palette">
+            <table cellpadding="7" cellspacing="0" onclick="${select}" :ref="self.table" :ready="self.constructRows"></table>
+        </div>`
+    }
+
+    const Spectrum = function(children, { onload }) {
+        let self = this;
+        let context = null;
+
+        let decToHex = function(num) {
+            let hex = num.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        }
+        let rgbToHex = function(r, g, b) {
+            return "#" + decToHex(r) + decToHex(g) + decToHex(b);
+        }
+
+        onload(() => {
+            context = self.canvas.getContext("2d", { willReadFrequently: true });
+            draw();
+        })
+
+        // Drsaw
+        const draw = function() {
+            let g = context.createLinearGradient(0, 0, self.canvas.width, 0);
+            // Create color gradient
+            g.addColorStop(0,    "rgb(255,0,0)");
+            g.addColorStop(0.15, "rgb(255,0,255)");
+            g.addColorStop(0.33, "rgb(0,0,255)");
+            g.addColorStop(0.49, "rgb(0,255,255)");
+            g.addColorStop(0.67, "rgb(0,255,0)");
+            g.addColorStop(0.84, "rgb(255,255,0)");
+            g.addColorStop(1,    "rgb(255,0,0)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+            g = context.createLinearGradient(0, 0, 0, self.canvas.height);
+            g.addColorStop(0,   "rgba(255,255,255,1)");
+            g.addColorStop(0.5, "rgba(255,255,255,0)");
+            g.addColorStop(0.5, "rgba(0,0,0,0)");
+            g.addColorStop(1,   "rgba(0,0,0,1)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+        }
+
+        // Moves the marquee point to the specified position
+        const update = (e) => {
+            let x;
+            let y;
+            let buttons = 1;
+            if (e.type === 'touchmove') {
+                x = e.changedTouches[0].clientX;
+                y = e.changedTouches[0].clientY;
+            } else {
+                buttons = e.buttons;
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            if (buttons === 1) {
+                let rect = self.el.getBoundingClientRect();
+                let left = x - rect.left;
+                let top = y - rect.top;
+                // Get the color in this pixel
+                let pixel = context.getImageData(left, top, 1, 1).data;
+                // Position pointer
+                self.point.style.left = left + 'px';
+                self.point.style.top = top + 'px';
+                // Return color
+                self.set(rgbToHex(pixel[0], pixel[1], pixel[2]));
+            }
+        }
+
+        return render => render`<div class="lm-color-hsl">
+            <canvas width="240" height="140" :ref="self.canvas" onmousedown="${update}" onmousemove="${update}" ontouchmove="${update}"></canvas>
+            <div class="lm-color-point" :ref="self.point"></div>
+        </div>`;
+    }
+
+    const Color = function(children, { onchange, onload }) {
+        let self = this;
+        let value = null;
+
+        const change = self.onchange;
+        self.onchange = null;
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        const applyValue = function(v) {
+            if (self.value !== v) {
+                self.value = v;
+            }
+        }
+
+        const onopen = function(e) {
+            self.open();
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const update = function() {
+            applyValue(value);
+            self.close({ origin: 'button' });
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-color-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (self.isClosed()) {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            }
+        }
+
+        const set = function(v) {
+            value = v;
+            // Close
+            if (self.closeOnChange === true) {
+                // Update value
+                self.setValue(v);
+                // Close modal
+                self.close({ origin: 'select' });
+            }
+        }
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (autoType) {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                value = self.value;
+                // Table
+                let table = self.grid.table;
+                // Remove any selection
+                let o = table.querySelector('.lm-color-selected');
+                if (o) {
+                    o.classList.remove('lm-color-selected');
+                }
+                // Selected
+                o = table.querySelector('[data-value="'+self.value+'"]');
+                if (o) {
+                    o.classList.add('lm-color-selected');
+                }
+                // Open modal
+                self.modal.open();
+            }
+        }
+
+        /**
+         * Close the modal
+         */
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        self.setValue = function(v) {
+            self.value = value = v;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        onchange(prop => {
+            if (prop === 'value') {
+                let input = getInput();
+                if (input) {
+                    input.value = self.value;
+                    if (self.value) {
+                        input.style.color = self.value;
+                    } else {
+                        input.style.color = '';
+                    }
+                }
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+        });
+
+        // Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    onopen: onopen,
+                    onclose: onclose,
+                    focus: false,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-color-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = self.value;
+                    } else if (input.value && input.value !== self.value) {
+                        self.value = input.value;
+                    }
+                }
+            }
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        return render => render`<div class="lm-color" :value="self.value">
+            <div class="lm-color-options">
+                <button type="button" onclick="${self.reset}">Reset</button>
+                <button type="button" onclick="${update}">Done</button>
+            </div>
+            <lm-tabs selected="0" position="center" :ref="self.tabs">
+                <div title="Grid"><${Grid} :palette="self.palette" :ref="self.grid" :set="${set}" /></div>
+                <div title="Spectrum"><${Spectrum} :ref="self.spectrum" :set="${set}" /></div>
+            </lm-tabs>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Color: Color });
+    // Register the web component
+    lemonade.createWebComponent('color', Color);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Color, root, options)
+            return options;
+        } else {
+            return Color.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 238:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Get the coordinates of the action
+    const getCoords = function(e) {
+        let x;
+        let y;
+
+        if (e.changedTouches && e.changedTouches[0]) {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        return [x,y];
+    }
+
+    const Item = function() {
+        let self = this;
+
+        self.onload = function() {
+            if (typeof(self.render) === 'function') {
+                self.render.call(self, self.el);
+            }
+        }
+
+        // Initialize expanded state
+        self.expanded = false;
+
+        if (self.type === 'line') {
+            return `<hr role="separator" />`;
+        } else if (self.type === 'inline') {
+            return `<div></div>`;
+        } else {
+            return `<div class="lm-menu-item" role="menuitem" data-disabled="{{self.disabled}}" data-cursor="{{self.cursor}}" data-icon="{{self.icon}}" title="{{self.tooltip}}" data-submenu="${!!self.submenu}" aria-haspopup="${!!self.submenu}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" tabindex="-1" onmouseup="self.parent.mouseUp" onmouseenter="self.parent.mouseEnter" onmouseleave="self.parent.mouseLeave">
+                <span>{{self.title}}</span> <div>{{self.shortcut}}</div>
+            </div>`;
+        }
+    }
+
+    const Create = function() {
+        let self = this;
+
+        // Delay on open
+        let delayTimer;
+        // Save the position of this modal
+        let index = self.parent.modals.length;
+
+        // Blank options
+        self.options = [];
+
+        // Close handler
+        self.onclose = function() {
+            // Reset any cursor
+            resetCursor.call(self);
+            // Parent
+            if (typeof(self.parent.onclose) === 'function') {
+                self.parent.onclose(self.parent, self);
+            }
+        }
+
+        self.onopen = function() {
+            // Parent
+            if (typeof(self.parent.onopen) === 'function') {
+                self.parent.onopen(self.parent, self);
+            }
+        }
+
+        /**
+         * Close the modal
+         */
+        self.close = function() {
+            // Close modals with higher level
+            self.parent.close(index);
+        }
+
+        /**
+         * Open submenu handler
+         * @param {object} s
+         * @param {boolean} cursor - Activate the first item
+         */
+        self.open = function(s, cursor) {
+            if (s.submenu) {
+                // Get the modal in the container of modals
+                let current = self.parent.modals[index+1];
+                // Do not exist yet, create it.
+                if (! current) {
+                    // Modal needs to be created
+                    current = self.parent.create();
+                }
+                // Get the parent from this one
+                let parent = self.parent.modals[index];
+                // Update modal content
+                if (current.options !== s.submenu) {
+                    // Close modals with higher level
+                    current.options = s.submenu;
+                    // Close other modals
+                    self.parent.close(index+1);
+                }
+                // Update the selected modal
+                self.parent.modalIndex = index+1;
+                let rect = parent.modal.el.getBoundingClientRect();
+                // Update modal
+                current.modal.open();
+                // Aria indication
+                current.modal.top = rect.y + s.el.offsetTop + 2;
+                current.modal.left = rect.x + 248;
+                // Keep current item for each modal
+                current.item = s;
+                s.expanded = true;
+
+                // Activate the cursor
+                if (cursor === true) {
+                    // Place cursor in the first position
+                    current.options[0].cursor = true;
+                    // Position cursor
+                    current.cursor = 0;
+                }
+
+                onopen(current, s.submenu)
+            } else {
+                // Close modals with higher level
+                self.parent.close(index+1);
+            }
+        }
+
+        // Mouse open
+        self.mouseUp = function(e, s) {
+            if (typeof(s.onclick) === 'function') {
+                s.onclick.call(s, e, s.el);
+            }
+            if (! s.submenu) {
+                self.close();
+            }
+        }
+
+        self.mouseEnter = function(e, s) {
+            if (delayTimer) {
+                clearTimeout(delayTimer);
+            }
+            delayTimer = setTimeout(function() {
+                self.open(s);
+            }, 200);
+        }
+
+        self.mouseLeave = function(e, s) {
+            if (delayTimer) {
+                clearTimeout(delayTimer);
+            }
+        }
+
+        let template = `<lm-modal :overflow="true" :closed="true" :ref="self.modal" :responsive="false" :auto-adjust="true" :focus="false" :layers="false" :onopen="self.onopen" :onclose="self.onclose">
+            <div class="lm-menu-submenu" role="menu" aria-orientation="vertical">
+                <Item :loop="self.options" />
+            </div>
+        </lm-modal>`;
+
+        return lemonade.element(template, self, { Item: Item });
+    }
+
+    const findNextEnabledCursor = function(startIndex, direction) {
+        if (!this.options || this.options.length === 0) {
+            return null;
+        }
+
+        let cursor = startIndex;
+        let attempts = 0;
+        const maxAttempts = this.options.length;
+
+        while (attempts < maxAttempts) {
+            if (direction) {
+                // Down
+                if (cursor >= this.options.length) {
+                    cursor = 0;
+                }
+            } else {
+                // Up
+                if (cursor < 0) {
+                    cursor = this.options.length - 1;
+                }
+            }
+
+            let item = this.options[cursor];
+            if (item && !item.disabled && item.type !== 'line') {
+                return cursor;
+            }
+
+            cursor = direction ? cursor + 1 : cursor - 1;
+            attempts++;
+        }
+        return null;
+    };
+
+    const setCursor = function(direction) {
+        let cursor = null;
+
+        if (typeof(this.cursor) !== 'undefined') {
+            if (! direction) {
+                // Up
+                cursor = findNextEnabledCursor.call(this, this.cursor - 1, false);
+            } else {
+                // Down
+                cursor = findNextEnabledCursor.call(this, this.cursor + 1, true);
+            }
+        }
+
+        // Remove the cursor
+        if (cursor === null) {
+            if (direction) {
+                cursor = findNextEnabledCursor.call(this, 0, true);
+            } else {
+                cursor = findNextEnabledCursor.call(this, this.options.length - 1, false);
+            }
+        } else if (typeof(this.cursor) !== 'undefined') {
+            this.options[this.cursor].cursor = false;
+        }
+
+        // Add the cursor if found
+        if (cursor !== null) {
+            this.options[cursor].cursor = true;
+            this.cursor = cursor;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Reset the cursor for a contextmenu
+     */
+    const resetCursor = function() {
+        // Contextmenu modal
+        let item = this.options[this.cursor];
+        // Cursor is found so reset it
+        if (typeof(item) !== 'undefined') {
+            // Remove the cursor style
+            item.cursor = false;
+            // Delete reference index
+            delete this.cursor;
+        }
+    }
+
+    /**
+     * Go through all items of a menu
+     * @param s
+     * @param options
+     */
+    const onopen = function(s, options) {
+        // Onopen
+        for (let i = 0; i < options.length; i++) {
+            if (typeof(options[i].onopen) === 'function') {
+                options[i].onopen(s);
+            }
+        }
+    }
+
+    const Contextmenu = function(children, { onload }) {
+        let self = this;
+
+        // Container for all modals
+        self.modals = [];
+        self.modalIndex = 0;
+
+        self.create = function() {
+            // Create a new self for each modal
+            let s = {
+                parent: self,
+            };
+            // Render the modal inside the main container
+            lemonade.render(Create, self.el, s);
+            // Add the reference of the modal in a container#
+            self.modals.push(s);
+            // Return self
+            return s;
+        }
+
+        self.isClosed = function() {
+            return self.modals[0].modal.closed === true;
+        }
+
+        self.open = function(options, x, y, adjust) {
+            // Get the main modal
+            let menu = self.modals[0];
+            // Reset cursor
+            resetCursor.call(menu);
+            // Define new position
+            menu.modal.top = y;
+            menu.modal.left = x;
+            // Open
+            menu.modal.open();
+            // If the modal is open and the content is different from what is shown. Close modals with higher level
+            self.close(1);
+            // Update the data
+            if (options && menu.options !== options) {
+                // Refresh content
+                menu.options = options;
+            }
+            onopen(self, options);
+
+            // Adjust position to respect mouse cursor after auto-adjust
+            // Use queueMicrotask to ensure it runs after the modal's auto-adjust
+            if (adjust === true) {
+                queueMicrotask(() => {
+                    let modalEl = menu.modal.el;
+                    let rect = modalEl.getBoundingClientRect();
+                    let marginLeft = parseFloat(modalEl.style.marginLeft) || 0;
+                    let marginTop = parseFloat(modalEl.style.marginTop) || 0;
+
+                    // Check if horizontal adjustment was applied (margin is non-zero)
+                    if (marginLeft !== 0) {
+                        // Position modal so its right edge is at x - 1 (cursor 1px to the right of modal)
+                        // Formula: left + margin + width = x - 1, where left = x
+                        // Therefore: margin = -width - 1
+                        let newMarginLeft = -rect.width - 1;
+                        // Check if this would push modal off the left edge
+                        let newLeft = x + newMarginLeft;
+                        if (newLeft < 10) {
+                            // Keep a 10px margin from the left edge
+                            newMarginLeft = 10 - x;
+                        }
+                        modalEl.style.marginLeft = newMarginLeft + 'px';
+                    }
+
+                    // Check if vertical adjustment was applied (margin is non-zero)
+                    if (marginTop !== 0) {
+                        // Position modal so its bottom edge is at y - 1 (cursor 1px below modal)
+                        // Formula: top + margin + height = y - 1, where top = y
+                        // Therefore: margin = -height - 1
+                        let newMarginTop = -rect.height - 1;
+                        // Check if this would push modal off the top edge
+                        let newTop = y + newMarginTop;
+                        if (newTop < 10) {
+                            // Keep a 10px margin from the top edge
+                            newMarginTop = 10 - y;
+                        }
+                        modalEl.style.marginTop = newMarginTop + 'px';
+                    }
+                });
+            }
+            // Focus
+            self.el.classList.add('lm-menu-focus');
+            // Focus on the contextmenu
+            self.el.focus();
+        }
+
+        self.close = function(level) {
+            // Close all modals from the level specified
+            self.modals.forEach(function(menu, k) {
+                if (k >= level) {
+                    if (menu.item) {
+                        menu.item.expanded = false;
+                        menu.item = null;
+                    }
+                    menu.modal.close();
+                }
+            });
+            // Keep the index of the modal that is opened
+            self.modalIndex = level ? level - 1 : 0;
+
+            // Close event
+            if (level === 0) {
+                self.el.classList.remove('lm-menu-focus');
+
+                Dispatch.call(self, self.onclose, 'close', {
+                    instance: self,
+                });
+            }
+        }
+
+        onload(() => {
+            // Create first menu
+            self.create();
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                if (! (e.relatedTarget && (self.el.contains(e.relatedTarget) || self.root?.contains(e.relatedTarget)))) {
+                    self.close(0);
+                }
+            });
+
+            // Keyboard event
+            self.el.addEventListener("keydown", function(e) {
+                // Menu object
+                let menu = self.modals[self.modalIndex];
+                // Modal must be opened
+                if (! menu.modal.closed) {
+                    // Something happens
+                    let ret = false;
+                    // Control
+                    if (e.key === 'ArrowLeft') {
+                        if (self.modalIndex > 0) {
+                            // Close modal
+                            menu.close();
+                            // Action happened
+                            ret = true;
+                        }
+                    } else if (e.key === 'ArrowRight') {
+                        // Get the selected cursor
+                        let item = menu.options[menu.cursor];
+                        // Open submenu
+                        if (typeof (item) !== 'undefined') {
+                            // Open submenu in case that exists
+                            if (item.submenu && !item.disabled) {
+                                // Open modal
+                                menu.open(item, true);
+                                // Action happened
+                                ret = true;
+                            }
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        ret = setCursor.call(menu, 0);
+                    } else if (e.key === 'ArrowDown') {
+                        ret = setCursor.call(menu, 1);
+                    } else if (e.key === 'Enter') {
+                        // Contextmenu modal
+                        let item = menu.options[menu.cursor];
+                        // Cursor is found so reset it
+                        if (typeof(item) !== 'undefined') {
+                            // Execute action
+                            if (typeof (item.onclick) === 'function') {
+                                item.onclick.call(item, e, item.el);
+                            }
+                            // Open sub menu in case exists
+                            if (item.submenu) {
+                                // Open menu
+                                menu.open(item, true);
+                                // Action happened
+                                ret = true;
+                            } else {
+                                // Close all menu
+                                self.close(0);
+                                // Action happened
+                                ret = true;
+                            }
+                        }
+                    } else if (e.key === 'Escape') {
+                        self.close(0);
+                    }
+
+                    // Something important happen so block any progression
+                    if (ret === true) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            });
+
+            if (! self.root) {
+                if (self.tagName) {
+                    self.root = self.el.parentNode.parentNode;
+                } else {
+                    self.root = self.el.parentNode;
+                }
+            }
+
+            // Parent
+            self.root.addEventListener("contextmenu", function(e) {
+                if (Array.isArray(self.options) && self.options.length) {
+                    let [x, y] = getCoords(e);
+                    self.open(self.options, x, y, true);
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            });
+        });
+
+        return `<div class="lm-menu" role="menu" aria-orientation="vertical" tabindex="0"></div>`;
+    }
+
+    lemonade.setComponents({ Contextmenu: Contextmenu });
+
+    lemonade.createWebComponent('contextmenu', Contextmenu);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Contextmenu, root, options)
+            return options;
+        } else {
+            return Contextmenu.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 692:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * Implement page up and down navigation
+ * Implement color attribute for items
+ */
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (!Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            return this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Default row height
+    let defaultRowHeight = 24;
+
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const isEmpty = function(v) {
+        return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+    }
+
+    /**
+     * Compare two values (arrays, strings, numbers, etc.)
+     * Returns true if both are equal or empty
+     * @param {*} a1
+     * @param {*} a2
+     */
+    const compareValues = function(a1, a2) {
+        if (a1 === a2 || (isEmpty(a1) && isEmpty(a2))) {
+            return true;
+        }
+
+        if (!a1 || !a2) {
+            return false;
+        }
+
+        if (Array.isArray(a1) && Array.isArray(a2)) {
+            if (a1.length !== a2.length) {
+                return false;
+            }
+            for (let i = 0; i < a1.length; i++) {
+                if (a1[i] !== a2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return a1 === a2;
+    }
+
+    const lazyLoading = function (self) {
+        /**
+         * Get the position from top of a row by its index
+         * @param item
+         * @returns {number}
+         */
+        const getRowPosition = function (item) {
+            // Position from top
+            let top = 0;
+            if (item) {
+                let items = self.rows;
+                if (items && items.length) {
+                    let index = self.rows.indexOf(item);
+                    // Go through the items
+                    for (let j = 0; j < index; j++) {
+                        top += items[j].height || defaultRowHeight;
+                    }
+                }
+            }
+            return top;
+        }
+
+        const updateScroll = function () {
+            let items = self.rows;
+            if (items) {
+                // Before control
+                let before = true;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Position from top
+                let height = 0;
+                // Size of the adjustment
+                let size = 0;
+                // Go through the items
+                for (let j = 0; j < numOfItems; j++) {
+                    let h = items[j].height || defaultRowHeight;
+                    // Height
+                    height += h;
+                    // Start tracking all items as before
+                    if (items[j] === self.result[0]) {
+                        before = false;
+                    }
+                    // Adjustment
+                    if (before) {
+                        size += h;
+                    }
+                }
+                // Update height
+                scroll.style.height = height + 'px';
+                // Adjust scroll position
+                return size;
+            }
+            return false;
+        }
+
+        const getVisibleRows = function (reset) {
+            let items = self.rows;
+            if (items) {
+                let adjust;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Get the position from top
+                let y = el.scrollTop;
+                // Get the height
+                let h = null;
+                if (self.type === 'searchbar' || self.type === 'picker') {
+                    // Priority should be the size used on the viewport
+                    h = y + (el.offsetHeight || self.height);
+                } else {
+                    // Priority is the height define during initialization
+                    h = y + (self.height || el.offsetHeight);
+                }
+                // Go through the items
+                let rows = [];
+                // Height
+                let height = 0;
+                // Go through all items
+                for (let j = 0; j < numOfItems; j++) {
+                    if (items[j].visible !== false) {
+                        // Height
+                        let rowHeight = items[j].height || defaultRowHeight;
+                        // Return on partial width
+                        if (height + rowHeight > y && height < h) {
+                            rows.push(items[j]);
+                        }
+                        height += rowHeight;
+                    }
+                }
+
+                // Update visible rows
+                if (reset || !compareValues(rows, self.result)) {
+                    // Render the items
+                    self.result = rows;
+                    // Adjust scroll height
+                    let adjustScroll = reset;
+                    // Adjust scrolling
+                    for (let i = 0; i < rows.length; i++) {
+                        // Item
+                        let item = rows[i];
+                        // Item height
+                        let h = item.el.offsetHeight;
+                        // Update row height
+                        if (!item.height || h !== item.height) {
+                            // Keep item height
+                            item.height = h;
+                            // Adjust total height
+                            adjustScroll = true;
+                        }
+                    }
+
+                    // Update scroll if the height of one element has been changed
+                    if (adjustScroll) {
+                        // Adjust the scroll height
+                        adjust = updateScroll();
+                    }
+                }
+
+                // Adjust position of the first element
+                let position = getRowPosition(self.result[0]);
+                let diff = position - el.scrollTop;
+                if (diff > 0) {
+                    diff = 0;
+                }
+                self.container.style.top = diff + 'px';
+
+                return adjust;
+            }
+        }
+
+        /**
+         * Move the position to the top and re-render based on the scroll
+         * @param reset
+         */
+        const render = function (reset) {
+            // Move scroll to the top
+            el.scrollTop = 0;
+            // Reset scroll
+            updateScroll();
+            // Append first batch
+            getVisibleRows(reset);
+        }
+
+        /**
+         * Will adjust the items based on the scroll position offset
+         */
+        self.adjustPosition = function (item) {
+            if (item.el) {
+                let h = item.el.offsetHeight;
+                let calc = item.el.offsetTop + h;
+                if (calc > el.offsetHeight) {
+                    let size = calc - el.offsetHeight;
+                    if (size < h) {
+                        size = h;
+                    }
+                    el.scrollTop -= -1 * size;
+                }
+            }
+        }
+
+        // Controls
+        const scrollControls = function () {
+            getVisibleRows(false);
+        }
+
+        // Element for scrolling
+        let el = self.container.parentNode;
+        el.classList.add('lm-lazy');
+        // Div to represent the height of the content
+        const scroll = document.createElement('div');
+        scroll.classList.add('lm-lazy-scroll');
+        // Force the height and add scrolling
+        el.appendChild(scroll);
+        el.addEventListener('scroll', scrollControls, { passive: true });
+        el.addEventListener('wheel', scrollControls, { passive: true });
+        self.container.classList.add('lm-lazy-items');
+
+        self.goto = function (item) {
+            el.scrollTop = getRowPosition(item);
+            let adjust = getVisibleRows(false);
+            if (adjust) {
+                el.scrollTop = adjust;
+                // Last adjust on the visible rows
+                getVisibleRows(false);
+            }
+        }
+
+        return (prop) => {
+            if (prop === 'rows') {
+                render(true);
+            }
+        }
+    }
+
+    const getAttributeName = function(prop) {
+        if (prop.substring(0,1) === ':') {
+            prop = prop.substring(1);
+        } else if (prop.substring(0,3) === 'lm-') {
+            prop = prop.substring(3);
+        }
+        return prop.toLowerCase();
+    }
+
+    const extractFromHtml =  function(element) {
+        let data = [];
+        // Content
+        for (let i = 0; i < element.children.length; i++) {
+            let e = element.children[i];
+            let item = {
+                text: e.textContent || e.getAttribute('title'),
+                value: e.getAttribute('value'),
+            }
+            if (item.value == null) {
+                item.value = item.text;
+            }
+            data.push(item);
+        }
+
+        return data;
+    }
+
+    const extract = function(children) {
+        let data = [];
+
+        if (this.tagName) {
+            data = extractFromHtml(this);
+            // Remove all elements
+            this.textContent = '';
+        } else {
+            // Get data
+            if (typeof(children) === 'string') {
+                // Version 4
+                let d = document.createElement('div');
+                d.innerHTML = children;
+                data = extractFromHtml(d);
+            } else if (children && children.length) {
+                // Version 5
+                children.forEach((v) => {
+                    let item = {}
+                    v.props.forEach((prop) => {
+                        item[getAttributeName(prop.name)] = prop.value;
+                    });
+                    if (! item.text) {
+                        item.text = v.children[0]?.props[0]?.value || '';
+                    }
+                    data.push(item);
+                });
+                // Block children
+                children.length = 0;
+            }
+        }
+
+        return data;
+    }
+
+    const isDOM = function(o) {
+        return (o instanceof Element || o instanceof HTMLDocument || o instanceof DocumentFragment);
+    }
+
+    const Dropdown = function (children, { onchange, onload }) {
+        let self = this;
+        // Data
+        let data = [];
+        // Internal value controllers
+        let value = [];
+        // Cursor
+        let cursor = null;
+        // Control events
+        let ignoreEvents = false;
+        // Lazy loading global instance
+        let lazyloading = null;
+        // Tracking changes
+        let changesDetected = false;
+        // Debounce timer for search
+        let searchTimeout = null;
+
+        // Data
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        let d = extract.call(this, children);
+        if (d) {
+            d.forEach((v) => {
+                self.data.push(v)
+            })
+        }
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        // Custom events defined by the user
+        let load = self.onload;
+        self.onload = null;
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Compatibility
+        if (typeof self.newOptions !== 'undefined') {
+            self.insert = self.newOptions;
+        }
+
+        // Cursor controllers
+        const setCursor = function (index, force) {
+            let item = self.rows[index];
+            if (typeof (item) !== 'undefined') {
+                // Set the cursor number
+                cursor = index;
+                // Set visual indication
+                item.cursor = true;
+                // Go to the item on the scroll in case the item is not on the viewport
+                if (!(item.el && item.el.parentNode) || force === true) {
+                    // Goto method
+                    self.goto(item);
+                }
+                // Adjust cursor position
+                setTimeout(function () {
+                    self.adjustPosition(item);
+                });
+            }
+        }
+
+        const removeCursor = function (reset) {
+            if (cursor !== null) {
+                if (typeof (self.rows[cursor]) !== 'undefined') {
+                    self.rows[cursor].cursor = false;
+                }
+                if (reset) {
+                    // Cursor is null
+                    cursor = null;
+                }
+            }
+        }
+
+        const moveCursor = function (direction, jump) {
+            // Remove cursor
+            removeCursor();
+            // Last item
+            let last = self.rows.length - 1;
+            if (jump) {
+                if (direction < 0) {
+                    cursor = 0;
+                } else {
+                    cursor = last;
+                }
+            } else {
+                // Position
+                if (cursor === null) {
+                    cursor = 0;
+                } else {
+                    // Move previous
+                    cursor = cursor + direction;
+                }
+                // Reach the boundaries
+                if (direction < 0) {
+                    // Back to the last one
+                    if (cursor < 0) {
+                        cursor = last;
+                    }
+                } else {
+                    // Back to the first one
+                    if (cursor > last) {
+                        cursor = 0;
+                    }
+                }
+            }
+            // Add cursor
+            setCursor(cursor);
+        }
+
+        const adjustDimensions = function(data) {
+            // Estimate width
+            let width = self.width ?? 0;
+            // Adjust the width
+            let w = getInput().offsetWidth;
+            if (width < w) {
+                width = w;
+            }
+            // Width && values
+            data.map(function (s) {
+                // Estimated width of the element
+                if (s.text) {
+                    let w = Math.max(width, s.text.length * 7.5);
+                    if (width < w) {
+                        width = w;
+                    }
+                }
+            });
+            // Min width for the container
+            self.container.parentNode.style.width = (width - 2) + 'px';
+        }
+
+        const setData = function () {
+            // Data
+            data = JSON.parse(JSON.stringify(self.data));
+            // Re-order to make sure groups are in sequence
+            if (data && data.length) {
+                // Adjust width and height
+                adjustDimensions(data);
+                // Groups
+                data.sort((a, b) => {
+                    // Compare groups
+                    if (a.group && b.group) {
+                        return a.group.localeCompare(b.group);
+                    }
+                    return 0;
+                });
+                let group = '';
+                // Define group headers
+                data.map((v) => {
+                    // Compare groups
+                    if (v && v.group && v.group !== group) {
+                        v.header = v.group;
+                        group = v.group;
+                    }
+                });
+            }
+            // Data to be listed
+            self.rows = data;
+        }
+
+        const updateLabel = function () {
+            if (value && value.length) {
+                getInput().textContent = value.filter(v => v.selected).map(i => i.text).join('; ');
+            } else {
+                getInput().textContent = '';
+            }
+        }
+
+        const setValue = function (v, ignoreEvent) {
+            // Values
+            let newValue;
+            if (! Array.isArray(v)) {
+                if (typeof(v) === 'string') {
+                    newValue = v.split(self.divisor ?? ';');
+                } else {
+                    newValue = [v];
+                }
+            } else {
+                newValue = v;
+            }
+
+            // Width && values
+            value = [];
+
+            if (Array.isArray(data)) {
+                data.map(function (s) {
+                    s.selected = newValue.some(v => v == s.value);
+                    if (s.selected) {
+                        value.push(s);
+                    }
+                });
+            }
+
+            // Update label
+            if (self.isClosed()) {
+                updateLabel();
+            }
+
+            // Component onchange
+            if (! ignoreEvent) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: getValue(),
+                });
+            }
+        }
+
+        const getValue = function () {
+            if (self.multiple) {
+                if (value && value.length) {
+                    return value.filter(v => v.selected).map(i => i.value);
+                }
+            } else {
+                if (value && value.length) {
+                    return value[0].value;
+                }
+            }
+
+            return null;
+        }
+
+        const onopen = function () {
+            self.state = true;
+            // Value
+            let v = value[value.length - 1];
+            // Make sure goes back to the top of the scroll
+            if (self.container.parentNode.scrollTop > 0) {
+                self.container.parentNode.scrollTop = 0;
+            }
+            // Move to the correct position
+            if (v) {
+                // Mark the position of the cursor to the same element
+                setCursor(self.rows.indexOf(v), true);
+            }
+            // Prepare search field
+            if (self.autocomplete) {
+                // Get the input
+                let input = getInput();
+                // Editable
+                input.setAttribute('contenteditable', true);
+                // Clear input
+                input.textContent = '';
+                // Focus on the item
+                input.focus();
+            }
+            // Adjust width and height
+            adjustDimensions(self.data);
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function (options, origin) {
+            // Cursor
+            removeCursor(true);
+            // Reset search
+            if (self.autocomplete) {
+                // Go to begin of the data
+                self.rows = data;
+                // Get the input
+                let input = getInput();
+                if (input) {
+                    // Remove editable attribute
+                    input.removeAttribute('contenteditable');
+                    // Clear input
+                    input.textContent = '';
+                }
+            }
+
+            if (origin === 'escape') {
+                // Cancel operation and keep the same previous value
+                setValue(self.value, true);
+            } else {
+                // Current value
+                let newValue = getValue();
+
+                // If that is different from the component value
+                if (changesDetected === true && ! compareValues(newValue, self.value)) {
+                    self.value = newValue;
+                } else {
+                    // Update label
+                    updateLabel();
+                }
+            }
+
+            // Identify the new state of the dropdown
+            self.state = false;
+
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                ...options
+            });
+        }
+
+        const normalizeData = function(result) {
+            if (result && result.length) {
+                return result.map((v) => {
+                    if (typeof v === 'string' || typeof v === 'number') {
+                        return { value: v, text: v };
+                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
+                        return { value: v.id, text: v.name };
+                    } else {
+                        return v;
+                    }
+                });
+            }
+        }
+
+        const loadData = function(result) {
+            result = normalizeData(result);
+            // Loading controls
+            lazyloading = lazyLoading(self);
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    self.data.push(v);
+                });
+            }
+            // Process the data
+            setData();
+            // Set value
+            if (typeof(self.value) !== 'undefined') {
+                setValue(self.value, true);
+            }
+            // Onload method
+            Dispatch.call(self, load, 'load', {
+                instance: self
+            });
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+        }
+
+        const resetData = function(result) {
+            result = normalizeData(result);
+            // Reset cursor
+            removeCursor(true);
+            let r = data.filter(item => {
+                return item.selected === true;
+            });
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    r.push(v);
+                });
+            }
+            self.rows = r;
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+
+            // Event
+            Dispatch.call(self, self.onsearch, 'search', {
+                instance: self,
+                result: result,
+            });
+        }
+
+        const getInput = function() {
+            return self.input;
+        }
+
+        const search = function(query) {
+            if (! self.isClosed() && self.autocomplete) {
+
+                // Remote or normal search
+                if (self.remote === true) {
+                    // Clear existing timeout
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                    }
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Headers
+                    let http = {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }
+                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
+                        instance: self,
+                        http: http,
+                        query: query,
+                    });
+
+                    if (ret === false) {
+                        return;
+                    }
+
+                    // Debounce the search with 300ms delay
+                    searchTimeout = setTimeout(() => {
+                        fetch(`${self.url}?q=${query}`, http).then(r => r.json()).then(resetData).catch((error) => {
+                            resetData([]);
+                        });
+                    }, 300);
+                } else {
+                    // Filter options
+                    let temp;
+
+                    const find = (prop) => {
+                        if (prop) {
+                            if (Array.isArray(prop)) {
+                                // match if ANY element contains the query (case-insensitive)
+                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
+                            }
+                            // handle strings/numbers/others
+                            return prop.toString().toLowerCase().includes(query);
+                        }
+                        return false;
+                    };
+
+                    if (! query) {
+                        temp = data;
+                    } else {
+                        temp = data.filter(item => {
+                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
+                        });
+                    }
+
+                    // Cursor
+                    removeCursor(true);
+                    // Update the data from the dropdown
+                    self.rows = temp;
+                }
+            }
+        }
+
+        const events = {
+            focusout: (e) => {
+                if (self.modal) {
+                    if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                        if (! self.isClosed()) {
+                            self.close({ origin: 'focusout '});
+                        }
+                    }
+                }
+            },
+            keydown: (e) => {
+                if (! self.isClosed()) {
+                    let prevent = false;
+                    if (e.code === 'ArrowUp') {
+                        moveCursor(-1);
+                        prevent = true;
+                    } else if (e.code === 'ArrowDown') {
+                        moveCursor(1);
+                        prevent = true;
+                    } else if (e.code === 'Home') {
+                        moveCursor(-1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'End') {
+                        moveCursor(1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (e.target.tagName === 'BUTTON') {
+                            e.target.click();
+                            let input = getInput();
+                            input.focus();
+                        } else {
+                            select(e, self.rows[cursor]);
+                        }
+                        prevent = true;
+                    } else if (e.code === 'Escape') {
+                        self.close({ origin: 'escape'});
+                        prevent = true;
+                    } else {
+                        if (e.keyCode === 32 && !self.autocomplete) {
+                            select(e, self.rows[cursor]);
+                        }
+                    }
+
+                    if (prevent) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Enter') {
+                        self.open();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            },
+            mousedown: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    if (self.autocomplete) {
+                        let x;
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            x = e.changedTouches[0].clientX;
+                        } else {
+                            x = e.clientX;
+                        }
+                        if (e.target.offsetWidth - (x - e.target.offsetLeft) < 20) {
+                            toggle();
+                        } else {
+                            self.open();
+                        }
+                    } else {
+                        toggle();
+                    }
+                }
+            },
+            paste: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    let text;
+                    if (e.clipboardData || e.originalEvent.clipboardData) {
+                        text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                    } else if (window.clipboardData) {
+                        text = window.clipboardData.getData('Text');
+                    }
+                    text = text.replace(/(\r\n|\n|\r)/gm, "");
+                    document.execCommand('insertText', false, text)
+                    e.preventDefault();
+                }
+            },
+            input: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    search(e.target.textContent.toLowerCase());
+                }
+            },
+        }
+
+        const selectItem = function(s) {
+            if (self.remote === true) {
+                if (data.indexOf(s) === -1) {
+                    self.data.push(s);
+                    data.push(s);
+                }
+            }
+
+            if (self.multiple === true) {
+                let position = value.indexOf(s);
+                if (position === -1) {
+                    value.push(s);
+                    s.selected = true;
+                } else {
+                    value.splice(position, 1);
+                    s.selected = false;
+                }
+            } else {
+                if (value[0] === s) {
+                    if (self.allowEmpty === false) {
+                        s.selected = true;
+                    } else {
+                        s.selected = !s.selected;
+                    }
+                } else {
+                    if (value[0]) {
+                        value[0].selected = false;
+                    }
+                    s.selected = true;
+                }
+                if (s.selected) {
+                    value = [s];
+                } else {
+                    value = [];
+                }
+            }
+
+            changesDetected = true;
+        }
+
+        const add = async function (e) {
+            let input = getInput();
+            let text = input.textContent;
+            if (! text) {
+                return false;
+            }
+
+            // New item
+            let s = {
+                text: text,
+                value: text,
+            }
+
+            self.add(s);
+
+            e.preventDefault();
+        }
+
+        const select = function (e, s) {
+            if (s && s.disabled !== true) {
+                selectItem(s);
+                // Close the modal
+                if (self.multiple !== true) {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        const toggle = function () {
+            if (self.modal) {
+                if (self.isClosed()) {
+                    self.open();
+                } else {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        self.add = async function (newItem) {
+            // Event
+            if (typeof(self.onbeforeinsert) === 'function') {
+                self.input.classList.add('lm-dropdown-loading');
+                let ret = await self.onbeforeinsert(self, newItem);
+                self.input.classList.remove('lm-dropdown-loading');
+                if (ret === false) {
+                    return;
+                } else if (ret) {
+                    newItem = ret;
+                }
+            }
+            // Process the data
+            data.push(newItem);
+            self.data.push(newItem);
+            // Refresh screen
+            self.result.unshift(newItem);
+            self.rows.unshift(newItem);
+            self.refresh('result');
+
+            Dispatch.call(self, self.oninsert, 'insert', {
+                instance: self,
+                item: newItem,
+            });
+        }
+
+        self.open = function () {
+            if (self.modal && ! self.disabled) {
+                if (self.isClosed()) {
+                    if (autoType) {
+                        self.type = window.innerWidth > 640 ? self.type = 'default' : (self.autocomplete ? 'searchbar' : 'picker');
+                    }
+                    // Track
+                    changesDetected = false;
+                    // Open the modal
+                    self.modal.open();
+                }
+            }
+        }
+
+        self.close = function (options) {
+            if (self.modal) {
+                if (options?.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.setData = function(data) {
+            self.data = data;
+        }
+
+        self.getData = function() {
+            return self.data;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            self.value = v;
+        }
+
+        self.reset = function() {
+            self.value = null;
+            self.close({ origin: 'button' });
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        // Init with a
+        let input = self.input;
+
+        onload(() => {
+            if (self.type === "inline") {
+                // For inline dropdown
+                self.el.setAttribute('tabindex', 0);
+                // Remove search
+                self.input.remove();
+            } else {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-adjust': true,
+                    'auto-close': false,
+                };
+                // Generate modal
+                Modal(self.el.children[1], self.modal);
+            }
+
+            if (self.remote === 'true') {
+                self.remote = true;
+            }
+
+            if (self.autocomplete === 'true') {
+                self.autocomplete = true;
+            }
+
+            if (self.multiple === 'true') {
+                self.multiple = true;
+            }
+
+            if (self.insert === 'true') {
+                self.insert = true;
+            }
+
+            // Autocomplete will be forced to be true when insert action is active
+            if ((self.insert === true || self.type === 'searchbar' || self.remote === true) && ! self.autocomplete) {
+                self.autocomplete = true;
+            }
+
+            if (typeof(input) !== 'undefined') {
+                // Remove the native element
+                if (isDOM(input)) {
+                    input.classList.add('lm-dropdown-input');
+                }
+                // Remove search
+                self.input.remove();
+                // New input
+                self.input = input;
+            } else {
+                self.el.children[0].style.position = 'relative';
+            }
+
+            // Default width
+            if (self.width) {
+                // Dropdown
+                self.el.style.width = self.width + 'px';
+            }
+
+            // Height
+            self.height = 400;
+
+            // Animation for mobile
+            if (document.documentElement.clientWidth < 800) {
+                self.animation = true;
+            }
+
+            // Events
+            self.el.addEventListener('focusout', events.focusout);
+            self.el.addEventListener('keydown', events.keydown);
+            self.el.addEventListener('mousedown', events.mousedown);
+            self.el.addEventListener('paste', events.paste);
+            self.el.addEventListener('input', events.input);
+
+            // Load remote data
+            if (self.url) {
+                if (self.remote === true) {
+                    loadData();
+                } else {
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Load remote data
+                    fetch(self.url, {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }).then(r => r.json()).then(loadData).catch(() => {
+                        loadData();
+                    });
+                }
+            } else {
+                loadData();
+            }
+        });
+
+        onchange(prop => {
+            if (prop === 'value') {
+                setValue(self.value);
+            } else if (prop === 'data') {
+                setData();
+                self.value = null;
+            }
+
+            if (typeof (lazyloading) === 'function') {
+                lazyloading(prop);
+            }
+        });
+
+        return render => render`<div class="lm-dropdown" data-state="{{self.state}}" data-insert="{{self.insert}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" :value="self.value" :data="self.data">
+            <div class="lm-dropdown-header">
+                <div class="lm-dropdown-input" placeholder="{{self.placeholder}}" :ref="self.input" tabindex="0"></div>
+                <button class="lm-dropdown-add" onclick="${add}" tabindex="0"></button>
+                <div class="lm-dropdown-header-controls">
+                    <button onclick="self.reset" class="lm-dropdown-done">${T('Reset')}</button>
+                    <button onclick="self.close" class="lm-dropdown-done">${T('Done')}</button>
+                </div>
+            </div>
+            <div class="lm-dropdown-content">
+                <div>
+                    <div :loop="self.result" :ref="self.container" :rows="self.rows">
+                        <div class="lm-dropdown-item" onclick="${select}" data-cursor="{{self.cursor}}" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" data-group="{{self.header}}">
+                            <div><img :src="self.image" /> <div>{{self.text}}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Dropdown: Dropdown });
+
+    lemonade.createWebComponent('dropdown', Dropdown);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Dropdown, root, options)
+            return options;
+        } else {
+            return Dropdown.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 72:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * pin the modal to the left panel
+ */
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // References
+    const modals = [];
+    // State of the resize and move modal
+    let state = {};
+    // Internal controls of the action of resize and move
+    let controls = {};
+    // Width of the border
+    let cornerSize = 10;
+    // Container with minimized modals
+    const minimizedModals = [];
+    // Default z-index for the modals
+    const defaultZIndex = 20;
+
+    /**
+     * Send the modal to the front
+     * @param container
+     */
+    const sendToFront = function(container) {
+        let highestXIndex = defaultZIndex;
+        for (let i = 0; i < modals.length; i++) {
+            const zIndex = parseInt(modals[i].el.style.zIndex);
+            if (zIndex > highestXIndex) {
+                highestXIndex = zIndex;
+            }
+        }
+        container.style.zIndex = highestXIndex + 1;
+    }
+
+    /**
+     * Send modal to the back
+     * @param container
+     */
+    const sendToBack = function(container) {
+        container.style.zIndex = defaultZIndex;
+    }
+
+    // Get the coordinates of the action
+    const getCoords = function(e) {
+        let x;
+        let y;
+
+        if (e.changedTouches && e.changedTouches[0]) {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        return [x,y];
+    }
+
+    // Get the button status
+    const getButton = function(e) {
+        e = e || window.event;
+        if (e.buttons) {
+            return e.buttons;
+        } else if (e.button) {
+            return e.button;
+        } else {
+            return e.which;
+        }
+    }
+
+    // Finalize any potential action
+    const mouseUp = function(e) {
+        // Finalize all actions
+        if (typeof(controls.action) === 'function') {
+            controls.action();
+        }
+        setTimeout(function() {
+            // Remove cursor
+            if (controls.e) {
+                controls.e.style.cursor = '';
+            }
+            // Reset controls
+            controls = {};
+            // Reset state controls
+            state = {
+                x: null,
+                y: null,
+            }
+        }, 0)
+    }
+
+    const mouseMove = function(e) {
+        if (! getButton(e)) {
+            return false;
+        }
+        // Get mouse coordinates
+        let [x,y] = getCoords(e);
+
+        // Move modal
+        if (controls.type === 'move') {
+            if (state && state.x == null && state.y == null) {
+                state.x = x;
+                state.y = y;
+            }
+
+            let dx = x - state.x;
+            let dy = y - state.y;
+            let top = controls.e.offsetTop + dy;
+            let left = controls.e.offsetLeft + dx;
+
+            // Update position
+            controls.top = top;
+            controls.left = left;
+            controls.e.style.top = top + 'px';
+            controls.e.style.left = left + 'px';
+
+            state.x = x;
+            state.y = y;
+            state.top = top;
+            state.left = left;
+        } else if (controls.type === 'resize') {
+            let top = null;
+            let left = null;
+            let width = null;
+            let height = null;
+
+            if (controls.d === 'e-resize' || controls.d === 'ne-resize' || controls.d === 'se-resize') {
+                width = controls.w + (x - controls.x);
+
+                if (e.shiftKey) {
+                    height = controls.h + (x - controls.x) * (controls.h / controls.w);
+                }
+            } else if (controls.d === 'w-resize' || controls.d === 'nw-resize'|| controls.d === 'sw-resize') {
+                left = controls.l + (x - controls.x);
+                // Do not move further
+                if (left >= controls.l) {
+                    left = controls.l;
+                }
+                // Update width
+                width = controls.l + controls.w - left;
+                // Consider shift to update height
+                if (e.shiftKey) {
+                    height = controls.h - (x - controls.x) * (controls.h / controls.w);
+                }
+            }
+
+            if (controls.d === 's-resize' || controls.d === 'se-resize' || controls.d === 'sw-resize') {
+                if (! height) {
+                    height = controls.h + (y - controls.y);
+                }
+            } else if (controls.d === 'n-resize' || controls.d === 'ne-resize' || controls.d === 'nw-resize') {
+                top = controls.t + (y - controls.y);
+                // Do not move further
+                if (top >= controls.t) {
+                    top = controls.t;
+                }
+                // Update height
+                height = controls.t + controls.h - top;
+            }
+
+            if (top) {
+                controls.e.style.top = top + 'px';
+            }
+            if (left) {
+                controls.e.style.left = left + 'px';
+            }
+            if (width) {
+                controls.e.style.width = width + 'px';
+            }
+            if (height) {
+                controls.e.style.height = height + 'px';
+            }
+        }
+    }
+
+    if (typeof(document) !== "undefined") {
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener('mousemove', mouseMove);
+    }
+
+    const isTrue = function(e) {
+        return e === true || e === 1 || e === 'true';
+    }
+
+    const refreshMinimized = function() {
+        let items = minimizedModals;
+        let numOfItems = items.length;
+        let width = 10;
+        let height = 55;
+        let offsetWidth = window.innerWidth;
+        let offsetHeight = window.innerHeight;
+        for (let i = 0; i < numOfItems; i++) {
+            let item = items[i];
+            item.el.style.left = width + 'px';
+            item.el.style.top = offsetHeight - height + 'px';
+            width += 205;
+
+            if (offsetWidth - width < 205) {
+                width = 10;
+                height += 50;
+            }
+        }
+    }
+
+    const delayAction = function(self, action) {
+        // Make sure to remove the transformation before minimize to preserve the animation
+        if (self.el.style.marginLeft || self.el.style.marginTop) {
+            // Make sure no animation during this process
+            self.el.classList.add('action');
+            // Remove adjustment
+            removeMargin(self);
+            // Make sure to continue with minimize
+            setTimeout(function() {
+                // Remove class
+                self.el.classList.remove('action');
+                // Call action
+                action(self);
+            },0)
+
+            return true;
+        }
+    }
+
+    const setMini = function(self) {
+        if (delayAction(self, setMini)) {
+            return;
+        }
+
+        // Minimize modals
+        minimizedModals.push(self);
+
+        self.el.top = self.el.offsetTop;
+        self.el.left = self.el.offsetLeft;
+
+        if (! self.el.style.top) {
+            self.el.style.top = self.el.top + 'px';
+        }
+        if (! self.el.style.left) {
+            self.el.style.left = self.el.left + 'px';
+        }
+
+        self.el.translateY = 0;
+        self.el.translateX = 0;
+
+        // Refresh positions
+        setTimeout(function() {
+            refreshMinimized();
+            self.minimized = true;
+        },10)
+    }
+
+    const removeMini = function(self) {
+        minimizedModals.splice(minimizedModals.indexOf(self), 1);
+        self.minimized = false;
+        self.el.style.top = self.el.top + 'px';
+        self.el.style.left = self.el.left + 'px';
+        // Refresh positions
+        setTimeout(() => {
+            refreshMinimized();
+        }, 10);
+        // Refresh positions
+        setTimeout(() => {
+            if (self.top === '') {
+                self.el.style.top = '';
+            }
+            if (self.left === '') {
+                self.el.style.left = '';
+            }
+        }, 400);
+    }
+
+    const removeMargin = function(self) {
+        if (self.el.style.marginLeft) {
+            let y = self.el.offsetLeft;
+            self.el.style.marginLeft = '';
+            self.left = y;
+        }
+
+        if (self.el.style.marginTop) {
+            let x = self.el.offsetTop;
+            self.el.style.marginTop = '';
+            self.top = x;
+        }
+    }
+
+    const adjustHorizontal = function(self) {
+        if (! isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginLeft = '';
+        let viewportWidth = window.innerWidth;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let w = document.documentElement.offsetWidth;
+                if (w > viewportWidth) {
+                    //viewportWidth = w;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let rightEdgeDistance = viewportWidth - (el.left + el.width);
+        let transformX = 0;
+
+        if (self.position === 'absolute') {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin - 10; // 10 is the scroll width
+            }
+        } else {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin;
+            }
+        }
+
+        if (el.left < 0) {
+            transformX = margin - el.left;
+        }
+        if (transformX !== 0) {
+            self.el.style.marginLeft = transformX + 'px';
+        }
+    }
+
+    const adjustVertical = function(self) {
+        if (! isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginTop = '';
+        let viewportHeight = window.innerHeight;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let h = document.documentElement.offsetHeight;
+                if (h > viewportHeight) {
+                    //viewportHeight = h;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let bottomEdgeDistance = viewportHeight - (el.top + el.height);
+        let transformY = 0;
+
+        if (self.position === 'absolute') {
+            if (bottomEdgeDistance < 5) {
+                transformY = (-1 * el.height) - margin - 12;
+                if (el.top + transformY < 0) {
+                    transformY = -el.top + 10;
+                }
+            }
+        } else {
+            if (bottomEdgeDistance < 0) {
+                transformY = bottomEdgeDistance - margin;
+            }
+        }
+
+        if (el.top < 0) {
+            transformY = margin - el.top;
+        }
+        if (transformY !== 0) {
+            self.el.style.marginTop = transformY + 'px';
+        }
+    }
+
+    const removeElements = function(root) {
+        // Keep the DOM elements
+        let elements = [];
+        if (root) {
+            while (root.firstChild) {
+                elements.push(root.firstChild);
+                root.firstChild.remove();
+            }
+        }
+        return elements;
+    }
+
+    const appendElements = function(root, elements) {
+        if (elements && elements.length) {
+            while (elements[0]) {
+                root.appendChild(elements.shift());
+            }
+        }
+    }
+
+    const Modal = function (template, { onchange, onload }) {
+        let self = this;
+        let backdrop = null;
+        let elements = null;
+
+        if (this.tagName) {
+            // Remove elements from the DOM
+            elements = removeElements(this);
+
+            this.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+            });
+        }
+
+        // Make sure keep the state as boolean
+        self.closed = !! self.closed;
+
+        // Keep all modals references
+        modals.push(self);
+
+        // External onload remove from the lifecycle
+        let change = self.onchange;
+        self.onchange = null;
+
+        let load = self.onload;
+        self.onload = null;
+
+        let ignoreEvents = false;
+
+        const click = function(e) {
+            if (e.target.classList.contains('lm-modal-close')) {
+                self.close({ origin: 'button' });
+            }
+
+            if (e.target.classList.contains('lm-modal-minimize')) {
+                // Handles minimized modal positioning
+                if (self.minimized === true) {
+                    removeMini(self);
+                } else {
+                    setMini(self);
+                }
+            }
+        }
+
+        const mousemove = function(e) {
+            if (getButton(e)) {
+                return;
+            }
+
+            // Get mouse coordinates
+            let [x,y] = getCoords(e);
+            // Root element of the component
+            let item = self.el;
+            // Get the position and dimensions
+            let rect = item.getBoundingClientRect();
+
+            controls.type = null;
+            controls.d = null;
+            controls.e = item;
+            controls.w = rect.width;
+            controls.h = rect.height;
+            controls.t = rect.top;
+            controls.l = rect.left;
+
+            // When resizable
+            if (isTrue(self.resizable)) {
+                if (e.clientY - rect.top < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'ne-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'nw-resize';
+                    } else {
+                        item.style.cursor = 'n-resize';
+                    }
+                } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'se-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'sw-resize';
+                    } else {
+                        item.style.cursor = 's-resize';
+                    }
+                } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                    item.style.cursor = 'e-resize';
+                } else if (e.clientX - rect.left < cornerSize) {
+                    item.style.cursor = 'w-resize';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'resize';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+
+            if (controls.type == null && isTrue(self.draggable)) {
+                if (y - rect.top < 40) {
+                    item.style.cursor = 'move';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'move';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+        }
+
+        const mousedown = function(e) {
+            if (! self.minimized) {
+                // Get mouse coordinates
+                let [x,y] = getCoords(e);
+                controls.x = x;
+                controls.y = y;
+                // Root element of the component
+                let item = self.el;
+                // Get the position and dimensions
+                let rect = item.getBoundingClientRect();
+                controls.e = item;
+                controls.w = rect.width;
+                controls.h = rect.height;
+                controls.t = rect.top;
+                controls.l = rect.left;
+                // If is not minimized
+                if (controls.type === 'resize') {
+                    // Make sure the width and height is defined for the modal
+                    if (! item.style.width) {
+                        item.style.width = controls.w + 'px';
+                    }
+                    if (! item.style.height) {
+                        item.style.height = controls.h + 'px';
+                    }
+                    // This will be the callback when finalize the resize
+                    controls.action = function () {
+                        self.width = parseInt(item.style.width);
+                        self.height = parseInt(item.style.height);
+                        controls.e.classList.remove('action');
+                        // Event
+                        Dispatch.call(self, self.onresize, 'resize', {
+                            instance: self,
+                            width: self.width,
+                            height: self.height,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                } else if (isTrue(self.draggable) && y - rect.top < 40) {
+                    // Callback
+                    controls.action = function () {
+                        self.top = parseInt(item.style.top);
+                        self.left = parseInt(item.style.left);
+                        controls.e.classList.remove('action');
+                        // Open event
+                        Dispatch.call(self, self.onmove, 'move', {
+                            instance: self,
+                            top: self.top,
+                            left: self.left,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                    // Remove transform
+                    removeMargin(self);
+                }
+            }
+        }
+
+        self.back = function() {
+            sendToBack(self.el);
+        }
+
+        self.front = function() {
+            sendToFront(self.el);
+        }
+
+        self.open = function() {
+            if (self.closed === true) {
+                self.closed = false;
+                // Close event
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self
+                });
+            }
+        }
+
+        self.close = function(options) {
+            if (self.closed === false) {
+                self.closed = true;
+                // Close event
+                Dispatch.call(self, self.onclose, 'close', {
+                    instance: self,
+                    ...options
+                });
+            }
+        }
+
+        self.isClosed = function() {
+            return self.closed;
+        }
+
+        if (! template || typeof(template) !== 'string') {
+            template = '';
+        }
+
+        // Custom Root Configuration
+        self.settings = {
+            getRoot: function() {
+                return self.root;
+            }
+        }
+
+        // Native lemonade
+        onload(() => {
+            // Dimensions
+            if (self.width) {
+                self.el.style.width = self.width + 'px';
+            }
+            if (self.height) {
+                self.el.style.height = self.height + 'px';
+            }
+            // Position
+            if (self.top) {
+                self.el.style.top = self.top + 'px';
+            }
+            if (self.left) {
+                self.el.style.left = self.left + 'px';
+            }
+
+            if (self.position === 'absolute' || self.position === 'right' || self.position === 'bottom' || self.position === 'left') {
+
+            } else {
+                if (!self.width && self.el.offsetWidth) {
+                    self.width = self.el.offsetWidth;
+                }
+                if (!self.height && self.el.offsetHeight) {
+                    self.height = self.el.offsetHeight;
+                }
+
+                // Initial centralize
+                if (self.position === 'center' || !self.top) {
+                    self.top = (window.innerHeight - self.height) / 2;
+                }
+                if (self.position === 'center' || !self.left) {
+                    self.left = (window.innerWidth - self.width) / 2;
+                }
+
+                // Responsive
+                if (document.documentElement.clientWidth < 800) {
+                    // Full screen
+                    if (self.height > 300) {
+                        self.el.classList.add('fullscreen');
+                    }
+                }
+            }
+
+            // Auto adjust
+            adjustHorizontal(self);
+            adjustVertical(self);
+
+            // Backdrop
+            if (self.backdrop === true) {
+                backdrop = document.createElement('div');
+                backdrop.classList.add('lm-modal-backdrop');
+                backdrop.addEventListener('click', () => {
+                    self.close({ origin: 'backdrop' });
+                });
+
+                if (self.closed === false) {
+                    self.el.parentNode.insertBefore(backdrop, self.el);
+                }
+            }
+
+            // Import content from DOM
+            if (self.content) {
+                if (typeof(self.content) === 'string') {
+                    template = self.content;
+                } else if (typeof(self.content) === 'object' && self.content.tagName) {
+                    self.root.appendChild(self.content);
+                }
+            }
+
+            // Focus out of the component
+            self.el.addEventListener('focusout', function(e) {
+                if (! self.el.contains(e.relatedTarget)) {
+                    if (isTrue(self['auto-close'])) {
+                        self.close({ origin: 'focusout' });
+                    }
+                    // Remove focus
+                    self.el.classList.remove('lm-modal-focus');
+                }
+            });
+
+            // Focus out of the component
+            self.el.addEventListener('focusin', function(e) {
+                self.el.classList.add('lm-modal-focus');
+            });
+
+            // Close and stop propagation
+            self.el.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (self.closed === false) {
+                        self.close({ origin: 'escape' });
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else if (e.key === 'Enter') {
+                    click(e);
+                }
+            });
+
+            // Append elements to the container
+            appendElements(self.el.children[1], elements);
+
+            if (self.url) {
+                fetch(self.url)
+                    .then(response => response.clone().body)
+                    .then(body => {
+                        let reader = body.getReader();
+                        reader.read().then(({ done, value }) => {
+                            // Add HTML to the modal
+                            self.root.innerHTML = new TextDecoder().decode(value.buffer);
+                            // Call onload event
+                            Dispatch.call(self, load, 'load', {
+                                instance: self
+                            });
+                        });
+                    });
+            } else {
+                // Call onload event
+                Dispatch.call(self, load, 'load', {
+                    instance: self
+                });
+            }
+        });
+
+        onchange((property) => {
+            if (ignoreEvents) {
+                return false;
+            }
+
+            if (property === 'closed') {
+                if (self.closed === false) {
+                    // Focus on the modal
+                    if (self.focus !== false) {
+                        self.el.focus();
+                    }
+                    // Show backdrop
+                    if (backdrop) {
+                        self.el.parentNode.insertBefore(backdrop, self.el);
+                    }
+
+                    // Auto adjust
+                    queueMicrotask(() => {
+                        adjustHorizontal(self);
+                        adjustVertical(self);
+                    });
+                } else {
+                    // Hide backdrop
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            } else if (property === 'top' || property === 'left' || property === 'width' || property === 'height') {
+                if (self[property] !== '') {
+                    self.el.style[property] = self[property] + 'px';
+                } else {
+                    self.el.style[property] = '';
+                }
+
+                if (self.closed === false) {
+                    queueMicrotask(() => {
+                        if (property === 'top') {
+                            adjustVertical(self);
+                        }
+                        if (property === 'left') {
+                            adjustHorizontal(self);
+                        }
+                    });
+                }
+            } else if (property === 'position') {
+                if (self.position) {
+                    if (self.position === 'center') {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    } else {
+                        self.top = '';
+                        self.left = '';
+                    }
+                } else {
+                    if (! self.top) {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                    }
+                    if (! self.left) {
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    }
+                }
+            }
+        });
+
+        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" :top="self.top" :left="self.left" :width="self.width" :height="self.height" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
+            <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
+            <div :ref="self.root">${template}</div>
+        </div>`
+    }
+
+    const Component = function (root, options) {
+        if (typeof(root) === 'object') {
+            // Remove elements from the DOM
+            let elements = removeElements(root);
+            // Create the modal
+            let e = lemonade.render(Modal, root, options);
+            // Add elements to the container
+            appendElements(e.children[1], elements);
+
+            return options;
+        } else {
+            return Modal.call(this);
+        }
+    }
+
+    // Create LemonadeJS Component
+    lemonade.setComponents({ Modal: Modal });
+    // Create Web Component
+    lemonade.createWebComponent('modal', Modal)
+
+    return Component;
+})));
+
+/***/ }),
+
+/***/ 867:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Rating = function(children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        if (! self.number) {
+            self.number = 5;
+        }
+
+        self.stars = [];
+
+        // Current self star
+        let current = null;
+
+        /**
+         * Update the number of stars
+         */
+        const len = function () {
+            // Remove stars
+            if (self.number < self.stars.length) {
+                self.stars.splice(self.number, self.stars.length);
+                if (self.value > self.number) {
+                    self.value = self.number;
+                }
+            }
+            // Add missing stars
+            for (let i = 0; i < self.number; i++) {
+                if (! self.stars[i]) {
+                    self.stars[i] = {
+                        icon: 'star',
+                    };
+                    if (self.tooltip[i]) {
+                        self.stars[i].title = self.tooltip[i];
+                    }
+                }
+            }
+            // Refresh
+            self.refresh('stars');
+        }
+
+        const val = function (index, events) {
+            if (typeof(index) === 'string') {
+                index = Number(index);
+            }
+            // Apply value to the selected property in each star
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].selected = i <= index - 1 ? 1 : 0;
+            }
+            // Keep current value
+            current = index;
+            // Dispatch method
+            if (events !== false) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: index,
+                });
+            }
+        }
+
+        const getElementPosition = function(child) {
+            if (child.tagName === 'I') {
+                let root = self.el;
+                for (let i = 0; i < root.children.length; i++) {
+                    let c = root.children[i];
+                    if (c === child) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        const click = function(e, s) {
+            let ret = getElementPosition(e.target);
+            if (ret !== -1) {
+                let index = ret + 1;
+                if (index === current) {
+                    index = 0;
+                }
+                self.value = index;
+            }
+        }
+
+        const mouseover = function(e, s) {
+            let index = getElementPosition(e.target);
+            if (index !== -1) {
+                for (let i = 0; i < self.number; i++) {
+                    if (i <= index) {
+                        self.stars[i].hover = 1;
+                    } else {
+                        self.stars[i].hover = 0;
+                    }
+                }
+            }
+        }
+
+        const mouseout = function(e, s) {
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].hover = 0;
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'number') {
+                len();
+            } else if (prop === 'value') {
+                val(self.value);
+            } else if (prop === 'tooltip') {
+                if (typeof(self.tooltip) === 'string') {
+                    self.tooltip = self.tooltip.split(',')
+                }
+                len();
+            }
+        })
+
+        onload(() => {
+            // Bind global method to be compatible with LemonadeJS forms
+            self.el.val = function (v) {
+                if (typeof (v) === 'undefined') {
+                    return self.value;
+                } else {
+                    self.value = v;
+                }
+            }
+
+            if (self.tooltip && typeof(self.tooltip) === 'string') {
+                self.tooltip = self.tooltip.split(',')
+            } else {
+                self.tooltip = '';
+            }
+            len();
+            // Ignore events
+            val(self.value, false);
+
+            self.el.addEventListener('click', click);
+            self.el.addEventListener('mouseout', mouseout);
+            self.el.addEventListener('mouseover', mouseover);
+        });
+
+        self.getValue = function () {
+            return Number(self.value);
+        }
+
+        self.setValue = function (index) {
+            self.value = index;
+        }
+
+        return `<div class="lm-rating" value="{{self.value}}" number="{{self.number}}" name="{{self.name}}" data-size="{{self.size}}" :loop="self.stars">
+            <i class="material-symbols-outlined material-icons" data-selected="{{self.selected}}" data-hover="{{self.hover}}" title="{{self.title}}">star</i>
+        </div>`;
+    }
+
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Rating: Rating });
+    // Register the web component
+    lemonade.createWebComponent('rating', Rating);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Rating, root, options)
+            return options;
+        } else {
+            return Rating.call(this, root)
+        }
+    }
+
+})));
+
+/***/ }),
+
+/***/ 539:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Switch = function (children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        const state = () => {
+            let s = self.el.firstChild.checked;
+            if (s !== self.checked) {
+                self.checked = s;
+            }
+        }
+
+        onchange((prop, a, b, c, d) => {
+            if (a !== b) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+
+            state();
+        })
+
+        onload(state);
+
+        return render => render`<label class="lm-switch" position="{{self.position}}" data-color="{{self.color}}">
+            <input type="checkbox" name="{{self.name}}" disabled="{{self.disabled}}" checked="{{self.checked}}" :bind="self.value" /> <span>{{self.text}}</span>
+        </label>`
+    }
+
+    // Create LemonadeJS references
+    lemonade.setComponents({ Switch: Switch });
+    // Create web-component
+    lemonade.createWebComponent('switch', Switch);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Switch, root, options)
+            return options;
+        } else {
+            return Switch.call(this, root);
+        }
+    }
+
+})));
+
+/***/ }),
+
+/***/ 560:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const extract = function(root, self) {
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        if (root.tagName) {
+            for (let i = 0; i < root.children.length; i++) {
+                self.data.push({
+                    el: root.children[i],
+                })
+            }
+        } else {
+            root.forEach((child) => {
+                self.data.push({
+                    el: child.element,
+                })
+            });
+        }
+    }
+
+    const sorting = function(el, options) {
+        const obj = {};
+
+        let dragElement = null;
+
+        el.addEventListener('dragstart', function(e) {
+            let target = e.target;
+            if (target.nodeType === 3) {
+                if (target.parentNode.getAttribute('draggable') === 'true') {
+                    target = target.parentNode;
+                } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+
+            if (target.getAttribute('draggable') === 'true') {
+                let position = Array.prototype.indexOf.call(target.parentNode.children, target);
+                dragElement = {
+                    element: target,
+                    o: position,
+                    d: position
+                }
+                target.style.opacity = '0.25';
+                e.dataTransfer.setDragImage(target,0,0);
+            }
+        });
+
+        el.addEventListener('dragover', function(e) {
+            e.preventDefault();
+
+            if (dragElement && getElement(e.target) && e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
+                let element = e.target.clientWidth / 2 > e.offsetX ? e.target : e.target.nextSibling;
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
+            }
+        });
+
+        el.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+        });
+
+        el.addEventListener('dragend', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                let element = dragElement.o < dragElement.d ? e.target.parentNode.children[dragElement.o] : e.target.parentNode.children[dragElement.o].nextSibling
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        el.addEventListener('drop', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                if (dragElement.o !== dragElement.d) {
+                    if (typeof(options.ondrop) == 'function') {
+                        options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
+                    }
+                }
+
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        const getElement = function(element) {
+            var sorting = false;
+
+            function path (element) {
+                if (element === el) {
+                    sorting = true;
+                }
+
+                if (! sorting) {
+                    path(element.parentNode);
+                }
+            }
+
+            path(element);
+
+            return sorting;
+        }
+
+        for (let i = 0; i < el.children.length; i++) {
+            if (! el.children[i].hasAttribute('draggable')) {
+                el.children[i].setAttribute('draggable', 'true');
+            }
+        }
+
+        return el;
+    }
+
+    const Tabs = function(children, { onchange, onload }) {
+        let self = this
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Add new tab
+        let createButton;
+
+        // Get the references from the root web component
+        let root;
+        let template = '';
+        if (this.tagName) {
+            root = this;
+        } else {
+            // References from LemonadeJS
+            if (typeof(children) === 'string') {
+                // Version 4
+                template = children;
+            } else if (children && children.length) {
+                // Version 5
+                root = children;
+            }
+        }
+
+        if (root) {
+            extract(root, self);
+        }
+
+        // Process the data
+        if (self.data) {
+            for (let i = 0; i < self.data.length; i++) {
+                if (! self.data[i].el) {
+                    // Create element
+                    self.data[i].el = document.createElement('div');
+                    // Create from content
+                    if (self.data[i].content) {
+                        self.data[i].el.innerHTML = self.data[i].content;
+                    }
+                }
+            }
+        }
+
+        let props = ['title', 'selected', 'data-icon'];
+
+        const select = function(index) {
+            // Make sure the index is a number
+            index = parseInt(index);
+            // Do not select tabs that does not exist
+            if (index >= 0 && index < self.data.length) {
+                for (let i = 0; i < self.root.children.length; i++) {
+                    self.headers.children[i].classList.remove('selected');
+                    self.root.children[i].classList.remove('selected');
+                }
+                self.headers.children[index].classList.add('selected');
+                self.root.children[index].classList.add('selected');
+            }
+        }
+
+        const init = function(selected) {
+            let tabs = [];
+
+            for (let i = 0; i < self.data.length; i++) {
+                // Extract meta information from the DOM
+                if (props) {
+                    props.forEach((prop) => {
+                        let short = prop.replace('data-', '');
+                        if (! self.data[i][short]) {
+                            let ret = self.data[i].el.getAttribute(prop);
+                            if (ret != null) {
+                                self.data[i][short] = ret;
+                            }
+                        }
+                    });
+                }
+                // Create tabs object
+                tabs[i] = {
+                    title: self.data[i].title,
+                }
+                // Which one is selected by default
+                if (self.data[i].selected) {
+                    selected = i;
+                }
+                if (self.data[i].icon) {
+                    tabs[i].icon = self.data[i].icon;
+                }
+
+                self.root.appendChild(self.data[i].el);
+            }
+
+            // Create headers
+            self.tabs = tabs;
+
+            // Default selected
+            if (typeof(selected) !== 'undefined') {
+                self.selected = selected;
+            }
+
+            if (props) {
+                // Add create new tab button
+                if (createButton) {
+                    self.headers.appendChild(createButton);
+                }
+                // Add sorting
+                sorting(self.el.firstChild.firstChild, {
+                    ondrop: (el, fromIndex, toIndex) => {
+                        // Remove the item from its original position
+                        const [movedItem] = self.data.splice(fromIndex, 1);
+                        // Insert it into the new position
+                        self.data.splice(toIndex, 0, movedItem);
+                        // Make sure correct order
+                        for (let i = 0; i < self.data.length; i++) {
+                            self.root.appendChild(self.data[i].el);
+                        }
+                        // Select new position
+                        self.selected = toIndex;
+                        // Dispatch event
+                        Dispatch.call(self, self.onchangeposition, 'changeposition', {
+                            instance: self,
+                            fromIndex: fromIndex,
+                            toIndex: toIndex,
+                        });
+                    }
+                })
+            }
+
+            props = null;
+        }
+
+        const create = function() {
+            // Create a new item
+            self.create({ title: 'Untitled' }, null, true);
+        }
+
+        const open = function(e) {
+            if (e.target.tagName === 'LI') {
+                // Avoid select something already selected
+                let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+                if (index !== self.selected) {
+                    self.selected = index;
+                }
+            }
+        }
+
+        const keydown = function(e, s) {
+            let index = null;
+            if (e.key === 'Enter') {
+                self.click(e, s);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                index = self.selected - 1;
+                if (index < 0) {
+                    index = 0;
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                index = self.selected + 1;
+                if (index > self.tabs.length-1) {
+                    index = self.tabs.length-1;
+                }
+            }
+
+            // Make selection
+            if (index !== null) {
+                self.tabs[index].el.focus();
+            }
+        }
+
+        onload(() => {
+            if (template) {
+                extract(self.root, self);
+            }
+
+            init(self.selected || 0);
+        })
+
+        onchange((property) => {
+            if (property === 'selected') {
+                select(self.selected);
+
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self,
+                    selected: self.selected,
+                });
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.selected,
+                });
+            }
+        })
+
+        self.open = function (index) {
+            self.selected = index;
+        }
+
+        self.create = function(item, position, select) {
+            // Create element
+            if (typeof(item) !== 'object') {
+                console.error('Item must be an object');
+            } else {
+
+                let ret = Dispatch.call(self, self.onbeforecreate, 'beforecreate', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+
+                if (ret === false) {
+                    return false;
+                }
+
+                // Create DOM
+                item.el = document.createElement('div');
+                // Create from content
+                if (item.content) {
+                    item.el.innerHTML = item.content;
+                }
+
+                // Add the new item in the end
+                if (typeof(position) === 'undefined' || position === null) {
+                    // Mew item
+                    position = self.data.length;
+                    // Add in the end
+                    self.data.push(item);
+                } else {
+                    self.data.splice(position, 0, item);
+                }
+                // New position
+                if (select) {
+                    // Refresh
+                    init(self.data.indexOf(item));
+                } else {
+                    init(self.selected);
+                }
+
+                self.tabs.forEach(item => {
+                    item.el.setAttribute('draggable', 'true');
+                })
+
+                Dispatch.call(self, self.oncreate, 'create', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+            }
+        }
+
+        self.allowCreate = !! self.allowCreate;
+
+        return render => render`<div class="lm-tabs" data-position="{{self.position}}" data-round="{{self.round}}">
+            <div role="tabs" class="lm-tabs-headers">
+                <ul :ref="self.headers" :loop="self.tabs" :selected="self.selected" onclick="${open}" onkeydown="${keydown}" onfocusin="${open}"><li class="lm-tab" tabindex="0" role="tab" data-icon="{{self.icon}}">{{self.title}}</li></ul>
+                <div data-visible="{{self.allowCreate}}" class="lm-tabs-insert-button" role="insert-tab" onclick="${create}">add</div>
+            </div>
+            <div :ref="self.root" class="lm-tabs-content">${template}</div>
+        </div>`
+    }
+
+    lemonade.setComponents({ Tabs: Tabs });
+
+    lemonade.createWebComponent('tabs', Tabs);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            if (typeof(options) !== 'object') {
+                options = {};
+            }
+            // Extract DOM references
+            extract(root, options);
+            // Create the modal
+            lemonade.render(Tabs, root, options);
+            // Return self
+            return options;
+        } else {
+            return Tabs.call(this);
+        }
+    };
+})));
+
+/***/ }),
+
+/***/ 330:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Contextmenu && "function" === 'function') {
+    var Contextmenu = __webpack_require__(238);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    const Topmenu = function(children, { onload, onchange }) {
+        let self = this;
+
+        // Current selection
+        let currentIndex = null;
+
+        const getElementPosition = function(child) {
+            let root = self.el.children[0];
+            for (let i = 0; i < root.children.length; i++) {
+                let c = root.children[i];
+                if (c === child) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        const select = function(e, s) {
+            if (! self.menu.isClosed()) {
+                let index = self.options.indexOf(s);
+                if (index !== currentIndex) {
+                    open(index);
+                }
+            }
+        }
+
+        const deselect = function() {
+            if (self.options) {
+                self.options.forEach(v => v.selected = false);
+            }
+        }
+
+        const selectIndex = function(newIndex) {
+            if (self.options) {
+                let s = self.options[newIndex];
+                if (s && ! s.disabled) {
+                    deselect();
+                    // Make it selected
+                    s.selected = true;
+                    // New index
+                    currentIndex = newIndex;
+                    // Focus
+                    s.el.focus();
+                }
+            }
+        }
+
+        const open = function(index) {
+            // Update cursor position
+            selectIndex(index);
+            let s = self.options[currentIndex];
+            if (s && s.submenu) {
+                let x = s.el.offsetLeft;
+                let y = s.el.offsetTop + s.el.offsetHeight + 2;
+                self.menu.open(s.submenu, x, y);
+                s.expanded = true;
+            }
+        }
+
+        const close = function() {
+            self.menu.close(0);
+            let s = self.options[currentIndex];
+            if (s) {
+                s.el.focus();
+                s.expanded = false;
+            }
+        }
+
+        const toggle = function(e, s) {
+            if (s.submenu && ! s.disabled) {
+                let index = self.options.indexOf(s);
+                if (index === currentIndex && ! self.menu.isClosed()) {
+                    close();
+                } else {
+                    open(index);
+                }
+                cancel(e);
+            }
+        }
+
+        const findNextEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+
+            while (attempts < maxAttempts) {
+                if (index >= self.options.length) {
+                    index = 0;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index++;
+                attempts++;
+            }
+            return null;
+        };
+
+        const findPreviousEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+
+            while (attempts < maxAttempts) {
+                if (index < 0) {
+                    index = self.options.length - 1;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index--;
+                attempts++;
+            }
+            return null;
+        };
+
+        const adjustOptionProperties = function() {
+            if (self.options) {
+                self.options.forEach(v => {
+                    v.haspopup = !!v.submenu;
+                    v.expanded = false;
+
+                    if (v.disabled) {
+                        v.el.removeAttribute('tabindex');
+                    } else {
+                        v.el.setAttribute('tabindex', '0');
+                    }
+                })
+            }
+        };
+
+        /**
+         * Open a submenu programaticaly. Default 0
+         * @param {number} index
+         */
+        self.open = function(index) {
+            if (typeof index === 'undefined') {
+                index = currentIndex;
+            }
+            if (! index) {
+                index = 0;
+            }
+
+            let s = self.options[index];
+            if (s) {
+                open(index);
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'options') {
+                adjustOptionProperties();
+            }
+        });
+
+        // Keyboard event
+        onload(() => {
+            self.el.addEventListener("focusin", function(e) {
+                let index = getElementPosition(e.target);
+                if (index !== -1) {
+                    if (e.relatedTarget === self.menu.el) {
+                        close();
+                    } else {
+                        selectIndex(index);
+                    }
+                }
+            });
+
+            self.el.addEventListener("focusout", function(e) {
+                if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                    if (self.options[currentIndex]) {
+                        self.options[currentIndex].selected = false;
+                    }
+                }
+            });
+
+            self.el.addEventListener("keydown", function(e) {
+                let o = self.options;
+                // Select top menu
+                let select = null;
+
+                if (e.key === 'Enter') {
+                    toggle(e, o[currentIndex])
+                } else if (e.key === 'ArrowLeft') {
+                    select = findPreviousEnabledIndex(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    select = findNextEnabledIndex(currentIndex + 1);
+                }
+
+                if (select !== null) {
+                    if (self.menu.isClosed()) {
+                        selectIndex(select);
+                    } else {
+                        open(select);
+                    }
+                }
+            });
+
+            adjustOptionProperties();
+        });
+
+        const cancel = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+
+        return render => render`<div class="lm-topmenu" role="menubar" aria-orientation="horizontal" oncontextmenu="${cancel}">
+            <div class="lm-topmenu-options" :loop="self.options">
+                <div class="lm-topmenu-title" role="menuitem" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" tabindex="0" aria-haspopup="{{self.haspopup}}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" onmousedown="${toggle}" onmouseenter="${select}">{{self.title}}</div>
+            </div>
+            <Contextmenu :ref="self.menu" :root="self.el" />
+        </div>`
+    }
+
+    lemonade.setComponents({ Topmenu: Topmenu });
+
+    // Register the web component
+    lemonade.createWebComponent('topmenu', Topmenu);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Topmenu, root, options)
+            return options;
+        } else {
+            return Topmenu.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 966:
+/***/ (function(module) {
+
+/**
+ * LemonadeJS v5
+ *
+ * Website: https://lemonadejs.com
+ * Description: Create amazing web based reusable components.
+ *
+ * This software is distributed under MIT License
+ * @Roadmap
+ * Accept interpolated values on properties `<div test="test: ${state}"></div>
+ */
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    'use strict';
+
+    /**
+     * Global control element
+     */
+    let R = {
+        queue: [],
+        container: {},
+        tracking: new Map,
+        components: {},
+        version: 5,
+    };
+
+    // Global LemonadeJS controllers
+    if (typeof(document) !== "undefined") {
+        if (! document.lemonadejs) {
+            document.lemonadejs = R;
+        } else {
+            R = document.lemonadejs;
+        }
+    }
+
+    // Get any conflict of versions
+    if (! R.version) {
+        console.error('This project seems to be using version 4 and version 5 causing a conflict of versions.');
+    }
+
+    // Script expression inside LemonadeJS templates
+    let isScript = /{{(.*?)}}/g;
+
+    /**
+     * Apply value in a object based on the address
+     */
+    const Path = function(str, val, remove) {
+        str = str.split('.');
+        if (str.length) {
+            let o = this;
+            let p = null;
+            while (str.length > 1) {
+                // Get the property
+                p = str.shift();
+                // Check if the property exists
+                if (o.hasOwnProperty(p)) {
+                    o = o[p];
+                } else {
+                    // Property does not exist
+                    if (typeof(val) === 'undefined') {
+                        return undefined;
+                    } else {
+                        // Create the property
+                        o[p] = {};
+                        // Next property
+                        o = o[p];
+                    }
+                }
+            }
+            // Get the property
+            p = str.shift();
+            // Set or get the value
+            if (typeof(val) !== 'undefined') {
+                if (remove === true) {
+                    delete o[p];
+                } else {
+                    o[p] = val;
+                }
+                // Success
+                return true;
+            } else {
+                // Return the value
+                if (o) {
+                    return o[p];
+                }
+            }
+        }
+        // Something went wrong
+        return false;
+    }
+
+    /**
+     * Show a better error developers
+     */
+    const createError = function() {
+        throw new Error('LemonadeJS ' + Array.from(arguments).join(' '));
+    }
+
+    /**
+     * Reference token is a string that define a token and not an expression
+     * @param {string} token
+     * @param {boolean?} topLevelOnly
+     * @returns {boolean}
+     */
+    function isReferenceToken(token, topLevelOnly) {
+        if (topLevelOnly) {
+            return /^(this|self)(\.\w+)$/gm.test(token);
+        } else {
+            return /^(this|self)(\.\w+|\[\d+])*$/gm.test(token);
+        }
+    }
+
+    /**
+     * Extract all valid tokens from a string
+     * @param {string} content
+     * @returns {string[]}
+     */
+    function extractTokens(content) {
+        // Input validation
+        if (typeof content !== 'string') {
+            throw new TypeError('Content must be a string');
+        }
+        // Single regex pattern to match both 'self.' and 'this.' prefixed identifiers Negative lookahead (?!\.\w) prevents matching nested properties
+        //const pattern =  /(?:self|this)\.\w+\b(?!\.\w)/g;
+        const pattern = /(?<=(?:this|self)\.)[a-zA-Z_]\w*/gm
+
+        // If no matches found, return empty array early
+        const matches = content.match(pattern);
+        if (!matches) {
+            return [];
+        }
+        // Create Set directly from matches array with map transform This is more efficient than adding items one by one
+        return [...new Set(matches.map(match => match.slice(match.indexOf('.') + 1)))];
+    }
+
+    /**
+     * Bind a property to one action and start tracking
+     * @param {object} lemon
+     * @param {string} prop
+     */
+    const trackProperty = function(lemon, prop) {
+        // Lemon handler
+        let s = lemon.self;
+        if (typeof(s) === 'object') {
+            // Change
+            let change = lemon.change;
+            // Events
+            let events = lemon.events[prop];
+            // Current value
+            let value = s[prop];
+            // Do not allow undefined
+            if (typeof(value) === 'undefined') {
+                value = '';
+            }
+            // Create the observer
+            Object.defineProperty(s, prop, {
+                set: function(v) {
+                    // Old value
+                    let oldValue = value;
+                    // New value
+                    value = v;
+                    // Dispatch reactions
+                    if (events) {
+                        events.forEach((action) => {
+                            action();
+                        });
+                    }
+                    // Refresh bound elements
+                    if (change && change.length) {
+                        change.forEach((action) => {
+                            if (typeof (action) === 'function') {
+                                action.call(s, prop, oldValue, v);
+                            }
+                        })
+                    }
+                },
+                get: function () {
+                    // Get value
+                    return value;
+                },
+                configurable: true,
+                enumerable: true,
+            });
+        }
+    }
+
+    /**
+     * Check if an element is appended to the DOM or a shadowRoot
+     * @param {HTMLElement} node
+     * @return {boolean}
+     */
+    const isAppended = function(node) {
+        while (node) {
+            if (node === document.body) {
+                return true; // Node is in main document
+            }
+
+            if (node.parentNode === null) {
+                if (node.host) {
+                    node = node.host; // Traverse up through ShadowRoot
+                } else {
+                    return false; // Detached node
+                }
+            } else {
+                node = node.parentNode; // Traverse up through parentNode
+            }
+        }
+        return false;
+    }
+
+    const elementNotReady = new Set;
+
+    /**
+     * Execute all pending events from onload
+     * @param lemon
+     */
+    const executeOnload = function(lemon) {
+        let s = lemon.self;
+        // Ready event
+        while (lemon.ready.length) {
+            lemon.ready.shift()();
+        }
+        // Native onload
+        if (typeof(s.onload) === 'function') {
+            s.onload.call(s, s.el);
+        }
+        // Current self
+        if (typeof(lemon.load) === 'function') {
+            lemon.load.call(s, s.el);
+        }
+    }
+
+    /**
+     * Process the onload methods
+     */
+    const processOnload = function(lemon) {
+        let root = lemon.tree.element;
+        if (root.tagName === 'ROOT' && lemon.elements) {
+            root = lemon.elements[0];
+        }
+        // Add to the queue
+        elementNotReady.add(lemon);
+        // Check if the element is appended to the DOM
+        if (isAppended(root)) {
+            elementNotReady.forEach((item) => {
+                // Remove from the list
+                elementNotReady.delete(item);
+                // Run onload and ready events
+                executeOnload(item);
+            })
+        }
+    }
+
+    /**
+     * Return the element based on the type
+     * @param item
+     * @returns {*}
+     */
+    const getElement = function(item) {
+        return typeof(item.type) === 'function' ? item.self : item.element;
+    }
+
+    const HTMLParser = function(html, values) {
+        /**
+         * process the scape chars
+         * @param char
+         * @returns {*|string}
+         */
+        function escape(char) {
+            const escapeMap = {
+                'n': String.fromCharCode(0x0A),
+                'r': String.fromCharCode(0x0D),
+                't': String.fromCharCode(0x09),
+                'b': String.fromCharCode(0x08),
+                'f': String.fromCharCode(0x0C),
+                'v': String.fromCharCode(0x0B),
+                '0': String.fromCharCode(0x00)
+            };
+
+            return escapeMap[char] || char;
+        }
+
+        /**
+         * Check if is a self-closing tag
+         * @param {string|function} type - Tag name or component function
+         * @returns {boolean}
+         */
+        function isSelfClosing(type) {
+            if (! type) {
+                return false;
+            } else {
+                // List of self-closing or void HTML elements
+                const selfClosingTags = [
+                    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'
+                ];
+                // Convert tagName to lowercase to ensure case-insensitive comparison
+                return typeof(type) === 'function' || selfClosingTags.includes(type.toLowerCase());
+            }
+        }
+
+        /**
+         * Create a text node and add it to current node's children
+         * @param {Object} tag - Text node properties
+         */
+        const createTextNode = function(tag) {
+            if (! this.current.children) {
+                this.current.children = [];
+            }
+
+            this.current.children.push({
+                type: '#text',
+                parent: this.current,
+                props: [tag],
+            });
+        }
+
+        /**
+         * Find the parent node by tag name
+         * @param {Object} node - Current node
+         * @param {string} type - Tag name to find
+         * @returns {Object|undefined}
+         */
+        const findParentByTagName = function(node, type) {
+            if (node && type) {
+                if (node.type === type) {
+                    return node;
+                } else {
+                    return findParentByTagName(node.parent, type);
+                }
+            }
+
+            return undefined;
+        }
+
+        /**
+         * Get expression value and update tag metadata
+         * @param {Object} tag - Tag to update
+         * @returns {*} Expression value
+         */
+        const getExpression = function(tag) {
+            // Get value
+            const v = values && values[this.index] !== undefined ? values[this.index] : '';
+            if (tag) {
+                // Keep the reference
+                tag.expression = this.reference;
+                // Keep the index
+                tag.index = this.index;
+            }
+            // Move the value index
+            this.index++;
+            // Delete reference
+            delete this.reference;
+            // Return value
+            return v;
+        }
+
+        /**
+         * Handle the text node creation
+         */
+        const commitText = function() {
+            if (typeof(this.text) !== 'undefined') {
+                const text = this.text.replace(/\r?\n\s+/g, '');
+                if (text) {
+                    createTextNode.call(this, { name: 'textContent', value: text });
+                }
+                delete this.text;
+            }
+        }
+
+        const commitComments = function() {
+            if (typeof(this.comments) !== 'undefined') {
+                let comments = this.comments;
+                if (comments) {
+                    comments = comments
+                        .replace('<!--', '')
+                        .replace('-->', '')
+
+                    if (! this.current.children) {
+                        this.current.children = [];
+                    }
+
+                    this.current.children.push({
+                        type: '#comments',
+                        parent: this.current,
+                        props: [{ name: 'text', value: comments }],
+                    });
+                }
+                delete this.comments;
+            }
+        }
+
+        /**
+         * Save the attribute to the tag
+         */
+        const commitAttribute = function() {
+            if (this.tag.attributeName) {
+                // Commit any current attribute
+                if (! this.tag.props) {
+                    this.tag.props = [];
+                }
+
+                let k = this.tag.attributeName;
+                let v = this.tag.attributeValue;
+
+                if (typeof(v) === 'undefined') {
+                    v = k;
+                }
+
+                let tag = {
+                    name: k,
+                    value: v,
+                };
+
+                if (typeof(this.tag.expression) !== 'undefined') {
+                    tag.index = this.tag.index;
+                    tag.expression = this.tag.expression;
+                }
+
+                this.tag.props.push(tag);
+
+                // Clean up temporary properties
+                delete this.tag.attributeName;
+                delete this.tag.attributeValue;
+                delete this.tag.index;
+                delete this.tag.expression;
+
+                if (this.tag.attributeIsReadyToClose) {
+                    delete this.tag.attributeIsReadyToClose;
+                }
+            }
+        }
+
+        /**
+         * Actions controller
+         * @param {Object} control - Parser control object
+         * @param {string} char - Current character
+         */
+        const actions = function(control, char) {
+            const method = control.action || 'text';
+            if (typeof actions[method] === 'function') {
+                actions[method].call(control, char);
+            }
+        }
+
+        /**
+         * Extract content between expression markers, handling quoted content
+         * @param {string} html - Full HTML string
+         * @param {number} startIndex - Starting index (position after ${})
+         * @returns {Object} Expression content and ending position
+         */
+        function extractExpressionContent(html, startIndex) {
+            let text = '';
+            let i = startIndex;
+            let insideQuotes = null;
+
+            while (i < html.length) {
+                const char = html[i];
+
+                // Handle quotes
+                if ((char === '"' || char === "'" || char === '`')) {
+                    if (!insideQuotes) {
+                        insideQuotes = char;
+                    } else if (char === insideQuotes) {
+                        insideQuotes = null;
+                    }
+                }
+
+                // Found closing brace outside quotes
+                if (char === '}' && !insideQuotes) {
+                    return {
+                        content: text,
+                        position: i
+                    };
+                }
+
+                text += char;
+                i++;
+            }
+
+            return {
+                content: text,
+                position: i
+            };
+        }
+
+        /**
+         * Process a new tag
+         * @param char
+         */
+        actions.processTag = function(char) {
+            // Just to check if there are any text to commit
+            commitText.call(this);
+
+            // Process the tag
+            if (char === '<') {
+                // Create new tag
+                this.tag = {
+                    type: '',
+                    parent: this.current
+                };
+            } else if (char.match(/[a-zA-Z0-9-]/)) {
+                // Tag name
+                this.tag.type += char;
+            } else {
+                if (char === '$' && this.reference) {
+                    // Custom tags
+                    this.tag.type = getExpression.call(this);
+                }
+                // Finished with tag name, move to attribute handling
+                this.action = 'attributeName';
+            }
+        }
+
+        /**
+         * Handle tag closing
+         * @param char
+         */
+        actions.closeTag = function(char) {
+            // Make sure to commit attribute
+            commitAttribute.call(this);
+            // Close the tag
+            if (char === '>') {
+                // Get the new parent
+                if (isSelfClosing(this.tag.type)) {
+                    // Push new tag to the parent
+                    if (! this.tag.parent.children) {
+                        this.tag.parent.children = [];
+                    }
+                    this.tag.parent.children.push(this.tag);
+                } else if (this.tag.closingTag) {
+                    // Need to find the parent on the chain
+                    const parentNode = findParentByTagName(this.tag.parent, this.tag.type);
+                    if (parentNode) {
+                        this.current = parentNode.parent;
+                    }
+                } else {
+                    if (this.tag.closing) {
+                        // Current is the parent
+                        this.current = this.tag.parent;
+                    } else {
+                        this.current = this.tag;
+                    }
+
+                    // Push new tag to the parent
+                    if (! this.tag.parent.children) {
+                        this.tag.parent.children = [];
+                    }
+                    this.tag.parent.children.push(this.tag);
+                }
+
+                // Remote temporary properties
+                delete this.tag.insideQuote;
+                delete this.tag.closingTag;
+                delete this.tag.closing;
+                // Finalize tag
+                this.tag = null;
+                // New action
+                this.action = 'text';
+            } else if (! this.tag.locked) {
+                if (char === '/') {
+                    if (! this.tag.type) {
+                        // This is a closing tag
+                        this.tag.closingTag = true;
+                    }
+                    // Closing character is found
+                    this.tag.closing = true;
+                } else if (char.match(/[a-zA-Z0-9-]/)) {
+                    // If is a closing tag, get the tag name
+                    if (this.tag.closingTag) {
+                        this.tag.type += char;
+                    }
+                } else {
+                    // Wait to the closing sign
+                    if (this.tag.type) {
+                        this.locked = true;
+                    }
+                }
+            }
+        }
+
+        actions.attributeName = function(char) {
+            // There is another attribute to commit
+            if (this.tag.attributeIsReadyToClose) {
+                commitAttribute.call(this);
+            }
+
+            // Build attribute name
+            if (char.match(/[a-zA-Z0-9-:]/)) {
+                if (! this.tag.attributeName) {
+                    this.tag.attributeName = '';
+                }
+                this.tag.attributeName += char;
+            } else if (char === '=') {
+                // Move to attribute value
+                if (this.tag.attributeName) {
+                    this.action = 'attributeValue';
+                    delete this.tag.attributeIsReadyToClose;
+                }
+            } else if (char.match(/\s/)) {
+                if (this.tag.attributeName) {
+                    this.tag.attributeIsReadyToClose = true;
+                }
+            }
+        };
+
+        actions.attributeValue = function(char) {
+            if (! this.tag.attributeValue) {
+                this.tag.attributeValue = '';
+            }
+
+            if (char === '"' || char === "'") {
+                if (this.tag.insideQuote) {
+                    if (this.tag.insideQuote === char) {
+                        this.tag.insideQuote = false;
+                    } else {
+                        this.tag.attributeValue += char;
+                    }
+                } else {
+                    this.tag.insideQuote = char;
+                }
+            } else {
+                if (char === '$' && this.reference) {
+                    // Custom tags
+                    char = getExpression.call(this, this.tag);
+                }
+                // Inside quotes, keep appending to the attribute value
+                if (this.tag.insideQuote) {
+                    if (this.tag.attributeValue) {
+                        this.tag.attributeValue += char;
+                    } else {
+                        this.tag.attributeValue = char;
+                    }
+                } else if (typeof(char) === 'string' && char.match(/\s/)) {
+                    if (this.tag.attributeValue) {
+                        this.action = 'attributeName';
+                    }
+                    this.tag.attributeIsReadyToClose = true;
+                } else {
+                    if (this.tag.attributeIsReadyToClose) {
+                        this.action = 'attributeName';
+                        actions.attributeName.call(this, char);
+                    } else {
+                        if (this.tag.attributeValue) {
+                            this.tag.attributeValue += char;
+                        } else {
+                            this.tag.attributeValue = char;
+                        }
+                    }
+                }
+            }
+        }
+
+        actions.text = function(char) {
+            if (char === '$' && this.reference) {
+                // Just to check if there are any text to commit
+                commitText.call(this);
+                // Custom tags
+                let tag = { name: 'textContent' }
+                tag.value = getExpression.call(this, tag);
+                // Add node tag
+                createTextNode.call(this, tag);
+            } else {
+                if (referenceControl === 1) {
+                    // Just to check if there are any text to commit
+                    commitText.call(this);
+                }
+
+                // Normal text processing
+                if (! this.text) {
+                    this.text = '';
+                }
+                this.text += char; // Keep appending to text content
+
+                if (referenceControl === 2) {
+                    // Just to check if there are any text to commit
+                    commitText.call(this);
+                }
+            }
+        }
+
+        actions.comments = function(char) {
+            if (! this.comments) {
+                this.comments = '';
+            }
+            this.comments += char;
+
+            if (this.comments.endsWith('-->')) {
+                commitComments.call(this);
+                this.action = 'text';
+            }
+        }
+
+        // Control the LemonadeJS native references
+        let referenceControl = null;
+
+        const result = { type: 'template' };
+        const control = {
+            current: result,
+            action: 'text',
+            index: 0,
+        };
+
+        // Input validation
+        if (typeof html !== 'string') {
+            throw new TypeError('HTML input must be a string');
+        }
+
+        // Main loop to process the HTML string
+        for (let i = 0; i < html.length; i++) {
+            // Current char
+            let char = html[i];
+
+            if (control.action === 'text' && char === '<' && html[i+1] === '!' && html[i+2] === '-' && html[i+3] === '-') {
+                control.action = 'comments';
+            }
+
+            if (control.action !== 'comments') {
+                let escaped = false;
+
+                if (values !== null) {
+                    // Handle scape
+                    if (char === '\\') {
+                        // This is a escaped char
+                        escaped = true;
+                        // Parse escape char
+                        char = escape(html[i+1]);
+                        // Move to the next char
+                        i++;
+                    }
+                }
+
+                // Global control logic
+                if (control.tag) {
+                    if (char === '>' || char === '/') {
+                        // End of tag, commit any attributes and go back to text parsing
+                        if (!control.tag.insideQuote) {
+                            control.action = 'closeTag';
+                        }
+                    }
+                } else {
+                    if (char === '<') {
+                        control.action = 'processTag';
+                    }
+                }
+
+                // Register references for a dynamic template
+                if (!escaped && char === '$' && html[i + 1] === '{') {
+                    const result = extractExpressionContent(html, i + 2);
+                    control.reference = result.content;
+                    i = result.position;
+                }
+
+                // Control node references
+                if (char === '{' && html[i + 1] === '{') {
+                    referenceControl = 1;
+                } else if (char === '}' && html[i - 1] === '}') {
+                    referenceControl = 2;
+                }
+            }
+
+            // Execute action
+            actions(control, char);
+
+            // Reference control
+            referenceControl = null;
+        }
+
+        // Handle any remaining text
+        commitText.call(control);
+
+        return result.children && result.children[0];
+    }
+
+    const generateHTML = function(lemon) {
+
+        const appendEvent = function(token, event, exec) {
+            if (! lemon.events[token]) {
+                lemon.events[token] = []
+            }
+            // Push the event
+            lemon.events[token].push(event);
+            // Execute
+            if (exec) {
+                event();
+            }
+        }
+
+        const createEventsFromExpression = function(expression, event, exec) {
+            // Get the tokens should be updated to populate this attribute
+            let tokens = extractTokens(expression);
+            if (tokens.length) {
+                // Process all the tokens
+                for (let i = 0; i < tokens.length; i++) {
+                    appendEvent(tokens[i], event);
+                }
+            }
+            // Execute method
+            if (exec) {
+                event();
+            }
+        }
+
+        const setDynamicValue = function(item, prop, attributeName) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            if (isReferenceToken(property)) {
+                // Event
+                let event = function() {
+                    // Reference
+                    let value = extractFromPath.call(lemon.self, property);
+                    // Update reference
+                    setAttribute(getElement(item), attributeName, value);
+                }
+                // Append event only for the top level properties in the self
+                if (isReferenceToken(property, true)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        // Append event to the token change
+                        let token = p[1]
+                        // Append event
+                        appendEvent(token, event);
+                    }
+                }
+                // Execute the event in the first time
+                event();
+            } else {
+                setAttribute(getElement(item), attributeName, castProperty(prop.value));
+            }
+        }
+
+        const dynamicContent = function(text) {
+            try {
+                // Cast value
+                let cast = null;
+                // Replace the text
+                text = text.replace(isScript, function (a, b) {
+                    let s = lemon.self;
+                    // Try to find the property
+                    let result = extractFromPath.call(s, b);
+                    // Evaluation for legacy purposes
+                    if (typeof(result) === 'undefined') {
+                        // This is deprecated and will be dropped on LemonadeJS 6
+                        result = run.call(s, b);
+                        if (typeof (result) === 'undefined') {
+                            result = '';
+                        }
+                    } else if (result === null) {
+                        result = '';
+                    }
+                    // Parse correct type
+                    if (typeof(result) !== 'string' && a === text) {
+                        cast = result;
+                    }
+                    // Return
+                    return result;
+                });
+
+                if (cast !== null) {
+                    return cast;
+                }
+
+                return text;
+            } catch (e) {
+            }
+        }
+
+        const isHTML = function(str) {
+            return /<[^>]*>/.test(str);
+        }
+
+        const appendHTMLBeforeNode = function(item, value) {
+            // Remove previous elements
+            if (item.current) {
+                item.current.forEach(e => e?.remove());
+            }
+            item.current = [];
+            // Node container
+            let node = getElement(item);
+            // Append content
+            if (! isHTML(value)) {
+                node.textContent = value;
+            } else {
+                // TODO: improve that
+                queueMicrotask(() => {
+                    // Create a temporary container
+                    const t = document.createElement('div');
+                    t.innerHTML = value;
+                    // Insert elements and store references
+                    while (t.firstChild) {
+                        item.current.push(t.firstChild);
+                        node.parentNode.insertBefore(t.firstChild, node);
+                    }
+                });
+            }
+        }
+
+        const applyElementAttribute = function(item, prop) {
+            if (typeof(prop.expression) !== 'undefined') {
+                // Event to update the designed position
+                let event = function() {
+                    // Extra value from the template
+                    let value = lemon.view(parseTemplate)[prop.index];
+                    // Process the NODE
+                    if (item.type === '#text') {
+                        appendHTMLBeforeNode(item, value);
+                    } else {
+                        // Set attribute
+                        setAttribute(getElement(item), prop.name, value);
+                    }
+                }
+                // Bind event to any tokens change
+                createEventsFromExpression(prop.expression, event, true);
+                // Register event for state changes
+                lemon.events[prop.index] = event;
+            } else {
+                // Get the tokens should be updated to populate this attribute
+                let tokens = extractTokens(prop.value);
+                if (tokens.length) {
+                    // Dynamic
+                    createEventsFromExpression(prop.value, function() {
+                        // Dynamic text
+                        let value = dynamicContent(prop.value);
+                        // Get the dynamic value
+                        setAttribute(getElement(item), prop.name, value);
+                    }, true)
+                } else {
+                    let value = prop.value;
+                    if (value.match(isScript)) {
+                        value = dynamicContent(value);
+                    }
+
+                    setAttribute(getElement(item), prop.name, value, true);
+                }
+            }
+        }
+
+        /**
+         * Create a LemonadeJS self bind
+         * @param item
+         * @param prop
+         */
+        const applyBindHandler = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            if (isReferenceToken(property, true)) {
+                let prop = property.split('.')[1];
+
+                // Event from component to the property
+                let event = function () {
+                    let value = getAttribute(getElement(item), 'value');
+                    if (lemon.self[prop] !== value) {
+                        lemon.self[prop] = value;
+                    }
+                }
+
+                if (typeof (item.type) === 'function') {
+                    item.bind = event;
+                } else {
+                    item.element.addEventListener('input', event);
+                }
+
+                // Event property to the element
+                event = () => {
+                    let value = getAttribute(getElement(item), 'value');
+                    if (lemon.self[prop] !== value) {
+                        setAttribute(getElement(item), 'value', lemon.self[prop]);
+                    }
+                }
+                // Append event
+                appendEvent(prop, event, true);
+            }
+        }
+
+        /**
+         * Create a LemonadeJS self render
+         * @param item
+         * @param prop
+         */
+        const applyRenderHandler = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+            let getValue = null;
+            let token = null;
+
+            if (isReferenceToken(property, true)) {
+                token = property.split('.')[1];
+                // Get value
+                getValue = () => {
+                    return lemon.self[token];
+                }
+            } else {
+                if (typeof(prop.expression) !== 'undefined') {
+                    getValue = () => {
+                        // Extra value from the template
+                        let data = lemon.view(parseTemplate)[prop.index];
+                        if (data instanceof state) {
+                            data = data.value;
+                        }
+                        return data;
+                    }
+                }
+            }
+
+            if (getValue) {
+                // Create container to keep the elements
+                item.container = [];
+
+                // Event property to the element
+                let event = () => {
+                    // Root element
+                    let root = typeof(item.type) === 'function' ? item.self.el : item.element;
+                    // Curren value
+                    let value = getValue();
+                    if (value) {
+                        item.container.forEach(e => {
+                            root.appendChild(e);
+                        });
+                    } else {
+                        while (root.firstChild) {
+                            item.container.push(root.firstChild);
+                            root.firstChild.remove();
+                        }
+                    }
+                }
+
+                if (token) {
+                    // Append event
+                    appendEvent(token, event);
+                } else {
+                    if (typeof(prop.expression) !== 'undefined') {
+                        lemon.events[prop.index] = event;
+                        createEventsFromExpression(prop.expression, event);
+                    }
+                }
+
+                // Execute event
+                let root = typeof(item.type) === 'function' ? item.self.el : item.element;
+                if (root) {
+                    event();
+                } else {
+                    lemon.ready.push(event);
+                }
+            }
+        }
+
+        /**
+         * Create a dynamic reference
+         * @param item
+         * @param prop
+         */
+        const createReference = function(item, prop) {
+            let ref = getElement(item);
+            if (typeof(prop.value) === 'function') {
+                prop.value(ref);
+            } else {
+                // Create a reference to the DOM element
+                let property = prop.expression || prop.value;
+                // Reference
+                if (isReferenceToken(property)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        lemon.self[p[1]] = ref;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Process the :ready. Call when DOM is ready
+         * @param item
+         * @param prop
+         */
+        const whenIsReady = function(item, prop) {
+            let value = prop.value;
+            // If not a method, should be converted to a method
+            if (typeof(value) !== 'function') {
+                let t = extractFromPath.call(lemon.self, value);
+                if (t) {
+                    value = t;
+                }
+            }
+            // Must be a function
+            if (typeof(value) === 'function') {
+                lemon.ready.push(function() {
+                    value(getElement(item), lemon.self);
+                });
+            } else {
+                createError(`:ready ${value} is not a function`)
+            }
+        }
+
+        const getRoot = function(item) {
+            if (typeof(item.type) === 'function') {
+                if (item.parent.type === 'template') {
+                    return lemon.root;
+                } else {
+                    return item.parent.element;
+                }
+            }
+
+            return item.element;
+        }
+
+        const registerLoop = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            // Append the template back to the correct position
+            if (lemon.self.settings?.loop) {
+                lemon.self.settings.loop(item)
+            }
+
+            // Event
+            let updateLoop = function(data) {
+                // Component
+                let method = typeof(item.type) === 'function' ? item.type : Basic;
+                // Remove all DOM
+                let root = getRoot(item);
+                if (root) {
+                    while (root.firstChild) {
+                        root.firstChild.remove();
+                    }
+                }
+                // Process the data
+                if (data && Array.isArray(data)) {
+                    // Process data
+                    data.forEach(function(self) {
+                        let el = self.el;
+                        if (el) {
+                            root.appendChild(el);
+                        } else {
+                            // Register parent
+                            register(self, 'parent', lemon.self);
+                            // Render
+                            L.render(method, root, self, item);
+                        }
+
+                        if (root?.getAttribute('unique') === 'false') {
+                            delete self.el;
+                        }
+                    })
+                }
+            }
+
+            // Event
+            let event;
+
+            // Type of property
+            if (isReferenceToken(property)) {
+                // Event
+                event = function() {
+                    // Reference
+                    let data = extractFromPath.call(lemon.self, property);
+                    // Update reference
+                    updateLoop(data);
+                }
+
+                // Append event only for the top level properties in the self
+                if (isReferenceToken(property, true)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        // Append event to the token change
+                        appendEvent(p[1], event);
+                    }
+                }
+            } else {
+                if (typeof(prop.expression) !== 'undefined') {
+                    event = function() {
+                        // Extra value from the template
+                        let data = lemon.view(parseTemplate)[prop.index];
+                        if (data instanceof state) {
+                            data = data.value;
+                        }
+                        // Update the data
+                        updateLoop(data);
+                    }
+                    // Register event for state changes
+                    lemon.events[prop.index] = event;
+                }
+            }
+
+            // Defer event since the dom is not ready
+            if (event) {
+                if (getRoot(item)) {
+                    event();
+                } else {
+                    lemon.ready.push(event);
+                }
+            }
+        }
+
+        const isLoopAttribute = function(props) {
+            let test = false;
+            props.forEach(function(prop) {
+                if (prop.name === ':loop' || prop.name === 'lm-loop' || prop.name === '@loop') {
+                    test = true;
+                }
+            });
+            return test;
+        }
+
+        const registerPath = function(item, prop) {
+            if (! lemon.path.elements) {
+                lemon.path.elements = [];
+            }
+
+            let element = getElement(item);
+
+            lemon.path.elements.push({
+                element: element,
+                path: prop.value
+            });
+
+            // Event from component to the property
+            let event = function () {
+                // Get the current value of my HTML form element or component
+                let value = getAttribute(element, 'value');
+                // Apply the new value on the path on the object
+                if (lemon.path.value) {
+                    Path.call(lemon.path.value, prop.value, value);
+                    // Call the callback when exist
+                    if (typeof(lemon.path.change) === 'function') {
+                        lemon.path.change(value, prop.value, element);
+                    }
+                } else {
+                    console.log('Use setPath to define the form container before using lm-path');
+                }
+            }
+
+            if (typeof(item.type) === 'function') {
+                item.path = event;
+            } else {
+                item.element.addEventListener('input', event);
+            }
+        }
+
+        const appendChildren = function(container, children) {
+            if (container && children) {
+                for (let i = 0; i < children.length; i++) {
+                    let child = children[i];
+                    if (typeof(child) === 'string') {
+                        container.appendChild(document.createTextNode(child));
+                    } else if (child.element) {
+                        if (child.element.tagName === 'ROOT') {
+                            while (child.element.firstChild) {
+                                container.appendChild(child.element.firstChild);
+                            }
+                        } else {
+                            container.appendChild(child.element);
+                        }
+                    }
+                }
+            }
+        }
+
+        const getAttributeName = function(prop) {
+            return prop[0] === ':' || prop[0] === '@' ? prop.substring(1) : prop.substring(3);
+        }
+
+        const getAttributeEvent = function(event) {
+            event = event.toLowerCase();
+            if (event.startsWith('on')) {
+                return event.toLowerCase();
+            } else if (event.startsWith(':on')) {
+                return getAttributeName(event);
+            }
+        }
+
+        /**
+         * CHeck if the event name is a valid DOM event name
+         * @param element
+         * @param eventName
+         * @returns {boolean}
+         */
+        const isValidEventName = function(element, eventName) {
+            const validEventPattern = /^on[a-z]+$/;
+            return validEventPattern.test(eventName);
+        }
+
+        /**
+         * Create element from the string tagname
+         * @param tagName
+         * @returns {*}
+         */
+        const createElementFromString = function(tagName) {
+            // List of SVG tags (you can expand this list if needed)
+            const svgTags = [
+                "svg", "path", "circle", "rect", "line", "polygon", "polyline", "text"
+            ];
+
+            if (svgTags.includes(tagName)) {
+                // For SVG elements, use createElementNS with the correct namespace
+                return document.createElementNS("http://www.w3.org/2000/svg", tagName);
+            } else {
+                // For regular HTML elements, use createElement
+                return document.createElement(tagName);
+            }
+        }
+
+        const reorderProps = function(arr) {
+            // Define the desired order of names
+            const orderPriority = ['ref', 'bind', 'loop', 'ready'];
+
+            // Separate items into prioritized and non-prioritized
+            const prioritized = [];
+            const others = [];
+
+            // Sort items into respective arrays
+            arr.forEach(item => {
+                if (orderPriority.includes(item.name.substring(1)) || orderPriority.includes(item.name.substring(3))) {
+                    prioritized.push(item);
+                } else {
+                    others.push(item);
+                }
+            });
+
+            // Return combined array with prioritized items at the end
+            return [...others, ...prioritized];
+        }
+
+
+        const createElements = function(item) {
+            if (typeof(item) === 'object') {
+                // Create an element
+                if (item.type === '#comments') {
+                    item.element = document.createComment(item.props[0].value);
+                } else if (item.type === '#text') {
+                    // Text node
+                    item.element = document.createTextNode('');
+                    // Check for dynamic content
+                    applyElementAttribute(item, item.props[0]);
+                } else {
+                    // Apply attributes if they exist
+                    if (item.props && ! Array.isArray(item.props)) {
+                        let props = [];
+                        let keys = Object.keys(item.props);
+                        for (let i = 0; i < keys.length; i++) {
+                            props.push({ name: keys[i], value: item.props[keys[i]] });
+                        }
+                        item.props = props;
+                    } else if (! item.props) {
+                        item.props = [];
+                    }
+
+                    // This item is a parent for a loop
+                    if (isLoopAttribute(item.props)) {
+                        // Mark this item as a loop
+                        item.loop = true;
+                    }
+
+                    if (! item.type) {
+                        item.type = 'root';
+                    }
+
+                    if (typeof(item.type) === 'string') {
+                        if (item.type.match(/^[A-Z][a-zA-Z0-9\-]*$/g)) {
+                            let controller = item.type.toUpperCase();
+                            if (typeof(R.components[controller]) === 'function') {
+                                item.type = R.components[controller];
+                            } else if (typeof (lemon.components[controller]) === 'function') {
+                                item.type = lemon.components[controller];
+                            } else {
+                            }
+                        }
+                    }
+
+                    if (typeof(item.type) === 'string') {
+                        item.element = createElementFromString(item.type);
+                    } else if (typeof(item.type) === 'function') {
+                        // Create instance without calling constructor
+                        if (isClass(item.type)) {
+                            item.self = new item.type;
+                        } else {
+                            item.self = {};
+                        }
+                    }
+
+                    // Create all children
+                    if (! item.loop) {
+                        if (item.children && Array.isArray(item.children)) {
+                            item.children.forEach(child => {
+                                createElements(child);
+                            });
+                        }
+                        if (item.element) {
+                            appendChildren(item.element, item.children);
+                        }
+                    }
+
+                    // Process attributes
+                    if (item.props.length) {
+                        // Reorder props
+                        item.props = reorderProps(item.props);
+                        // Order by priority
+                        item.props.forEach(function(prop) {
+                            // If the property is an event
+                            let event = getAttributeEvent(prop.name);
+                            // When event for a DOM
+                            if (event) {
+                                // Element
+                                let element = item.element;
+                                // Value
+                                let value = prop.value;
+                                if (value) {
+                                    let handler = null; // Reset handler for each iteration
+                                    if (typeof (value) === 'function') {
+                                        handler = value;
+                                    } else {
+                                        let t = extractFromPath.call(lemon.self, value);
+                                        if (t) {
+                                            if (typeof (t) === 'function') {
+                                                prop.value = handler = t;
+                                            }
+                                        }
+                                    }
+                                    // When the element is a DOM
+                                    if (isDOM(element)) {
+                                        // Create the event handler
+                                        let eventHandler;
+                                        // Bind event
+                                        if (typeof(handler) === 'function') {
+                                            eventHandler = function(e, a, b) {
+                                                return handler.call(element, e, lemon.self, a, b);
+                                            }
+                                        } else {
+                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
+                                            eventHandler = function (e) {
+                                                return Function('e', 'self', value).call(element, e, lemon.self); // TODO, quebra tudo se mudar
+                                            }
+                                        }
+
+                                        if (isValidEventName(element, prop.name)) {
+                                            element.addEventListener(event.substring(2), eventHandler);
+                                        } else {
+                                            if (element.tagName?.includes('-')) {
+                                                element[event] = handler;
+                                            } else {
+                                                element[event] = eventHandler;
+                                            }
+                                        }
+                                    } else {
+                                        item.self[event] = handler || value;
+                                    }
+                                }
+                            } else if (prop.name.startsWith(':') || prop.name.startsWith('@') || prop.name.startsWith('lm-')) {
+                                // Special lemonade attribute name
+                                let attrName = getAttributeName(prop.name);
+                                // Special properties bound to the self
+                                if (attrName === 'ready') {
+                                    whenIsReady(item, prop);
+                                } else if (attrName === 'ref') {
+                                    createReference(item, prop);
+                                } else if (attrName === 'loop') {
+                                    registerLoop(item, prop);
+                                } else if (attrName === 'bind') {
+                                    applyBindHandler(item, prop);
+                                } else if (attrName === 'path') {
+                                    registerPath(item, prop);
+                                } else if (attrName === 'render') {
+                                    applyRenderHandler(item, prop);
+                                } else {
+                                    setDynamicValue(item, prop, attrName);
+                                }
+                            } else {
+                                applyElementAttribute(item, prop);
+                            }
+                        })
+                    }
+
+                    // Do not create elements at this state if this is a loop
+                    if (! item.loop) {
+                        if (typeof(item.type) === 'function') {
+                            // Execute component
+                            item.element = L.render(item.type, null, item.self, item);
+
+                            // Create all children
+                            if (item.children) {
+                                let root = item.element;
+                                if (typeof(item.self?.settings?.getRoot) === 'function') {
+                                    root = item.self.settings.getRoot();
+                                }
+                                appendChildren(root, item.children);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create DOM elements
+        createElements(lemon.tree);
+
+        return lemon.tree.element;
+    }
+
+    /**
+     * Extract a property from a nested object using a string address
+     * @param {string} str address inside the nested object
+     * @param {boolean} config get the configuration obj => property
+     */
+    const extractFromPath = function(str, config) {
+        try {
+            let t = str.toString().replace(/[\[\]]/g, '.').split('.');
+            if (t[0] === 'self' || t[0] === 'this') {
+                t.shift();
+            }
+            // Remove blanks
+            t = t.filter(item => item !== '');
+            // Object
+            let o = this;
+            let lastObject;
+            while (t.length) {
+                // Get the property
+                let p = t.shift();
+                // Process config
+                if (config) {
+                    if (typeof(o) === 'object' && ! Array.isArray(o)) {
+                        lastObject = [o,p];
+                    }
+                    if (t.length === 0) {
+                        return lastObject;
+                    }
+                }
+                // Check if the property exists
+                if (o.hasOwnProperty(p) || typeof(o[p]) !== 'undefined') {
+                    o = o[p];
+                } else {
+                    return undefined;
+                }
+            }
+
+            if (typeof(o) !== 'undefined') {
+                return o;
+            }
+        } catch (e) {}
+
+        // Something went wrong
+        return undefined;
+    }
+
+    /**
+     * Cast the value of an attribute
+     */
+    const castProperty = function(attr) {
+        // Parse type
+        try {
+            if (typeof(attr) === 'string' && attr) {
+                // Remove any white spaces
+                attr = attr.trim();
+                if (attr === 'true') {
+                    return true;
+                } else if (attr === 'false') {
+                    return false;
+                } else if (! isNaN(attr)) {
+                    return Number(attr);
+                } else {
+                    let firstChar = attr[0];
+                    if (firstChar === '{' || firstChar === '[') {
+                        if (attr.slice(-1) === '}' || attr.slice(-1) === ']') {
+                            return JSON.parse(attr);
+                        }
+                    } else if (attr.startsWith('self.') || attr.startsWith('this.')) {
+                        let v = extractFromPath.call(this, attr);
+                        if (typeof(v) !== 'undefined') {
+                            return v;
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+
+        return attr;
+    }
+
+    /**
+     * This allows to run inline script on LEGACY system. Inline script can lead to security issues so use carefully.
+     * @param {string} s string to function
+     */
+    const run = function(s) {
+        return Function('self', '"use strict";return (' + s + ')')(this);
+    }
+
+    /**
+     * Check if the content {o} is a valid DOM Element
+     * @param {HTMLElement|DocumentFragment|object} o - is this a valid dom?
+     * @return {boolean}
+     */
+    const isDOM = function(o) {
+        return (o instanceof HTMLElement || o instanceof Element || o instanceof DocumentFragment);
+    }
+
+    /**
+     * Check if the method is a method or a class
+     * @param {function} f
+     * @return {boolean}
+     */
+    const isClass = function(f) {
+        return typeof f === 'function' && /^class\s/.test(Function.prototype.toString.call(f));
+    }
+
+    /**
+     * Basic handler
+     * @param {string|object} t - HTML template
+     * @return {string|object}
+     */
+    const Basic = function(t) {
+        return t;
+    }
+
+    /**
+     * Get the attribute helper
+     * @param {object} e Element
+     * @param {string} attribute
+     */
+    const getAttribute = function(e, attribute) {
+        let value;
+        if (attribute === 'value') {
+            if (typeof(e.val) === 'function') {
+                value = e.val();
+            } else {
+                if (e.getAttribute) {
+                    if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
+                        value = [];
+                        for (let i = 0; i < e.options.length; i++) {
+                            if (e.options[i].selected) {
+                                value.push(e.options[i].value);
+                            }
+                        }
+                    } else if (e.type === 'checkbox') {
+                        value = e.checked && e.getAttribute('value') ? e.value : e.checked;
+                    } else if (e.getAttribute('contenteditable')) {
+                        value = e.innerHTML;
+                    } else {
+                        value = e.value;
+                    }
+                } else {
+                    value = e.value;
+                }
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Set attribute value helper
+     * @param {object} e Element
+     * @param {string} attribute
+     * @param {any} value
+     * @param {boolean?} propertyValue
+     */
+    const setAttribute = function(e, attribute, value, propertyValue) {
+        // Handle state
+        if (value instanceof state) {
+            value = value.value;
+        } else if (typeof(value) === 'undefined') {
+            value = '';
+        }
+
+        if (attribute === 'value' && ! propertyValue) {
+            // Update HTML form element
+            if (typeof (e.val) === 'function') {
+                if (e.val() != value) {
+                    e.val(value);
+                }
+            } else if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
+                for (let j = 0; j < e.children.length; j++) {
+                    e.children[j].selected = value.indexOf(e.children[j].value) >= 0;
+                }
+            } else if (e.type === 'checkbox') {
+                e.checked = !(!value || value === '0' || value === 'false');
+            } else if (e.type === 'radio') {
+                e.checked = e.value == value;
+            } else if (e.getAttribute && e.getAttribute('contenteditable')) {
+                if (e.innerHTML != value) {
+                    e.innerHTML = value;
+                }
+            } else {
+                // Make sure apply that to the value
+                e.value = value;
+                // Update attribute if exists
+                if (e.getAttribute && e.getAttribute('value') !== null) {
+                    e.setAttribute('value', value);
+                }
+            }
+        } else if (typeof(value) === 'object' || typeof(value) === 'function') {
+            e[attribute] = value;
+        } else {
+            if (isDOM(e)) {
+                if (typeof (e[attribute]) !== 'undefined' && !(e.namespaceURI && e.namespaceURI.includes('svg'))) {
+                    e[attribute] = value;
+                } else {
+                    if (value === '') {
+                        e.removeAttribute(attribute);
+                    } else {
+                        e.setAttribute(attribute, value);
+                    }
+                }
+            } else {
+                e[attribute] = value;
+            }
+        }
+    }
+
+    /**
+     * Get attributes as an object
+     * @param {boolean} props - all attributes that are not undefined
+     * @return {object}
+     */
+    const getAttributes = function(props) {
+        let o = {};
+        let k = null;
+        let a = this.attributes;
+        if (a && a.length) {
+            for (let i = 0; i < a.length; i++) {
+                k = a[i].name;
+                if (props && typeof(this[k]) !== 'undefined') {
+                    o[k] = this[k];
+                } else {
+                    o[k] = a[i].value;
+                }
+            }
+        }
+        return o;
+    }
+
+    /**
+     * Register a getter without setter for a self object
+     * @param {object} s - self object
+     * @param {string} p - self property
+     * @param {string|object|number} v - value
+     */
+    const register = function(s, p, v) {
+        if (typeof(s) === 'object') {
+            Object.defineProperty(s, p, {
+                enumerable: false,
+                configurable: true,
+                get: function () {
+                    return v;
+                }
+            });
+        }
+    }
+
+    /**
+     * Extract variables from the dynamic and append to the self
+     * @return {[string, array]} grab the literal injection
+     */
+    const parseTemplate = function() {
+        let args = Array.from(arguments);
+        // Remove first
+        args.shift()
+        // Return the final template
+        return args;
+    }
+
+    function cloneChildren(element) {
+        // Base case: if an element is null/undefined or not an object, return as is
+        if (!element || typeof element !== 'object') {
+            return element;
+        }
+
+        // Handle arrays
+        if (Array.isArray(element)) {
+            return element.map(item => cloneChildren(item));
+        }
+
+        // Create a new object
+        const cloned = {};
+
+        // Clone each property
+        for (const key in element) {
+            if (key === 'children') {
+                // Handle children especially as before
+                cloned.children = element.children ? cloneChildren(element.children) : undefined;
+            } else if (key === 'props') {
+                // Deep clone props array
+                cloned.props = element.props.map(prop => ({
+                    ...prop,
+                    value: prop.value // If value is a function, it will maintain the reference which is what we want
+                }));
+            } else {
+                // Clone other properties
+                cloned[key] = element[key];
+            }
+        }
+
+        return cloned;
+    }
+
+    // LemonadeJS object
+    const L = {};
+
+    /**
+     * Render a lemonade DOM element, method or class into a root DOM element
+     * @param {function} component - LemonadeJS component or DOM created
+     * @param {HTMLElement} root - root DOM element to receive the new HTML
+     * @param {object?} self - self to be used
+     * @param {object?} item - item
+     * @return {HTMLElement|boolean} o
+     */
+    L.render = function(component, root, self, item) {
+        if (typeof(component) !== 'function') {
+            console.error('Component is not a function');
+            return false;
+        }
+
+        // In case the self has not initial definition by the developer
+        if (typeof(self) === 'undefined') {
+            self = {};
+        }
+
+        // Web component
+        if (self.tagName && self.tagName.includes('-')) {
+            let props = getAttributes.call(self, true);
+            // Copy all values to the object
+            L.setProperties.call(self, props, true);
+        }
+
+        // Arguments
+        let args = Array.from(arguments);
+
+        // Lemonade component object
+        let lemon = {
+            self: self,
+            ready: [],
+            change: [],
+            events: [],
+            components: {},
+            elements: [],
+            root: root,
+            path: {},
+        }
+
+        // Current onchange
+        let externalOnchange = self.onchange;
+        let externalOnload = self.onload;
+
+        if (! item) {
+            item = {};
+        } else if (typeof(item) === 'string') {
+            item = {
+                children: item,
+            }
+        }
+
+        let view;
+        let result;
+
+        // New self
+        if (component === Basic) {
+            view = cloneChildren(item.children[0]);
+        } else {
+            R.currentLemon = lemon;
+
+            const tools = {
+                onload: (...args) => setOnload(lemon, ...args),
+                onchange: (...args) => setOnchange(lemon, ...args),
+                track: (...args) => setTrack(lemon, ...args),
+                state: (...args) => setState(lemon, ...args),
+                setPath: (...args) => setPath(lemon, ...args),
+            };
+
+            if (isClass(component)) {
+                if (! (self instanceof component)) {
+                    lemon.self = self = new component(self);
+                }
+                view = self.render(item.children, tools);
+            } else {
+                // Execute component
+                view = component.call(self, item.children, tools);
+            }
+
+            // Resolve onchange scope conflict
+            if (typeof(self.onchange) === 'function' && externalOnchange !== self.onchange) {
+                // Keep onchange event in the new onchange format
+                lemon.change.push(self.onchange);
+                // Keep the external onchange
+                self.onchange = externalOnchange;
+            }
+
+            R.currentLemon = null;
+        }
+
+        // Values
+        let values = null;
+        // Process return
+        if (typeof(view) === 'function') {
+            values = view(parseTemplate);
+            // Curren values
+            lemon.values = values;
+            // A render template to be executed
+            lemon.view = view;
+            // Template from the method
+            result = view.toString().split('`');
+            // Get the original template
+            if (result) {
+                // Remove the last element
+                result.shift();
+                result.pop();
+                // Join everything else
+                result = result.join('`').trim();
+            }
+        } else {
+            result = view;
+        }
+
+        // Virtual DOM tree
+        if (typeof(result) === 'string') {
+            result = HTMLParser(result.trim(), values);
+        }
+
+        let element;
+
+        // Process the result
+        if (result) {
+            // Get the HTML virtual DOM representation
+            lemon.tree = result;
+
+            // Create real DOM and append to the root
+            element = generateHTML(lemon);
+
+            if (element) {
+                // Parents
+                lemon.elements = [];
+                // Append parents
+                if (element.tagName === 'ROOT') {
+                    element.childNodes.forEach((e) => {
+                        lemon.elements.push(e);
+                    });
+                } else {
+                    lemon.elements.push(element);
+                }
+
+                // Register element when is not registered inside the component
+                register(lemon.self, 'el', element);
+
+                const destroy = () => {
+                    // Do not add in the same root
+                    let div = document.createElement('div');
+                    // Append temporary DIV to the same position
+                    lemon.elements[0].parentNode.insertBefore(div, lemon.elements[0]);
+                    // Remove the old elements
+                    lemon.elements.forEach((e) => {
+                        e.remove();
+                    });
+                    // Root element
+                    args[1] = div;
+                    // Create a new component
+                    L.render(...args);
+                    // Append elements in the same position in the DOM tree
+                    while (div.firstChild) {
+                        div.parentNode.insertBefore(div.firstChild, div);
+                    }
+                    // Remove DIV
+                    div.remove();
+                    // Object not in use
+                    lemon = null;
+                }
+
+                // Refresh
+                register(lemon.self, 'refresh', (prop) => {
+                    if (prop) {
+                        if (prop === true) {
+                            destroy();
+                        } else {
+                            lemon.self[prop] = lemon.self[prop];
+                        }
+                    } else {
+                        if (lemon.view) {
+                            runViewValues(lemon);
+                        } else {
+                            destroy();
+                        }
+                    }
+                });
+
+                // Append element to the DOM
+                if (root) {
+                    lemon.elements.forEach((e) => {
+                        root.appendChild(e);
+                    });
+                }
+            } else {
+                // Refresh
+                register(lemon.self, 'refresh', (prop) => {
+                    if (prop) {
+                        if (prop === true) {
+                            runViewValues(lemon);
+                        } else {
+                            lemon.self[prop] = lemon.self[prop];
+                        }
+                    }
+                });
+            }
+        }
+
+        // Bind to custom component
+        if (item.bind || item.path) {
+            let token = 'value';
+            if (! lemon.events[token]) {
+                lemon.events[token] = []
+            }
+            // Push the event
+            if (item.bind) {
+                lemon.events[token].push(item.bind);
+            }
+            if (item.path) {
+                lemon.events[token].push(item.path);
+            }
+        }
+
+        // In case initial exists
+        if (typeof(lemon.path.initial) === 'object') {
+            // Get the value of the draft
+            let newValue = lemon.path.initial;
+            // Delete draft
+            delete lemon.path.initial;
+            // Apply new values
+            lemon.path.setValue(newValue);
+
+        }
+
+        // Apply events
+        if (lemon.events) {
+            let props = Object.keys(lemon.events);
+            if (props.length) {
+                for (let i = 0; i <props.length; i++) {
+                    trackProperty(lemon, props[i]);
+                }
+            }
+        }
+
+        // Process the onload
+        if (element) {
+            processOnload(lemon);
+        }
+
+        return element;
+    }
+
+    const registerComponents = function(components) {
+        if (components && R.currentLemon) {
+            for (const key in components) {
+                R.currentLemon.components[key.toUpperCase()] = components[key];
+            }
+        }
+    }
+
+    /**
+     * Deprecated
+     * @param {string} template
+     * @param {object?} s (self)
+     * @param {object?} components
+     */
+    L.element = function(template, s, components) {
+        if (R.currentLemon && s && typeof(s) === 'object') {
+            if (s !== R.currentLemon.self) {
+                R.currentLemon.self = s;
+            }
+        }
+        registerComponents(components);
+        return template;
+    }
+
+    /**
+     * Apply self to an existing appended DOM element
+     * @param {HTMLElement} el - element root
+     * @param {object} s - self to associate to the template
+     * @param {object?} components - object with component declarations
+     */
+    L.apply = function(el, s, components) {
+        let template = el.innerHTML;
+        el.textContent = '';
+        let Component = function() {
+            registerComponents(components);
+            return `<>${template}</>`;
+        }
+        return L.render(Component,el,s);
+    }
+
+    /**
+     * Get all properties existing in {o} and create a new object with the values from {this};
+     * @param {object} o - reference object with the properties relevant to the new object
+     * @return {object} n - the new object with all new values
+     */
+    L.getProperties = function(o) {
+        // The new object with all properties found in {o} with values from {this}
+        let n = {};
+        for (let p in o) {
+            n[p] = this[p];
+        }
+        return n;
+    }
+
+    /**
+     * Set the values from {o} to {this}
+     * @param {object} o set the values of {this} when the `this[property]` is found in {o}, or when flag force is true
+     * @param {boolean} f create a new property when that does not exist yet, but is found in {o}
+     * @return {object} this is redundant since object {this} is a reference and is already available in the caller
+     */
+    L.setProperties = function(o, f) {
+        for (let p in o) {
+            if (this.hasOwnProperty(p) || f) {
+                this[p] = o[p];
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Reset the values of any common property name between this and a given object
+     * @param {object} o - all properties names in the object {o} found in {this} will be reset.
+     */
+    L.resetProperties = function(o) {
+        for (let p in o) {
+            this[p] = '';
+        }
+    }
+
+    /**
+     * Lemonade CC (common container) helps you share a self or function through the whole application
+     * @param {string} name alias for your declared object(self) or function
+     * @returns {Object | Function} - registered element
+     */
+    L.get = function(name) {
+        return R.container[name];
+    }
+
+    /**
+     * Register something to the Lemonade CC (common container)
+     * @param {string} name - alias for your declared object(self) or function
+     * @param {object|function} e - the element to be added to the common container. Can be an object(self) or function.
+     * @param {boolean} persistence - optional the persistence flag. Only applicable for functions.
+     */
+    L.set = function(name, e, persistence) {
+        // Applicable only when the o is a function
+        if (typeof(e) === 'function' && persistence === true) {
+            // Keep the flag
+            e.storage = true;
+            // Any existing values
+            let t = window.localStorage.getItem(name);
+            if (t) {
+                // Parse JSON
+                t = JSON.parse(t);
+                // Execute method with the existing values
+                e(t);
+            }
+        }
+        // Save to the sugar container
+        R.container[name] = e;
+    }
+
+    /**
+     * Dispatch the new values to the function
+     * @param {string} name - alias to the element saved on the Lemonade CC (common container)
+     * @param {object?} data - data to be dispatched
+     */
+    L.dispatch = function(name, data) {
+        // Get from the container
+        let e = R.container[name];
+        // Confirm that the alias is a function
+        if (typeof(e) === 'function') {
+            // Save the data to the local storage
+            if (e.storage === true) {
+                window.localStorage.setItem(name, JSON.stringify(data));
+            }
+            // Dispatch the data to the function
+            return e(data);
+        }
+    }
+
+    /**
+     * Register components
+     * @param {object} components - register components
+     */
+    L.setComponents = function(components) {
+        if (typeof(components) === 'object') {
+            // Component names
+            let k = Object.keys(components);
+            // Make sure they follow the standard
+            for (let i = 0; i < k.length; i++) {
+                R.components[k[i].toUpperCase()] = components[k[i]];
+            }
+        }
+    }
+
+    L.component = class {}
+
+    /**
+     * Create a Web Component
+     * @param {string} name - web component name
+     * @param {function} handler - lemonadejs component
+     * @param {object} options - options to create the web components
+     */
+    L.createWebComponent = function(name, handler, options) {
+        if (typeof(window) === 'undefined') {
+            return;
+        }
+
+        if (typeof(handler) !== 'function') {
+            return 'Handler should be an function';
+        }
+        // Prefix
+        let prefix = options && options.prefix ? options.prefix : 'lm';
+
+        // Component name
+        const componentName = prefix + '-' + name;
+
+        // Check if the component is already defined
+        if (! window.customElements.get(componentName)) {
+            class Component extends HTMLElement {
+                constructor() {
+                    super();
+                }
+
+                connectedCallback() {
+                    // LemonadeJS self
+                    let self = this;
+                    // First call
+                    let state = typeof(this.el) === 'undefined';
+                    // LemonadeJS is already rendered
+                    if (state === true) {
+                        // Render
+                        if (options && options.applyOnly === true) {
+                            // Merge component
+                            handler.call(this);
+                            // Apply
+                            L.apply(this, self);
+                        } else {
+                            let root = this;
+                            if (options && options.shadowRoot === true) {
+                                this.attachShadow({ mode: 'open' });
+                                root = document.createElement('div');
+                                this.shadowRoot.appendChild(root);
+                            }
+                            // Give the browser time to calculate all width and heights
+                            L.render(handler, root, self);
+                        }
+                    }
+
+                    queueMicrotask(() => {
+                        // Event
+                        if (typeof(self.onconnect) === 'function') {
+                            self.onconnect(self, state);
+                        }
+                    });
+                }
+
+                disconnectedCallback() {
+                    if (typeof(this.ondisconnect) === 'function') {
+                        this.ondisconnect(this);
+                    }
+                }
+            }
+
+            if (! window.customElements.get(componentName)) {
+                window.customElements.define(componentName, Component);
+            }
+        }
+    }
+
+    L.h = function(type, props, ...children) {
+        return { type, props: props || {}, children };
+    }
+
+    L.Fragment = function(props) {
+        return props.children;
+    }
+
+    const wrongLevel = 'Hooks must be called at the top level of your component';
+
+    const setOnload = function(lemon, event) {
+        lemon.load = event;
+    }
+
+    const setOnchange = function(lemon, event) {
+        lemon.change.push(event);
+    }
+
+    const setTrack = function(lemon, prop) {
+        if (! lemon.events[prop]) {
+            lemon.events[prop] = [];
+        }
+    }
+
+    const setPath = function(lemon, initialValues, change) {
+        // My value object
+        let value = {};
+        // Create a method to update the state
+        const setValue = (newValue) => {
+            if (typeof(lemon.path.initial) === 'undefined') {
+                if (typeof (newValue) === 'object') {
+                    // If my has been declared
+                    let elements = lemon.path.elements;
+                    if (elements) {
+                        for (let i = 0; i < elements.length; i++) {
+                            let v = Path.call(newValue, elements[i].path)
+                            setAttribute(elements[i].element, 'value', v);
+                        }
+                    }
+                }
+            } else {
+                lemon.path.initial = newValue;
+            }
+        }
+
+        const getValue = () => {
+            let ret = {};
+            // If my has been declared
+            let elements = lemon.path.elements;
+            if (elements) {
+                for (let i = 0; i < elements.length; i++) {
+                    let v = getAttribute(elements[i].element, 'value');
+                    Path.call(ret, elements[i].path, v);
+                }
+            }
+            return ret;
+        }
+
+        lemon.path = {
+            setValue: setValue,
+            value: value,
+            change: change,
+            initial: initialValues || {}
+        };
+
+        return [value, setValue, getValue];
+    }
+
+    const setState = function(lemon, value, callback) {
+        // Create a state container
+        const s = new state();
+        // Create a method to update the state
+        const setValue = (newValue) => {
+            let oldValue = value;
+            // Update original value
+            value = typeof newValue === 'function' ? newValue(value) : newValue;
+            // Values from the view
+            runViewValues(lemon, s);
+            // Call back
+            callback?.(value, oldValue);
+        }
+        // Make the value attribute dynamic
+        Object.defineProperty(s, 'value', {
+            set: setValue,
+            get: () => value
+        });
+
+        return s;
+    }
+
+    L.onload = function(event) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setOnload(R.currentLemon, event);
+    }
+
+    L.onchange = function(event) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setOnchange(R.currentLemon, event);
+    }
+
+    L.track = function(prop) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setTrack(R.currentLemon, prop);
+    }
+
+    L.setPath = function(initialValues, change) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setPath(R.currentLemon, initialValues, change);
+    }
+
+    /**
+     * Run view values
+     * @param lemon
+     * @param s - refresh from state
+     */
+    const runViewValues = function(lemon, s) {
+        let values = lemon.view(parseTemplate);
+        if (values && values.length) {
+            values.forEach((v, k) => {
+                let current = lemon.values[k];
+                // Compare if the previous value
+                if (s && s === v || v !== current) {
+                    // Update current value
+                    lemon.values[k] = v;
+                    // Trigger state events
+                    if (typeof(lemon.events[k]) === 'function') {
+                        lemon.events[k]();
+                    }
+                }
+            });
+        }
+    }
+
+    const state = function() {}
+
+    state.prototype.toString = function() {
+        return this.value.toString();
+    }
+
+    state.prototype.valueOf = function() {
+        return this.value;
+    }
+
+    state.prototype[Symbol.toPrimitive] = function(hint) {
+        if (hint === 'string') {
+            return this.value.toString();
+        }
+        return this.value;
+    }
+
+    // TODO: Proxy for Objects and Arrays
+    L.state = function(value, callback) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+
+        return setState(R.currentLemon, value, callback);
+    }
+
+    L.helpers = {
+        path: extractFromPath,
+        properties: {
+            get: L.getProperties,
+            set: L.setProperties,
+            reset: L.resetProperties,
+        }
+    }
+
+    L.events = (function() {
+        class CustomEvents extends Event {
+            constructor(type, props, options) {
+                super(type, {
+                    bubbles: true,
+                    composed: true,
+                    ...options,
+                });
+
+                if (props) {
+                    for (const key in props) {
+                        // Avoid assigning if property already exists anywhere on `this`
+                        if (! (key in this)) {
+                            this[key] = props[key];
+                        }
+                    }
+                }
+            }
+        }
+
+        const create = function(type, props, options) {
+            return new CustomEvents(type, props, options);
+        };
+
+        return {
+            create: create,
+            dispatch(element, event, options) {
+                if (typeof event === 'string') {
+                    event = create(event, options);
+                }
+                element.dispatchEvent(event);
+            }
+        };
+    })();
+
+    return L;
+})));
+
+/***/ }),
+
 /***/ 195:
 /***/ (function(module) {
 
@@ -298,13 +7956,4068 @@ var jSuites;
 })));
 
 
+/***/ }),
+
+/***/ 559:
+/***/ (function(module) {
+
+/**
+ * (c) jSuites Javascript Plugins and Web Components (v6)
+ *
+ * Website: https://jsuites.net
+ * Description: Create amazing web based applications.
+ *
+ * MIT License
+ */
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    'use strict';
+
+    const Helpers = (function () {
+        const component = {};
+
+        // Excel like dates
+        const excelInitialTime = Date.UTC(1900, 0, 0);
+        const excelLeapYearBug = Date.UTC(1900, 1, 29);
+        const millisecondsPerDay = 86400000;
+
+        // Transform in two digits
+        component.two = function (value) {
+            value = '' + value;
+            if (value.length === 1) {
+                value = '0' + value;
+            }
+            return value;
+        };
+
+        component.isValidDate = function (d) {
+            return d instanceof Date && !isNaN(d.getTime());
+        };
+
+        component.isValidDateFormat = function(date) {
+            if (typeof date === 'string') {
+                // Check format: YYYY-MM-DD using regex
+                const match = date.substring(0, 10).match(/^(\d{4})-(\d{2})-(\d{2})$/);
+                if (match) {
+                    const year = Number(match[1]);
+                    const month = Number(match[2]) - 1;
+                    const day = Number(match[3]);
+                    const parsed = new Date(Date.UTC(year, month, day));
+                    // Return
+                    return parsed.getUTCFullYear() === year && parsed.getUTCMonth() === month && parsed.getUTCDate() === day;
+                }
+            }
+
+            return false;
+        }
+
+        component.toString = function (date, dateOnly) {
+            let y = null;
+            let m = null;
+            let d = null;
+            let h = null;
+            let i = null;
+            let s = null;
+
+            if (Array.isArray(date)) {
+                y = date[0];
+                m = date[1];
+                d = date[2];
+                h = date[3];
+                i = date[4];
+                s = date[5];
+            } else {
+                if (!date) {
+                    date = new Date();
+                }
+                y = date.getUTCFullYear();
+                m = date.getUTCMonth() + 1;
+                d = date.getUTCDate();
+                h = date.getUTCHours();
+                i = date.getUTCMinutes();
+                s = date.getUTCSeconds();
+            }
+
+            if (dateOnly === true) {
+                return component.two(y) + '-' + component.two(m) + '-' + component.two(d);
+            } else {
+                return (
+                    component.two(y) + '-' + component.two(m) + '-' + component.two(d) + ' ' + component.two(h) + ':' + component.two(i) + ':' + component.two(s)
+                );
+            }
+        };
+
+        component.toArray = function (value) {
+            let date = value.split(value.indexOf('T') !== -1 ? 'T' : ' ');
+            let time = date[1];
+
+            date = date[0].split('-');
+            let y = parseInt(date[0]);
+            let m = parseInt(date[1]);
+            let d = parseInt(date[2]);
+            let h = 0;
+            let i = 0;
+
+            if (time) {
+                time = time.split(':');
+                h = parseInt(time[0]);
+                i = parseInt(time[1]);
+            }
+            return [y, m, d, h, i, 0];
+        };
+
+        component.arrayToStringDate = function (arr) {
+            return component.toString(arr, false);
+        };
+
+        component.dateToNum = function (jsDate) {
+            if (typeof jsDate === 'string') {
+                jsDate = new Date(jsDate + '  GMT+0');
+            }
+            let jsDateInMilliseconds = jsDate.getTime();
+            if (jsDateInMilliseconds >= excelLeapYearBug) {
+                jsDateInMilliseconds += millisecondsPerDay;
+            }
+            jsDateInMilliseconds -= excelInitialTime;
+
+            return jsDateInMilliseconds / millisecondsPerDay;
+        };
+
+        component.numToDate = function (excelSerialNumber, asArray) {
+            // allow 0; only bail on null/undefined/empty
+            if (excelSerialNumber === null || excelSerialNumber === undefined || excelSerialNumber === '') {
+                return '';
+            }
+
+            const MS_PER_DAY = 86_400_000;
+            const SEC_PER_DAY = 86_400;
+
+            // Excel day 0 is 1899-12-31 (with the fake 1900-02-29 at serial 60)
+            const EXCEL_DAY0_UTC_MS = Date.UTC(1899, 11, 31);
+
+            let wholeDays = Math.floor(excelSerialNumber);
+            let fractionalDay = excelSerialNumber - wholeDays;
+
+            // Fix the 1900 leap-year bug: shift serials >= 60 back one day
+            if (wholeDays >= 60) wholeDays -= 1;
+
+            // Build midnight UTC of the day
+            let ms = EXCEL_DAY0_UTC_MS + wholeDays * MS_PER_DAY;
+
+            // Add time part using integer seconds to avoid FP jitter
+            const seconds = Math.round(fractionalDay * SEC_PER_DAY);
+            ms += seconds * 1000;
+
+            const d = new Date(ms);
+
+            const arr = [
+                d.getUTCFullYear(),
+                component.two(d.getUTCMonth() + 1),
+                component.two(d.getUTCDate()),
+                component.two(d.getUTCHours()),
+                component.two(d.getUTCMinutes()),
+                component.two(d.getUTCSeconds()),
+            ];
+
+            return asArray ? arr : component.toString(arr, false);
+        };
+
+        component.prettify = function (d, texts) {
+            if (!texts) {
+                texts = {
+                    justNow: 'Just now',
+                    xMinutesAgo: '{0}m ago',
+                    xHoursAgo: '{0}h ago',
+                    xDaysAgo: '{0}d ago',
+                    xWeeksAgo: '{0}w ago',
+                    xMonthsAgo: '{0} mon ago',
+                    xYearsAgo: '{0}y ago',
+                };
+            }
+
+            if (d.indexOf('GMT') === -1 && d.indexOf('Z') === -1) {
+                d += ' GMT';
+            }
+
+            let d1 = new Date();
+            let d2 = new Date(d);
+            let total = parseInt((d1 - d2) / 1000 / 60);
+
+            const format = (t, o) => {
+                return t.replace('{0}', o);
+            };
+
+            if (!total) {
+                return texts.justNow;
+            } else if (total < 90) {
+                return format(texts.xMinutesAgo, total);
+            } else if (total < 1440) {
+                // One day
+                return format(texts.xHoursAgo, Math.round(total / 60));
+            } else if (total < 20160) {
+                // 14 days
+                return format(texts.xDaysAgo, Math.round(total / 1440));
+            } else if (total < 43200) {
+                // 30 days
+                return format(texts.xWeeksAgo, Math.round(total / 10080));
+            } else if (total < 1036800) {
+                // 24 months
+                return format(texts.xMonthsAgo, Math.round(total / 43200));
+            } else {
+                // 24 months+
+                return format(texts.xYearsAgo, Math.round(total / 525600));
+            }
+        };
+
+        component.prettifyAll = function () {
+            let elements = document.querySelectorAll('.prettydate');
+            for (let i = 0; i < elements.length; i++) {
+                if (elements[i].getAttribute('data-date')) {
+                    elements[i].innerHTML = component.prettify(elements[i].getAttribute('data-date'));
+                } else {
+                    if (elements[i].innerHTML) {
+                        elements[i].setAttribute('title', elements[i].innerHTML);
+                        elements[i].setAttribute('data-date', elements[i].innerHTML);
+                        elements[i].innerHTML = component.prettify(elements[i].innerHTML);
+                    }
+                }
+            }
+        };
+
+        // Compatibility with jSuites
+        component.now = component.toString;
+
+        const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const translate = function (t) {
+            if (typeof document !== 'undefined' && document.dictionary) {
+                return document.dictionary[t] || t;
+            } else {
+                return t;
+            }
+        };
+
+        Object.defineProperty(component, 'weekdays', {
+            get: function () {
+                return weekdays.map(function (v) {
+                    return translate(v);
+                });
+            },
+        });
+
+        Object.defineProperty(component, 'weekdaysShort', {
+            get: function () {
+                return weekdays.map(function (v) {
+                    return translate(v).substring(0, 3);
+                });
+            },
+        });
+
+        Object.defineProperty(component, 'months', {
+            get: function () {
+                return months.map(function (v) {
+                    return translate(v);
+                });
+            },
+        });
+
+        Object.defineProperty(component, 'monthsShort', {
+            get: function () {
+                return months.map(function (v) {
+                    return translate(v).substring(0, 3);
+                });
+            },
+        });
+
+        return component;
+    })();
+
+    const Mask = (function() {
+        // Currency
+        const tokens = {
+            // Escape
+            escape: [ '\\\\[.\\s\\S]' ],
+            // Text
+            text: [ '@', '&' ],
+            // Number
+            fraction: [ '#{0,1}.*?\\?+\\/[0-9?]+' ],
+            // Currency tokens
+            currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
+            // Scientific
+            scientific: [ '[0#]+([.,]{1}0*#*)?E{1}\\+0+' ],
+            // Percentage
+            percentage: [ '[0#]+([.,]{1}0*#*)?%' ],
+            // Number
+            numeric: [ '[0#]+([.,]{1}0*#*)?', '#+' ],
+            // Data tokens
+            datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'S', 'Y', 'M', 'I' ],
+            // Other
+            general: [ 'A', '0', '\\?', '\\*', ',,M', ',,,B', '[a-zA-Z\\$]+', '_[.\\s\\S]', '\\(', '\\)', '.']
+        }
+
+        const countryCodes = {
+            "0409": [
+                "$",
+                ",",
+                "."
+            ],
+            "0809": [
+                "£",
+                ",",
+                "."
+            ],
+            "0C09": [
+                "$",
+                ",",
+                "."
+            ],
+            "1009": [
+                "$",
+                ",",
+                "."
+            ],
+            "1409": [
+                "$",
+                ",",
+                "."
+            ],
+            "1809": [
+                "€",
+                ",",
+                "."
+            ],
+            "1C09": [
+                "R",
+                " ",
+                "."
+            ],
+            "040C": [
+                "€",
+                " ",
+                ","
+            ],
+            "080C": [
+                "€",
+                " ",
+                ","
+            ],
+            "100C": [
+                "CHF",
+                "'",
+                "."
+            ],
+            "140C": [
+                "€",
+                " ",
+                ","
+            ],
+            "0C0C": [
+                "$",
+                " ",
+                ","
+            ],
+            "0407": [
+                "€",
+                ".",
+                ","
+            ],
+            "0C07": [
+                "€",
+                ".",
+                ","
+            ],
+            "0807": [
+                "CHF",
+                "'",
+                "."
+            ],
+            "1007": [
+                "€",
+                ".",
+                ","
+            ],
+            "0413": [
+                "€",
+                ".",
+                ","
+            ],
+            "0813": [
+                "€",
+                " ",
+                ","
+            ],
+            "0410": [
+                "€",
+                ".",
+                ","
+            ],
+            "0810": [
+                "CHF",
+                "'",
+                "."
+            ],
+            "0C0A": [
+                "€",
+                ".",
+                ","
+            ],
+            "080A": [
+                "$",
+                ",",
+                "."
+            ],
+            "2C0A": [
+                "$",
+                ".",
+                ","
+            ],
+            "340A": [
+                "$",
+                ".",
+                ","
+            ],
+            "240A": [
+                "$",
+                ".",
+                ","
+            ],
+            "300A": [
+                "$",
+                ",",
+                "."
+            ],
+            "280A": [
+                "S/",
+                ",",
+                "."
+            ],
+            "200A": [
+                "Bs.",
+                ".",
+                ","
+            ],
+            "140A": [
+                "₡",
+                ",",
+                "."
+            ],
+            "100A": [
+                "Q",
+                ",",
+                "."
+            ],
+            "1C0A": [
+                "RD$",
+                ",",
+                "."
+            ],
+            "3C0A": [
+                "$",
+                ",",
+                "."
+            ],
+            "440A": [
+                "C$",
+                ",",
+                "."
+            ],
+            "4C0A": [
+                "B/.",
+                ",",
+                "."
+            ],
+            "480A": [
+                "L",
+                ",",
+                "."
+            ],
+            "0816": [
+                "€",
+                ".",
+                ","
+            ],
+            "0416": [
+                "R$",
+                ".",
+                ","
+            ],
+            "0406": [
+                "kr",
+                ".",
+                ","
+            ],
+            "041D": [
+                "kr",
+                " ",
+                ","
+            ],
+            "0414": [
+                "kr",
+                " ",
+                ","
+            ],
+            "040B": [
+                "€",
+                " ",
+                ","
+            ],
+            "040F": [
+                "kr",
+                ".",
+                ","
+            ],
+            "0415": [
+                "zł",
+                " ",
+                ","
+            ],
+            "0405": [
+                "Kč",
+                " ",
+                ","
+            ],
+            "041B": [
+                "€",
+                " ",
+                ","
+            ],
+            "040E": [
+                "Ft",
+                " ",
+                ","
+            ],
+            "0424": [
+                "€",
+                ".",
+                ","
+            ],
+            "041A": [
+                "€",
+                ".",
+                ","
+            ],
+            "0418": [
+                "lei",
+                ".",
+                ","
+            ],
+            "0402": [
+                "лв.",
+                " ",
+                ","
+            ],
+            "0425": [
+                "€",
+                " ",
+                ","
+            ],
+            "0426": [
+                "€",
+                " ",
+                ","
+            ],
+            "0427": [
+                "€",
+                " ",
+                ","
+            ],
+            "0408": [
+                "€",
+                ".",
+                ","
+            ],
+            "043A": [
+                "€",
+                ",",
+                "."
+            ],
+            "043C": [
+                "€",
+                ",",
+                "."
+            ],
+            "0419": [
+                "₽",
+                " ",
+                ","
+            ],
+            "0422": [
+                "₴",
+                " ",
+                ","
+            ],
+            "0423": [
+                "Br",
+                " ",
+                ","
+            ],
+            "041F": [
+                "₺",
+                ".",
+                ","
+            ],
+            "042C": [
+                "₼",
+                " ",
+                ","
+            ],
+            "042F": [
+                "ден",
+                ".",
+                ","
+            ],
+            "0441": [
+                "Lek",
+                ".",
+                ","
+            ],
+            "141A": [
+                "KM",
+                ".",
+                ","
+            ],
+            "0401": [
+                "ر.س",
+                ",",
+                "."
+            ],
+            "0C01": [
+                "ج.م",
+                ",",
+                "."
+            ],
+            "1401": [
+                "دج",
+                " ",
+                ","
+            ],
+            "1801": [
+                "د.م.",
+                " ",
+                ","
+            ],
+            "1C01": [
+                "د.ت",
+                " ",
+                ","
+            ],
+            "2001": [
+                "﷼",
+                ",",
+                "."
+            ],
+            "3401": [
+                "KD",
+                ",",
+                "."
+            ],
+            "3801": [
+                "د.إ",
+                ",",
+                "."
+            ],
+            "3C01": [
+                "BD",
+                ",",
+                "."
+            ],
+            "4001": [
+                "ر.ق",
+                ",",
+                "."
+            ],
+            "2801": [
+                "£",
+                ",",
+                "."
+            ],
+            "2C01": [
+                "د.ا",
+                ",",
+                "."
+            ],
+            "3001": [
+                "ل.ل",
+                ",",
+                "."
+            ],
+            "2401": [
+                "﷼",
+                ",",
+                "."
+            ],
+            "1001": [
+                "ل.د",
+                ",",
+                "."
+            ],
+            "0429": [
+                "﷼",
+                ",",
+                "."
+            ],
+            "040D": [
+                "₪",
+                ",",
+                "."
+            ],
+            "0439": [
+                "₹",
+                ",",
+                "."
+            ],
+            "0445": [
+                "৳",
+                ",",
+                "."
+            ],
+            "0461": [
+                "रु",
+                ",",
+                "."
+            ],
+            "045B": [
+                "Rs",
+                ",",
+                "."
+            ],
+            "044E": [
+                "₹",
+                ",",
+                "."
+            ],
+            "0444": [
+                "₹",
+                ",",
+                "."
+            ],
+            "0449": [
+                "₹",
+                ",",
+                "."
+            ],
+            "044B": [
+                "₹",
+                ",",
+                "."
+            ],
+            "0421": [
+                "Rp",
+                ".",
+                ","
+            ],
+            "043E": [
+                "RM",
+                ",",
+                "."
+            ],
+            "0464": [
+                "₱",
+                ",",
+                "."
+            ],
+            "041E": [
+                "฿",
+                ",",
+                "."
+            ],
+            "042A": [
+                "₫",
+                ".",
+                ","
+            ],
+            "0453": [
+                "៛",
+                ",",
+                "."
+            ],
+            "0454": [
+                "₭",
+                ",",
+                "."
+            ],
+            "0455": [
+                "K",
+                ",",
+                "."
+            ],
+            "0404": [
+                "NT$",
+                ",",
+                "."
+            ],
+            "0C04": [
+                "HK$",
+                ",",
+                "."
+            ],
+            "0804": [
+                "¥",
+                ",",
+                "."
+            ],
+            "0411": [
+                "¥",
+                ",",
+                "."
+            ],
+            "0412": [
+                "₩",
+                ",",
+                "."
+            ],
+            "0437": [
+                "₾",
+                " ",
+                ","
+            ],
+            "042B": [
+                "֏",
+                " ",
+                ","
+            ],
+            "043F": [
+                "₸",
+                " ",
+                ","
+            ],
+            "0443": [
+                "so'm",
+                " ",
+                ","
+            ],
+            "0428": [
+                "ЅМ",
+                " ",
+                ","
+            ],
+            "0440": [
+                "сом",
+                " ",
+                ","
+            ],
+            "0466": [
+                "₦",
+                ",",
+                "."
+            ],
+            "0469": [
+                "₦",
+                ",",
+                "."
+            ],
+            "0468": [
+                "GH₵",
+                ",",
+                "."
+            ],
+            "180C": [
+                "F CFA",
+                " ",
+                ","
+            ]
+        }
+
+        /**
+         * Detect decimal and thousand separators in a mask pattern
+         */
+        const detectMaskSeparators = function(mask) {
+            // Decimal: separator in pattern 0[sep]0+ (can have trailing chars like _ )
+            // Look for the rightmost occurrence of this pattern
+            const decimalMatches = mask.match(/0([.,\s'])0+/g);
+            let decimal = null;
+            if (decimalMatches && decimalMatches.length > 0) {
+                // Get the last match (rightmost decimal pattern)
+                const lastMatch = decimalMatches[decimalMatches.length - 1];
+                const sepMatch = lastMatch.match(/0([.,\s'])0/);
+                decimal = sepMatch ? sepMatch[1] : null;
+            }
+
+            // Thousand: other separator that appears in #[sep]# or 0[sep]# patterns
+            let thousand = null;
+            for (const sep of [',', '.', ' ', "'"]) {
+                if (sep !== decimal) {
+                    const escapedSep = sep === '.' ? '\\.' : sep;
+                    const regex = new RegExp('[#0]' + escapedSep + '[#0]');
+                    if (regex.test(mask)) {
+                        thousand = sep;
+                        break;
+                    }
+                }
+            }
+
+            return { decimal, thousand };
+        }
+
+        /**
+         * Transform Excel currency locale patterns like [$$-409]#,##0.00
+         * countryCodes format: { "0409": ["$", ",", "."] } // [currency, thousand, decimal]
+         * [$$ = use locale's default currency, [$X = use literal X]
+         */
+        const transformExcelLocaleMask = function(mask) {
+            // Handle multiple patterns (e.g., positive;negative)
+            // Accept any alphanumeric for locale code to handle invalid codes gracefully
+            const pattern = /\[\$(.?)-([0-9A-Z]+)\]/gi;
+            let transformation = null;
+
+            // Find first pattern to determine locale
+            const firstMatch = mask.match(/\[\$(.?)-([0-9A-Z]+)\]/i);
+            if (!firstMatch) return mask;
+
+            const symbolChar = firstMatch[1] || '';
+            let localeCode = firstMatch[2].toUpperCase();
+
+            // Pad with leading zero if 3 digits (e.g., "409" → "0409")
+            if (localeCode.length === 3) {
+                localeCode = '0' + localeCode;
+            }
+
+            // Look up locale in countryCodes
+            const localeData = countryCodes[localeCode];
+
+            if (!localeData) {
+                // Unknown locale - fallback: strip ALL patterns, use literal symbol (or $)
+                const fallbackSymbol = symbolChar || '$';
+                // Replace all occurrences of the pattern with the symbol
+                return mask.replace(/\[\$(.?)-([0-9A-Z]+)\]/gi, fallbackSymbol);
+            }
+
+            // Extract from array: [currency, thousand, decimal]
+            const localeCurrency = localeData[0];
+            const localeThousand = localeData[1];
+            const localeDecimal = localeData[2];
+
+            // Determine currency symbol: $$ means use locale's default, else use literal
+            let currencySymbol;
+            if (symbolChar === '$') {
+                // $$ pattern - use locale's default currency
+                currencySymbol = localeCurrency;
+            } else {
+                // Literal symbol provided (e.g., [$€-407])
+                currencySymbol = symbolChar;
+            }
+
+            // Replace all locale patterns with currency symbol
+            let result = mask.replace(pattern, currencySymbol);
+
+            // Detect current separators in mask (after removing patterns)
+            const current = detectMaskSeparators(result);
+
+            // Transform separators to match locale using placeholders to avoid conflicts
+            const temp1 = '\uFFF0';  // Placeholder for thousand
+            const temp2 = '\uFFF1';  // Placeholder for decimal
+
+            // Step 1: Replace current separators with placeholders
+            if (current.thousand && current.thousand !== localeThousand) {
+                const from = current.thousand === '.' ? '\\.' : (current.thousand === ' ' ? ' ' : current.thousand);
+                result = result.replace(new RegExp(from, 'g'), temp1);
+            }
+            if (current.decimal && current.decimal !== localeDecimal) {
+                const from = current.decimal === '.' ? '\\.' : (current.decimal === ' ' ? ' ' : current.decimal);
+                result = result.replace(new RegExp(from, 'g'), temp2);
+            }
+
+            // Step 2: Replace placeholders with target separators
+            result = result.replace(new RegExp(temp1, 'g'), localeThousand);
+            result = result.replace(new RegExp(temp2, 'g'), localeDecimal);
+
+            return result;
+        }
+
+        // All expressions
+        const allExpressions = [].concat(tokens.escape, tokens.fraction, tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general).join('|');
+
+        // Pre-compile all regexes once at initialization for better performance
+        const compiledTokens = {};
+        const tokenPriority = ['escape', 'fraction', 'currency', 'scientific', 'percentage', 'numeric', 'datetime', 'text', 'general'];
+
+        // Cache for getMethod results
+        const methodCache = {};
+        // Cache for getTokens results
+        const tokensCache = {};
+        // Cache for autoCasting results
+        const autoCastingCache = {};
+
+        // Initialize compiled regexes
+        for (const type of tokenPriority) {
+            compiledTokens[type] = tokens[type].map(pattern => ({
+                regex: new RegExp('^' + pattern + '$', 'i'),
+                method: pattern
+            }));
+        }
+
+        // Pre-compile regex for getTokens function
+        const allExpressionsRegex = new RegExp(allExpressions, 'gi');
+        const hiddenCaret = "\u200B";
+        // Locale for date parsing
+        const userLocale = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
+        // Labels
+        const weekDaysFull = Helpers.weekdays;
+        const weekDays = Helpers.weekdaysShort;
+        const monthsFull = Helpers.months;
+        const months = Helpers.monthsShort;
+
+        // Helpers
+
+        const focus = function(el) {
+            if (el.textContent.length) {
+                // Handle contenteditable elements
+                const range = document.createRange();
+                const sel = window.getSelection();
+
+                let node = el;
+                // Go as deep as possible to the last text node
+                while (node.lastChild) node = node.lastChild;
+                // Ensure it's a text node
+                if (node.nodeType === Node.TEXT_NODE) {
+                    range.setStart(node, node.length);
+                } else {
+                    range.setStart(node, node.childNodes.length);
+                }
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+
+                el.scrollLeft = el.scrollWidth;
+            }
+        }
+
+        /**
+         * Returns if the given value is considered blank
+         */
+        const isBlank = function(v) {
+            return v === null || v === '' || typeof(v) === 'undefined';
+        }
+
+        /**
+         * Clean mask - extremely fast implementation using only char operations
+         * Removes quotes, detects parenthesis for negative numbers, and removes brackets (except time format codes)
+         * Sets control.parenthesisForNegativeNumbers and returns cleaned mask
+         */
+        const cleanMask = function(mask, control) {
+            const len = mask.length;
+            let result = '';
+
+            for (let i = 0; i < len; i++) {
+                const char = mask[i];
+
+                // Remove quotes
+                if (char === '"') {
+                    continue;
+                }
+
+                // Handle brackets - remove them unless they're time format codes
+                if (char === '[') {
+                    // Check if it's a time format code: [s], [ss], [h], [hh], [m], [mm]
+                    let isTimeFormat = false;
+                    if (i + 2 < len && mask[i + 2] === ']') {
+                        const c = mask[i + 1];
+                        if (c === 's' || c === 'h' || c === 'm') {
+                            isTimeFormat = true;
+                        }
+                    } else if (i + 3 < len && mask[i + 3] === ']') {
+                        const c1 = mask[i + 1];
+                        const c2 = mask[i + 2];
+                        if ((c1 === 's' && c2 === 's') || (c1 === 'h' && c2 === 'h') || (c1 === 'm' && c2 === 'm')) {
+                            isTimeFormat = true;
+                        }
+                    }
+
+                    if (isTimeFormat) {
+                        result += char;
+                    } else {
+                        // Skip content and closing bracket
+                        while (i < len && mask[i] !== ']') {
+                            i++;
+                        }
+                        continue;
+                    }
+                }
+                // Check for parenthesis (not preceded by underscore and no underscore inside)
+                else if (char === '(') {
+                    if (i === 0 || mask[i - 1] !== '_') {
+                        let hasUnderscore = false;
+                        let depth = 1;
+                        for (let j = i + 1; j < len && depth > 0; j++) {
+                            if (mask[j] === '(') depth++;
+                            if (mask[j] === ')') depth--;
+                            if (mask[j] === '_') {
+                                hasUnderscore = true;
+                                break;
+                            }
+                        }
+                        if (! hasUnderscore) {
+                            control.parenthesisForNegativeNumbers = true;
+                        }
+                    }
+                    result += char;
+                } else {
+                    result += char;
+                }
+            }
+
+            return result;
+        }
+
+        /**
+         * Receives a string from a method type and returns if it's a numeric method
+         */
+        const isNumeric = function(t) {
+            return t === 'currency' || t === 'percentage' || t === 'numeric' || t === 'scientific';
+        }
+
+        const adjustPrecision = function(num) {
+            if (typeof num === 'number' && ! Number.isInteger(num)) {
+                const v = num.toString().split('.');
+
+                if (v[1] && v[1].length > 10) {
+                    let t0 = 0;
+                    const t1 = v[1][v[1].length - 2];
+
+                    if (t1 == 0 || t1 == 9) {
+                        for (let i = v[1].length - 2; i > 0; i--) {
+                            if (t0 >= 0 && v[1][i] == t1) {
+                                t0++;
+                                if (t0 > 6) {
+                                    break;
+                                }
+                            } else {
+                                t0 = 0;
+                                break;
+                            }
+                        }
+
+                        if (t0) {
+                            return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
+                        }
+                    }
+                }
+            }
+
+            return num;
+        }
+
+        /**
+         * Get the decimal defined in the mask configuration
+         */
+        const getDecimal = function(v) {
+            let decimal;
+            if (this.decimal) {
+                decimal = this.decimal;
+            } else {
+                if (this.locale) {
+                    let t = Intl.NumberFormat(this.locale).format(1.1);
+                    decimal = t[1];
+                } else {
+                    if (! v) {
+                        v = this.mask;
+                    }
+
+                    // Fixed regex: 0* means zero or more 0s before decimal separator
+                    let e = new RegExp('0*([,.])0+', 'ig');
+                    let t = e.exec(v);
+                    if (t && t[1] && t[1].length === 1) {
+                        decimal = t[1];
+                    } else {
+                        // Try the second pattern for # formats
+                        e = new RegExp('#{1}(.{1})#+', 'ig');
+                        t = e.exec(v);
+                        if (t && t[1] && t[1].length === 1) {
+                            if (t[1] === ',') {
+                                decimal = '.';
+                            } else if (t[1] === "'" || t[1] === '.') {
+                                decimal = ',';
+                            }
+                        }
+                    }
+
+                    if (! decimal) {
+                        decimal = '1.1'.toLocaleString().substring(1, 2);
+                    }
+                }
+            }
+
+            if (decimal) {
+                return decimal;
+            } else {
+                return null;
+            }
+        }
+
+        /**
+         * Caret position getter
+         * `this` in this function should be the element with a caret
+         */
+        const getCaretPosition = function(editableDiv) {
+            let caretPos = 0;
+            let sel = window.getSelection();
+            if (sel && sel.rangeCount > 0) {
+                let range = sel.getRangeAt(0);
+                let preRange = range.cloneRange();
+                preRange.selectNodeContents(editableDiv);
+                preRange.setEnd(range.endContainer, range.endOffset);
+                caretPos = preRange.toString().length;
+            }
+            return caretPos;
+        }
+
+        /**
+         * Caret position getter
+         * `this` in this function should be the element with a caret
+         */
+        const getCaret = function(el) {
+            if (el.tagName === 'DIV') {
+                return getCaretPosition(el);
+            } else {
+                return el.selectionStart;
+            }
+        }
+
+        /**
+         * Caret position setter
+         * `this` should be the element (input/textarea or contenteditable div)
+         */
+        const setCaret = function(index) {
+            if (typeof index !== 'number') index = Number(index) || 0;
+
+            if (this.tagName !== 'DIV' || this.isContentEditable !== true) {
+                const n = this.value ?? '';
+                if (index < 0) index = 0;
+                if (index > n.length) index = n.length;
+                this.focus();
+                this.selectionStart = index;
+                this.selectionEnd = index;
+                return;
+            }
+
+            // Contenteditable DIV
+            const el = /** @type {HTMLElement} */ (this);
+            const totalLen = (el.textContent || '').length;
+
+            if (index < 0) index = 0;
+            if (index > totalLen) index = totalLen;
+
+            const sel = window.getSelection();
+            if (!sel) return;
+
+            const range = document.createRange();
+            el.focus();
+
+            // Empty element → ensure a text node to place the caret into
+            if (totalLen === 0) {
+                if (!el.firstChild) el.appendChild(document.createTextNode(''));
+                // place at start
+                range.setStart(el.firstChild, 0);
+                range.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                return;
+            }
+
+            // If caret is at the very end, this is fastest/cleanest
+            if (index === totalLen) {
+                range.selectNodeContents(el);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                return;
+            }
+
+            // Walk text nodes to find the node that contains the index-th character
+            const walker = document.createTreeWalker(
+                el,
+                NodeFilter.SHOW_TEXT,
+                {
+                    acceptNode(node) {
+                        // skip empty/whitespace-only nodes if you want; or just accept all text
+                        return node.nodeValue ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT;
+                    }
+                }
+            );
+
+            let pos = 0;
+            let node = walker.nextNode();
+            while (node) {
+                const nextPos = pos + node.nodeValue.length;
+                if (index <= nextPos) {
+                    const offset = index - pos; // char offset within this text node
+                    range.setStart(node, offset);
+                    range.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(range);
+                    return;
+                }
+                pos = nextPos;
+                node = walker.nextNode();
+            }
+
+            // Fallback: collapse at end if something unexpected happened
+            range.selectNodeContents(el);
+            range.collapse(false);
+            sel.removeAllRanges();
+            sel.addRange(range);
+        };
+
+        /**
+         * Methods to deal with different types of data
+         */
+        const parseMethods = {
+            'FIND': function(v, a) {
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+                // TODO: tratar eventos
+                if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
+                    this.values[this.index] += v;
+                    return;
+                }
+                let pos = 0;
+                let count = 0;
+                let value = (this.values[this.index] + v).toLowerCase();
+                for (let i = 0; i < a.length; i++) {
+                    if (a[i].toLowerCase().indexOf(value) === 0) {
+                        pos = i;
+                        count++;
+                    }
+                }
+                if (count > 1) {
+                    this.values[this.index] += v;
+                } else if (count === 1) {
+                    // Jump a number of chars
+                    let t = (a[pos].length - this.values[this.index].length) - 1;
+                    this.position += t;
+                    this.values[this.index] = a[pos];
+                    this.index++;
+                    return pos;
+                }
+            },
+            'YEAR': function(v, s) {
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+
+                let number = parseInt(v);
+
+                if (number >= 0 && number <= 10) {
+                    if (this.values[this.index].length < s) {
+                        this.values[this.index] += v;
+                    }
+                }
+                if (this.values[this.index].length === s) {
+                    let y = new Date().getFullYear().toString();
+                    if (s === 2) {
+                        y = y.substring(0,2) + this.values[this.index];
+                    } else if (s === 3) {
+                        y = y.substring(0,1) + this.values[this.index];
+                    } else if (s === 4) {
+                        y = this.values[this.index];
+                    }
+                    this.date[0] = y;
+                    this.index++;
+                }
+            },
+            'YYYY': function(v) {
+                parseMethods.YEAR.call(this, v, 4);
+            },
+            'YYY': function(v) {
+                parseMethods.YEAR.call(this, v, 3);
+            },
+            'YY': function(v) {
+                parseMethods.YEAR.call(this, v, 2);
+            },
+            'MMMMM': function(v) {
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+                let value = (this.values[this.index] + v).toLowerCase();
+                for (var i = 0; i < monthsFull.length; i++) {
+                    if (monthsFull[i][0].toLowerCase().indexOf(value) === 0) {
+                        this.values[this.index] = monthsFull[i][0];
+                        this.date[1] = i + 1;
+                        this.index++;
+                        break;
+                    }
+                }
+            },
+            'MMMM': function(v) {
+                let ret = parseMethods.FIND.call(this, v, monthsFull);
+                if (typeof(ret) !== 'undefined') {
+                    this.date[1] = ret + 1;
+                }
+            },
+            'MMM': function(v) {
+                let ret = parseMethods.FIND.call(this, v, months);
+                if (typeof(ret) !== 'undefined') {
+                    this.date[1] = ret + 1;
+                }
+            },
+            'MM': function(v, single) {
+                const commit = () => {
+                    this.date[1] = this.values[this.index];
+                    this.index++;
+                }
+
+                let number = parseInt(v);
+
+                if (isBlank(this.values[this.index])) {
+                    if (number > 1 && number < 10) {
+                        if (! single) {
+                            v = '0' + v;
+                        }
+                        this.values[this.index] = v;
+                        commit();
+                    } else if (number < 2) {
+                        this.values[this.index] = v;
+                    }
+                } else {
+                    if (this.values[this.index] == 1 && number < 3) {
+                        this.values[this.index] += v;
+                        commit();
+                    } else if (this.values[this.index] == 0 && number > 0 && number < 10) {
+                        this.values[this.index] += v;
+                        commit();
+                    } else {
+                        let test = parseInt(this.values[this.index]);
+                        if (test > 0 && test <= 12) {
+                            if (! single) {
+                                test = '0' + test;
+                            }
+                            this.values[this.index] = test;
+                            commit();
+                            return false;
+                        }
+                    }
+                }
+            },
+            'M': function(v) {
+                return parseMethods['MM'].call(this, v, true);
+            },
+            'MONTH': function(v) {
+                return parseMethods['MMMM'].call(this, v);
+            },
+            'MON': function(v) {
+                return parseMethods['MMM'].call(this, v);
+            },
+            'DDDD': function(v) {
+                return parseMethods.FIND.call(this, v, weekDaysFull);
+            },
+            'DDD': function(v) {
+                return parseMethods.FIND.call(this, v, weekDays);
+            },
+            'DD': function(v, single) {
+                const commit = () => {
+                    this.date[2] = this.values[this.index];
+                    this.index++;
+                }
+
+                let number = parseInt(v);
+
+                if (isBlank(this.values[this.index])) {
+                    if (number > 3 && number < 10) {
+                        if (! single) {
+                            v = '0' + v;
+                        }
+                        this.values[this.index] = v;
+                        commit();
+                    } else if (number < 10) {
+                        this.values[this.index] = v;
+                    }
+                } else {
+                    if (this.values[this.index] == 3 && number < 2) {
+                        this.values[this.index] += v;
+                        commit();
+                    } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && number < 10) {
+                        this.values[this.index] += v;
+                        commit();
+                    } else if (this.values[this.index] == 0 && number > 0 && number < 10) {
+                        this.values[this.index] += v;
+                        commit();
+                    } else {
+                        let test = parseInt(this.values[this.index]);
+                        if (test > 0 && test <= 31) {
+                            if (! single) {
+                                test = '0' + test;
+                            }
+                            this.values[this.index] = test;
+                            commit();
+                            return false;
+                        }
+                    }
+                }
+            },
+            'D': function(v) {
+                return parseMethods['DD'].call(this, v, true);
+            },
+            'DY': function(v) {
+                return parseMethods['DDD'].call(this, v);
+            },
+            'DAY': function(v) {
+                return parseMethods['DDDD'].call(this, v);
+            },
+            'HH12': function(v, two) {
+                let test = false;
+
+                let number = parseInt(v);
+
+                if (isBlank(this.values[this.index])) {
+                    if (number > 1 && number < 10) {
+                        if (two) {
+                            v = 0 + v;
+                        }
+                        this.date[3] = this.values[this.index] = v;
+                        this.index++;
+                    } else if (number < 10) {
+                        this.values[this.index] = v;
+                    }
+                } else {
+                    if (this.values[this.index] == 1 && number < 3) {
+                        this.date[3] = this.values[this.index] += v;
+                        this.index++;
+                    } else if (this.values[this.index] < 1 && number < 10) {
+                        this.date[3] = this.values[this.index] += v;
+                        this.index++;
+                    } else {
+                        test = true;
+                    }
+                }
+
+                // Re-test
+                if (test === true) {
+                    var t = parseInt(this.values[this.index]);
+                    if (t >= 0 && t <= 12) {
+                        this.date[3] = this.values[this.index];
+                        this.index++;
+                        return false;
+                    }
+                }
+            },
+            'HH24': function(v, two = true) {
+                let test = false;
+
+                let number = parseInt(v)
+
+                if (number >= 0 && number < 10) {
+                    if (isBlank(this.values[this.index])) {
+                        if (number > 2 && number < 10) {
+                            if (two !== false) {
+                                v = 0 + v;
+                            }
+                            this.date[3] = this.values[this.index] = v;
+                            this.index++;
+                        } else if (number < 10) {
+                            this.values[this.index] = v;
+                        }
+                    } else {
+                        if (this.values[this.index] == 2 && number < 4) {
+                            if (two === false && this.values[this.index] === '0') {
+                                this.values[this.index] = '';
+                            }
+                            this.date[3] = this.values[this.index] += v;
+                            this.index++;
+                        } else if (this.values[this.index] < 2 && number < 10) {
+                            if (two === false && this.values[this.index] === '0') {
+                                this.values[this.index] = '';
+                            }
+                            this.date[3] = this.values[this.index] += v;
+                            this.index++;
+                        } else {
+                            test = true;
+                        }
+                    }
+                } else {
+                    test = true;
+                }
+
+                // Re-test
+                if (test === true) {
+                    var t = parseInt(this.values[this.index]);
+                    if (t >= 0 && t < 24) {
+                        // Pad single digit with leading zero for HH24 format
+                        if (two !== false && this.values[this.index] && this.values[this.index].length === 1) {
+                            this.values[this.index] = '0' + this.values[this.index];
+                        }
+                        this.date[3] = this.values[this.index];
+                        this.index++;
+                        return false;
+                    }
+                }
+            },
+            'HH': function(v) {
+                parseMethods['HH24'].call(this, v, true);
+            },
+            'H': function(v) {
+                parseMethods['HH24'].call(this, v, false);
+            },
+            '\\[H\\]': function(v) {
+                if (this.values[this.index] == undefined) {
+                    this.values[this.index] = '';
+                }
+                if (v.match(/[0-9]/g)) {
+                    this.date[3] = this.values[this.index] += v;
+                } else {
+                    if (this.values[this.index].match(/[0-9]/g)) {
+                        this.date[3] = this.values[this.index];
+                        this.index++;
+                        return false;
+                    }
+                }
+            },
+            'N60': function(v, i, two) {
+                let test = false;
+
+                let number = parseInt(v);
+
+                if (number >= 0 && number < 10) {
+                    if (isBlank(this.values[this.index])) {
+                        if (number > 5 && number < 10) {
+                            if (two) {
+                                v = '0' + v;
+                            }
+                            this.date[i] = this.values[this.index] = v;
+                            this.index++;
+                        } else if (number < 10) {
+                            this.values[this.index] = v;
+                        }
+                    } else {
+                        if (this.values[this.index] < 6 && number < 10) {
+                            if (! two && this.values[this.index] === '0') {
+                                this.values[this.index] = '';
+                            }
+                            this.date[i] = this.values[this.index] += v;
+                            this.index++;
+                        } else {
+                            test = true;
+                        }
+                    }
+                } else {
+                    test = true;
+                }
+
+                // Re-test
+                if (test === true) {
+                    var t = parseInt(this.values[this.index]);
+                    if (t >= 0 && t < 60) {
+                        this.date[i] = this.values[this.index];
+                        this.index++;
+                        return false;
+                    }
+                }
+            },
+            'MI': function(v) {
+                parseMethods.N60.call(this, v, 4, true);
+            },
+            'SS': function(v) {
+                parseMethods.N60.call(this, v, 5, true);
+            },
+            'I': function(v) {
+                parseMethods.N60.call(this, v, 4, false);
+            },
+            'S': function(v) {
+                parseMethods.N60.call(this, v, 5, false);
+            },
+            'AM/PM': function(v) {
+                if (typeof(this.values[this.index]) === 'undefined') {
+                    this.values[this.index] = '';
+                }
+
+                if (this.values[this.index] === '') {
+                    if (v.match(/a/i) && this.date[3] < 13) {
+                        this.values[this.index] += 'A';
+                    } else if (v.match(/p/i)) {
+                        this.values[this.index] += 'P';
+                    }
+                } else if (this.values[this.index] === 'A' || this.values[this.index] === 'P') {
+                    this.values[this.index] += 'M';
+                    this.index++;
+                }
+            },
+            'WD': function(v) {
+                if (typeof(this.values[this.index]) === 'undefined') {
+                    this.values[this.index] = '';
+                }
+
+                let number = parseInt(v);
+
+                if (number >= 0 && number < 7) {
+                    this.values[this.index] = v;
+                }
+                if (this.values[this.index].length == 1) {
+                    this.index++;
+                }
+            },
+            // Numeric Methods
+            '[0#]+([.,]{1}0*#*)?': function(v) {
+                if (v === '.' && inputIsANumber(this.raw)) {
+                    v = this.decimal;
+                }
+
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+
+                if (v === '-') {
+                    // Transform the number into negative if it is not already
+                    if (this.values[this.index][0] != '-') {
+                        this.values[this.index] = '-' + this.values[this.index];
+                    }
+                } else if (v === '+') {
+                    // Transform the number into positive if it is negative
+                    if (this.values[this.index][0] == '-') {
+                        this.values[this.index] = this.values[this.index].replace('-', '');
+                    }
+                } else if (v == '0') {
+                    // Only adds zero if there's a non-zero number before
+                    if (this.values[this.index] != '0' && this.values[this.index] != '-0') {
+                        this.values[this.index] += v;
+                    }
+                } else if (v > 0 && v < 10) {
+                    // Verify if there's a zero to remove it, avoiding left zeros
+                    if (this.values[this.index] == '0' || this.values[this.index] == '-0') {
+                        this.values[this.index] = this.values[this.index].replace('0', '');
+                    }
+                    this.values[this.index] += v;
+                } else if (v === this.decimal) {
+                    // Only adds decimal when there's a number value on its left
+                    if (! this.values[this.index].includes(this.decimal)) {
+                        if (! this.values[this.index].replace('-', '').length) {
+                            this.values[this.index] += '0';
+                        }
+                        this.values[this.index] += this.decimal;
+                    }
+                }
+            },
+            '[0#]+([.,]{1}0*#*)?%': function(v) {
+                parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
+
+                // Adds the % only if it has a number value
+                if (this.values[this.index].match(/[\-0-9]/g)) {
+                    if (this.values[this.index].indexOf('%') !== -1) {
+                        this.values[this.index] = this.values[this.index].replaceAll('%', '');
+                    }
+                    this.values[this.index] += '%';
+                } else {
+                    this.values[this.index] = '';
+                }
+            },
+            '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
+                // Process first the number
+                parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v, true);
+                // Create the separators
+                let separator = this.tokens[this.index].substring(1,2);
+
+
+                let currentValue = this.values[this.index];
+                // Remove existing separators and negative sign
+                currentValue = currentValue.replaceAll(separator, '');
+                // Process separators
+                let val = currentValue.split(this.decimal);
+                if (val[0].length > 3) {
+                    let number = [];
+                    let count = 0;
+                    for (var j = val[0].length - 1; j >= 0 ; j--) {
+                        let c = val[0][j];
+                        if (c >= 0 && c <= 9) {
+                            if (count && ! (count % 3)) {
+                                number.unshift(separator);
+                            }
+                            count++;
+                        }
+                        number.unshift(c);
+                    }
+                    val[0] = number.join('');
+                }
+                // Reconstruct the value
+                this.values[this.index] = val.join(this.decimal);
+            },
+            '[0#]+([.,]{1}0*#*)?E{1}\\+0+': function(v) {
+                parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v);
+            },
+            '#{0,1}.*?\\?+\\/[0-9?]+': function (v) {
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+
+                const token = this.tokens[this.index]; // e.g. "# ?/?", "?/2", "# ??/16"
+                let cur = this.values[this.index];
+
+                // Parse RHS of mask to decide denominator rule
+                const rhsRaw = (token.split('/')[1] || '').replace(/\s+/g, '');
+                const allowDen = /^\d+$/.test(rhsRaw) ? rhsRaw : /^\?+$/.test(rhsRaw) ? '?' : '?';
+
+                // ----- NEW: allow '-' as first char -----
+                if (v === '-') {
+                    if (cur.length === 0) {
+                        this.values[this.index] = '-';
+                    }
+                    return; // never return false
+                }
+                // ----------------------------------------
+
+                // Only accept digits / space / slash; ignore everything else
+                if (!(/[0-9\/ ]/.test(v))) {
+                    return;
+                }
+
+                // If we already have a slash and denominator is fixed but not yet appended,
+                // auto-complete immediately regardless of what the user typed now.
+                const hasSlashNow = cur.includes('/');
+                if (hasSlashNow && allowDen !== '?') {
+                    const afterSlash = cur.slice(cur.indexOf('/') + 1);
+                    if (afterSlash.length === 0) {
+                        this.values[this.index] = cur + allowDen;
+                        this.index++; // move to next token
+                        return;
+                    }
+                }
+
+                // Empty -> only digits (or a leading '-' handled above)
+                if (cur.length === 0) {
+                    if (/\d/.test(v)) this.values[this.index] = v;
+                    return;
+                }
+
+                const hasSpace = cur.includes(' ');
+                const hasSlash = cur.includes('/');
+                const last = cur[cur.length - 1];
+
+                // Space rules: only one, must be before slash, must follow a digit
+                if (v === ' ') {
+                    if (!hasSpace && !hasSlash && /\d/.test(last)) {
+                        this.values[this.index] = cur + ' ';
+                    }
+                    return;
+                }
+
+                // Slash rules: only one slash, not right after a space, must follow a digit
+                if (v === '/') {
+                    if (!hasSlash && last !== ' ' && /\d/.test(last)) {
+                        if (allowDen === '?') {
+                            this.values[this.index] = cur + '/';
+                        } else {
+                            this.values[this.index] = cur + '/' + allowDen;
+                            this.index++; // conclude this token
+                        }
+                    }
+                    return;
+                }
+
+                // Digit rules
+                if (/\d/.test(v)) {
+                    if (!hasSlash) {
+                        // Before slash: digits always fine
+                        this.values[this.index] = cur + v;
+                        return;
+                    }
+
+                    // After slash
+                    if (allowDen === '?') {
+                        this.values[this.index] = cur + v;
+                        return;
+                    }
+
+                    // Fixed denominator: enforce prefix and advance when complete
+                    const afterSlash = cur.slice(cur.indexOf('/') + 1);
+                    const nextDen = afterSlash + v;
+                    if (allowDen.startsWith(nextDen)) {
+                        this.values[this.index] = cur + v;
+                        if (nextDen.length === allowDen.length) {
+                            this.index++;
+                        }
+                    }
+                }
+            },
+            '[a-zA-Z\\$]+': function(v) {
+                // Token to be added to the value
+                let word = this.tokens[this.index];
+                // Value
+                if (typeof(this.values[this.index]) === 'undefined') {
+                    this.values[this.index] = '';
+                }
+                if (v === null) {
+                    let size = this.values[this.index].length;
+                    v = word.substring(size, size+1);
+                }
+                // Add the value
+                this.values[this.index] += v;
+                // Only if caret is before the change
+                let current = this.values[this.index];
+                // Add token to the values
+                if (current !== word.substring(0,current.length)) {
+                    this.values[this.index] = word;
+                    // Next token to process
+                    this.index++;
+                    return false;
+                } else if (current === word) {
+                    // Next token to process
+                    this.index++;
+                }
+            },
+            'A': function(v) {
+                return parseMethods['[a-zA-Z\\$]+'].call(this, v);
+            },
+            'a': function(v) {
+                return parseMethods['[a-zA-Z\\$]+'].call(this, v);
+            },
+            '.': function(v) {
+                return parseMethods['[a-zA-Z\\$]+'].call(this, v);
+            },
+            '&': function(v) {
+                if (v.match(/^[a-zA-Z ]+$/)) {
+                    this.values[this.index] = v;
+                    this.index++;
+                }
+            },
+            '\\*': function() {
+                this.values[this.index] = '';
+                this.index++;
+                return false;
+            },
+            'C': function(v) {
+                parseMethods['&'].call(this, v);
+            },
+            // General Methods
+            '0': function(v) {
+                if (v.match(/[0-9]/g)) {
+                    this.values[this.index] = v;
+                    this.index++;
+                }
+            },
+            '9': function(v) {
+                parseMethods['0'].call(this, v);
+            },
+            '#': function(v) {
+                parseMethods['0'].call(this, v);
+            },
+            'L': function(v) {
+                if (v.match(/[a-zA-Z]/gi)) {
+                    this.values[this.index] = v;
+                    this.index++;
+                }
+            },
+            '\\?': function(v) {
+                if (v.match(/[1-9]/g)) {
+                    this.values[this.index] = v;
+                    this.index++;
+                }
+            },
+            '@': function(v) {
+                if (isBlank(this.values[this.index])) {
+                    this.values[this.index] = '';
+                }
+                this.values[this.index] += v;
+            },
+            '_[.\\s\\S]': function() {
+                this.values[this.index] = ' ';
+                this.index++;
+                return false;
+            },
+            '\\(': function() {
+                if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
+                    this.values[this.index] = '';
+                } else {
+                    this.values[this.index] = '(';
+                }
+                this.index++;
+                return false;
+            },
+            '\\)': function() {
+                if (this.type === 'currency' && this.parenthesisForNegativeNumbers) {
+                    this.values[this.index] = '';
+                } else {
+                    this.values[this.index] = ')';
+                }
+                this.index++;
+                return false;
+            },
+            ',,M': function() {
+                this.values[this.index] = 'M';
+                this.index++;
+                return false;
+            },
+            ',,,B': function() {
+                this.values[this.index] = 'B';
+                this.index++;
+                return false;
+            },
+            '\\\\[.\\s\\S]': function(v) {
+                this.values[this.index] = this.tokens[this.index].replace('\\', '');
+                this.index++;
+                return false;
+            }
+        }
+
+        const extractDate = function() {
+            let v = '';
+            if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
+                if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
+                    v = parseInt(this.date[3]);
+                } else {
+                    let h = parseInt(this.date[3]);
+                    if (h < 13 && this.values.indexOf('PM') !== -1) {
+                        v = (h+12) % 24;
+                    } else {
+                        v = h % 24;
+                    }
+                }
+                if (this.date[4]) {
+                    v += parseFloat(this.date[4] / 60);
+                }
+                if (this.date[5]) {
+                    v += parseFloat(this.date[5] / 3600);
+                }
+                v /= 24;
+            } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
+                if (this.date[0] && this.date[1] && ! this.date[2]) {
+                    this.date[2] = 1;
+                }
+                var t = Helpers.now(this.date);
+                v = Helpers.dateToNum(t);
+            }
+
+            if (isNaN(v)) {
+                v = '';
+            }
+
+            return v;
+        }
+
+        // Types TODO: Generate types so we can garantee that text,scientific, numeric,percentage, current are not duplicates. If they are, it will be general or broken.
+
+        const getTokens = function(str) {
+            // Check cache first - direct access, undefined check is fast
+            let result = tokensCache[str];
+            if (result !== undefined) {
+                return result;
+            }
+
+            allExpressionsRegex.lastIndex = 0; // Reset for global regex
+            result = str.match(allExpressionsRegex);
+            tokensCache[str] = result;
+            return result;
+        }
+
+        /**
+         * Get the method of one given token
+         */
+        const getMethod = function(str, temporary) {
+            str = str.toString().toUpperCase();
+
+            // Check cache first - direct access, undefined check is fast
+            let cached = methodCache[str];
+            if (cached !== undefined) {
+                return cached;
+            }
+
+            // Check for datetime mask
+            const datetime = temporary.every(t => t.type === 'datetime' || t.type === 'general' || t.type === 'escape');
+
+            // Use priority order for faster matching with pre-compiled regexes
+            for (const type of tokenPriority) {
+                if (!datetime && type === 'datetime') continue;
+
+                for (const compiled of compiledTokens[type]) {
+                    if (compiled.regex.test(str)) {
+                        const result = { type: type, method: compiled.method };
+                        methodCache[str] = result;
+                        return result;
+                    }
+                }
+            }
+            methodCache[str] = null;
+            return null;
+        }
+
+        const fixMinuteToken = function(t) {
+            const len = t.length;
+            for (let i = 0; i < len; i++) {
+                const token = t[i];
+                if (token === 'M' || token === 'MM') {
+                    // Check if this M is a minute (near H or S) rather than month
+                    let isMinute = false;
+
+                    // Check previous 2 tokens for H (hour indicator)
+                    if (i > 0) {
+                        const prev1 = t[i - 1];
+                        // Use includes for fast check - covers H, HH, HH24, HH12, [H], etc
+                        if (prev1 && prev1.includes('H')) {
+                            isMinute = true;
+                        } else if (i > 1) {
+                            const prev2 = t[i - 2];
+                            if (prev2 && prev2.includes('H')) {
+                                isMinute = true;
+                            }
+                        }
+                    }
+
+                    // Check next 2 tokens for S (seconds indicator) if not already determined
+                    if (!isMinute && i < len - 1) {
+                        const next1 = t[i + 1];
+                        // Use includes for fast check - covers S, SS, MS, etc
+                        if (next1 && next1.includes('S')) {
+                            isMinute = true;
+                        } else if (i < len - 2) {
+                            const next2 = t[i + 2];
+                            if (next2 && next2.includes('S')) {
+                                isMinute = true;
+                            }
+                        }
+                    }
+
+                    if (isMinute) {
+                        t[i] = token === 'M' ? 'I' : 'MI';
+                    }
+                }
+            }
+        }
+
+        /**
+         * Identify each method for each token
+         */
+        const getMethodsFromTokens = function(t) {
+            // Uppercase
+            t = t.map(v => {
+                return v.toString().toUpperCase();
+            });
+
+            // Compatibility with Excel
+            fixMinuteToken(t);
+
+            let result = [];
+            for (let i = 0; i < t.length; i++) {
+                var m = getMethod(t[i], result);
+                if (m) {
+                    result.push(m);
+                } else {
+                    result.push(null);
+                }
+            }
+            return result;
+        }
+
+        const getMethodByPosition = function(control) {
+            let methodName;
+            if (control.methods[control.index] && typeof(control.value[control.position]) !== 'undefined') {
+                methodName = control.methods[control.index].method;
+            }
+
+            let m = parseMethods[methodName];
+            if (typeof(m) === 'function') {
+                return m;
+            }
+
+            return false;
+        }
+
+        const processPaddingZeros = function(token, value, decimal) {
+            if (! value) {
+                return value;
+            }
+            let m = token.split(decimal);
+            let desiredNumOfPaddingZeros = m[0].match(/[0]+/g);
+            if (desiredNumOfPaddingZeros && desiredNumOfPaddingZeros[0]) {
+                desiredNumOfPaddingZeros = desiredNumOfPaddingZeros[0].length
+                let v = value.toString().split(decimal);
+                let len = v[0].length;
+                if (desiredNumOfPaddingZeros > len) {
+                    v[0] = v[0].padStart(desiredNumOfPaddingZeros, '0');
+                    return v.join(decimal);
+                }
+            }
+        }
+
+        const processNumOfPaddingZeros = function(control) {
+            let negativeSignal = false;
+            control.methods.forEach((method, k) => {
+                if (method) {
+                    if (method.type === 'numeric' || method.type === 'percentage' || method.type === 'scientific') {
+                        let ret = processPaddingZeros(control.tokens[k], control.values[k], control.decimal);
+                        if (ret) {
+                            control.values[k] = ret;
+                        }
+                    }
+
+                    if (isNumeric(control.type) && control.parenthesisForNegativeNumbers === true) {
+                        if (isNumeric(method.type)) {
+                            if (control.values[k] && control.values[k].toString().includes('-')) {
+                                control.values[k] = control.values[k].replace('-', '');
+
+                                negativeSignal = true;
+                            }
+                        }
+                    }
+                }
+            });
+
+
+            if (isNumeric(control.type) && control.parenthesisForNegativeNumbers === true && negativeSignal) {
+                control.methods.forEach((method, k) => {
+                    if (! control.values[k] && control.tokens[k] === '(') {
+                        control.values[k] = '(';
+                    } else if (! control.values[k] && control.tokens[k] === ')') {
+                        control.values[k] = ')';
+                    }
+                });
+            }
+        }
+
+        const getValue = function(control) {
+            let value = control.values.join('');
+            if (isNumeric(control.type)) {
+                if (value.indexOf('--') !== false) {
+                    value = value.replace('--', '-');
+                }
+                if (Number(control.raw) < 0 && value.includes('-')) {
+                    value = '-' + value.replace('-', '');
+                }
+            }
+            return value;
+        }
+
+        const inputIsANumber = function(num) {
+            if (typeof(num) === 'string') {
+                num = num.trim();
+            }
+            return !isNaN(num) && num !== null && num !== '';
+        }
+
+        const getType = function(control) {
+            // Mask type
+            let type = 'general';
+            // Process other types
+            for (var i = 0; i < control.methods.length; i++) {
+                let m = control.methods[i];
+                if (m) {
+                    let t = m.type;
+                    if (t !== 'general' && t !== 'escape' && t !== type) {
+                        if (type === 'general') {
+                            type = t;
+                        } else {
+                            type = 'general';
+                            break;
+                        }
+                    }
+                }
+            }
+            return type;
+        }
+
+        const isNumber = function(num) {
+            if (typeof(num) === 'string') {
+                num = num.trim();
+            }
+            return !isNaN(num) && num !== null && num !== '';
+        }
+
+        // TODO, get negative mask automatically based on the input sign?
+
+        const getConfig = function(config, value) {
+            // Internal default control of the mask system
+            const control = {
+                // Mask options
+                options: {},
+                // New values for each token found
+                values: [],
+                // Token position
+                index: 0,
+                // Character position
+                position: 0,
+                // Date raw values
+                date: [0,0,0,0,0,0],
+                // Raw number for the numeric values
+                number: 0,
+            }
+
+            if (typeof(value) === 'undefined' || value === null) {
+                value = '';
+            }
+
+            // Value to be masked
+            control.value = value.toString();
+            control.raw = value;
+
+
+            // Options defined by the user
+            if (typeof(config) == 'string') {
+                // Mask
+                control.mask = config;
+            } else if (config) {
+                // Mask
+                let k = Object.keys(config);
+                for (var i = 0; i < k.length; i++) {
+                    control[k[i]] = config[k[i]];
+                }
+            }
+
+            // Controls of Excel that should be ignored
+            let mask = control.mask;
+            if (mask) {
+                if (mask.indexOf(';') !== -1) {
+                    let d = mask.split(';');
+
+                    // Mask
+                    mask = d[0];
+
+                    if (typeof (value) === 'number' || isNumber(value)) {
+                        if (Number(value) < 0 && d[1]) {
+                            mask = d[1];
+                        } else if (Number(value) === 0 && d[2]) {
+                            mask = d[2];
+                        } else {
+                            mask = d[0];
+                        }
+                    } else {
+                        if (typeof(d[3]) !== 'undefined') {
+                            mask = d[3];
+                        }
+                    }
+                }
+
+                // Transform Excel locale patterns (e.g., [$$-409]#,##0.00) - only if pattern exists
+                if (mask.indexOf('[$') !== -1) {
+                    mask = transformExcelLocaleMask(mask);
+                }
+
+                // Cleaning the mask
+                mask = cleanMask(mask, control);
+                // Get only the first mask for now and remove
+                control.mask = mask;
+                // Get tokens which are the methods for parsing
+                let tokens = control.tokens = getTokens(mask);
+                // Get methods from the tokens
+                control.methods = getMethodsFromTokens(tokens);
+                // Type
+                control.type = getType(control);
+            }
+
+            // Decimal only for numbers
+            if (isNumeric(control.type) || control.locale) {
+                control.decimal = getDecimal.call(control);
+            }
+
+            return control;
+        }
+
+        const toPlainString = function(num) {
+            // Convert number to string if it isn't already
+            num = String(num);
+
+            // If it's not in exponential form, return as-is
+            if (!/e/i.test(num)) return num;
+
+            // Decompose scientific notation
+            const [coefficient, exponent] = num.toLowerCase().split('e');
+            const exp = parseInt(exponent, 10);
+
+            // Handle sign
+            const sign = coefficient[0] === '-' ? '-' : '';
+            const [intPart, fracPart = ''] = coefficient.replace('-', '').split('.');
+
+            const digits = intPart + fracPart;
+            const decimalPos = intPart.length;
+
+            let newPos = decimalPos + exp;
+
+            if (newPos <= 0) {
+                // Decimal point moves left
+                return sign + '0.' + '0'.repeat(-newPos) + digits;
+            } else if (newPos >= digits.length) {
+                // Decimal point moves right, add trailing zeros
+                return sign + digits + '0'.repeat(newPos - digits.length);
+            } else {
+                // Decimal point moves into the number
+                return sign + digits.slice(0, newPos) + '.' + digits.slice(newPos);
+            }
+        };
+
+        const adjustNumberOfDecimalPlaces = function(config, value) {
+            let temp = value;
+            let mask = config.mask;
+            let expo;
+
+            if (config.type === 'scientific') {
+                mask = config.mask.toUpperCase().split('E')[0];
+
+                let numOfDecimalPlaces = mask.split(config.decimal);
+                numOfDecimalPlaces = numOfDecimalPlaces[1].match(/[0#]+/g);
+                numOfDecimalPlaces = numOfDecimalPlaces[0]?.length ?? 0;
+                temp = temp.toExponential(numOfDecimalPlaces);
+                expo = temp.toString().split('e+');
+                temp = Number(expo[0]);
+            }
+
+            if (mask.indexOf(config.decimal) === -1) {
+                // No decimal places
+                if (! Number.isInteger(temp)) {
+                    temp = temp.toFixed(0);
+                }
+            } else {
+                // Length of the decimal
+                let mandatoryDecimalPlaces = mask.split(config.decimal);
+                mandatoryDecimalPlaces = mandatoryDecimalPlaces[1].match(/0+/g);
+                if (mandatoryDecimalPlaces) {
+                    mandatoryDecimalPlaces = mandatoryDecimalPlaces[0].length;
+                } else {
+                    mandatoryDecimalPlaces = 0;
+                }
+                // Amount of decimal
+                let numOfDecimalPlaces = temp.toString().split(config.decimal)
+                numOfDecimalPlaces = numOfDecimalPlaces[1]?.length ?? 0;
+                // Necessary adjustment
+                let necessaryAdjustment = 0;
+                if (numOfDecimalPlaces < mandatoryDecimalPlaces) {
+                    necessaryAdjustment = mandatoryDecimalPlaces;
+                } else {
+                    // Optional
+                    let optionalDecimalPlaces = mask.split(config.decimal);
+                    optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g);
+                    if (optionalDecimalPlaces) {
+                        optionalDecimalPlaces = optionalDecimalPlaces[0].length;
+                        if (numOfDecimalPlaces > optionalDecimalPlaces) {
+                            necessaryAdjustment = optionalDecimalPlaces;
+                        }
+                    }
+                }
+                // Adjust decimal numbers if applicable
+                if (necessaryAdjustment) {
+                    let t = temp.toFixed(necessaryAdjustment);
+                    let n = temp.toString().split('.');
+                    let fraction = n[1];
+                    if (fraction && fraction.length > necessaryAdjustment && fraction[fraction.length - 1] === '5') {
+                        t = parseFloat(n[0] + '.' + fraction + '1').toFixed(necessaryAdjustment);
+                    }
+                    temp = t;
+                }
+            }
+
+            if (config.type === 'scientific') {
+                let ret = processPaddingZeros(mask, temp, config.decimal);
+                if (ret) {
+                    temp = ret;
+                }
+                expo[0] = temp;
+
+                mask = config.mask.toUpperCase().split('E+')[1];
+                ret = processPaddingZeros(mask, expo[1], config.decimal);
+                if (ret) {
+                    expo[1] = ret;
+                }
+
+                temp = expo.join('e+');
+            }
+
+            return temp;
+        }
+
+        const formatFraction = function(value, mask) {
+            let maxDenominator;
+            let fixedDenominator = null;
+            let allowWholeNumber = true;
+
+            // Check for fixed denominator like # ?/8 or ?/8
+            const fixed = mask.match(/\/(\d+)/);
+            if (fixed) {
+                fixedDenominator = parseInt(fixed[1], 10);
+                maxDenominator = fixedDenominator;
+            } else {
+                // Determine based on question marks in mask
+                const match = mask.match(/\?\/(\?+)/);
+                if (match) {
+                    maxDenominator = Math.pow(10, match[1].length) - 1;
+                } else {
+                    maxDenominator = 9; // Default for # ?/? or ?/?
+                }
+            }
+            // Check if mask allows whole number (e.g., ?/? or ?/8 implies no whole number)
+            allowWholeNumber = mask.includes('#');
+
+            // If we have a fixed denominator, use it exactly (don't simplify)
+            if (fixedDenominator) {
+                const isNegative = value < 0;
+                const absValue = Math.abs(value);
+                const numerator = Math.round(absValue * fixedDenominator);
+
+                // For masks like ?/8, always output as pure fraction (no whole number)
+                if (!allowWholeNumber) {
+                    return isNegative ? `-${numerator}/${fixedDenominator}` : `${numerator}/${fixedDenominator}`;
+                }
+
+                // For masks like # ?/8, allow whole number
+                const whole = Math.floor(numerator / fixedDenominator);
+                const remainder = numerator % fixedDenominator;
+                if (remainder === 0) {
+                    return isNegative ? `-${whole}` : `${whole}`;
+                }
+                if (whole === 0) {
+                    return isNegative ? `-${numerator}/${fixedDenominator}` : `${numerator}/${fixedDenominator}`;
+                }
+                return isNegative ? `-${whole} ${remainder}/${fixedDenominator}` : `${whole} ${remainder}/${fixedDenominator}`;
+            }
+
+            // Use continued fractions algorithm for better approximation
+            function continuedFraction(value, maxDenom) {
+                if (value === 0) return [0, 1];
+                let sign = value < 0 ? -1 : 1;
+                value = Math.abs(value);
+                let whole = Math.floor(value);
+                let frac = value - whole;
+                if (frac === 0) return [sign * whole, 1];
+
+                let h1 = 1, h2 = 0;
+                let k1 = 0, k2 = 1;
+                let x = frac;
+                while (k1 <= maxDenom) {
+                    let a = Math.floor(x);
+                    let h0 = a * h1 + h2;
+                    let k0 = a * k1 + k2;
+                    if (k0 > maxDenom) break;
+                    h2 = h1; h1 = h0;
+                    k2 = k1; k1 = k0;
+                    if (Math.abs(x - a) < 1e-10) break;
+                    x = 1 / (x - a);
+                }
+
+                // Add the whole part back only if allowed
+                let finalNum = sign * (allowWholeNumber ? whole * k1 + h1 : Math.round(value * k1));
+                let finalDen = k1;
+                return [finalNum, finalDen];
+            }
+
+            const [numerator, denominator] = continuedFraction(value, maxDenominator);
+
+            // Handle the result
+            const isNegative = numerator < 0;
+            const absNumerator = Math.abs(numerator);
+            const whole = allowWholeNumber ? Math.floor(absNumerator / denominator) : 0;
+            const remainder = absNumerator % denominator;
+            const sign = isNegative ? '-' : '';
+
+            if (remainder === 0) {
+                return `${sign}${whole || 0}`;
+            }
+            if (whole === 0 || !allowWholeNumber) {
+                return `${sign}${absNumerator}/${denominator}`;
+            }
+            return `${sign}${whole} ${remainder}/${denominator}`;
+        }
+
+        const extractDateAndTime = function(value) {
+            value = value.toString().substring(0,19);
+            let splitStr = (value.indexOf('T') !== -1) ? 'T' : ' ';
+            value = value.split(splitStr);
+
+            let y = null;
+            let m = null;
+            let d = null;
+            let h = '0';
+            let i = '0';
+            let s = '0';
+
+            if (! value[1]) {
+                if (value[0].indexOf(':') !== -1) {
+                    value[0] = value[0].split(':');
+                    h = value[0][0];
+                    i = value[0][1];
+                    s = value[0][2];
+                } else {
+                    value[0] = value[0].split('-');
+                    y = value[0][0];
+                    m = value[0][1];
+                    d = value[0][2];
+                }
+            } else {
+                value[0] = value[0].split('-');
+                y = value[0][0];
+                m = value[0][1];
+                d = value[0][2];
+
+                value[1] = value[1].split(':');
+                h = value[1][0];
+                i = value[1][1];
+                s = value[1][2];
+            }
+
+            return [y,m,d,h,i,s];
+        }
+
+        const format = function(str, config) {
+            // Extract numeric value from formatted or unformatted string (e.g., "₹3.00" -> 3)
+            // Using same logic as ParseValue to handle already-formatted strings
+            let numericValue;
+            const decimal = config.decimal || '.';
+            let v = String(str).split(decimal);
+
+            // Detect negative sign
+            let signal = v[0].includes('-');
+
+            // Extract digits only
+            v[0] = v[0].match(/[0-9]+/g);
+            if (v[0]) {
+                if (signal) v[0].unshift('-');
+                v[0] = v[0].join('');
+            } else {
+                v[0] = signal ? '-0' : '0';
+            }
+
+            if (v[1] !== undefined) {
+                v[1] = v[1].match(/[0-9]+/g);
+                v[1] = v[1] ? v[1].join('') : '';
+            }
+
+            // Convert to number
+            numericValue = v[0] || v[1] ? parseFloat(v.join('.')) : 0;
+
+            let ret = new Intl.NumberFormat(config.locale, config.options || {}).format(numericValue);
+
+            config.values.push(ret);
+        }
+
+        const Component = function(str, config, returnObject) {
+            // Get configuration
+            const control = getConfig(config, str);
+
+            if (control.locale) {
+                format(str, control);
+            } else if (control.mask) {
+                // Walk every character on the value
+                let method;
+                while (method = getMethodByPosition(control)) {
+                    let char = control.value[control.position];
+                    if (char === hiddenCaret) {
+                        control.caret = {
+                            index: control.index,
+                            position: control.values[control.index]?.length ?? 0,
+                        }
+                        control.position++;
+                    } else {
+                        // Get the method name to handle the current token
+                        let ret = method.call(control, char);
+                        // Next position
+                        if (ret !== false) {
+                            control.position++;
+                        }
+                    }
+                }
+
+                // Move index
+                if (control.methods[control.index]) {
+                    let type = control.methods[control.index].type;
+                    if (isNumeric(type) && control.methods[++control.index]) {
+                        let next;
+                        while (next = control.methods[control.index]) {
+                            if (control.methods[control.index].type === 'general') {
+                                let method = control.methods[control.index].method;
+                                if (method && typeof(parseMethods[method]) === 'function') {
+                                    parseMethods[method].call(control, null);
+                                }
+                            } else {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            if (control.caret) {
+                let index = control.caret.index;
+                let position = control.caret.position;
+                let value = control.values[index] ?? '';
+                // Re-apply the caret to the original position
+                control.values[index] = value.substring(0, position) + hiddenCaret + value.substring(position);
+            }
+
+            control.value = getValue(control);
+
+            if (returnObject) {
+                return control;
+            } else {
+                return control.value;
+            }
+        }
+
+        // Helper: Compare rendered value to original input
+        const testMask = function(mask, value, original) {
+            const rendered = Component.render(value, { mask }, true);
+            return rendered.replace(/\s/g, '') === original.replace(/\s/g, '');
+        }
+
+        const autoCastingFractions = function(value) {
+            const fractionPattern = /^\s*(-?\d+\s+)?(-?\d+)\/(\d+)\s*$/;
+            const fractionMatch = value.match(fractionPattern);
+            if (fractionMatch) {
+                const sign = value.trim().startsWith('-') ? -1 : 1;
+                const whole = fractionMatch[1] ? Math.abs(parseInt(fractionMatch[1])) : 0;
+                const numerator = Math.abs(parseInt(fractionMatch[2]));
+                const denominator = parseInt(fractionMatch[3]);
+
+                if (denominator === 0) return null;
+
+                const decimalValue = sign * (whole + (numerator / denominator));
+
+                // Determine the mask
+                let mask;
+                if ([2, 4, 8, 16, 32].includes(denominator)) {
+                    mask = whole !== 0 ? `# ?/${denominator}` : `?/${denominator}`;
+                } else if (denominator <= 9) {
+                    mask = whole !== 0 ? '# ?/?' : '?/?';
+                } else {
+                    mask = whole !== 0 ? '# ??/??' : '??/??';
+                }
+
+                if (testMask(mask, decimalValue, value.trim())) {
+                    return { mask, value: decimalValue, type: 'fraction', category: 'fraction' };
+                }
+            }
+            return null;
+        }
+
+        const autoCastingPercent = function(value) {
+            const percentPattern = /^\s*([+-]?\d+(?:[.,]\d+)?)%\s*$/;
+            const percentMatch = value.match(percentPattern);
+            if (percentMatch) {
+                const rawNumber = percentMatch[1].replace(',', '.');
+                const decimalValue = parseFloat(rawNumber) / 100;
+
+                const decimalPart = rawNumber.split('.')[1];
+                const decimalPlaces = decimalPart ? decimalPart.length : 0;
+                const mask = decimalPlaces > 0 ? `0.${'0'.repeat(decimalPlaces)}%` : '0%';
+
+                if (testMask(mask, decimalValue, value.trim())) {
+                    return { mask: mask, value: decimalValue, type: 'percent', category: 'numeric' };
+                }
+            }
+            return null;
+        }
+
+        const autoCastingDates = function(value) {
+            if (!value || typeof value !== 'string') {
+                return null;
+            }
+
+            // Smart pattern detection based on the structure of the string
+
+            // 1. Analyze the structure to determine possible formats
+            const analyzeStructure = function(str) {
+                const patterns = [];
+
+                // Check for date with forward slashes: XX/XX/XXXX or XX/XX/XX
+                if (str.match(/^\d{1,2}\/\d{1,2}\/\d{2,4}$/)) {
+                    const parts = str.split('/');
+                    const p1 = parseInt(parts[0]);
+                    const p2 = parseInt(parts[1]);
+                    const p3 = parseInt(parts[2]);
+
+                    // Determine likely format based on values
+                    if (p1 <= 12 && p2 <= 31 && p2 > 12) {
+                        // Likely mm/dd/yyyy
+                        patterns.push('mm/dd/yyyy', 'mm/dd/yy', 'm/d/yyyy', 'm/d/yy');
+                    } else if (p1 <= 31 && p2 <= 12 && p1 > 12) {
+                        // Likely dd/mm/yyyy
+                        patterns.push('dd/mm/yyyy', 'dd/mm/yy', 'd/m/yyyy', 'd/m/yy');
+                    } else if (p1 <= 12 && p2 <= 12) {
+                        // Ambiguous - could be either, use locale preference
+                        if (userLocale.startsWith('en-US')) {
+                            patterns.push('mm/dd/yyyy', 'dd/mm/yyyy', 'mm/dd/yy', 'dd/mm/yy');
+                        } else {
+                            patterns.push('dd/mm/yyyy', 'mm/dd/yyyy', 'dd/mm/yy', 'mm/dd/yy');
+                        }
+                    }
+
+                    // Add variations
+                    if (p3 < 100) {
+                        patterns.push('dd/mm/yy', 'mm/dd/yy', 'd/m/yy', 'm/d/yy');
+                    } else {
+                        patterns.push('dd/mm/yyyy', 'mm/dd/yyyy', 'd/m/yyyy', 'm/d/yyyy');
+                    }
+                }
+
+                // Check for date with dashes: XX-XX-XXXX
+                else if (str.match(/^\d{1,2}-\d{1,2}-\d{2,4}$/)) {
+                    const parts = str.split('-');
+                    const p1 = parseInt(parts[0]);
+                    const p2 = parseInt(parts[1]);
+
+                    if (p1 <= 12 && p2 <= 31 && p2 > 12) {
+                        patterns.push('mm-dd-yyyy', 'mm-dd-yy', 'm-d-yyyy', 'm-d-yy');
+                    } else if (p1 <= 31 && p2 <= 12 && p1 > 12) {
+                        patterns.push('dd-mm-yyyy', 'dd-mm-yy', 'd-m-yyyy', 'd-m-yy');
+                    } else {
+                        patterns.push('dd-mm-yyyy', 'mm-dd-yyyy', 'dd-mm-yy', 'mm-dd-yy');
+                    }
+                }
+
+                // Check for ISO format: YYYY-MM-DD
+                else if (str.match(/^\d{4}-\d{1,2}-\d{1,2}$/)) {
+                    patterns.push('yyyy-mm-dd', 'yyyy-m-d');
+                }
+
+                // Check for format: YYYY/MM/DD
+                else if (str.match(/^\d{4}\/\d{1,2}\/\d{1,2}$/)) {
+                    patterns.push('yyyy/mm/dd', 'yyyy/m/d');
+                }
+
+                // Check for dates with month names
+                else if (str.match(/\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i)) {
+                    // DD Mon YYYY or DD Month YYYY
+                    if (str.match(/^\d{1,2}\s+\w+\s+\d{2,4}$/i)) {
+                        patterns.push('dd mmm yyyy', 'dd mmmm yyyy', 'd mmm yyyy', 'd mmmm yyyy',
+                            'dd mmm yy', 'dd mmmm yy', 'd mmm yy', 'd mmmm yy');
+                    }
+                    // Mon DD, YYYY or Month DD, YYYY
+                    else if (str.match(/^\w+\s+\d{1,2},?\s+\d{2,4}$/i)) {
+                        patterns.push('mmm dd, yyyy', 'mmmm dd, yyyy', 'mmm d, yyyy', 'mmmm d, yyyy',
+                            'mmm dd yyyy', 'mmmm dd yyyy', 'mmm d yyyy', 'mmmm d yyyy');
+                    }
+                    // DD-Mon-YYYY
+                    else if (str.match(/^\d{1,2}-\w+-\d{2,4}$/i)) {
+                        patterns.push('dd-mmm-yyyy', 'dd-mmmm-yyyy', 'd-mmm-yyyy', 'd-mmmm-yyyy',
+                            'dd-mmm-yy', 'dd-mmmm-yy', 'd-mmm-yy', 'd-mmmm-yy');
+                    }
+                }
+
+                // Check for weekday formats
+                else if (str.match(/^(mon|tue|wed|thu|fri|sat|sun)/i)) {
+                    if (str.match(/^\w+,\s+\d{1,2}\s+\w+\s+\d{4}$/i)) {
+                        patterns.push('ddd, dd mmm yyyy', 'ddd, d mmm yyyy',
+                            'dddd, dd mmmm yyyy', 'dddd, d mmmm yyyy');
+                    }
+                }
+
+                // Check for datetime formats
+                else if (str.includes(' ') && str.match(/\d{1,2}:\d{2}/)) {
+                    const parts = str.split(' ');
+                    if (parts.length >= 2) {
+                        const datePart = parts[0];
+                        const timePart = parts.slice(1).join(' ');
+
+                        // Determine date format
+                        let dateMasks = [];
+                        if (datePart.includes('/')) {
+                            dateMasks = ['dd/mm/yyyy', 'mm/dd/yyyy', 'd/m/yyyy', 'm/d/yyyy'];
+                        } else if (datePart.includes('-')) {
+                            if (datePart.match(/^\d{4}-/)) {
+                                dateMasks = ['yyyy-mm-dd', 'yyyy-m-d'];
+                            } else {
+                                dateMasks = ['dd-mm-yyyy', 'mm-dd-yyyy', 'd-m-yyyy', 'm-d-yyyy'];
+                            }
+                        }
+
+                        // Determine time format
+                        let timeMasks = [];
+                        if (timePart.match(/\d{1,2}:\d{2}:\d{2}/)) {
+                            timeMasks = ['hh:mm:ss', 'h:mm:ss'];
+                        } else {
+                            timeMasks = ['hh:mm', 'h:mm'];
+                        }
+
+                        // Add AM/PM variants if present
+                        if (timePart.match(/[ap]m/i)) {
+                            timeMasks = timeMasks.map(t => t + ' am/pm');
+                        }
+
+                        // Combine date and time masks
+                        for (const dateMask of dateMasks) {
+                            for (const timeMask of timeMasks) {
+                                patterns.push(`${dateMask} ${timeMask}`);
+                            }
+                        }
+                    }
+                }
+
+                // Check for time-only formats
+                else if (str.match(/^\d{1,2}:\d{2}(:\d{2})?(\s*(am|pm))?$/i)) {
+                    if (str.match(/:\d{2}:\d{2}/)) {
+                        patterns.push('hh:mm:ss', 'h:mm:ss');
+                        if (str.match(/[ap]m/i)) {
+                            patterns.push('hh:mm:ss am/pm', 'h:mm:ss am/pm');
+                        }
+                    } else {
+                        patterns.push('hh:mm', 'h:mm');
+                        if (str.match(/[ap]m/i)) {
+                            patterns.push('hh:mm am/pm', 'h:mm am/pm');
+                        }
+                    }
+                }
+
+                // Check for extended hour format [h]:mm:ss
+                else if (str.match(/^\[?\d+\]?:\d{2}:\d{2}$/)) {
+                    patterns.push('[h]:mm:ss');
+                }
+
+                return [...new Set(patterns)]; // Remove duplicates
+            };
+
+            // Get candidate masks based on the string structure
+            const candidateMasks = analyzeStructure(value);
+
+            // If no patterns detected, try some common formats as fallback
+            if (candidateMasks.length === 0) {
+                if (userLocale.startsWith('en-US')) {
+                    candidateMasks.push(
+                        'mm/dd/yyyy', 'mm-dd-yyyy', 'yyyy-mm-dd',
+                        'mm/dd/yy', 'mm-dd-yy',
+                        'hh:mm:ss', 'hh:mm', 'h:mm am/pm'
+                    );
+                } else {
+                    candidateMasks.push(
+                        'dd/mm/yyyy', 'dd-mm-yyyy', 'yyyy-mm-dd',
+                        'dd/mm/yy', 'dd-mm-yy',
+                        'hh:mm:ss', 'hh:mm', 'h:mm'
+                    );
+                }
+            }
+
+            // Try each candidate mask
+            for (const mask of candidateMasks) {
+                try {
+                    // Use Component.extractDateFromString to parse the date
+                    const isoDate = Component.extractDateFromString(value, mask);
+
+                    if (isoDate && isoDate !== '') {
+                        // Parse the ISO date string to components
+                        const parts = isoDate.split(' ');
+                        const dateParts = parts[0].split('-');
+                        const timeParts = parts[1] ? parts[1].split(':') : ['0', '0', '0'];
+
+                        const year = parseInt(dateParts[0]);
+                        const month = parseInt(dateParts[1]);
+                        const day = parseInt(dateParts[2]);
+                        const hour = parseInt(timeParts[0]);
+                        const minute = parseInt(timeParts[1]);
+                        const second = parseInt(timeParts[2]);
+
+                        // Validate the date components
+                        if (year > 0 && month >= 1 && month <= 12 && day >= 1 && day <= 31 &&
+                            hour >= 0 && hour < 24 && minute >= 0 && minute < 60 && second >= 0 && second < 60) {
+
+                            // Convert to Excel serial number
+                            const excelNumber = Helpers.dateToNum(isoDate);
+
+                            // Verify by rendering back
+                            const rendered = Component.render(excelNumber, { mask: mask }, true);
+
+                            // Case-insensitive comparison for month names
+                            if (rendered.toLowerCase() === value.toLowerCase()) {
+                                return {
+                                    mask: mask,
+                                    value: excelNumber,
+                                    type: 'date',
+                                    category: 'datetime'
+                                };
+                            }
+                        }
+                    }
+                } catch (e) {
+                }
+            }
+
+            // No matching format found
+            return null;
+        };
+
+        const autoCastingCurrency = function (input, filterDecimal) {
+            if (typeof input !== 'string') return null;
+
+            const str = input.trim();
+            if (!str) return null;
+
+            const len = str.length;
+            let isNegative = false;
+            let hasParens = false;
+            let symbol = '';
+            let numericPart = '';
+            let letterBuffer = '';
+            let firstCommaPos = -1;
+            let lastCommaPos = -1;
+            let firstDotPos = -1;
+            let lastDotPos = -1;
+            let commaCount = 0;
+            let dotCount = 0;
+            let hasInvalidChars = false;
+            let hasCurrencySymbol = false;
+
+            // Single pass through the string
+            for (let i = 0; i < len; i++) {
+                const char = str[i];
+
+                // Check for negative signs and parentheses
+                if (char === '-' && !numericPart) {
+                    isNegative = true;
+                    continue;
+                }
+                if (char === '(') {
+                    hasParens = true;
+                    isNegative = true;
+                    continue;
+                }
+                if (char === ')') continue;
+
+                // Skip whitespace
+                if (char === ' ' || char === '\t') {
+                    if (letterBuffer) {
+                        letterBuffer += char;
+                    }
+                    continue;
+                }
+
+                // Currency symbols
+                if (char === '$' || char === '€' || char === '£' || char === '¥' ||
+                    char === '₹' || char === '₽' || char === '₩' || char === '₫' || char === '¢') {
+                    hasCurrencySymbol = true;
+                    // Validate letter buffer: max 2 letters before symbol
+                    const trimmedBuffer = letterBuffer.trim();
+                    if (trimmedBuffer.length > 2) {
+                        return null;
+                    }
+                    if (letterBuffer) {
+                        symbol = letterBuffer + char;
+                        letterBuffer = '';
+                    } else {
+                        symbol = char;
+                    }
+                    // Check if next char is a space to include it in symbol
+                    if (i + 1 < len && (str[i + 1] === ' ' || str[i + 1] === '\t')) {
+                        symbol += ' ';
+                        i++; // Skip the space
+                    }
+                    continue;
+                }
+
+                // Letters (only valid BEFORE currency symbol, max 2 letters)
+                if ((char >= 'A' && char <= 'Z') || (char >= 'a' && char <= 'z')) {
+                    // Letters after symbol or numeric part are invalid
+                    if (hasCurrencySymbol || numericPart) {
+                        return null;
+                    }
+                    letterBuffer += char;
+                    continue;
+                }
+
+                // Digits
+                if (char >= '0' && char <= '9') {
+                    // Reject if we have letters but no currency symbol
+                    if (letterBuffer && !hasCurrencySymbol) {
+                        return null;
+                    }
+                    letterBuffer = '';
+                    numericPart += char;
+                    continue;
+                }
+
+                // Comma and dot separators
+                if (char === ',') {
+                    if (firstCommaPos === -1) firstCommaPos = numericPart.length;
+                    lastCommaPos = numericPart.length;
+                    commaCount++;
+                    numericPart += char;
+                    continue;
+                }
+                if (char === '.') {
+                    if (firstDotPos === -1) firstDotPos = numericPart.length;
+                    lastDotPos = numericPart.length;
+                    dotCount++;
+                    numericPart += char;
+                    continue;
+                }
+
+                // Invalid character
+                hasInvalidChars = true;
+            }
+
+            // Reject if no currency symbol was found
+            if (!hasCurrencySymbol) {
+                return null;
+            }
+
+            // Reject if there are any invalid characters
+            if (hasInvalidChars) {
+                return null;
+            }
+
+            // If no numeric part, reject
+            if (!numericPart) return null;
+
+            // Ensure numeric part contains at least one digit (not just separators)
+            if (!/\d/.test(numericPart)) return null;
+
+            // Infer decimal and group separators
+            let decimal = '.';
+            let group = ',';
+
+            // If filterDecimal is provided, use it to determine separators
+            if (filterDecimal) {
+                decimal = filterDecimal;
+                group = filterDecimal === ',' ? '.' : ',';
+
+                // Validate that the input matches this interpretation
+                if (commaCount > 0 && dotCount > 0) {
+                    // Both present: check if filterDecimal matches the last one (which should be decimal)
+                    const lastIsComma = lastCommaPos > lastDotPos;
+                    if ((filterDecimal === ',' && !lastIsComma) || (filterDecimal === '.' && lastIsComma)) {
+                        return null;
+                    }
+                } else if (dotCount === 1 && commaCount === 0) {
+                    // Only one dot: if NOT followed by exactly 3 digits, it's a decimal separator
+                    const afterDot = numericPart.substring(lastDotPos + 1);
+                    if (afterDot.length !== 3) {
+                        // It's a decimal separator, must match filterDecimal
+                        if (filterDecimal !== '.') {
+                            return null;
+                        }
+                    }
+                } else if (commaCount === 1 && dotCount === 0) {
+                    // Only one comma: if NOT followed by exactly 3 digits, it's a decimal separator
+                    const afterComma = numericPart.substring(lastCommaPos + 1);
+                    if (afterComma.length !== 3) {
+                        // It's a decimal separator, must match filterDecimal
+                        if (filterDecimal !== ',') {
+                            return null;
+                        }
+                    }
+                }
+            } else {
+                // Infer from the input pattern
+                if (commaCount > 0 && dotCount > 0) {
+                    // Both present: the one that appears last is decimal
+                    if (lastCommaPos > lastDotPos) {
+                        decimal = ',';
+                        group = '.';
+                    }
+                } else if (dotCount === 1 && commaCount === 0) {
+                    // Only one dot: check if it's followed by exactly 3 digits
+                    const afterDot = numericPart.substring(lastDotPos + 1);
+                    if (afterDot.length === 3) {
+                        // Likely a thousands separator
+                        decimal = ',';
+                        group = '.';
+                    }
+                } else if (commaCount === 1 && dotCount === 0) {
+                    // Only one comma: check if it's followed by exactly 3 digits
+                    const afterComma = numericPart.substring(lastCommaPos + 1);
+                    if (afterComma.length !== 3) {
+                        // Likely a decimal separator
+                        decimal = ',';
+                        group = '.';
+                    }
+                }
+            }
+
+            // Normalize: remove group separator, convert decimal to '.'
+            let normalized = '';
+            for (let i = 0; i < numericPart.length; i++) {
+                const char = numericPart[i];
+                if (char === group) continue;
+                if (char === decimal) {
+                    normalized += '.';
+                } else {
+                    normalized += char;
+                }
+            }
+
+            const parsed = parseFloat(normalized);
+            if (isNaN(parsed)) return null;
+
+            const finalValue = isNegative ? -parsed : parsed;
+
+            // Build mask
+            const dotPos = normalized.indexOf('.');
+            const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
+            const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
+            const groupMask = '#' + group + '##0';
+            const needsSpace = symbol && !symbol.endsWith(' ') && !symbol.endsWith('\t') && !hasParens;
+            let mask = symbol + (needsSpace ? ' ' : '') + groupMask + maskDecimal;
+
+            if (hasParens) {
+                mask = `(${mask})`;
+            }
+
+            return {
+                mask,
+                value: finalValue,
+                type: 'currency',
+                category: 'numeric'
+            };
+        }
+
+        const autoCastingNumber = function (input, filterDecimal) {
+            // If you currently support numeric inputs directly, keep this:
+            if (typeof input === 'number' && Number.isFinite(input)) {
+                return { mask: '0', value: input, type: 'number', category: 'numeric' };
+            }
+
+            if (typeof input !== 'string') {
+                return null;
+            }
+
+            const sRaw = input.trim();
+
+            // Check for simple integers first (with optional sign)
+            if (/^[+-]?\d+$/.test(sRaw)) {
+                const sign = /^[+-]/.test(sRaw) ? sRaw[0] : '';
+                const digitsClean = (sign ? sRaw.slice(1) : sRaw);
+                const rawDigits = sign ? sRaw.slice(1) : sRaw;
+                const m = rawDigits.match(/^0+/);
+                const leadingZeros = m ? m[0].length : 0;
+                const mask = leadingZeros > 0 ? '0'.repeat(rawDigits.length) : '0';
+                const value = Number(sign + digitsClean);
+                return { mask, value, type: 'number', category: 'numeric' };
+            }
+
+            // Check for formatted numbers with thousand separators (no letters, no symbols)
+            // Examples: "1,000.25", "1.000,25", "-1,234.56"
+            if (/^[+-]?[\d,.]+$/.test(sRaw)) {
+                let isNegative = sRaw[0] === '-';
+                let numStr = isNegative ? sRaw.slice(1) : sRaw;
+
+                // Count separators
+                const commaCount = (numStr.match(/,/g) || []).length;
+                const dotCount = (numStr.match(/\./g) || []).length;
+
+                // Must have at least one digit
+                if (!/\d/.test(numStr)) return null;
+
+                // Infer decimal and group separators
+                let decimal = '.';
+                let group = ',';
+
+                const lastCommaPos = numStr.lastIndexOf(',');
+                const lastDotPos = numStr.lastIndexOf('.');
+
+                // If filterDecimal is provided, use it to determine separators
+                if (filterDecimal) {
+                    decimal = filterDecimal;
+                    group = filterDecimal === ',' ? '.' : ',';
+
+                    // Validate that the input matches this interpretation
+                    if (commaCount > 0 && dotCount > 0) {
+                        // Both present: check if filterDecimal matches the last one (which should be decimal)
+                        const lastIsComma = lastCommaPos > lastDotPos;
+                        if ((filterDecimal === ',' && !lastIsComma) || (filterDecimal === '.' && lastIsComma)) {
+                            return null;
+                        }
+                    } else if (dotCount === 1 && commaCount === 0) {
+                        // Only one dot: if NOT followed by exactly 3 digits, it's a decimal separator
+                        const afterDot = numStr.substring(lastDotPos + 1);
+                        if (afterDot.length !== 3 || /[,.]/.test(afterDot)) {
+                            // It's a decimal separator, must match filterDecimal
+                            if (filterDecimal !== '.') {
+                                return null;
+                            }
+                        }
+                    } else if (commaCount === 1 && dotCount === 0) {
+                        // Only one comma: if NOT followed by exactly 3 digits, it's a decimal separator
+                        const afterComma = numStr.substring(lastCommaPos + 1);
+                        if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
+                            // It's a decimal separator, must match filterDecimal
+                            if (filterDecimal !== ',') {
+                                return null;
+                            }
+                        }
+                    }
+                } else {
+                    // Infer from the input pattern
+                    if (commaCount > 0 && dotCount > 0) {
+                        // Both present: the one that appears last is decimal
+                        if (lastCommaPos > lastDotPos) {
+                            decimal = ',';
+                            group = '.';
+                        }
+                    } else if (dotCount === 1 && commaCount === 0) {
+                        // Only one dot: check if it's followed by exactly 3 digits (thousands separator)
+                        const afterDot = numStr.substring(lastDotPos + 1);
+                        if (afterDot.length === 3 && !/[,.]/.test(afterDot)) {
+                            decimal = ',';
+                            group = '.';
+                        }
+                    } else if (commaCount === 1 && dotCount === 0) {
+                        // Only one comma: check if it's NOT followed by exactly 3 digits (decimal separator)
+                        const afterComma = numStr.substring(lastCommaPos + 1);
+                        if (afterComma.length !== 3 || /[,.]/.test(afterComma)) {
+                            decimal = ',';
+                            group = '.';
+                        }
+                    }
+                }
+
+                // Check if group separator is actually used in the input
+                const hasGroupSeparator = (group === ',' && commaCount > 1) || (group === '.' && dotCount > 1) ||
+                    (group === ',' && decimal === '.' && commaCount > 0) ||
+                    (group === '.' && decimal === ',' && dotCount > 0);
+
+                // Normalize: remove group separator, convert decimal to '.'
+                let normalized = numStr.replace(new RegExp('\\' + group, 'g'), '').replace(decimal, '.');
+                const parsed = parseFloat(normalized);
+                if (isNaN(parsed)) return null;
+
+                const value = isNegative ? -parsed : parsed;
+
+                // Build mask
+                const dotPos = normalized.indexOf('.');
+                const decimalPlaces = dotPos !== -1 ? normalized.length - dotPos - 1 : 0;
+                const maskDecimal = decimalPlaces ? decimal + '0'.repeat(decimalPlaces) : '';
+                const mask = (hasGroupSeparator ? '#' + group + '##0' : '0') + maskDecimal;
+
+                return { mask, value, type: 'number', category: 'numeric' };
+            }
+
+            return null;
+        };
+
+        const autoCastingScientific = function(input) {
+            if (typeof input !== 'string') return null;
+
+            const original = input.trim();
+
+            // Match scientific notation: 1e3, -2.5E-4, etc.
+            const sciPattern = /^[-+]?\d*\.?\d+[eE][-+]?\d+$/;
+            if (!sciPattern.test(original)) return null;
+
+            const parsed = parseFloat(original);
+            if (isNaN(parsed)) return null;
+
+            // Extract parts to determine mask
+            const [coefficient, exponent] = original.toLowerCase().split('e');
+            const decimalPlaces = coefficient.includes('.') ? coefficient.split('.')[1].length : 0;
+            const mask = `0${decimalPlaces ? '.' + '0'.repeat(decimalPlaces) : ''}E+00`;
+
+            return {
+                mask,
+                value: parsed,
+                type: 'scientific',
+                category: 'scientific'
+            };
+        }
+
+        const autoCastingTime = function (input) {
+            if (typeof input !== 'string') return null;
+            const original = input.trim();
+
+            // hh:mm[:ss][ am/pm]
+            const m = original.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?(?:\s*(am|pm))?$/i);
+            if (!m) return null;
+
+            let h = parseInt(m[1], 10);
+            const i = parseInt(m[2], 10);
+            const s = m[3] ? parseInt(m[3], 10) : 0;
+            const mer = m[4] && m[4].toLowerCase();
+
+            // basic range checks
+            if (i > 59 || s > 59) return null;
+            if (mer) {
+                if (h < 1 || h > 12) return null;
+                if (mer === 'pm' && h < 12) h += 12;
+                if (mer === 'am' && h === 12) h = 0;
+            } else {
+                if (h > 23) return null;
+            }
+
+            // Excel serial for time-of-day = hours/24 + minutes/1440 + seconds/86400
+            const excel = (h + i / 60 + s / 3600) / 24;
+
+            // Build mask according to how user typed it
+            const hourToken = m[1].length === 1 ? 'h' : 'hh';
+            const base = s !== 0 || m[3] ? `${hourToken}:mm:ss` : `${hourToken}:mm`;
+            const mask = mer ? `${base} am/pm` : base;
+
+            // Verify we can render back exactly what the user typed
+            if (testMask(mask, excel, original)) {            // uses Component.render under the hood
+                return { mask: mask, value: excel, type: 'time', category: 'datetime' };
+            }
+
+            // Try alternate hour width if needed
+            const altHour = hourToken === 'hh' ? 'h' : 'hh';
+            const alt = mer
+                ? `${altHour}${base.slice(hourToken.length)} am/pm`
+                : `${altHour}${base.slice(hourToken.length)}`;
+
+            if (testMask(alt, excel, original)) {
+                return { mask: alt, value: excel, type: 'time', category: 'datetime' };
+            }
+
+            return null;
+        };
+
+        const ParseValue = function(v, config) {
+            if (v === '') return '';
+
+            const originalInput = '' + v;
+            const decimal = config.decimal || '.';
+
+            // Validate that the input looks like a reasonable number format before extracting digits
+            // Reject strings that are clearly not intended to be numbers (e.g., "test123", "abc", etc.)
+            const hasLetters = /[a-zA-Z]/.test(originalInput);
+            const hasDigits = /[0-9]/.test(originalInput);
+
+            if (hasLetters && hasDigits) {
+                // Mixed letters and digits - check if it's a valid numeric format
+                // Allow currency symbols, currency codes (3 letters), percentage, and separators
+
+                // Remove all valid numeric characters and symbols
+                let cleaned = originalInput.replace(/[\d\s.,\-+()]/g, ''); // Remove digits, spaces, separators, signs, parentheses
+                cleaned = cleaned.replace(/[A-Z]{1,2}[€$£¥₹₽₩₫¢]/gi, ''); // Remove 1-2 letter prefix + currency symbol (R$, U$, etc.)
+                cleaned = cleaned.replace(/[€$£¥₹₽₩₫¢]/g, ''); // Remove remaining currency symbols
+                cleaned = cleaned.replace(/%/g, ''); // Remove percentage
+                cleaned = cleaned.replace(/\b[A-Z]{3}\b/g, ''); // Remove 3-letter currency codes (USD, BRL, etc.)
+
+                // If anything remains, it's likely invalid (like "test" in "test123")
+                if (cleaned.trim().length > 0) {
+                    return null; // Reject patterns like "test123", "abc123", etc.
+                }
+            }
+
+            v = originalInput.split(decimal);
+
+            // Detect negative sign
+            let signal = v[0].includes('-');
+
+            v[0] = v[0].match(/[0-9]+/g);
+            if (v[0]) {
+                if (signal) v[0].unshift('-');
+                v[0] = v[0].join('');
+            } else {
+                v[0] = signal ? '-' : '';
+            }
+
+            if (v[1] !== undefined) {
+                v[1] = v[1].match(/[0-9]+/g);
+                v[1] = v[1] ? v[1].join('') : '';
+            }
+
+            return v[0] || v[1] ? v : '';
+        }
+
+        const Extract = function(v, config) {
+            const parsed = ParseValue(v, config);
+            if (parsed) {
+                if (parsed[0] === '-') {
+                    parsed[0] = '-0';
+                }
+                return parseFloat(parsed.join('.'));
+            }
+            return null;
+        }
+
+        /**
+         * Try to get which mask that can transform the number in that format
+         * @param {string|number} value - The value to detect the mask for
+         * @param {string} [decimal] - Optional decimal separator filter ('.' or ',')
+         */
+        Component.autoCasting = function(value, decimal) {
+            // Check cache first - use string value and decimal as key
+            const cacheKey = decimal ? String(value) + '|' + decimal : String(value);
+            let cached = autoCastingCache[cacheKey];
+            if (cached !== undefined) {
+                return cached;
+            }
+
+            const methods = [
+                autoCastingDates,        // Most structured, the least ambiguous
+                autoCastingTime,
+                autoCastingFractions,    // Specific pattern with slashes
+                autoCastingPercent,      // Recognizable with "%"
+                autoCastingScientific,
+                (v) => autoCastingNumber(v, decimal),       // Only picks up basic digits, decimals, leading 0s
+                (v) => autoCastingCurrency(v, decimal),     // Complex formats, but recognizable
+            ];
+
+            let result = null;
+            for (let method of methods) {
+                const test = method(value);
+                if (test) {
+                    result = test;
+                    break;
+                }
+            }
+
+            // Cache the result (even if null)
+            autoCastingCache[cacheKey] = result;
+            return result;
+        }
+
+        Component.extract = function(value, options, returnObject) {
+            if (! value || typeof options !== 'object') {
+                return value;
+            }
+
+            if (options.locale) {
+                const config = getConfig(options, value);
+                config.value = Extract(value, config);
+                if (value.toString().indexOf('%') !== -1) {
+                    config.value /= 100;
+                }
+                return returnObject ? config : config.value;
+            } else if (options.mask) {
+                let mask = options.mask.split(';')[0];
+                if (mask) {
+                    options.mask = mask;
+                }
+
+                // Get decimal, group, type, etc.
+                const config = getConfig(options, value);
+                const type = config.type;
+
+                let result;
+                let o = options;
+
+                if (type === 'text') {
+                    result = value;
+                } else if (type === 'general') {
+                    result = Component(value, options);
+                } else if (type === 'datetime') {
+                    if (value instanceof Date) {
+                        value = Component.getDateString(value, config.mask);
+                    }
+
+                    o = Component(value, options, true);
+
+                    result = typeof o.value === 'number' ? o.value : extractDate.call(o);
+                } else if (type === 'scientific') {
+                    result = typeof value === 'string' ? Number(value) : value;
+                } else if (type === 'fraction') {
+                    // Parse a fraction string according to the mask (supports mixed "# ?/d" or simple "?/d")
+                    const mask = config.mask;
+
+                    // Detect fixed denominator (e.g. "# ?/16" or "?/8")
+                    const fixedDenMatch = mask.match(/\/\s*(\d+)\s*$/);
+                    const fixedDen = fixedDenMatch ? parseInt(fixedDenMatch[1], 10) : null;
+
+                    // Whether a mask allows a whole part (e.g. "# ?/?")
+                    const allowWhole = mask.includes('#');
+
+                    let s = ('' + value).trim();
+                    if (!s) {
+                        result = null;
+                    } else {
+                        // Allow leading parentheses or '-' for negatives
+                        let sign = 1;
+                        if (/^\(.*\)$/.test(s)) {
+                            sign = -1;
+                            s = s.slice(1, -1).trim();
+                        }
+                        if (/^\s*-/.test(s)) {
+                            sign = -1;
+                            s = s.replace(/^\s*-/, '').trim();
+                        }
+
+                        let out = null;
+
+                        if (s.includes('/')) {
+                            // sign? (whole )? numerator / denominator
+                            // Examples:
+                            //  "1 1/2" => whole=1, num=1, den=2
+                            //  "1/2"   => whole=undefined, num=1, den=2
+                            const m = s.match(/^\s*(?:(\d+)\s+)?(\d+)\s*\/\s*(\d+)\s*$/);
+                            if (m) {
+                                const whole = allowWhole && m[1] ? parseInt(m[1], 10) : 0;
+                                const num = parseInt(m[2], 10);
+                                let den = parseInt(m[3], 10);
+
+                                // If mask fixes the denominator, enforce it
+                                if (fixedDen) den = fixedDen;
+
+                                if (den !== 0) {
+                                    out = sign * (whole + num / den);
+                                }
+                            }
+                        } else {
+                            // No slash → treats as a plain number (e.g., whole only)
+                            const plain = Number(s.replace(',', '.'));
+                            if (!Number.isNaN(plain)) {
+                                out = sign * Math.abs(plain);
+                            }
+                        }
+
+                        result = out;
+                    }
+                } else {
+                    // Default fallback — numeric/currency/percent/etc.
+                    result = Extract(value, config);
+                    // Adjust percent
+                    if (type === 'percentage' && ('' + value).indexOf('%') !== -1) {
+                        result = result / 100;
+                    }
+                }
+
+                o.value = result;
+
+                if (!o.type && type) {
+                    o.type = type;
+                }
+
+                return returnObject ? o : result;
+            }
+
+            return value;
+        };
+
+        Component.render = function(value, options, fullMask) {
+            // Nothing to render
+            if (value === '' || value === undefined || value === null) {
+                return '';
+            }
+
+            // Config
+            const config = getConfig(options, value);
+
+            if (config.locale) {
+                value = Component(value, options);
+            } else if (config.mask) {
+                // Percentage
+                if (config.type === 'datetime') {
+                    var t = Component.getDateString(value, config.mask);
+                    if (t) {
+                        value = t;
+                    } else {
+                        return '';
+                    }
+                } else if (config.type === 'text') {
+                    // Parse number
+                    if (typeof (value) === 'number') {
+                        value = value.toString();
+                    }
+                } else {
+                    if (config.type === 'percentage') {
+                        if (typeof (value) === 'string' && value.indexOf('%') !== -1) {
+                            value = value.replace('%', '');
+                        } else {
+                            value = adjustPrecision(Number(value) * 100);
+                        }
+                    } else {
+                        if (config.mask.includes(',,M')) {
+                            if (typeof (value) === 'string' && value.indexOf('M') !== -1) {
+                                value = value.replace('M', '');
+                            } else {
+                                value = Number(value) / 1000000;
+                            }
+                        } else if (config.mask.includes(',,,B')) {
+                            if (typeof (value) === 'string' && value.indexOf('B') !== -1) {
+                                value = value.replace('B', '');
+                            } else {
+                                value = Number(value) / 1000000000;
+                            }
+                        }
+                    }
+
+                    if (typeof (value) === 'string' && isNumber(value)) {
+                        value = Number(value);
+                    }
+
+                    if (typeof value === 'number') {
+                        // Temporary value
+                        let temp = value;
+
+                        if (config.type === 'fraction') {
+                            temp = formatFraction(value, config.mask);
+                        } else {
+                            if (fullMask) {
+                                temp = adjustNumberOfDecimalPlaces(config, value);
+
+                                if (config.type === 'scientific') {
+                                    return temp;
+                                }
+                            }
+                        }
+
+                        value = toPlainString(temp);
+
+                        if (config.decimal === ',') {
+                            value = value.replace('.', config.decimal);
+                        }
+                    }
+                }
+
+                // Process mask
+                let control = Component(value, options, true);
+                // Complement render
+                if (fullMask) {
+                    processNumOfPaddingZeros(control);
+                }
+
+                value = getValue(control);
+
+                // If numeric mask but no numbers in input, return empty
+                if (isNumeric(control.type)) {
+                    // Check if any numeric digit was actually extracted
+                    const hasNumericValue = control.values.some(v => v && /\d/.test(v));
+                    if (! hasNumericValue) {
+                        value = '';
+                    }
+                }
+
+                if (options.input && options.input.tagName) {
+                    if (options.input.contentEditable) {
+                        options.input.textContent = value;
+                    } else {
+                        options.input.value = value;
+                    }
+                    focus(options.input);
+                }
+            }
+
+            return value;
+        }
+
+        // Helper to extract date from a string
+        Component.extractDateFromString = function (date, format) {
+            let o = Component(date, { mask: format }, true);
+
+            // Check if in format Excel (Need difference with format date or type detected is numeric)
+            if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
+                var d = new Date(Math.round((date - 25569) * 86400 * 1000));
+                return d.getFullYear() + "-" + Helpers.two(d.getMonth()) + "-" + Helpers.two(d.getDate()) + ' 00:00:00';
+            }
+
+            let complete = false;
+
+            if (o.values && o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
+                complete = true;
+            }
+
+            if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
+                if (!o.date[2]) {
+                    o.date[2] = 1;
+                }
+
+                return o.date[0] + '-' + Helpers.two(o.date[1]) + '-' + Helpers.two(o.date[2]) + ' ' + Helpers.two(o.date[3]) + ':' + Helpers.two(o.date[4]) + ':' + Helpers.two(o.date[5]);
+            }
+
+            return '';
+        }
+
+        // Tokens
+        const dateTokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
+        // All date tokens
+        const allDateTokens = dateTokens.join('|')
+
+        Component.getDateString = function(value, options) {
+            if (! options) {
+                options = {};
+            }
+
+            // Labels
+            let format;
+
+            if (options && typeof(options) == 'object') {
+                if (options.format) {
+                    format = options.format;
+                } else if (options.mask) {
+                    format = options.mask;
+                }
+            } else {
+                format = options;
+            }
+
+            if (! format) {
+                format = 'YYYY-MM-DD';
+            }
+
+            format = format.toUpperCase();
+
+            // Date instance
+            if (value instanceof Date) {
+                value = Helpers.now(value);
+            } else if (isNumber(value)) {
+                value = Helpers.numToDate(value);
+            }
+
+
+            // Expression to extract all tokens from the string
+            let e = new RegExp(allDateTokens, 'gi');
+            // Extract
+            let t = format.match(e);
+
+            // Compatibility with Excel
+            fixMinuteToken(t);
+
+            // Object
+            const o = {
+                tokens: t
+            }
+
+            // Value
+            if (value) {
+                try {
+                    // Data
+                    o.data = extractDateAndTime(value);
+
+                    if (o.data[1] && o.data[1] > 12) {
+                        throw new Error('Invalid date');
+                    } else if (o.data[4] && o.data[4] > 59) {
+                        throw new Error('Invalid date');
+                    } else if (o.data[5] && o.data[5] > 59) {
+                        throw new Error('Invalid date');
+                    } else if (o.data[0] != null && o.data[1] != null) {
+                        let day = new Date(o.data[0], o.data[1], 0).getDate();
+                        if (o.data[2] > day) {
+                            throw new Error('Invalid date');
+                        }
+                    }
+
+                    // Value
+                    o.value = [];
+
+                    // Calendar instance
+                    let calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
+
+                    if (o.data[0] === null && o.data[1] === null && o.data[2] === null) {
+                        // Do nothing
+                    } else {
+                        if (isNaN(calendar.getTime())) {
+                            throw new Error('Invalid date');
+                        }
+                    }
+
+                    // Get method
+                    const get = function (i) {
+                        // Token
+                        let t = this.tokens[i];
+
+                        // Case token
+                        let s = t.toUpperCase();
+                        let v = null;
+
+                        if (s === 'YYYY') {
+                            v = this.data[0];
+                        } else if (s === 'YYY') {
+                            v = this.data[0];
+                            if (v) {
+                                v = v.substring(1, 4);
+                            }
+                        } else if (s === 'YY') {
+                            v = this.data[0];
+                            if (v) {
+                                v = v.substring(2, 4);
+                            }
+                        } else if (s === 'Y') {
+                            v = this.data[0];
+                            if (v) {
+                                v = v.substring(3, 4);
+                            }
+                        } else if (t === 'MON') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.substr(0, 3).toUpperCase();
+                            }
+                        } else if (t === 'mon') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.substr(0, 3).toLowerCase();
+                            }
+                        } else if (t === 'MONTH') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.toUpperCase();
+                            }
+                        } else if (t === 'month') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.toLowerCase();
+                            }
+                        } else if (s === 'MMMMM') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.substr(0, 1);
+                            }
+                        } else if (s === 'MMMM' || t === 'Month') {
+                            v = Helpers.months[calendar.getMonth()];
+                        } else if (s === 'MMM' || t == 'Mon') {
+                            v = Helpers.months[calendar.getMonth()];
+                            if (v) {
+                                v = v.substr(0, 3);
+                            }
+                        } else if (s === 'MM') {
+                            v = Helpers.two(this.data[1]);
+                        } else if (s === 'M') {
+                            v = calendar.getMonth() + 1;
+                        } else if (t === 'DAY') {
+                            v = Helpers.weekdays[calendar.getDay()];
+                            if (v) {
+                                v = v.toUpperCase();
+                            }
+                        } else if (t === 'day') {
+                            v = Helpers.weekdays[calendar.getDay()];
+                            if (v) {
+                                v = v.toLowerCase();
+                            }
+                        } else if (s === 'DDDD' || t == 'Day') {
+                            v = Helpers.weekdays[calendar.getDay()];
+                        } else if (s === 'DDD') {
+                            v = Helpers.weekdays[calendar.getDay()];
+                            if (v) {
+                                v = v.substr(0, 3);
+                            }
+                        } else if (s === 'DD') {
+                            v = Helpers.two(this.data[2]);
+                        } else if (s === 'D') {
+                            v = parseInt(this.data[2]);
+                        } else if (s === 'Q') {
+                            v = Math.floor((calendar.getMonth() + 3) / 3);
+                        } else if (s === 'HH24' || s === 'HH') {
+                            v = this.data[3]%24;
+                            if (this.tokens.indexOf('AM/PM') !== -1) {
+                                if (v > 12) {
+                                    v -= 12;
+                                } else if (v == '0' || v == '00') {
+                                    v = 12;
+                                }
+                            }
+                            v = Helpers.two(v);
+                        } else if (s === 'HH12') {
+                            v = this.data[3]%24;
+                            if (v > 12) {
+                                v = Helpers.two(v - 12);
+                            } else {
+                                v = Helpers.two(v);
+                            }
+                        } else if (s === 'H') {
+                            v = this.data[3]%24;
+                            if (this.tokens.indexOf('AM/PM') !== -1) {
+                                if (v > 12) {
+                                    v -= 12;
+                                } else if (v == '0' || v == '00') {
+                                    v = 12;
+                                }
+                            }
+                        } else if (s === '[H]') {
+                            v = this.data[3];
+                        } else if (s === 'MI') {
+                            v = Helpers.two(this.data[4]);
+                        } else if (s === 'I') {
+                            v = parseInt(this.data[4]);
+                        } else if (s === 'SS') {
+                            v = Helpers.two(this.data[5]);
+                        } else if (s === 'S') {
+                            v = parseInt(this.data[5]);
+                        } else if (s === 'MS') {
+                            v = calendar.getMilliseconds();
+                        } else if (s === 'AM/PM') {
+                            if (this.data[3] >= 12) {
+                                v = 'PM';
+                            } else {
+                                v = 'AM';
+                            }
+                        } else if (s === 'WD') {
+                            v = Helpers.weekdays[calendar.getDay()];
+                        }
+
+                        if (v === null) {
+                            this.value[i] = this.tokens[i];
+                        } else {
+                            this.value[i] = v;
+                        }
+                    }
+
+                    for (let i = 0; i < o.tokens.length; i++) {
+                        get.call(o, i);
+                    }
+
+                    value = o.value.join('');
+                } catch (e) {
+                    value = '';
+                }
+            }
+
+            return value;
+        }
+
+        Component.getDate = function(value, format) {
+            if (! format) {
+                format = 'YYYY-MM-DD';
+            }
+
+            let ret = value;
+            if (ret && Number(ret) == ret) {
+                ret = Helpers.numToDate(ret);
+            }
+
+            // Try a formatted date
+            if (! Helpers.isValidDateFormat(ret)) {
+                let tmp = Component.extractDateFromString(ret, format);
+                if (tmp) {
+                    ret = tmp;
+                }
+            }
+
+            return Component.getDateString(ret, format);
+        }
+
+        Component.oninput = function(e, mask) {
+            // Element
+            let element = e.target;
+            // Property
+            let property = 'value';
+            // Get the value of the input
+            if (element.tagName !== 'INPUT') {
+                property = 'textContent';
+            }
+            // Value
+            let value = element[property];
+            // Get the mask
+            if (! mask) {
+                mask = element.getAttribute('data-mask') || element.mask;
+            }
+            // Keep the current caret position
+            let caret = getCaret(element);
+            if (caret) {
+                value = value.substring(0, caret) + hiddenCaret + value.substring(caret);
+            }
+
+            if (typeof mask === 'string') {
+                mask = { mask: mask };
+            }
+
+            if (mask.locale) {
+                return;
+            }
+
+            // Run mask
+            let result = Component(value, mask, true);
+
+            // New value
+            let newValue = result.values.join('');
+            // Apply the result back to the element
+            if (newValue !== value && ! e.inputType.includes('delete')) {
+                // Set the caret to the position before transformation
+                let caret = newValue.indexOf(hiddenCaret);
+                if (caret !== -1) {
+                    // Apply value
+                    element[property] = newValue.replace(hiddenCaret, "");
+                    // Set caret
+                    setCaret.call(element, caret);
+                } else {
+                    // Apply value
+                    element[property] = newValue;
+                    // Make sure the caret is positioned in the end
+                    focus(element);
+                }
+            }
+        }
+
+        Component.getType = function(config) {
+            // Get configuration
+            const control = getConfig(config, null);
+
+            return control.type;
+        };
+
+        Component.adjustPrecision = adjustPrecision;
+
+        return Component;
+    })();
+
+    return { Mask: Mask, Helpers: Helpers };
+})));
+
 /***/ })
 
 /******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/ 	
+/******/
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -318,14 +12031,14 @@ var jSuites;
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/ 	
+/******/
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/ 	
+/******/
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/ 	
+/******/
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
@@ -338,7 +12051,7 @@ var jSuites;
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
@@ -350,12 +12063,12 @@ var jSuites;
 /******/ 			}
 /******/ 		};
 /******/ 	}();
-/******/ 	
+/******/
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
-/******/ 	
+/******/
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
@@ -369,21 +12082,19 @@ __webpack_require__.d(__webpack_exports__, {
 
 ;// CONCATENATED MODULE: ./src/utils/dictionary.js
 // Update dictionary
-var setDictionary = function(d) {
+const setDictionary = function(d) {
     if (! document.dictionary) {
         document.dictionary = {}
     }
     // Replace the key into the dictionary and append the new ones
-    var t = null;
-    var i = null;
-    var k = Object.keys(d);
-    for (i = 0; i < k.length; i++) {
+    let k = Object.keys(d);
+    for (let i = 0; i < k.length; i++) {
         document.dictionary[k[i]] = d[k[i]];
     }
 }
 
 // Translate
-var translate = function(t) {
+const translate = function(t) {
     if (typeof(document) !== "undefined" && document.dictionary) {
         return document.dictionary[t] || t;
     } else {
@@ -415,7 +12126,7 @@ var translate = function(t) {
 
 /* harmony default export */ var tracking = (Tracking);
 ;// CONCATENATED MODULE: ./src/utils/helpers.js
-var Helpers = {};
+const Helpers = {};
 
 // Two digits
 Helpers.two = function(value) {
@@ -458,13 +12169,13 @@ Helpers.isNumeric = (function (num) {
 
 Helpers.guid = function() {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        let r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
         return v.toString(16);
     });
 }
 
 Helpers.getNode = function() {
-    var node = document.getSelection().anchorNode;
+    let node = document.getSelection().anchorNode;
     if (node) {
         return (node.nodeType == 3 ? node.parentNode : node);
     } else {
@@ -475,7 +12186,7 @@ Helpers.getNode = function() {
  * Generate hash from a string
  */
 Helpers.hash = function(str) {
-    var hash = 0, i, chr;
+    let hash = 0, i, chr;
 
     if (str.length === 0) {
         return hash;
@@ -495,20 +12206,20 @@ Helpers.hash = function(str) {
  * Generate a random color
  */
 Helpers.randomColor = function(h) {
-    var lum = -0.25;
-    var hex = String('#' + Math.random().toString(16).slice(2, 8).toUpperCase()).replace(/[^0-9a-f]/gi, '');
+    let lum = -0.25;
+    let hex = String('#' + Math.random().toString(16).slice(2, 8).toUpperCase()).replace(/[^0-9a-f]/gi, '');
     if (hex.length < 6) {
         hex = hex[0] + hex[0] + hex[1] + hex[1] + hex[2] + hex[2];
     }
-    var rgb = [], c, i;
-    for (i = 0; i < 3; i++) {
+    let rgb = [], c;
+    for (let i = 0; i < 3; i++) {
         c = parseInt(hex.substr(i * 2, 2), 16);
         c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
         rgb.push(("00" + c).substr(c.length));
     }
 
     // Return hex
-    if (h == true) {
+    if (h === true) {
         return '#' + Helpers.two(rgb[0].toString(16)) + Helpers.two(rgb[1].toString(16)) + Helpers.two(rgb[2].toString(16));
     }
 
@@ -516,7 +12227,7 @@ Helpers.randomColor = function(h) {
 }
 
 Helpers.getWindowWidth = function() {
-    var w = window,
+    let w = window,
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
@@ -525,7 +12236,7 @@ Helpers.getWindowWidth = function() {
 }
 
 Helpers.getWindowHeight = function() {
-    var w = window,
+    let w = window,
     d = document,
     e = d.documentElement,
     g = d.getElementsByTagName('body')[0],
@@ -534,12 +12245,14 @@ Helpers.getWindowHeight = function() {
 }
 
 Helpers.getPosition = function(e) {
+    let x;
+    let y;
     if (e.changedTouches && e.changedTouches[0]) {
-        var x = e.changedTouches[0].pageX;
-        var y = e.changedTouches[0].pageY;
+        x = e.changedTouches[0].pageX;
+        y = e.changedTouches[0].pageY;
     } else {
-        var x = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
-        var y = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
+        x = (window.Event) ? e.pageX : e.clientX + (document.documentElement.scrollLeft ? document.documentElement.scrollLeft : document.body.scrollLeft);
+        y = (window.Event) ? e.pageY : e.clientY + (document.documentElement.scrollTop ? document.documentElement.scrollTop : document.body.scrollTop);
     }
 
     return [ x, y ];
@@ -549,7 +12262,7 @@ Helpers.click = function(el) {
     if (el.click) {
         el.click();
     } else {
-        var evt = new MouseEvent('click', {
+        let evt = new MouseEvent('click', {
             bubbles: true,
             cancelable: true,
             view: window
@@ -559,7 +12272,7 @@ Helpers.click = function(el) {
 }
 
 Helpers.findElement = function(element, condition) {
-    var foundElement = false;
+    let foundElement = false;
 
     function path (element) {
         if (element && ! foundElement) {
@@ -1213,14 +12926,14 @@ function Animation() {
     const Component = {
         loading: {}
     }
-    
+
     Component.loading.show = function(timeout) {
         if (! Component.loading.element) {
             Component.loading.element = document.createElement('div');
             Component.loading.element.className = 'jloading';
         }
         document.body.appendChild(Component.loading.element);
-    
+
         // Max timeout in seconds
         if (timeout > 0) {
             setTimeout(function() {
@@ -1228,13 +12941,13 @@ function Animation() {
             }, timeout * 1000)
         }
     }
-    
+
     Component.loading.hide = function() {
         if (Component.loading.element && Component.loading.element.parentNode) {
             document.body.removeChild(Component.loading.element);
         }
     }
-    
+
     Component.slideLeft = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('jslide-left-in');
@@ -1254,7 +12967,7 @@ function Animation() {
             }, 400);
         }
     }
-    
+
     Component.slideRight = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-right-in');
@@ -1274,7 +12987,7 @@ function Animation() {
             }, 400);
         }
     }
-    
+
     Component.slideTop = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-top-in');
@@ -1294,7 +13007,7 @@ function Animation() {
             }, 400);
         }
     }
-    
+
     Component.slideBottom = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-bottom-in');
@@ -1314,7 +13027,7 @@ function Animation() {
             }, 100);
         }
     }
-    
+
     Component.fadeIn = function (element, done) {
         element.style.display = '';
         element.classList.add('jfade-in');
@@ -1325,7 +13038,7 @@ function Animation() {
             }
         }, 2000);
     }
-    
+
     Component.fadeOut = function (element, done) {
         element.classList.add('jfade-out');
         setTimeout(function () {
@@ -1341,2021 +13054,9 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
-;// CONCATENATED MODULE: ./src/utils/helpers.date.js
-
-
-
-function HelpersDate() {
-    var Component = {};
-
-    Component.now = function (date, dateOnly) {
-        var y = null;
-        var m = null;
-        var d = null;
-        var h = null;
-        var i = null;
-        var s = null;
-
-        if (Array.isArray(date)) {
-            y = date[0];
-            m = date[1];
-            d = date[2];
-            h = date[3];
-            i = date[4];
-            s = date[5];
-        } else {
-            if (! date) {
-                date = new Date();
-            }
-            y = date.getFullYear();
-            m = date.getMonth() + 1;
-            d = date.getDate();
-            h = date.getHours();
-            i = date.getMinutes();
-            s = date.getSeconds();
-        }
-
-        if (dateOnly == true) {
-            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d);
-        } else {
-            return helpers.two(y) + '-' + helpers.two(m) + '-' + helpers.two(d) + ' ' + helpers.two(h) + ':' + helpers.two(i) + ':' + helpers.two(s);
-        }
-    }
-
-    Component.toArray = function (value) {
-        var date = value.split(((value.indexOf('T') !== -1) ? 'T' : ' '));
-        var time = date[1];
-        var date = date[0].split('-');
-        var y = parseInt(date[0]);
-        var m = parseInt(date[1]);
-        var d = parseInt(date[2]);
-        var h = 0;
-        var i = 0;
-
-        if (time) {
-            time = time.split(':');
-            h = parseInt(time[0]);
-            i = parseInt(time[1]);
-        }
-        return [y, m, d, h, i, 0];
-    }
-
-    var excelInitialTime = Date.UTC(1900, 0, 0);
-    var excelLeapYearBug = Date.UTC(1900, 1, 29);
-    var millisecondsPerDay = 86400000;
-
-    /**
-     * Date to number
-     */
-    Component.dateToNum = function (jsDate) {
-        if (typeof (jsDate) === 'string') {
-            jsDate = new Date(jsDate + '  GMT+0');
-        }
-        var jsDateInMilliseconds = jsDate.getTime();
-        if (jsDateInMilliseconds >= excelLeapYearBug) {
-            jsDateInMilliseconds += millisecondsPerDay;
-        }
-        jsDateInMilliseconds -= excelInitialTime;
-
-        return jsDateInMilliseconds / millisecondsPerDay;
-    }
-
-    /**
-     * Number to date
-     *
-     * IMPORTANT: Excel incorrectly considers 1900 to be a leap year
-     */
-    Component.numToDate = function (excelSerialNumber) {
-        var jsDateInMilliseconds = excelInitialTime + excelSerialNumber * millisecondsPerDay;
-        if (jsDateInMilliseconds >= excelLeapYearBug) {
-            jsDateInMilliseconds -= millisecondsPerDay;
-        }
-
-        const d = new Date(jsDateInMilliseconds);
-
-        var date = [
-            d.getUTCFullYear(),
-            d.getUTCMonth() + 1,
-            d.getUTCDate(),
-            d.getUTCHours(),
-            d.getUTCMinutes(),
-            d.getUTCSeconds(),
-        ];
-
-        return Component.now(date);
-    }
-
-    let weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    let months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
-
-    Object.defineProperty(Component, 'weekdays', {
-        get: function () {
-            return weekdays.map(function(v) {
-                return dictionary.translate(v);
-            });
-        },
-    });
-
-    Object.defineProperty(Component, 'weekdaysShort', {
-        get: function () {
-            return weekdays.map(function(v) {
-                return dictionary.translate(v).substring(0,3);
-            });
-        },
-    });
-
-    Object.defineProperty(Component, 'months', {
-        get: function () {
-            return months.map(function(v) {
-                return dictionary.translate(v);
-            });
-        },
-    });
-
-    Object.defineProperty(Component, 'monthsShort', {
-        get: function () {
-            return months.map(function(v) {
-                return dictionary.translate(v).substring(0,3);
-            });
-        },
-    });
-
-    return Component;
-}
-
-/* harmony default export */ var helpers_date = (HelpersDate());
-;// CONCATENATED MODULE: ./src/plugins/mask.js
-
-
-
-function Mask() {
-    // Currency
-    var tokens = {
-        // Text
-        text: [ '@' ],
-        // Currency tokens
-        currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?', '#' ],
-        // Scientific
-        scientific: [ '0{1}(.{1}0+)?E{1}\\+0+' ],
-        // Percentage
-        percentage: [ '0{1}(.{1}0+)?%' ],
-        // Number
-        numeric: [ '0{1}(.{1}0+)?' ],
-        // Data tokens
-        datetime: [ 'YYYY', 'YYY', 'YY', 'MMMMM', 'MMMM', 'MMM', 'MM', 'DDDDD', 'DDDD', 'DDD', 'DD', 'DY', 'DAY', 'WD', 'D', 'Q', 'MONTH', 'MON', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'Y', 'M' ],
-        // Other
-        general: [ 'A', '0', '[0-9a-zA-Z\$]+', '.']
-    }
-
-    var getDate = function() {
-        if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-            var m = 0;
-            if (this.date[4]) {
-                m = parseFloat(this.date[4] / 60);
-            }
-            var v = parseInt(this.date[3]) + m;
-            v /= 24;
-        } else if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            v = helpers.two(this.date[3]) + ':' + helpers.two(this.date[4]) + ':' + helpers.two(this.date[5])
-        } else {
-            if (this.date[0] && this.date[1] && ! this.date[2]) {
-                this.date[2] = 1;
-            }
-            v = helpers.two(this.date[0]) + '-' + helpers.two(this.date[1]) + '-' + helpers.two(this.date[2]);
-
-            if (this.date[3] || this.date[4] || this.date[5]) {
-                v += ' ' + helpers.two(this.date[3]) + ':' + helpers.two(this.date[4]) + ':' + helpers.two(this.date[5]);
-            }
-        }
-
-        return v;
-    }
-
-    var extractDate = function() {
-        var v = '';
-        if (! (this.date[0] && this.date[1] && this.date[2]) && (this.date[3] || this.date[4])) {
-            if (this.mask.toLowerCase().indexOf('[h]') !== -1) {
-                v = parseInt(this.date[3]);
-            } else {
-                let h = parseInt(this.date[3]);
-                if (h < 13 && this.values.indexOf('PM') !== -1) {
-                    v = (h+12) % 24;
-                } else {
-                    v = h % 24;
-                }
-            }
-            if (this.date[4]) {
-                v += parseFloat(this.date[4] / 60);
-            }
-            if (this.date[5]) {
-                v += parseFloat(this.date[5] / 3600);
-            }
-            v /= 24;
-        } else if (this.date[0] || this.date[1] || this.date[2] || this.date[3] || this.date[4] || this.date[5]) {
-            if (this.date[0] && this.date[1] && ! this.date[2]) {
-                this.date[2] = 1;
-            }
-            var t = helpers_date.now(this.date);
-            v = helpers_date.dateToNum(t);
-        }
-
-        if (isNaN(v)) {
-            v = '';
-        }
-
-        return v;
-    }
-
-    var isBlank = function(v) {
-        return v === null || v === '' || v === undefined ? true : false;
-    }
-
-    var isFormula = function(value) {
-        var v = (''+value)[0];
-        return v == '=' ? true : false;
-    }
-
-    var isNumeric = function(t) {
-        return t === 'currency' || t === 'percentage' || t === 'scientific' || t === 'numeric' ? true : false;
-    }
-
-    /**
-     * Get the decimal defined in the mask configuration
-     */
-    var getDecimal = function(v) {
-        if (v && Number(v) == v) {
-            return '.';
-        } else {
-            if (this.options.decimal) {
-                return this.options.decimal;
-            } else {
-                if (this.locale) {
-                    var t = Intl.NumberFormat(this.locale).format(1.1);
-                    return this.options.decimal = t[1];
-                } else {
-                    if (! v) {
-                        v  = this.mask;
-                    }
-                    var e = new RegExp('0{1}(.{1})0+', 'ig');
-                    var t = e.exec(v);
-                    if (t && t[1] && t[1].length == 1) {
-                        // Save decimal
-                        this.options.decimal = t[1];
-                        // Return decimal
-                        return t[1];
-                    } else {
-                        // Did not find any decimal last resort the default
-                        var e = new RegExp('#{1}(.{1})#+', 'ig');
-                        var t = e.exec(v);
-                        if (t && t[1] && t[1].length == 1) {
-                            if (t[1] === ',') {
-                                this.options.decimal = '.';
-                            } else {
-                                this.options.decimal = ',';
-                            }
-                        } else {
-                            this.options.decimal = '1.1'.toLocaleString().substring(1,2);
-                        }
-                    }
-                }
-            }
-        }
-
-        if (this.options.decimal) {
-            return this.options.decimal;
-        } else {
-            return null;
-        }
-    }
-
-    var ParseValue = function(v, decimal) {
-        if (v == '') {
-            return '';
-        }
-
-        // Get decimal
-        if (! decimal) {
-            decimal = getDecimal.call(this);
-        }
-
-        // New value
-        v = (''+v).split(decimal);
-
-        // Signal
-        var signal = v[0].match(/[-]+/g);
-        if (signal && signal.length) {
-            signal = true;
-        } else {
-            signal = false;
-        }
-
-        v[0] = v[0].match(/[0-9]+/g);
-
-        if (v[0]) {
-            if (signal) {
-                v[0].unshift('-');
-            }
-            v[0] = v[0].join('');
-        } else {
-            if (signal) {
-                v[0] = '-';
-            }
-        }
-
-        if (v[0] || v[1]) {
-            if (v[1] !== undefined) {
-                v[1] = v[1].match(/[0-9]+/g);
-                if (v[1]) {
-                    v[1] = v[1].join('');
-                } else {
-                    v[1] = '';
-                }
-            }
-        } else {
-            return '';
-        }
-        return v;
-    }
-
-    var FormatValue = function(v, event) {
-        if (v === '') {
-            return '';
-        }
-        // Get decimal
-        var d = getDecimal.call(this);
-        // Convert value
-        var o = this.options;
-        // Parse value
-        v = ParseValue.call(this, v);
-        if (v === '') {
-            return '';
-        }
-        var t = null;
-        // Temporary value
-        if (v[0]) {
-            if (o.style === 'percent') {
-                t = parseFloat(v[0]) / 100;
-            } else {
-                t = parseFloat(v[0] + '.1');
-            }
-        }
-
-        if ((v[0] === '-' || v[0] === '-00') && ! v[1] && (event && event.inputType == "deleteContentBackward")) {
-            return '';
-        }
-
-        var n = new Intl.NumberFormat(this.locale, o).format(t);
-        n = n.split(d);
-
-        if (o.style === 'percent') {
-            if (n[0].indexOf('%') !== -1) {
-                n[0] = n[0].replace('%', '');
-                n[2] = '%';
-            }
-        }
-
-        if (typeof(n[1]) !== 'undefined') {
-            var s = n[1].replace(/[0-9]*/g, '');
-            if (s) {
-                n[2] = s;
-            }
-        }
-
-        if (v[1] !== undefined) {
-            n[1] = d + v[1];
-        } else {
-            n[1] = '';
-        }
-
-        return n.join('');
-    }
-
-    var Format = function(e, event) {
-        var v = Value.call(e);
-        if (! v) {
-            return;
-        }
-
-        // Get decimal
-        var n = FormatValue.call(this, v, event);
-        var t = (n.length) - v.length;
-        var index = Caret.call(e) + t;
-        // Set value and update caret
-        Value.call(e, n, index, true);
-    }
-
-    var Extract = function(v) {
-        // Keep the raw value
-        var current = ParseValue.call(this, v);
-        if (current) {
-            // Negative values
-            if (current[0] === '-') {
-                current[0] = '-0';
-            }
-            return parseFloat(current.join('.'));
-        }
-        return null;
-    }
-
-    /**
-     * Caret getter and setter methods
-     */
-    var Caret = function(index, adjustNumeric) {
-        if (index === undefined) {
-            if (this.tagName == 'DIV') {
-                var pos = 0;
-                var s = window.getSelection();
-                if (s) {
-                    if (s.rangeCount !== 0) {
-                        var r = s.getRangeAt(0);
-                        var p = r.cloneRange();
-                        p.selectNodeContents(this);
-                        p.setEnd(r.endContainer, r.endOffset);
-                        pos = p.toString().length;
-                    }
-                }
-                return pos;
-            } else {
-                return this.selectionStart;
-            }
-        } else {
-            // Get the current value
-            var n = Value.call(this);
-
-            // Review the position
-            if (adjustNumeric) {
-                var p = null;
-                for (var i = 0; i < n.length; i++) {
-                    if (n[i].match(/[\-0-9]/g) || n[i] === '.' || n[i] === ',') {
-                        p = i;
-                    }
-                }
-
-                // If the string has no numbers
-                if (p === null) {
-                    p = n.indexOf(' ');
-                }
-
-                if (index >= p) {
-                    index = p + 1;
-                }
-            }
-
-            // Do not update caret
-            if (index > n.length) {
-                index = n.length;
-            }
-
-            if (index) {
-                // Set caret
-                if (this.tagName == 'DIV') {
-                    var s = window.getSelection();
-                    var r = document.createRange();
-
-                    if (this.childNodes[0]) {
-                        r.setStart(this.childNodes[0], index);
-                        s.removeAllRanges();
-                        s.addRange(r);
-                    }
-                } else {
-                    this.selectionStart = index;
-                    this.selectionEnd = index;
-                }
-            }
-        }
-    }
-
-    /**
-     * Value getter and setter method
-     */
-    var Value = function(v, updateCaret, adjustNumeric) {
-        if (this.tagName == 'DIV') {
-            if (v === undefined) {
-                var v = this.innerText;
-                if (this.value && this.value.length > v.length) {
-                    v = this.value;
-                }
-                return v;
-            } else {
-                if (this.innerText !== v) {
-                    this.innerText = v;
-
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
-                    }
-                }
-            }
-        } else {
-            if (v === undefined) {
-                return this.value;
-            } else {
-                if (this.value !== v) {
-                    this.value = v;
-                    if (updateCaret) {
-                        Caret.call(this, updateCaret, adjustNumeric);
-                    }
-                }
-            }
-        }
-    }
-
-    // Labels
-    var weekDaysFull = helpers_date.weekdays;
-    var weekDays = helpers_date.weekdaysShort;
-    var monthsFull = helpers_date.months;
-    var months = helpers_date.monthsShort;
-
-    var parser = {
-        'YEAR': function(v, s) {
-            var y = ''+new Date().getFullYear();
-
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-            if (parseInt(v) >= 0 && parseInt(v) <= 10) {
-                if (this.values[this.index].length < s) {
-                    this.values[this.index] += v;
-                }
-            }
-            if (this.values[this.index].length == s) {
-                if (s == 2) {
-                    var y = y.substr(0,2) + this.values[this.index];
-                } else if (s == 3) {
-                    var y = y.substr(0,1) + this.values[this.index];
-                } else if (s == 4) {
-                    var y = this.values[this.index];
-                }
-                this.date[0] = y;
-                this.index++;
-            }
-        },
-        'YYYY': function(v) {
-            parser.YEAR.call(this, v, 4);
-        },
-        'YYY': function(v) {
-            parser.YEAR.call(this, v, 3);
-        },
-        'YY': function(v) {
-            parser.YEAR.call(this, v, 2);
-        },
-        'FIND': function(v, a) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            if (this.event && this.event.inputType && this.event.inputType.indexOf('delete') > -1) {
-                this.values[this.index] += v;
-                return;
-            }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < a.length; i++) {
-                if (a[i].toLowerCase().indexOf(value) == 0) {
-                    pos = i;
-                    count++;
-                }
-            }
-            if (count > 1) {
-                this.values[this.index] += v;
-            } else if (count == 1) {
-                // Jump number of chars
-                var t = (a[pos].length - this.values[this.index].length) - 1;
-                this.position += t;
-
-                this.values[this.index] = a[pos];
-                this.index++;
-                return pos;
-            }
-        },
-        'MMM': function(v) {
-            var ret = parser.FIND.call(this, v, months);
-            if (ret !== undefined) {
-                this.date[1] = ret + 1;
-            }
-        },
-        'MON': function(v) {
-            parser['MMM'].call(this, v);
-        },
-        'MMMM': function(v) {
-            var ret = parser.FIND.call(this, v, monthsFull);
-            if (ret !== undefined) {
-                this.date[1] = ret + 1;
-            }
-        },
-        'MONTH': function(v) {
-            parser['MMMM'].call(this, v);
-        },
-        'MMMMM': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            var pos = 0;
-            var count = 0;
-            var value = (this.values[this.index] + v).toLowerCase();
-            for (var i = 0; i < monthsFull.length; i++) {
-                if (monthsFull[i][0].toLowerCase().indexOf(value) == 0) {
-                    this.values[this.index] = monthsFull[i][0];
-                    this.date[1] = i + 1;
-                    this.index++;
-                    break;
-                }
-            }
-        },
-        'MM': function(v) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 1 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 2) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                    this.date[1] = this.values[this.index] += v;
-                    this.index++;
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[1] = this.values[this.index] += v;
-                    this.index++;
-                }
-            }
-        },
-        'M': function(v) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (v > 1) {
-                        this.date[1] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[1] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 12) {
-                    this.date[1] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'D': function(v) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    this.values[this.index] = v;
-                    if (parseInt(v) > 3) {
-                        this.date[2] = this.values[this.index];
-                        this.index++;
-                    }
-                } else {
-                    if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 1 || this.values[this.index] == 2) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] == 0 && parseInt(v) > 0) {
-                        this.date[2] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t > 0 && t < 32) {
-                    this.date[2] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'DD': function(v) {
-            if (isBlank(this.values[this.index])) {
-                if (parseInt(v) > 3 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (this.values[this.index] == 3 && parseInt(v) < 2) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                } else if ((this.values[this.index] == 1 || this.values[this.index] == 2) && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                } else if (this.values[this.index] == 0 && parseInt(v) > 0 && parseInt(v) < 10) {
-                    this.date[2] = this.values[this.index] += v;
-                    this.index++;
-                }
-            }
-        },
-        'DDD': function(v) {
-            parser.FIND.call(this, v, weekDays);
-        },
-        'DY': function(v) {
-            parser['DDD'].call(this, v);
-        },
-        'DDDD': function(v) {
-            parser.FIND.call(this, v, weekDaysFull);
-        },
-        'DAY': function(v) {
-            parser['DDDD'].call(this, v);
-        },
-        'HH12': function(v, two) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (isBlank(this.values[this.index])) {
-                    if (parseInt(v) > 1 && parseInt(v) < 10) {
-                        if (two) {
-                            v = 0 + v;
-                        }
-                        this.date[3] = this.values[this.index] = v;
-                        this.index++;
-                    } else if (parseInt(v) < 10) {
-                        this.values[this.index] = v;
-                    }
-                } else {
-                    if (this.values[this.index] == 1 && parseInt(v) < 3) {
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] < 1 && parseInt(v) < 10) {
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t >= 0 && t <= 12) {
-                    this.date[3] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'HH24': function(v, two) {
-            var test = false;
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                if (this.values[this.index] == null || this.values[this.index] == '') {
-                    if (parseInt(v) > 2 && parseInt(v) < 10) {
-                        if (two) {
-                            v = 0 + v;
-                        }
-                        this.date[3] = this.values[this.index] = v;
-                        this.index++;
-                    } else if (parseInt(v) < 10) {
-                        this.values[this.index] = v;
-                    }
-                } else {
-                    if (this.values[this.index] == 2 && parseInt(v) < 4) {
-                        if (! two && this.values[this.index] === '0') {
-                            this.values[this.index] = '';
-                        }
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    } else if (this.values[this.index] < 2 && parseInt(v) < 10) {
-                        if (! two && this.values[this.index] === '0') {
-                            this.values[this.index] = '';
-                        }
-                        this.date[3] = this.values[this.index] += v;
-                        this.index++;
-                    } else {
-                        var test = true;
-                    }
-                }
-            } else {
-                var test = true;
-            }
-
-            // Re-test
-            if (test == true) {
-                var t = parseInt(this.values[this.index]);
-                if (t >= 0 && t < 24) {
-                    this.date[3] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'HH': function(v) {
-            parser['HH24'].call(this, v, 1);
-        },
-        'H': function(v) {
-            parser['HH24'].call(this, v, 0);
-        },
-        '\\[H\\]': function(v) {
-            if (this.values[this.index] == undefined) {
-                this.values[this.index] = '';
-            }
-            if (v.match(/[0-9]/g)) {
-                this.date[3] = this.values[this.index] += v;
-            } else {
-                if (this.values[this.index].match(/[0-9]/g)) {
-                    this.date[3] = this.values[this.index];
-                    this.index++;
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'N60': function(v, i) {
-            if (this.values[this.index] == null || this.values[this.index] == '') {
-                if (parseInt(v) > 5 && parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] = '0' + v;
-                    this.index++;
-                } else if (parseInt(v) < 10) {
-                    this.values[this.index] = v;
-                }
-            } else {
-                if (parseInt(v) < 10) {
-                    this.date[i] = this.values[this.index] += v;
-                    this.index++;
-                 }
-            }
-        },
-        'MI': function(v) {
-            parser.N60.call(this, v, 4);
-        },
-        'SS': function(v) {
-            parser.N60.call(this, v, 5);
-        },
-        'AM/PM': function(v) {
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-
-            if (this.values[this.index] === '') {
-                if (v.match(/a/i) && this.date[3] < 13) {
-                    this.values[this.index] += 'A';
-                } else if (v.match(/p/i)) {
-                    this.values[this.index] += 'P';
-                }
-            } else if (this.values[this.index] === 'A' || this.values[this.index] === 'P') {
-                this.values[this.index] += 'M';
-                this.index++;
-            }
-        },
-        'WD': function(v) {
-            if (typeof(this.values[this.index]) === 'undefined') {
-                this.values[this.index] = '';
-            }
-            if (parseInt(v) >= 0 && parseInt(v) < 7) {
-                this.values[this.index] = v;
-            }
-            if (this.values[this.index].length == 1) {
-                this.index++;
-            }
-        },
-        '0{1}(.{1}0+)?': function(v) {
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Negative number
-            var neg = false;
-            // Create if is blank
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            } else {
-                if (this.values[this.index] == '-') {
-                    neg = true;
-                }
-            }
-            var current = ParseValue.call(this, this.values[this.index], decimal);
-            if (current) {
-                this.values[this.index] = current.join(decimal);
-            }
-            // New entry
-            if (parseInt(v) >= 0 && parseInt(v) < 10) {
-                // Replace the zero for a number
-                if (this.values[this.index] == '0' && v > 0) {
-                    this.values[this.index] = '';
-                } else if (this.values[this.index] == '-0' && v > 0) {
-                    this.values[this.index] = '-';
-                }
-                // Don't add up zeros because does not mean anything here
-                if ((this.values[this.index] != '0' && this.values[this.index] != '-0') || v == decimal) {
-                    this.values[this.index] += v;
-                }
-            } else if (decimal && v == decimal) {
-                if (this.values[this.index].indexOf(decimal) == -1) {
-                    if (! this.values[this.index]) {
-                        this.values[this.index] = '0';
-                    }
-                    this.values[this.index] += v;
-                }
-            } else if (v == '-') {
-                // Negative signed
-                neg = true;
-            }
-
-            if (neg === true && this.values[this.index][0] !== '-') {
-                this.values[this.index] = '-' + this.values[this.index];
-            }
-        },
-        '0{1}(.{1}0+)?E{1}\\+0+': function(v) {
-            parser['0{1}(.{1}0+)?'].call(this, v);
-        },
-        '0{1}(.{1}0+)?%': function(v) {
-            parser['0{1}(.{1}0+)?'].call(this, v);
-
-            if (this.values[this.index].match(/[\-0-9]/g)) {
-                if (this.values[this.index] && this.values[this.index].indexOf('%') == -1) {
-                    this.values[this.index] += '%';
-                }
-            } else {
-                this.values[this.index] = '';
-            }
-        },
-        '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
-            // Parse number
-            parser['0{1}(.{1}0+)?'].call(this, v);
-            // Get decimal
-            var decimal = getDecimal.call(this);
-            // Get separator
-            var separator = this.tokens[this.index].substr(1,1);
-            // Negative
-            var negative = this.values[this.index][0] === '-' ? true : false;
-            // Current value
-            var current = ParseValue.call(this, this.values[this.index], decimal);
-
-            // Get main and decimal parts
-            if (current !== '') {
-                // Format number
-                var n = current[0].match(/[0-9]/g);
-                if (n) {
-                    // Format
-                    n = n.join('');
-                    var t = [];
-                    var s = 0;
-                    for (var j = n.length - 1; j >= 0 ; j--) {
-                        t.push(n[j]);
-                        s++;
-                        if (! (s % 3)) {
-                            t.push(separator);
-                        }
-                    }
-                    t = t.reverse();
-                    current[0] = t.join('');
-                    if (current[0].substr(0,1) == separator) {
-                        current[0] = current[0].substr(1);
-                    }
-                } else {
-                    current[0] = '';
-                }
-
-                // Value
-                this.values[this.index] = current.join(decimal);
-
-                // Negative
-                if (negative) {
-                    this.values[this.index] = '-' + this.values[this.index];
-                }
-            }
-        },
-        '0': function(v) {
-            if (v.match(/[0-9]/g)) {
-                this.values[this.index] = v;
-                this.index++;
-            }
-        },
-        '[0-9a-zA-Z$]+': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            var t = this.tokens[this.index];
-            var s = this.values[this.index];
-            var i = s.length;
-
-            if (t[i] == v) {
-                this.values[this.index] += v;
-
-                if (this.values[this.index] == t) {
-                    this.index++;
-                }
-            } else {
-                this.values[this.index] = t;
-                this.index++;
-
-                if (v.match(/[\-0-9]/g)) {
-                    // Repeat the character
-                    this.position--;
-                }
-            }
-        },
-        'A': function(v) {
-            if (v.match(/[a-zA-Z]/gi)) {
-                this.values[this.index] = v;
-                this.index++;
-            }
-        },
-        '.': function(v) {
-            parser['[0-9a-zA-Z$]+'].call(this, v);
-        },
-        '@': function(v) {
-            if (isBlank(this.values[this.index])) {
-                this.values[this.index] = '';
-            }
-            this.values[this.index] += v;
-        }
-    }
-
-    /**
-     * Get the tokens in the mask string
-     */
-    var getTokens = function(str) {
-        if (this.type == 'general') {
-            var t = [].concat(tokens.general);
-        } else {
-            var t = [].concat(tokens.currency, tokens.datetime, tokens.percentage, tokens.scientific, tokens.numeric, tokens.text, tokens.general);
-        }
-        // Expression to extract all tokens from the string
-        var e = new RegExp(t.join('|'), 'gi');
-        // Extract
-        return str.match(e);
-    }
-
-    /**
-     * Get the method of one given token
-     */
-    var getMethod = function(str) {
-        if (! this.type) {
-            var types = Object.keys(tokens);
-        } else if (this.type == 'text') {
-            var types = [ 'text' ];
-        } else if (this.type == 'general') {
-            var types = [ 'general' ];
-        } else if (this.type == 'datetime') {
-            var types = [ 'numeric', 'datetime', 'general' ];
-        } else {
-            var types = [ 'currency', 'percentage', 'scientific', 'numeric', 'general' ];
-        }
-
-        // Found
-        for (var i = 0; i < types.length; i++) {
-            var type = types[i];
-            for (var j = 0; j < tokens[type].length; j++) {
-                var e = new RegExp(tokens[type][j], 'gi');
-                var r = str.match(e);
-                if (r) {
-                    return { type: type, method: tokens[type][j] }
-                }
-            }
-        }
-    }
-
-    /**
-     * Identify each method for each token
-     */
-    var getMethods = function(t) {
-        var result = [];
-        for (var i = 0; i < t.length; i++) {
-            var m = getMethod.call(this, t[i]);
-            if (m) {
-                result.push(m.method);
-            } else {
-                result.push(null);
-            }
-        }
-
-        // Compatibility with excel
-        for (var i = 0; i < result.length; i++) {
-            if (result[i] == 'MM') {
-                // Not a month, correct to minutes
-                if (result[i-1] && result[i-1].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i-2] && result[i-2].indexOf('H') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+1] && result[i+1].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                } else if (result[i+2] && result[i+2].indexOf('S') >= 0) {
-                    result[i] = 'MI';
-                }
-            }
-        }
-
-        return result;
-    }
-
-    /**
-     * Get the type for one given token
-     */
-    var getType = function(str) {
-        var m = getMethod.call(this, str);
-        if (m) {
-            var type = m.type;
-        }
-
-        if (type) {
-            var numeric = 0;
-            // Make sure the correct type
-            var t = getTokens.call(this, str);
-            for (var i = 0; i < t.length; i++) {
-                m = getMethod.call(this, t[i]);
-                if (m && isNumeric(m.type)) {
-                    numeric++;
-                }
-            }
-            if (numeric > 1) {
-                type = 'general';
-            }
-        }
-
-        return type;
-    }
-
-    /**
-     * Parse character per character using the detected tokens in the mask
-     */
-    var parse = function() {
-        // Parser method for this position
-        if (typeof(parser[this.methods[this.index]]) == 'function') {
-            parser[this.methods[this.index]].call(this, this.value[this.position]);
-            this.position++;
-        } else {
-            this.values[this.index] = this.tokens[this.index];
-            this.index++;
-        }
-    }
-
-    var toPlainString = function(num) {
-        return (''+ +num).replace(/(-?)(\d*)\.?(\d*)e([+-]\d+)/,
-          function(a,b,c,d,e) {
-            return e < 0
-              ? b + '0.' + Array(1-e-c.length).join(0) + c + d
-              : b + c + d + Array(e-d.length+1).join(0);
-          });
-    }
-
-    /**
-     * Mask function
-     * @param {mixed|string} JS input or a string to be parsed
-     * @param {object|string} When the first param is a string, the second is the mask or object with the mask options
-     */
-    var obj = function(e, config, returnObject) {
-        // Options
-        var r = null;
-        var t = null;
-        var o = {
-            // Element
-            input: null,
-            // Current value
-            value: null,
-            // Mask options
-            options: {},
-            // New values for each token found
-            values: [],
-            // Token position
-            index: 0,
-            // Character position
-            position: 0,
-            // Date raw values
-            date: [0,0,0,0,0,0],
-            // Raw number for the numeric values
-            number: 0,
-        }
-
-        // This is a JavaScript Event
-        if (typeof(e) == 'object') {
-            // Element
-            o.input = e.target;
-            // Current value
-            o.value = Value.call(e.target);
-            // Current caret position
-            o.caret = Caret.call(e.target);
-            // Mask
-            if (t = e.target.getAttribute('data-mask')) {
-                o.mask = t;
-            }
-            // Type
-            if (t = e.target.getAttribute('data-type')) {
-                o.type = t;
-            }
-            // Options
-            if (e.target.mask) {
-                if (e.target.mask.options) {
-                    o.options = e.target.mask.options;
-                }
-                if (e.target.mask.locale) {
-                    o.locale = e.target.mask.locale;
-                }
-            } else {
-                // Locale
-                if (t = e.target.getAttribute('data-locale')) {
-                    o.locale = t;
-                    if (o.mask) {
-                        o.options.style = o.mask;
-                    }
-                }
-            }
-            // Extra configuration
-            if (e.target.attributes && e.target.attributes.length) {
-                for (var i = 0; i < e.target.attributes.length; i++) {
-                    var k = e.target.attributes[i].name;
-                    var v = e.target.attributes[i].value;
-                    if (k.substr(0,4) == 'data') {
-                        o.options[k.substr(5)] = v;
-                    }
-                }
-            }
-        } else {
-            // Options
-            if (typeof(config) == 'string') {
-                // Mask
-                o.mask = config;
-            } else {
-                // Mask
-                var k = Object.keys(config);
-                for (var i = 0; i < k.length; i++) {
-                    o[k[i]] = config[k[i]];
-                }
-            }
-
-            if (typeof(e) === 'number') {
-                // Get decimal
-                getDecimal.call(o, o.mask);
-                // Replace to the correct decimal
-                e = (''+e).replace('.', o.options.decimal);
-            }
-
-            // Current
-            o.value = e;
-
-            if (o.input) {
-                // Value
-                Value.call(o.input, e);
-                // Focus
-                helpers.focus(o.input);
-                // Caret
-                o.caret = Caret.call(o.input);
-            }
-        }
-
-        // Mask detected start the process
-        if (! isFormula(o.value) && (o.mask || o.locale)) {
-            // Compatibility fixes
-            if (o.mask) {
-                // Remove []
-                o.mask = o.mask.replace(new RegExp(/\[h]/),'|h|');
-                o.mask = o.mask.replace(new RegExp(/\[.*?\]/),'');
-                o.mask = o.mask.replace(new RegExp(/\|h\|/),'[h]');
-                if (o.mask.indexOf(';') !== -1) {
-                    var t = o.mask.split(';');
-                    o.mask = t[0];
-                }
-                // Excel mask TODO: Improve
-                if (o.mask.indexOf('##') !== -1) {
-                    var d = o.mask.split(';');
-                    if (d[0]) {
-                        if (typeof(e) == 'object') {
-                            d[0] = d[0].replace(new RegExp(/_\)/g), '');
-                            d[0] = d[0].replace(new RegExp(/_\(/g), '');
-                        }
-                        d[0] = d[0].replace('*', '\t');
-                        d[0] = d[0].replace(new RegExp(/_-/g), '');
-                        d[0] = d[0].replace(new RegExp(/_/g), '');
-                        d[0] = d[0].replace(new RegExp(/"/g), '');
-                        d[0] = d[0].replace('##0.###','##0.000');
-                        d[0] = d[0].replace('##0.##','##0.00');
-                        d[0] = d[0].replace('##0.#','##0.0');
-                        d[0] = d[0].replace('##0,###','##0,000');
-                        d[0] = d[0].replace('##0,##','##0,00');
-                        d[0] = d[0].replace('##0,#','##0,0');
-                    }
-                    o.mask = d[0];
-                }
-                // Remove back slashes
-                if (o.mask.indexOf('\\') !== -1) {
-                    var d = o.mask.split(';');
-                    d[0] = d[0].replace(new RegExp(/\\/g), '');
-                    o.mask = d[0];
-                }
-                // Get type
-                if (! o.type) {
-                    o.type = getType.call(o, o.mask);
-                }
-                // Get tokens
-                o.tokens = getTokens.call(o, o.mask);
-            }
-
-            // On new input
-            if (typeof(e) !== 'object'  || ! e.inputType || ! e.inputType.indexOf('insert') || ! e.inputType.indexOf('delete')) {
-                // Start transformation
-                if (o.locale) {
-                    if (o.input) {
-                        Format.call(o, o.input, e);
-                    } else {
-                        var newValue = FormatValue.call(o, o.value);
-                    }
-                } else {
-                    // Get tokens
-                    o.methods = getMethods.call(o, o.tokens);
-                    o.event = e;
-
-                    // Go through all tokes
-                    while (o.position < o.value.length && typeof(o.tokens[o.index]) !== 'undefined') {
-                        // Get the appropriate parser
-                        parse.call(o);
-                    }
-
-                    // New value
-                    var newValue = o.values.join('');
-
-                    // Add tokens to the end of string only if string is not empty
-                    if (isNumeric(o.type) && newValue !== '') {
-                        // Complement things in the end of the mask
-                        while (typeof(o.tokens[o.index]) !== 'undefined') {
-                            var t = getMethod.call(o, o.tokens[o.index]);
-                            if (t && t.type == 'general') {
-                                o.values[o.index] = o.tokens[o.index];
-                            }
-                            o.index++;
-                        }
-
-                        var adjustNumeric = true;
-                    } else {
-                        var adjustNumeric = false;
-                    }
-
-                    // New value
-                    newValue = o.values.join('');
-
-                    // Reset value
-                    if (o.input) {
-                        t = newValue.length - o.value.length;
-                        if (t > 0) {
-                            var caret = o.caret + t;
-                        } else {
-                            var caret = o.caret;
-                        }
-                        Value.call(o.input, newValue, caret, adjustNumeric);
-                    }
-                }
-            }
-
-            // Update raw data
-            if (o.input) {
-                var label = null;
-                if (isNumeric(o.type)) {
-                    let v = Value.call(o.input);
-                    // Extract the number
-                    o.number = Extract.call(o, v);
-                    // Keep the raw data as a property of the tag
-                    if (o.type == 'percentage' && (''+v).indexOf('%') !== -1) {
-                        label = obj.adjustPrecision(o.number / 100);
-                    } else {
-                        label = o.number;
-                    }
-                } else if (o.type == 'datetime') {
-                    label = getDate.call(o);
-
-                    if (o.date[0] && o.date[1] && o.date[2]) {
-                        o.input.setAttribute('data-completed', true);
-                    }
-                }
-
-                if (label) {
-                    o.input.setAttribute('data-value', label);
-                }
-            }
-
-            if (newValue !== undefined) {
-                if (returnObject) {
-                    return o;
-                } else {
-                    return newValue;
-                }
-            }
-        }
-    }
-
-    obj.adjustPrecision = function(num) {
-        if (typeof num === 'number' && !Number.isInteger(num)) {
-            const v = num.toString().split('.');
-
-            if (v[1] && v[1].length > 10) {
-                let t0 = 0;
-                const t1 = v[1][v[1].length - 2];
-
-                if (t1 == 0 || t1 == 9) {
-                    for (let i = v[1].length - 2; i > 0; i--) {
-                        if (t0 >= 0 && v[1][i] == t1) {
-                            t0++;
-                            if (t0 > 6) {
-                                break;
-                            }
-                        } else {
-                            t0 = 0;
-                            break;
-                        }
-                    }
-
-                    if (t0) {
-                        return parseFloat(parseFloat(num).toFixed(v[1].length - 1));
-                    }
-                }
-            }
-        }
-
-        return num;
-    }
-
-    // Get the type of the mask
-    obj.getType = getType;
-
-    // Extract the tokens from a mask
-    obj.prepare = function(str, o) {
-        if (! o) {
-            o = {};
-        }
-        return getTokens.call(o, str);
-    }
-
-    /**
-     * Apply the mask to a element (legacy)
-     */
-    obj.apply = function(e) {
-        var v = Value.call(e.target);
-        if (e.key.length == 1) {
-            v += e.key;
-        }
-        Value.call(e.target, obj(v, e.target.getAttribute('data-mask')));
-    }
-
-    /**
-     * Legacy support
-     */
-    obj.run = function(value, mask, decimal) {
-        return obj(value, { mask: mask, decimal: decimal });
-    }
-
-    /**
-     * Extract number from masked string
-     */
-    obj.extract = function(v, options, returnObject) {
-        if (isBlank(v)) {
-            return v;
-        }
-        if (typeof(options) != 'object') {
-            return v;
-        } else {
-            options = Object.assign({}, options);
-
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
-        }
-
-        // Get decimal
-        getDecimal.call(options, options.mask);
-
-        var type = null;
-        var value = null;
-
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        }
-
-        if (type === 'text') {
-            var o = {};
-            value = v;
-        } else if (type === 'general') {
-            var o = obj(v, options, true);
-
-            value = v;
-        } else if (type === 'datetime') {
-            if (v instanceof Date) {
-                v = obj.getDateString(v, options.mask);
-            }
-
-            var o = obj(v, options, true);
-
-            if (helpers.isNumeric(v)) {
-                value = v;
-            } else {
-                value = extractDate.call(o);
-            }
-        } else if (type === 'scientific') {
-            value = v;
-            if (typeof(v) === 'string') {
-                value = Number(value);
-            }
-            var o = options;
-        } else {
-            value = Extract.call(options, v);
-            // Percentage
-            if (type === 'percentage' && (''+v).indexOf('%') !== -1) {
-                value /= 100;
-            }
-            var o = options;
-        }
-
-        o.value = value;
-
-        if (! o.type && type) {
-            o.type = type;
-        }
-
-        if (returnObject) {
-            return o;
-        } else {
-            return value;
-        }
-    }
-
-    /**
-     * Render
-     */
-    obj.render = function(value, options, fullMask, strict) {
-        if (isBlank(value)) {
-            return value;
-        }
-
-        if (typeof(options) != 'object') {
-            return value;
-        } else {
-            options = Object.assign({}, options);
-
-            if (! options.options) {
-                options.options = {};
-            }
-        }
-
-        // Compatibility
-        if (! options.mask && options.format) {
-            options.mask = options.format;
-        }
-
-        // Remove []
-        if (options.mask) {
-            if (options.mask.indexOf(';') !== -1) {
-                var t = options.mask.split(';');
-                if (! fullMask) {
-                    t[0] = t[0].replace(new RegExp(/_\)/g), '');
-                    t[0] = t[0].replace(new RegExp(/_\(/g), '');
-                }
-                options.mask = t[0];
-            }
-            options.mask = options.mask.replace(new RegExp(/\[h]/),'|h|');
-            options.mask = options.mask.replace(new RegExp(/\[.*?\]/),'');
-            options.mask = options.mask.replace(new RegExp(/\|h\|/),'[h]');
-        }
-
-        var type = null;
-        if (options.type == 'percent' || options.options.style == 'percent') {
-            type = 'percentage';
-        } else if (options.mask) {
-            type = getType.call(options, options.mask);
-        } else if (value instanceof Date) {
-            type = 'datetime';
-        }
-
-        // Fill with blanks
-        var fillWithBlanks = false;
-
-        if (type =='datetime' || options.type == 'calendar') {
-            var t = obj.getDateString(value, options.mask);
-            if (t) {
-                value = t;
-            }
-            if (options.mask && fullMask) {
-                fillWithBlanks = true;
-            }
-        } else if (type === 'text') {
-            // Parse number
-            if (typeof(value) === 'number') {
-                value = value.toString();
-            }
-        } else {
-            // Parse number
-            if (typeof(value) === 'string' && jSuites.isNumeric(value)) {
-                value = Number(value);
-            }
-            // Percentage
-            if (type === 'percentage') {
-                value = obj.adjustPrecision(value*100);
-            }
-
-            // Number of decimal places
-            if (typeof(value) === 'number') {
-                var t = null;
-                if (options.mask && fullMask) {
-                    var d = getDecimal.call(options, options.mask);
-                    if (type === 'scientific') {
-                        if (options.mask.indexOf(d) !== -1) {
-                            let exp = options.mask.split('E');
-                            exp = exp[0].split(d);
-                            exp = ('' + exp[1].match(/[0-9]+/g))
-                            exp = exp.length;
-                            t = value.toExponential(exp);
-                        } else {
-                            t = value.toExponential(0);
-                        }
-                    } else {
-                        if (options.mask.indexOf(d) !== -1) {
-                            d = options.mask.split(d);
-                            d = (''+d[1].match(/[0-9]+/g))
-                            d = d.length;
-                            t = value.toFixed(d);
-                            let n = value.toString().split('.');
-                            let fraction = n[1];
-                            if (fraction && fraction.length > d && fraction[fraction.length-1] === '5') {
-                                t = parseFloat(n[0] + '.' + fraction + '1').toFixed(d);
-                            }
-                        } else {
-                            t = value.toFixed(0);
-                        }
-
-                        // Handle scientific notation
-                        if ((''+t).indexOf('e') !== -1) {
-                            t = toPlainString(t);
-                        }
-                    }
-                } else if (options.locale && fullMask) {
-                    // Append zeros
-                    var d = (''+value).split('.');
-                    if (options.options) {
-                        if (typeof(d[1]) === 'undefined') {
-                            d[1] = '';
-                        }
-                        var len = d[1].length;
-                        if (options.options.minimumFractionDigits > len) {
-                            for (var i = 0; i < options.options.minimumFractionDigits - len; i++) {
-                                d[1] += '0';
-                            }
-                        }
-                    }
-                    if (! d[1].length) {
-                        t = d[0]
-                    } else {
-                        t = d.join('.');
-                    }
-                    var len = d[1].length;
-                    if (options.options && options.options.maximumFractionDigits < len) {
-                        t = parseFloat(t).toFixed(options.options.maximumFractionDigits);
-                    }
-                } else {
-                    t = toPlainString(value);
-                }
-
-                if (t !== null) {
-                    value = t;
-                    // Get decimal
-                    getDecimal.call(options, options.mask);
-                    // Replace to the correct decimal
-                    if (options.options.decimal) {
-                        value = value.replace('.', options.options.decimal);
-                    }
-                }
-            } else {
-                if (options.mask && fullMask) {
-                    fillWithBlanks = true;
-                }
-            }
-        }
-
-        if (fillWithBlanks) {
-            var s = options.mask.length - value.length;
-            if (s > 0) {
-                for (var i = 0; i < s; i++) {
-                    value += ' ';
-                }
-            }
-        }
-
-        if (type === 'scientific') {
-            if (! fullMask) {
-                value = toPlainString(value);
-            } else {
-                return value;
-            }
-        }
-
-        if (type === 'numeric' && strict === false && typeof(value) === 'string') {
-            return value;
-        }
-
-        value = obj(value, options);
-
-        // Numeric mask, number of zeros
-        if (fullMask && type === 'numeric') {
-            var maskZeros = options.mask.match(new RegExp(/^[0]+$/gm));
-            if (maskZeros && maskZeros.length === 1) {
-                var maskLength = maskZeros[0].length;
-                if (maskLength > 3) {
-                    value = '' + value;
-                    while (value.length < maskLength) {
-                        value = '0' + value;
-                    }
-                }
-            }
-        }
-
-        return value;
-    }
-
-    obj.set = function(e, m) {
-        if (m) {
-            e.setAttribute('data-mask', m);
-            // Reset the value
-            var event = new Event('input', {
-                bubbles: true,
-                cancelable: true,
-            });
-            e.dispatchEvent(event);
-        }
-    }
-
-    // Helper to extract date from a string
-    obj.extractDateFromString = function (date, format) {
-        var o = obj(date, { mask: format }, true);
-
-        // Check if in format Excel (Need difference with format date or type detected is numeric)
-        if (date > 0 && Number(date) == date && (o.values.join("") !== o.value || o.type == "numeric")) {
-            var d = new Date(Math.round((date - 25569) * 86400 * 1000));
-            return d.getFullYear() + "-" + helpers.two(d.getMonth()) + "-" + helpers.two(d.getDate()) + ' 00:00:00';
-        }
-
-        var complete = false;
-
-        if (o.values && o.values.length === o.tokens.length && o.values[o.values.length - 1].length >= o.tokens[o.tokens.length - 1].length) {
-            complete = true;
-        }
-
-        if (o.date[0] && o.date[1] && (o.date[2] || complete)) {
-            if (!o.date[2]) {
-                o.date[2] = 1;
-            }
-
-            return o.date[0] + '-' + helpers.two(o.date[1]) + '-' + helpers.two(o.date[2]) + ' ' + helpers.two(o.date[3]) + ':' + helpers.two(o.date[4]) + ':' + helpers.two(o.date[5]);
-        }
-
-        return '';
-    }
-
-    // Helper to convert date into string
-    obj.getDateString = function (value, options) {
-        if (!options) {
-            var options = {};
-        }
-
-        // Labels
-        if (options && typeof (options) == 'object') {
-            if (options.format) {
-                var format = options.format;
-            } else if (options.mask) {
-                var format = options.mask;
-            }
-        } else {
-            var format = options;
-        }
-
-        if (!format) {
-            format = 'YYYY-MM-DD';
-        }
-
-        // Convert to number of hours
-        if (format.indexOf('[h]') >= 0) {
-            var result = 0;
-            if (value && helpers.isNumeric(value)) {
-                result = parseFloat(24 * Number(value));
-                if (format.indexOf('mm') >= 0) {
-                    var h = ('' + result).split('.');
-                    if (h[1]) {
-                        var d = 60 * parseFloat('0.' + h[1])
-                        d = parseFloat(d.toFixed(2));
-                    } else {
-                        var d = 0;
-                    }
-                    result = parseInt(h[0]) + ':' + helpers.two(d);
-                }
-            }
-            return result;
-        }
-
-        // Date instance
-        if (value instanceof Date) {
-            value = helpers_date.now(value);
-        } else if (value && helpers.isNumeric(value)) {
-            value = helpers_date.numToDate(value);
-        }
-
-        // Tokens
-        var tokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
-
-        // Expression to extract all tokens from the string
-        var e = new RegExp(tokens.join('|'), 'gi');
-        // Extract
-        var t = format.match(e);
-
-        // Compatibility with excel
-        for (var i = 0; i < t.length; i++) {
-            if (t[i].toUpperCase() == 'MM') {
-                // Not a month, correct to minutes
-                if (t[i - 1] && t[i - 1].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i - 2] && t[i - 2].toUpperCase().indexOf('H') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 1] && t[i + 1].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                } else if (t[i + 2] && t[i + 2].toUpperCase().indexOf('S') >= 0) {
-                    t[i] = 'mi';
-                }
-            }
-        }
-
-        // Object
-        var o = {
-            tokens: t
-        }
-
-        // Value
-        if (value) {
-            var d = '' + value;
-            var splitStr = (d.indexOf('T') !== -1) ? 'T' : ' ';
-            d = d.split(splitStr);
-
-            var h = 0;
-            var m = 0;
-            var s = 0;
-
-            if (d[1]) {
-                h = d[1].split(':');
-                m = h[1] ? h[1] : 0;
-                s = h[2] ? h[2] : 0;
-                h = h[0] ? h[0] : 0;
-            }
-
-            d = d[0].split('-');
-
-            let day = new Date(d[0], d[1], 0).getDate();
-
-            if (d[0] && d[1] && d[2] && d[0] > 0 && d[1] > 0 && d[1] < 13 && d[2] > 0 && d[2] <= day) {
-
-                // Data
-                o.data = [d[0], d[1], d[2], h, m, s];
-
-                // Value
-                o.value = [];
-
-                // Calendar instance
-                var calendar = new Date(o.data[0], o.data[1] - 1, o.data[2], o.data[3], o.data[4], o.data[5]);
-
-                // Get method
-                var get = function (i) {
-                    // Token
-                    var t = this.tokens[i];
-                    // Case token
-                    var s = t.toUpperCase();
-                    var v = null;
-
-                    if (s === 'YYYY') {
-                        v = this.data[0];
-                    } else if (s === 'YYY') {
-                        v = this.data[0].substring(1, 4);
-                    } else if (s === 'YY') {
-                        v = this.data[0].substring(2, 4);
-                    } else if (s === 'Y') {
-                        v = this.data[0].substring(3, 4);
-                    } else if (t === 'MON') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3).toUpperCase();
-                    } else if (t === 'mon') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3).toLowerCase();
-                    } else if (t === 'MONTH') {
-                        v = helpers_date.months[calendar.getMonth()].toUpperCase();
-                    } else if (t === 'month') {
-                        v = helpers_date.months[calendar.getMonth()].toLowerCase();
-                    } else if (s === 'MMMMM') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 1);
-                    } else if (s === 'MMMM' || t === 'Month') {
-                        v = helpers_date.months[calendar.getMonth()];
-                    } else if (s === 'MMM' || t == 'Mon') {
-                        v = helpers_date.months[calendar.getMonth()].substr(0, 3);
-                    } else if (s === 'MM') {
-                        v = helpers.two(this.data[1]);
-                    } else if (s === 'M') {
-                        v = calendar.getMonth() + 1;
-                    } else if (t === 'DAY') {
-                        v = helpers_date.weekdays[calendar.getDay()].toUpperCase();
-                    } else if (t === 'day') {
-                        v = helpers_date.weekdays[calendar.getDay()].toLowerCase();
-                    } else if (s === 'DDDD' || t == 'Day') {
-                        v = helpers_date.weekdays[calendar.getDay()];
-                    } else if (s === 'DDD') {
-                        v = helpers_date.weekdays[calendar.getDay()].substr(0, 3);
-                    } else if (s === 'DD') {
-                        v = helpers.two(this.data[2]);
-                    } else if (s === 'D') {
-                        v = parseInt(this.data[2]);
-                    } else if (s === 'Q') {
-                        v = Math.floor((calendar.getMonth() + 3) / 3);
-                    } else if (s === 'HH24' || s === 'HH') {
-                        v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
-                        }
-                        v = helpers.two(v);
-                    } else if (s === 'HH12') {
-                        if (this.data[3] > 12) {
-                            v = helpers.two(this.data[3] - 12);
-                        } else {
-                            v = helpers.two(this.data[3]);
-                        }
-                    } else if (s === 'H') {
-                        v = this.data[3];
-                        if (v > 12 && this.tokens.indexOf('am/pm') !== -1) {
-                            v -= 12;
-                            v = helpers.two(v);
-                        }
-                    } else if (s === 'MI') {
-                        v = helpers.two(this.data[4]);
-                    } else if (s === 'SS') {
-                        v = helpers.two(this.data[5]);
-                    } else if (s === 'MS') {
-                        v = calendar.getMilliseconds();
-                    } else if (s === 'AM/PM') {
-                        if (this.data[3] >= 12) {
-                            v = 'PM';
-                        } else {
-                            v = 'AM';
-                        }
-                    } else if (s === 'WD') {
-                        v = helpers_date.weekdays[calendar.getDay()];
-                    }
-
-                    if (v === null) {
-                        this.value[i] = this.tokens[i];
-                    } else {
-                        this.value[i] = v;
-                    }
-                }
-
-                for (var i = 0; i < o.tokens.length; i++) {
-                    get.call(o, i);
-                }
-                // Put pieces together
-                value = o.value.join('');
-            } else {
-                value = '';
-            }
-        }
-
-        return value;
-    }
-
-    return obj;
-}
-
-/* harmony default export */ var mask = (Mask());
-
+// EXTERNAL MODULE: ./packages/utils/dist/index.js
+var dist = __webpack_require__(559);
+var dist_default = /*#__PURE__*/__webpack_require__.n(dist);
 ;// CONCATENATED MODULE: ./src/plugins/calendar.js
 
 
@@ -3363,6 +13064,8 @@ function Mask() {
 
 
 
+const Mask = (dist_default()).Mask;
+const HelpersDate = (dist_default()).Helpers;
 
 function Calendar() {
     var Component = (function (el, options) {
@@ -3403,9 +13106,9 @@ function Calendar() {
                 // Placeholder
                 placeholder: '',
                 // Translations can be done here
-                months: helpers_date.monthsShort,
-                monthsFull: helpers_date.months,
-                weekdays: helpers_date.weekdays,
+                months: HelpersDate.monthsShort,
+                monthsFull: HelpersDate.months,
+                weekdays: HelpersDate.weekdays,
                 textDone: dictionary.translate('Done'),
                 textReset: dictionary.translate('Reset'),
                 textUpdate: dictionary.translate('Update'),
@@ -3440,6 +13143,29 @@ function Calendar() {
                         obj.options[property] = defaults[property];
                     }
                 }
+            }
+
+            // Register custom months and weekdays with the dictionary for translation
+            if (obj.options.monthsFull && obj.options.monthsFull !== defaults.monthsFull) {
+                const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const translations = {};
+                for (let i = 0; i < 12; i++) {
+                    if (obj.options.monthsFull[i]) {
+                        translations[englishMonths[i]] = obj.options.monthsFull[i];
+                    }
+                }
+                dictionary.setDictionary(translations);
+            }
+
+            if (obj.options.weekdays && obj.options.weekdays !== defaults.weekdays) {
+                const englishWeekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const translations = {};
+                for (let i = 0; i < 7; i++) {
+                    if (obj.options.weekdays[i]) {
+                        translations[englishWeekdays[i]] = obj.options.weekdays[i];
+                    }
+                }
+                dictionary.setDictionary(translations);
             }
 
             // Reset button
@@ -4385,14 +14111,14 @@ function Calendar() {
                 }
             }
 
+            // Controls - must be set before open() for correct height calculations
+            if (obj.options.controls == false) {
+                calendarContainer.classList.add('jcalendar-hide-controls');
+            }
+
             // Default opened
             if (obj.options.opened == true) {
                 obj.open();
-            }
-
-            // Controls
-            if (obj.options.controls == false) {
-                calendarContainer.classList.add('jcalendar-hide-controls');
             }
 
             // Change method
@@ -4488,18 +14214,18 @@ function Calendar() {
         }
     }
 
-    Component.now = helpers_date.now;
-    Component.toArray = helpers_date.toArray;
-    Component.dateToNum = helpers_date.dateToNum
-    Component.numToDate = helpers_date.numToDate;
-    Component.weekdays = helpers_date.weekdays;
-    Component.months = helpers_date.months;
-    Component.weekdaysShort = helpers_date.weekdaysShort;
-    Component.monthsShort = helpers_date.monthsShort;
+    Component.now = HelpersDate.now;
+    Component.toArray = HelpersDate.toArray;
+    Component.dateToNum = HelpersDate.dateToNum
+    Component.numToDate = HelpersDate.numToDate;
+    Component.weekdays = HelpersDate.weekdays;
+    Component.months = HelpersDate.months;
+    Component.weekdaysShort = HelpersDate.weekdaysShort;
+    Component.monthsShort = HelpersDate.monthsShort;
 
     // Legacy shortcut
-    Component.extractDateFromString = mask.extractDateFromString;
-    Component.getDateString = mask.getDateString;
+    Component.extractDateFromString = Mask.extractDateFromString;
+    Component.getDateString = Mask.getDateString;
 
     return Component;
 }
@@ -4826,7 +14552,7 @@ function Tabs(el, options) {
             h.setAttribute('role', 'tab');
             h.setAttribute('aria-controls', contentId);
 
-            h.textContent = title;
+            h.innerHTML = title;
             h.content = div;
 
             if (typeof(position) === 'undefined') {
@@ -4928,7 +14654,7 @@ function Tabs(el, options) {
     obj.setBorder = setBorder;
 
     obj.init = function() {
-        el.textContent = '';
+        el.innerHTML = '';
 
         // Make sure the component is blank
         obj.headers = document.createElement('div');
@@ -5010,7 +14736,7 @@ function Tabs(el, options) {
                 var iconContainer = document.createElement('div');
                 var icon = document.createElement('i');
                 icon.classList.add('material-icons');
-                icon.textContent = obj.options.data[i].icon;
+                icon.innerHTML = obj.options.data[i].icon;
                 iconContainer.appendChild(icon);
                 headerItem.appendChild(iconContainer);
             }
@@ -6054,60 +15780,6 @@ function Contextmenu() {
                     }
 
                     itemContainer.appendChild(el_submenu);
-
-                    // Submenu positioning logic:
-                    // Case 1: Default (enough space to the right) - submenu opens to the right of the parent menu item.
-                    // Case 2: Not enough space to the right, but enough to the left - submenu opens to the left of the parent menu item.
-                    // Case 3: Not enough space on either side (e.g., very narrow viewport) - submenu opens below the parent menu item.
-                    itemContainer.addEventListener('mouseenter', function () {
-                        // Reset to default
-                        el_submenu.style.left = '';
-                        el_submenu.style.right = '';
-                        el_submenu.style.minWidth = itemContainer.offsetWidth + 'px';
-
-                        // Temporarily show submenu to measure
-                        el_submenu.style.display = 'block';
-                        el_submenu.style.opacity = '0';
-                        el_submenu.style.pointerEvents = 'none';
-
-                        // Use getBoundingClientRect to determine position
-                        var parentRect = itemContainer.getBoundingClientRect();
-                        var submenuRect = el_submenu.getBoundingClientRect();
-                        var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
-
-                        // Calculate the right edge if rendered to the right
-                        var rightEdge = parentRect.right + submenuRect.width;
-                        var leftEdge = parentRect.left - submenuRect.width;
-
-                        // If rendering to the right would overflow, render to the left
-                        if (rightEdge > viewportWidth && leftEdge >= 0) {
-                            el_submenu.style.left = 'auto';
-                            el_submenu.style.right = '99%';
-                        } 
-                        // If both right and left would overflow, render to the right of the left border (worst case)
-                        else if (rightEdge > viewportWidth && leftEdge < 0) {
-                            el_submenu.style.left = '32px';
-                            el_submenu.style.right = 'auto';
-                            el_submenu.style.top = '100%';
-                        }
-                        // Default: render to the right
-                        else {
-                            el_submenu.style.left = '99%';
-                            el_submenu.style.right = 'auto';
-                        }
-
-                        // Restore visibility
-                        el_submenu.style.opacity = '';
-                        el_submenu.style.pointerEvents = '';
-                        el_submenu.style.display = '';
-                    });
-
-                    // Also reset submenu position on mouseleave to avoid stale styles
-                    itemContainer.addEventListener('mouseleave', function () {
-                        el_submenu.style.left = '';
-                        el_submenu.style.right = '';
-                        el_submenu.style.minWidth = '';
-                    });
                 } else if (item.shortcut) {
                     var itemShortCut = document.createElement('span');
                     itemShortCut.innerHTML = item.shortcut;
@@ -8140,16 +17812,13 @@ function Picker(el, options) {
         var item;
 
         if (obj.options.content) {
-            item = document.createElement('i');
-            item.textContent = obj.options.content;
-            item.classList.add('material-icons');
+            item = '<i class="material-icons">' + obj.options.content + '</i>';
         } else {
             item = obj.getLabel(v, null);
         }
-
         // Label
         if (isDOM(item)) {
-            dropdownHeader.textContent = '';
+            dropdownHeader.innerHTML = '';
             dropdownHeader.appendChild(item);
         } else {
             dropdownHeader.innerHTML = item;
@@ -8326,6 +17995,11 @@ function Toolbar(el, options) {
     toolbarArrow.classList.add('jtoolbar-item');
     toolbarArrow.classList.add('jtoolbar-arrow');
 
+    let arrow = document.createElement('i');
+    arrow.classList.add('material-icons');
+    arrow.textContent = 'more_vert';
+    toolbarArrow.appendChild(arrow);
+
     var toolbarFloating = document.createElement('div');
     toolbarFloating.classList.add('jtoolbar-floating');
     toolbarArrow.appendChild(toolbarFloating);
@@ -8392,7 +18066,7 @@ function Toolbar(el, options) {
             toolbarItem.classList.add('jtoolbar-item');
 
             if (items[i].width) {
-                toolbarItem.style.width = parseInt(items[i].width) + 'px'; 
+                toolbarItem.style.width = parseInt(items[i].width) + 'px';
             }
 
             if (items[i].k) {
@@ -8511,7 +18185,7 @@ function Toolbar(el, options) {
 
         toolbarFloating.style.right = '0';
 
-        toolbarArrow.children[0].focus();
+        toolbarArrow.children[1].focus();
         // Start tracking
         tracking(obj, true);
     }
@@ -8566,7 +18240,7 @@ function Toolbar(el, options) {
             obj.selectItem(element);
         }
 
-        if (e.target.classList.contains('jtoolbar-arrow')) {
+        if (e.target.classList.contains('jtoolbar-arrow') || e.target.parentNode.classList.contains('jtoolbar-arrow')) {
             obj.open();
         }
     }
@@ -8597,223 +18271,7 @@ function Toolbar(el, options) {
 
     return obj;
 }
-;// CONCATENATED MODULE: ./src/utils/filter.js
-
-// Valid tags (removed iframe for security)
-const validTags = [
-    'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
-    'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
-    'figure', 'picture', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr',
-    'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
-    'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
-    'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
-    'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
-];
-
-// Dangerous tags that should be completely removed
-const dangerousTags = ['script', 'object', 'embed', 'applet', 'meta', 'base', 'link', 'iframe'];
-
-// Valid properties (added id, class, title, alt for better editor support)
-const validProperty = ['width', 'height', 'align', 'border', 'src', 'href', 'tabindex', 'id', 'class', 'title', 'alt'];
-
-// Tags that are allowed to have src attribute
-const tagsAllowedSrc = ['img', 'audio', 'video', 'source'];
-
-// Tags that are allowed to have href attribute
-const tagsAllowedHref = ['a'];
-
-// Valid CSS attributes
-const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin', 'padding', 'text-align', 'text-decoration'];
-
-// Function to decode HTML entities (prevents bypassing with &#106;avascript:)
-function decodeHTMLEntities(text) {
-    if (!text) return '';
-    const textArea = document.createElement('textarea');
-    textArea.innerHTML = text;
-    return textArea.value;
-}
-
-// Function to check if a URL scheme is dangerous
-function isDangerousURL(url) {
-    if (!url) return false;
-    const decoded = decodeHTMLEntities(url).toLowerCase().trim();
-    // Remove whitespace and null bytes that can be used to bypass filters
-    const cleaned = decoded.replace(/[\s\0]/g, '');
-
-    return cleaned.startsWith('javascript:') ||
-           cleaned.startsWith('data:text/') ||
-           cleaned.startsWith('data:application/') ||
-           cleaned.startsWith('vbscript:') ||
-           cleaned.includes('<script');
-}
-
-// Function to sanitize CSS value
-function sanitizeStyleValue(value) {
-    if (!value) return '';
-    const decoded = decodeHTMLEntities(value).toLowerCase();
-
-    // Block dangerous CSS content
-    if (decoded.includes('javascript:') ||
-        decoded.includes('expression(') ||
-        decoded.includes('behavior:') ||
-        decoded.includes('-moz-binding') ||
-        decoded.includes('binding:') ||
-        decoded.includes('@import') ||
-        decoded.includes('url(') && (decoded.includes('javascript:') || decoded.includes('data:'))) {
-        return '';
-    }
-
-    return value;
-}
-
-const parse = function(element, img) {
-    if (!element || !element.tagName) {
-        return;
-    }
-
-    const tagName = element.tagName.toLowerCase();
-
-    // Remove dangerous tags completely
-    if (dangerousTags.indexOf(tagName) !== -1) {
-        if (element.parentNode) {
-            element.parentNode.removeChild(element);
-        }
-        return;
-    }
-
-    // Remove elements that are not white-listed
-    if (validTags.indexOf(tagName) === -1) {
-        if (element.innerText) {
-            element.innerHTML = element.innerText;
-        }
-    }
-
-    // Remove attributes
-    if (element.attributes && element.attributes.length) {
-        let style = null;
-        // Process style attribute
-        let elementStyle = element.getAttribute('style');
-        if (elementStyle) {
-            style = [];
-            let t = elementStyle.split(';');
-            for (let j = 0; j < t.length; j++) {
-                let v = t[j].trim().split(':');
-                const property = v[0].trim();
-                if (validStyle.indexOf(property) >= 0) {
-                    let k = v.shift();
-                    v = v.join(':');
-                    // Sanitize the CSS value
-                    const sanitizedValue = sanitizeStyleValue(v);
-                    if (sanitizedValue) {
-                        style.push(k + ':' + sanitizedValue);
-                    }
-                }
-            }
-        }
-
-        // Process image
-        if (tagName === 'img') {
-            const src = element.getAttribute('src');
-            if (!src || isDangerousURL(src)) {
-                if (element.parentNode) {
-                    element.parentNode.removeChild(element);
-                }
-                return;
-            } else {
-                element.setAttribute('tabindex', '900');
-                // Check attributes for persistence
-                img.push(src);
-            }
-        }
-
-        // Collect all attribute names first
-        let attr = [];
-        for (let i = 0; i < element.attributes.length; i++) {
-            attr.push(element.attributes[i].name);
-        }
-
-        // Process attributes
-        if (attr.length) {
-            attr.forEach(function (v) {
-                const attrName = v.toLowerCase();
-
-                // Remove all event handlers (onclick, onerror, onload, etc.)
-                if (attrName.startsWith('on')) {
-                    element.removeAttribute(v);
-                    return;
-                }
-
-                // Check if attribute is in whitelist
-                if (validProperty.indexOf(attrName) === -1) {
-                    element.removeAttribute(v);
-                } else {
-                    // Validate whitelisted attributes
-                    let attrValue = element.getAttribute(v);
-
-                    // Special handling for src attribute
-                    if (attrName === 'src') {
-                        if (tagsAllowedSrc.indexOf(tagName) === -1) {
-                            // src not allowed on this tag
-                            element.removeAttribute(v);
-                            return;
-                        }
-                        if (isDangerousURL(attrValue)) {
-                            element.removeAttribute(v);
-                            return;
-                        }
-                    }
-
-                    // Special handling for href attribute
-                    if (attrName === 'href') {
-                        if (tagsAllowedHref.indexOf(tagName) === -1) {
-                            // href not allowed on this tag
-                            element.removeAttribute(v);
-                            return;
-                        }
-                        if (isDangerousURL(attrValue)) {
-                            element.removeAttribute(v);
-                            return;
-                        }
-                    }
-
-                    // Protection XSS - check for dangerous characters
-                    if (attrValue && attrValue.indexOf('<') !== -1) {
-                        element.setAttribute(v, attrValue.replace(/</g, '&#60;'));
-                    }
-                }
-            });
-        }
-
-        element.style = '';
-        // Add valid style
-        if (style && style.length) {
-            element.setAttribute('style', style.join(';'));
-        }
-    }
-
-    // Parse children recursively
-    if (element.children.length) {
-        for (let i = element.children.length; i > 0; i--) {
-            parse(element.children[i - 1], img);
-        }
-    }
-}
-
-const filter = function(data, img) {
-    if (data) {
-        data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
-    }
-    let parser = new DOMParser();
-    let d = parser.parseFromString(data, "text/html");
-    parse(d.body, img);
-    let div = document.createElement('div');
-    div.innerHTML = d.body.innerHTML;
-    return div;
-}
-
-/* harmony default export */ var utils_filter = (filter);
 ;// CONCATENATED MODULE: ./src/plugins/editor.js
-
 
 
 
@@ -8975,13 +18433,16 @@ function Editor() {
          * Extract images from a HTML string
          */
         var extractImageFromHtml = function(html) {
-            let img = [];
             // Create temp element
             var div = document.createElement('div');
-            utils_filter(html, img);
+            div.innerHTML = html;
+
+            // Extract images
+            var img = div.querySelectorAll('img');
+
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addImage(img[i]);
+                    obj.addImage(img[i].src);
                 }
             }
         }
@@ -9344,11 +18805,104 @@ function Editor() {
             helpers.click(obj.file);
         }
 
+        // Valid tags
+        const validTags = [
+            'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+            'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
+            'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+            'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
+            'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
+            'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
+            'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
+        ];
+        // Valid properties
+        const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
+        // Valid CSS attributes
+        const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
+
+        const parse = function(element) {
+            // Remove elements that are not white-listed
+            if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
+                if (element.innerText) {
+                    element.innerHTML = element.innerText;
+                }
+            }
+            // Remove attributes
+            if (element.attributes && element.attributes.length) {
+                let style = null;
+                // Process style attribute
+                let elementStyle = element.getAttribute('style');
+                if (elementStyle) {
+                    style = [];
+                    let t = elementStyle.split(';');
+                    for (let j = 0; j < t.length; j++) {
+                        let v = t[j].trim().split(':');
+                        if (validStyle.indexOf(v[0].trim()) >= 0) {
+                            let k = v.shift();
+                            v = v.join(':');
+                            style.push(k + ':' + v);
+                        }
+                    }
+                }
+                // Process image
+                if (element.tagName.toUpperCase() === 'IMG') {
+                    if (! obj.options.acceptImages || !element.src) {
+                        element.parentNode.removeChild(element);
+                    } else {
+                        // Check if is data
+                        element.setAttribute('tabindex', '900');
+                        // Check attributes for persistence
+                        obj.addImage(element.src);
+                    }
+                }
+                // Remove attributes
+                let attr = [];
+                for (let i = 0; i < element.attributes.length; i++) {
+                    attr.push(element.attributes[i].name);
+                }
+                if (attr.length) {
+                    attr.forEach(function (v) {
+                        if (validProperty.indexOf(v) === -1) {
+                            element.removeAttribute(v);
+                        } else {
+                            // Protection XSS
+                            if (element.attributes && element.attributes[i] && element.attributes[i].value.indexOf('<') !== -1) {
+                                element.attributes[i].value.replace('<', '&#60;');
+                            }
+                        }
+                    });
+                }
+                element.style = '';
+                // Add valid style
+                if (style && style.length) {
+                    element.setAttribute('style', style.join(';'));
+                }
+            }
+            // Parse children
+            if (element.children.length) {
+                for (let i = element.children.length; i > 0; i--) {
+                    parse(element.children[i - 1]);
+                }
+            }
+        }
+
         var select = function(e) {
             var s = window.getSelection()
             var r = document.createRange();
             r.selectNode(e);
             s.addRange(r)
+        }
+
+        var filter = function(data) {
+            if (data) {
+                data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
+            }
+            var parser = new DOMParser();
+            var d = parser.parseFromString(data, "text/html");
+            parse(d);
+            var div = document.createElement('div');
+            div.innerHTML = d.firstChild.innerHTML;
+            return div;
         }
 
         var editorPaste = function(e) {
@@ -9382,13 +18936,7 @@ function Editor() {
                             document.execCommand('insertText', false, html.join(''));
                         }
                     } else {
-                        let img = [];
-                        var d = utils_filter(html, img);
-                        if (img.length) {
-                            for (var i = 0; i < img.length; i++) {
-                                obj.addImage(img[i]);
-                            }
-                        }
+                        var d = filter(html);
                         // Paste to the editor
                         //insertNodeAtCaret(d);
                         document.execCommand('insertHtml', false, d.innerHTML);
@@ -9430,25 +18978,25 @@ function Editor() {
         }
 
         var editorDrop = function(e) {
-            if (editorAction || obj.options.dropZone === false) {
+            if (editorAction || obj.options.dropZone == false) {
                 // Do nothing
             } else {
                 // Position caret on the drop
-                let range = null;
+                var range = null;
                 if (document.caretRangeFromPoint) {
                     range=document.caretRangeFromPoint(e.clientX, e.clientY);
                 } else if (e.rangeParent) {
                     range=document.createRange();
                     range.setStart(e.rangeParent,e.rangeOffset);
                 }
-                let sel = window.getSelection();
+                var sel = window.getSelection();
                 sel.removeAllRanges();
                 sel.addRange(range);
                 sel.anchorNode.parentNode.focus();
 
-                let html = (e.originalEvent || e).dataTransfer.getData('text/html');
-                let text = (e.originalEvent || e).dataTransfer.getData('text/plain');
-                let file = (e.originalEvent || e).dataTransfer.files;
+                var html = (e.originalEvent || e).dataTransfer.getData('text/html');
+                var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
+                var file = (e.originalEvent || e).dataTransfer.files;
 
                 if (file.length) {
                     obj.addFile(file);
@@ -9960,13 +19508,13 @@ function Editor() {
 
         items.push({
             content: 'format_indent_decrease',
-            onclick: function(a,b,c) {
+            onclick: function() {
                 document.execCommand('outdent');
 
                 if (document.queryCommandState("outdent")) {
-                    c.classList.add('selected');
+                    this.classList.add('selected');
                 } else {
-                    c.classList.remove('selected');
+                    this.classList.remove('selected');
                 }
             }
         });
@@ -10207,6 +19755,7 @@ function Floating() {
 ;// CONCATENATED MODULE: ./src/plugins/validations.js
 
 
+const validations_HelpersDate = (dist_default()).Helpers;
 function Validations() {
     /**
      * Options: Object,
@@ -10318,7 +19867,7 @@ function Validations() {
         }
         return null;
     }
-    
+
     component.url = function(data) {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
@@ -10328,7 +19877,7 @@ function Validations() {
         var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
         return data && pattern.test(data) ? true : false;
     }
-    
+
     component.required = function(data) {
         return data && data.trim() ? true : false;
     }
@@ -10444,7 +19993,7 @@ function Validations() {
 
     component.date = function(data, options) {
         if (isNumeric(data) && data > 0 && data < 1000000) {
-            data = helpers_date.numToDate(data);
+            data = validations_HelpersDate.numToDate(data);
         }
 
         if (new Date(data) == 'Invalid Date') {
@@ -10946,6 +20495,23 @@ function Form() {
 }
 
 /* harmony default export */ var plugins_form = (Form());
+;// CONCATENATED MODULE: ./src/plugins/mask.js
+/*
+ Add '*' as a valid symbol
+ Formats such as 'DD"th of "MMMM", "YYYY'
+ Conditional masking
+ (000) 00000-00
+ $ (#,##0.00);$ (-#,##0.00)
+ $ (-#,##0.00)
+ j.mask.render(0, { mask: 'mm:ss.0' }
+ j.mask.render(0, { mask: '[h]:mm:ss' }, true)
+ */
+
+
+
+
+/* harmony default export */ var mask = (dist.Mask);
+
 ;// CONCATENATED MODULE: ./src/plugins/modal.js
 
 
@@ -11969,7 +21535,7 @@ function Slider(el, options) {
             // Keep children items
             for (var i = 0; i < el.children.length; i++) {
                 obj.options.items.push(el.children[i]);
-                
+
                 // counter click event
                 var item = document.createElement('div');
                 item.onclick = function() {
@@ -11988,7 +21554,7 @@ function Slider(el, options) {
         var close = document.createElement('div');
         close.className = 'jslider-close';
         close.innerHTML = '';
-        
+
         close.onclick = function() {
             obj.close();
         }
@@ -12094,7 +21660,7 @@ function Slider(el, options) {
             obj.show(obj.currentImage.nextElementSibling);
         }
     }
-    
+
     obj.prev = function() {
         if (obj.currentImage.previousElementSibling) {
             obj.show(obj.currentImage.previousElementSibling);
@@ -12259,7 +21825,7 @@ function Tags(el, options) {
             var ret = obj.options.onbeforechange(el, obj, obj.options.value, value);
             if (ret === false) {
                 return false;
-            } else { 
+            } else {
                 if (ret != null) {
                     value = ret;
                 }
@@ -12452,7 +22018,7 @@ function Tags(el, options) {
     /**
      * Add one element from the suggestions to the element
      * @param {object} item - Node element in the suggestions container
-     */ 
+     */
     obj.selectIndex = function(text, value) {
         var node = helpers.getNode();
         if (node) {
@@ -12850,7 +22416,6 @@ function Tags(el, options) {
 
 
 
-
 function Upload(el, options) {
     var obj = {};
     obj.options = {};
@@ -13086,11 +22651,15 @@ function Upload(el, options) {
             }
 
             // Create temp element
-            let img = [];
-            utils_filter(html, img);
+            var div = document.createElement('div');
+            div.innerHTML = html;
+
+            // Extract images
+            var img = div.querySelectorAll('img');
+
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addFromUrl(img[i]);
+                    obj.addFromUrl(img[i].src);
                 }
             }
         }
@@ -13132,6 +22701,24 @@ function Upload(el, options) {
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
 var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/calendar/dist/index.js
+var calendar_dist = __webpack_require__(763);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/color/dist/index.js
+var color_dist = __webpack_require__(541);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/contextmenu/dist/index.js
+var contextmenu_dist = __webpack_require__(238);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/dropdown/dist/index.js
+var dropdown_dist = __webpack_require__(692);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/modal/dist/index.js
+var modal_dist = __webpack_require__(72);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/switch/dist/index.js
+var switch_dist = __webpack_require__(539);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/tabs/dist/index.js
+var tabs_dist = __webpack_require__(560);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/topmenu/dist/index.js
+var topmenu_dist = __webpack_require__(330);
+// EXTERNAL MODULE: ./node_modules/@lemonadejs/rating/dist/index.js
+var rating_dist = __webpack_require__(867);
 ;// CONCATENATED MODULE: ./src/jsuites.js
 
 
@@ -13185,18 +22772,41 @@ var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 
 
 
-var jsuites_jSuites = {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.4',
+    version: '6.0.0-beta.24',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
             var k = Object.keys(o);
             for (var i = 0; i < k.length; i++) {
-                jsuites_jSuites[k[i]] = o[k[i]];
+                jSuites[k[i]] = o[k[i]];
             }
         }
     },
@@ -13231,8 +22841,8 @@ var jsuites_jSuites = {
 }
 
 // Legacy
-jsuites_jSuites.image = Upload;
-jsuites_jSuites.image.create = function(data) {
+jSuites.image = Upload;
+jSuites.image.create = function(data) {
     var img = document.createElement('img');
     img.setAttribute('src', data.file);
     img.className = 'jfile';
@@ -13242,9 +22852,9 @@ jsuites_jSuites.image.create = function(data) {
     return img;
 }
 
-jsuites_jSuites.tracker = plugins_form;
-jsuites_jSuites.loading = animation.loading;
-jsuites_jSuites.sha512 = (sha512_default());
+jSuites.tracker = plugins_form;
+jSuites.loading = animation.loading;
+jSuites.sha512 = (sha512_default());
 
 
 /** Core events */
@@ -13345,7 +22955,7 @@ const Events = function() {
         // Editable
         let editable = element && element.tagName === 'DIV' && element.getAttribute('contentEditable');
         // Check if this is the floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        let item = jSuites.findElement(element, 'jpanel');
         // Jfloating found
         if (item && ! item.classList.contains("readonly") && ! editable) {
             // Keep the tracking information
@@ -13531,7 +23141,7 @@ const Events = function() {
         } else {
             let element = getElement(e);
             // Resize action
-            let item = jsuites_jSuites.findElement(element, 'jpanel');
+            let item = jSuites.findElement(element, 'jpanel');
             // Found eligible component
             if (item) {
                 // Resizing action
@@ -13590,8 +23200,8 @@ const Events = function() {
 
     const focus = function(e) {
         let element = getElement(e);
-        // Check if this is floating
-        let item = jsuites_jSuites.findElement(element, 'jpanel');
+        // Check if this is the floating
+        let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
 
@@ -13649,7 +23259,7 @@ const Events = function() {
             e.stopImmediatePropagation();
         } else {
             // Search for possible context menus
-            item = jsuites_jSuites.findElement(e.target, function(o) {
+            item = jSuites.findElement(e.target, function(o) {
                 return o.tagName && o.getAttribute('aria-contextmenu-id');
             });
 
@@ -13693,7 +23303,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jsuites_jSuites.mask(e);
+            jSuites.mask.oninput(e);
         }
     }
 
@@ -13711,7 +23321,7 @@ if (typeof(document) !== "undefined") {
     Events();
 }
 
-/* harmony default export */ var jsuites = (jsuites_jSuites);
+/* harmony default export */ var jsuites = (jSuites);
 }();
 jSuites = __webpack_exports__["default"];
 /******/ })()

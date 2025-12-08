@@ -64,18 +64,16 @@
 .jtoolbar .jtoolbar-divisor {
     width: 2px;
     height: 18px;
-    padding: 0px;
+    padding: 0;
     margin-left: 4px;
     margin-right: 4px;
-    background-color: #ddd;
+    background-color: var(--jss-border-color, #ccc);
 }
 
 .jtoolbar .jtoolbar-label {
     padding-left: 8px;
     padding-right: 8px;
 }
-
-
 
 .jtoolbar-mobile a
 {
@@ -112,7 +110,7 @@
 }
 
 .jtoolbar-item:hover {
-    background-color:#f2f2f2;
+    background-color: var(--jss-background-color-highlight, #e8e8e8);
 }
 
 .jtoolbar .jpicker {
@@ -157,7 +155,6 @@
     background-repeat: no-repeat;
     background-position: center;
     width: 24px;
-    height: 16px;
     margin-left: 4px;
     border-left: 1px solid var(--jss-border-color, #ccc);
 }
@@ -167,7 +164,7 @@
     display: none;
     box-shadow: 0 4px 5px 0 rgba(0,0,0,0.14), 0 1px 10px 0 rgba(0,0,0,0.12), 0 2px 4px -1px rgba(0,0,0,0.2);
     border-radius: 4px;
-    background-color: #fff;
+    background-color: var(--jss-background-color-header, #fff);
     padding: 4px;
     z-index: 50;
     text-align: left;

@@ -1,7 +1,7 @@
 {
-    "name": "@jsuites/indexing",
-    "title": "JavaScript floating page index",
-    "description": "Create a floating index based on h2 and h3",
+    "name": "@jsuites/utils",
+    "title": "jSuites common utilities",
+    "description": "JavaScript common utilities",
     "repository": {
         "type": "git",
         "url": "https://github.com/jsuites/jsuites.git"
@@ -16,12 +16,12 @@
         }
     ],
     "keywords": [
-        "javascript plugins, floating page index"
+        "javascript utilities"
     ],
-    "main": "indexing.js",
-    "version": "1.5.1",
+    "main": "dist/index.js",
+    "version": "6.0.2",
     "bugs": "https://github.com/jsuites/jsuites/issues",
     "homepage": "https://github.com/jsuites/jsuites",
-    "docs": "https://jsuites.net/v5",
+    "docs": "https://jsuites.net/",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip"
 }

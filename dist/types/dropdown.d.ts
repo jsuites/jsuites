@@ -9,7 +9,7 @@ interface DropdownItem {
     image?: string;
     /** Name of the group where the item belongs to */
     group?: string;
-    /** Keywords to help finding one item */
+    /** Keywords to help find one item */
     synonym?: string[];
     /** Item is disabled */
     disabled?: boolean;

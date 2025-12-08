@@ -50,12 +50,35 @@ import './style/tabs.css';
 import './style/tags.css';
 import './style/toolbar.css';
 
+
+import '@lemonadejs/calendar';
+import '@lemonadejs/color';
+import '@lemonadejs/contextmenu';
+import '@lemonadejs/dropdown';
+import '@lemonadejs/modal';
+import '@lemonadejs/switch';
+import '@lemonadejs/tabs';
+import '@lemonadejs/topmenu';
+import '@lemonadejs/rating';
+
+import './studio.css';
+import '@lemonadejs/calendar/dist/style.css';
+import '@lemonadejs/color/dist/style.css';
+import '@lemonadejs/contextmenu/dist/style.css';
+import '@lemonadejs/dropdown/dist/style.css';
+import '@lemonadejs/modal/dist/style.css';
+import '@lemonadejs/rating/dist/style.css';
+import '@lemonadejs/switch/dist/style.css';
+import '@lemonadejs/tabs/dist/style.css';
+import '@lemonadejs/topmenu/dist/style.css';
+
+
 var jSuites = {
     // Helpers
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.4',
+    version: '6.0.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
@@ -455,7 +478,7 @@ const Events = function() {
 
     const focus = function(e) {
         let element = getElement(e);
-        // Check if this is floating
+        // Check if this is the floating
         let item = jSuites.findElement(element, 'jpanel');
         if (item && ! item.classList.contains("readonly") && item.classList.contains('jpanel-controls')) {
             item.append(...position);
@@ -558,7 +581,7 @@ const Events = function() {
 
     const input = function(e) {
         if (e.target.getAttribute('data-mask') || e.target.mask) {
-            jSuites.mask(e);
+            jSuites.mask.oninput(e);
         }
     }
 

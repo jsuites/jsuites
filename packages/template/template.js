@@ -658,7 +658,7 @@
         return obj;
     });
 
-    if (window.jSuites) {
+    if (jSuites) {
         jSuites.setExtensions({ template: Plugin });
     }
 

@@ -1,9 +1,11 @@
 import Helpers from '../utils/helpers';
-import HelpersDate from '../utils/helpers.date';
 import Dictionary from '../utils/dictionary';
 import Tracking from '../utils/tracking';
 import Animation from './animation';
-import Mask from './mask';
+import utils from '@jsuites/utils';
+
+const Mask = utils.Mask;
+const HelpersDate = utils.Helpers;
 
 function Calendar() {
     var Component = (function (el, options) {
@@ -81,6 +83,29 @@ function Calendar() {
                         obj.options[property] = defaults[property];
                     }
                 }
+            }
+
+            // Register custom months and weekdays with the dictionary for translation
+            if (obj.options.monthsFull && obj.options.monthsFull !== defaults.monthsFull) {
+                const englishMonths = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                const translations = {};
+                for (let i = 0; i < 12; i++) {
+                    if (obj.options.monthsFull[i]) {
+                        translations[englishMonths[i]] = obj.options.monthsFull[i];
+                    }
+                }
+                Dictionary.setDictionary(translations);
+            }
+
+            if (obj.options.weekdays && obj.options.weekdays !== defaults.weekdays) {
+                const englishWeekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                const translations = {};
+                for (let i = 0; i < 7; i++) {
+                    if (obj.options.weekdays[i]) {
+                        translations[englishWeekdays[i]] = obj.options.weekdays[i];
+                    }
+                }
+                Dictionary.setDictionary(translations);
             }
 
             // Reset button
@@ -1026,14 +1051,14 @@ function Calendar() {
                 }
             }
 
+            // Controls - must be set before open() for correct height calculations
+            if (obj.options.controls == false) {
+                calendarContainer.classList.add('jcalendar-hide-controls');
+            }
+
             // Default opened
             if (obj.options.opened == true) {
                 obj.open();
-            }
-
-            // Controls
-            if (obj.options.controls == false) {
-                calendarContainer.classList.add('jcalendar-hide-controls');
             }
 
             // Change method

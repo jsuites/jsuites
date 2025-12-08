@@ -1,6 +1,7 @@
+
 .indexing {
     border-left: 1px solid #eee;
-    font-size: 0.9em;
+    font-size: 0.75em;
     list-style: none;
     padding: 15px;
     position: sticky;
@@ -9,18 +10,20 @@
 }
 
 .indexing li {
-    padding: 4px;
+    margin: 2px;
+    padding: 0;
 }
 
 .indexing a {
     color: #000;
     border-left: 2px solid transparent;
-    padding-left: 10px;
+    padding: 4px 10px;
+    display: inline-block;
 }
 
 .indexing a.selected {
-    font-weight: bold;
-    border-left-color: var(--main-color);
+    border-left-color: var(--color-brand);
+    background-color: var(--gray-50);
 }
 
 .indexing ul {
