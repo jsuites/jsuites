@@ -32,7 +32,7 @@
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "dependencies": {
-        "@jsuites/utils": "^6.0.1",
+        "@jsuites/utils": "^6.0.2",
         "@lemonadejs/calendar": "^5.8.0",
         "@lemonadejs/color": "^5.8.0",
         "@lemonadejs/contextmenu": "^5.8.0",

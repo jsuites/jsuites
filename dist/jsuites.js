@@ -9,7956 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 763:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(72);
-}
-
-if (! utils && "function" === 'function') {
-    var utils = __webpack_require__(559);
-}
-
-const Helpers = utils.Helpers;
-const Mask = utils.Mask;
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // Translations
-    const T = function(t) {
-        if (typeof(document) !== "undefined" && document.dictionary) {
-            return document.dictionary[t] || t;
-        } else {
-            return t;
-        }
-    }
-
-    const filterData = function(year, month) {
-        // Data for the month
-        let data = {};
-        if (Array.isArray(this.data)) {
-            this.data.map(function (v) {
-                let d = year + '-' + Helpers.two(month + 1);
-                if (v.date.substring(0, 7) === d) {
-                    if (!data[v.date]) {
-                        data[v.date] = [];
-                    }
-                    data[v.date].push(v);
-                }
-            });
-        }
-        return data;
-    }
-
-    // Get the short weekdays name
-    const getWeekdays = function(firstDayOfWeek) {
-        const reorderedWeekdays = [];
-        for (let i = 0; i < 7; i++) {
-            const dayIndex = (firstDayOfWeek + i) % 7;
-            reorderedWeekdays.push(Helpers.weekdays[dayIndex]);
-        }
-
-        return reorderedWeekdays.map(w => {
-            return { title: w.substring(0, 1) };
-        });
-    }
-
-    const Views = function(self) {
-        const view = {};
-
-        // Create years container
-        view.years = [];
-        view.months = [];
-        view.days = [];
-        view.hours = [];
-        view.minutes = [];
-
-        for (let i = 0; i < 16; i++) {
-            view.years.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 12; i++) {
-            view.months.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 42; i++) {
-            view.days.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 24; i++) {
-            view.hours.push({
-                title: Helpers.two(i),
-                value: i
-            });
-        }
-
-        for (let i = 0; i < 60; i++) {
-            view.minutes.push({
-                title: Helpers.two(i),
-                value: i
-            });
-        }
-
-        view.years.update = function(date) {
-            let year = date.getUTCFullYear();
-            let start = year - (year % 16);
-
-            for (let i = 0; i < 16; i++) {
-                let item = view.years[i];
-                let value = start + i;
-
-                item.title = value
-                item.value = value;
-
-                if (self.cursor.y === value) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-            }
-        }
-
-        view.months.update = function(date) {
-            let year = date.getUTCFullYear();
-
-            for (let i = 0; i < 12; i++) {
-                let item = view.months[i];
-
-                item.title = Helpers.months[i].substring(0,3);
-                item.value = i;
-
-                if (self.cursor.y === year && self.cursor.m === i) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-            }
-        }
-
-        view.days.update = function(date) {
-            let year = date.getUTCFullYear();
-            let month = date.getUTCMonth();
-            let data = filterData.call(self, year, month);
-
-            // First day
-            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
-            let firstDayOfMonth = tmp.getUTCDay();
-            let firstDayOfWeek = self.startingDay ?? 0;
-
-            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
-
-            let index = -1 * offset;
-
-            for (let i = 0; i < 42; i++) {
-                index++;
-                // Item
-                let item = view.days[i];
-                // Get the day
-                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
-                // Day
-                let day = tmp.getUTCDate();
-
-                // Create the item
-                item.title = day;
-                item.value = index;
-                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
-
-                // Reset range properties for each item
-                item.start = false;
-                item.end = false;
-                item.range = false;
-                item.last = false;
-                item.disabled = false;
-                item.data = null;
-
-                // Check selections
-                if (tmp.getUTCMonth() !== month) {
-                    // Days are not in the current month
-                    item.grey = true;
-                } else {
-                    // Check for data
-                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
-
-                    if (data && data[d]) {
-                        item.data = data[d];
-                    }
-
-                    item.grey = false;
-                }
-                // Month
-                let m = tmp.getUTCMonth();
-
-                // Select cursor
-                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-
-
-                // Valid ranges
-                if (self.validRange) {
-                    if (typeof self.validRange === 'function') {
-                        let ret = self.validRange(day,m,year,item);
-                        if (typeof ret !== 'undefined') {
-                            item.disabled = ret;
-                        }
-                    } else {
-                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
-
-                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
-                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
-
-                        if (! (test1 && test2)) {
-                            item.disabled = true;
-                        }
-                    }
-                }
-
-                // Select range
-                if (self.range && self.rangeValues) {
-                    // Only mark start/end if the number matches
-                    item.start = self.rangeValues[0] === item.number;
-                    item.end = self.rangeValues[1] === item.number;
-                    // Mark as part of range if between start and end
-                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
-                }
-            }
-        }
-
-        return view;
-    }
-
-    const isTrue = function(v) {
-        return v === true || v === 'true';
-    }
-
-    const isNumber = function (num) {
-        if (typeof(num) === 'string') {
-            num = num.trim();
-        }
-        return !isNaN(num) && num !== null && num !== '';
-    }
-
-    const Calendar = function(children, { onchange, onload, track }) {
-        let self = this;
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Weekdays
-        self.weekdays = getWeekdays(self.startingDay ?? 0);
-
-        // Cursor
-        self.cursor = {};
-
-        // Time
-        self.time = !! self.time;
-
-        // Range values
-        self.rangeValues = null;
-
-        // Calendar date
-        let date = new Date();
-
-        // Views
-        const views = Views(self);
-        const hours = views.hours;
-        const minutes = views.minutes;
-
-        // Initial view
-        self.view = 'days';
-
-        // Auto Input
-        if (self.input === 'auto') {
-            self.input = document.createElement('input');
-            self.input.type = 'text';
-        }
-
-
-        // Get the position of the data based on the view
-        const getPosition = function() {
-            let position = 2;
-            if (self.view === 'years') {
-                position = 0;
-            } else if (self.view === 'months') {
-                position = 1;
-            }
-            return position;
-        }
-
-        const setView = function(e) {
-            if (typeof e === 'object') {
-                e = this.getAttribute('data-view');
-            }
-
-            // Valid views
-            const validViews = ['days', 'months', 'years'];
-
-            // Define new view
-            if (validViews.includes(e) && self.view !== e) {
-                self.view = e;
-            }
-        }
-
-        const reloadView = function(reset) {
-            if (reset) {
-                // Update options to the view
-                self.options = views[self.view];
-            }
-            // Update the values of hte options of hte view
-            views[self.view]?.update.call(self, date);
-        }
-
-        const getValue = function() {
-            let value = null;
-            if (isTrue(self.range)) {
-                if (Array.isArray(self.rangeValues)) {
-                    if (isTrue(self.numeric)) {
-                        value = self.rangeValues;
-                    } else {
-                        value = [
-                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
-                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
-                        ];
-                    }
-                }
-            } else {
-                value = getDate();
-                if (isTrue(self.numeric)) {
-                    value = Helpers.dateToNum(value);
-                }
-            }
-            return value;
-        }
-
-        const setValue = function(v) {
-            let d = new Date();
-            if (v) {
-                if (isTrue(self.range)) {
-                    if (v) {
-                        if (! Array.isArray(v)) {
-                            v = v.toString().split(',');
-                        }
-                        self.rangeValues = [...v];
-
-                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
-                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
-                        }
-                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
-                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
-                        }
-
-                        v = v[0];
-                    }
-                } else if (typeof v === 'string' && v.includes(',')) {
-                    v = v.split(',')[0];
-                }
-
-                if (v) {
-                    v = isNumber(v) ? Helpers.numToDate(v) : v;
-                    d = new Date(v + '  GMT+0');
-                }
-
-                // if no date is defined
-                if (! Helpers.isValidDate(d)) {
-                    d = new Date();
-                }
-            }
-
-            // Update the internal calendar date
-            setDate(d, true);
-            // Update the view
-            reloadView();
-        }
-
-        const getDate = function() {
-            let v = [ self.cursor.y, self.cursor.m, self.cursor.d, self.hour, self.minute ];
-            let d = new Date(Date.UTC(...v));
-            // Update the headers of the calendar
-            if (self.time) {
-                return d.toISOString().substring(0, 19).replace('T', ' ');
-            } else {
-                return d.toISOString().substring(0, 10);
-            }
-        }
-
-        const setDate = function(d, update) {
-            if (Array.isArray(d)) {
-                d = new Date(Date.UTC(...d));
-            } else if (typeof(d) === 'string') {
-                d = new Date(d);
-            }
-
-            // Update the date
-            let value = d.toISOString().substring(0,10).split('-');
-            let month = Helpers.months[parseInt(value[1])-1];
-            let year = parseInt(value[0]);
-
-            if (self.month !== month) {
-                self.month = month;
-            }
-            if (self.year !== year) {
-                self.year = year;
-            }
-
-            // Update the time
-            let time = d.toISOString().substring(11,19).split(':');
-            let hour = parseInt(time[0]);
-            let minute = parseInt(time[1]);
-
-            if (self.hour !== hour) {
-                self.hour = hour;
-            }
-            if (self.minute !== minute) {
-                self.minute = minute;
-            }
-
-            // Update internal date
-            date = d;
-
-            // Update cursor information
-            if (update) {
-                updateCursor();
-            }
-        }
-
-        const updateCursor = function() {
-            self.cursor.y = date.getUTCFullYear();
-            self.cursor.m = date.getUTCMonth();
-            self.cursor.d = date.getUTCDate();
-        }
-
-        const resetCursor = function() {
-            // Remove selection from the current object
-            let current = self.cursor.current;
-            // Current item
-            if (typeof current !== 'undefined') {
-                current.selected = false;
-            }
-        }
-
-        const setCursor = function(s) {
-            // Reset current visual cursor
-            resetCursor();
-            // Update cursor based on the object position
-            if (s) {
-                // Update current
-                self.cursor.current = s;
-                // Update selected property
-                s.selected = true;
-            }
-
-            updateCursor();
-
-            // Update range
-            if (isTrue(self.range)) {
-                updateRange(s)
-            }
-
-            Dispatch.call(self, self.onupdate, 'update', {
-                instance: self,
-                value: date.toISOString(),
-            });
-        }
-
-        const select = function(e, s) {
-            // Get new date content
-            let d = updateDate(s.value, getPosition());
-            // New date
-            setDate(new Date(Date.UTC(...d)))
-            // Based where was the click
-            if (self.view !== 'days') {
-                // Back to the days
-                self.view = 'days';
-            } else if (! s.disabled) {
-                setCursor(s);
-
-                if (isTrue(self.range)) {
-                    // Start a new range
-                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
-                        destroyRange();
-                    }
-                    // Range
-                    s.range = true;
-                    // Update range
-                    if (! self.rangeValues) {
-                        s.start = true;
-                        self.rangeValues = [s.number, null];
-                    } else {
-                        s.end = true;
-                        self.rangeValues[1] = s.number;
-                    }
-                } else {
-                    update();
-                }
-            }
-        }
-
-        // Update Calendar
-        const update = function(e) {
-            self.setValue(getValue());
-            self.close({ origin: 'button' });
-        }
-
-        const reset = function() {
-            self.setValue('');
-            self.close({ origin: 'button' });
-        }
-
-        const updateDate = function(v, position) {
-            // Current internal date
-            let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
-            // Update internal date
-            value[position] = v;
-            // Return new value
-            return value;
-        }
-
-        const move = function(direction) {
-            // Reset visual cursor
-            resetCursor();
-
-            // Value
-            let value;
-
-            // Update the new internal date
-            if (self.view === 'days') {
-                // Select the new internal date
-                value = updateDate(date.getUTCMonth()+direction, 1);
-            } else if (self.view === 'months') {
-                // Select the new internal date
-                value = updateDate(date.getUTCFullYear()+direction, 0);
-            } else if (self.view === 'years') {
-                // Select the new internal date
-                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
-            }
-
-            // Update view
-            setDate(value);
-
-            // Reload content of the view
-            reloadView();
-        }
-
-        const getJump = function(e) {
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                return self.view === 'days' ? 7 : 4;
-            }
-
-            return 1;
-        }
-
-        const prev = function(e) {
-            if (e && e.type === 'keydown') {
-                // Current index
-                let total = self.options.length;
-                let position = self.options.indexOf(self.cursor.current) - getJump(e);
-                if (position < 0) {
-                    // Next month
-                    move(-1);
-                    // New position
-                    position = total + position;
-                }
-                // Update cursor
-                setCursor(self.options[position])
-            } else {
-                move(-1);
-            }
-        }
-
-        const next = function(e) {
-            if (e && e.type === 'keydown') {
-                // Current index
-                let total = self.options.length;
-                let position = self.options.indexOf(self.cursor.current) + getJump(e);
-                if (position >= total) {
-                    // Next month
-                    move(1);
-                    // New position
-                    position = position - total;
-                }
-                // Update cursor
-                setCursor(self.options[position])
-            } else {
-                move(1);
-            }
-        }
-
-        const getInput = function() {
-            let input = self.input;
-            if (input && input.current) {
-                input = input.current;
-            } else {
-                if (self.input) {
-                    input = self.input;
-                }
-            }
-
-            return input;
-        }
-
-        const updateRange = function(s) {
-            if (self.range && self.view === 'days' && self.rangeValues) {
-                // Creating a range
-                if (self.rangeValues[0] && ! self.rangeValues[1]) {
-                    let number = s.number;
-                    if (number) {
-                        // Update range properties
-                        for (let i = 0; i < self.options.length; i++) {
-                            let v = self.options[i].number;
-                            // Update property condition
-                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
-                            self.options[i].last = (v === number);
-                        }
-                    }
-                }
-            }
-        }
-
-        const destroyRange = function() {
-            if (self.range) {
-                for (let i = 0; i < self.options.length; i++) {
-                    if (self.options[i].range !== false) {
-                        self.options[i].range = false;
-                    }
-                    if (self.options[i].start !== false) {
-                        self.options[i].start = false;
-                    }
-                    if (self.options[i].end !== false) {
-                        self.options[i].end = false;
-                    }
-                    if (self.options[i].last !== false) {
-                        self.options[i].last = false;
-                    }
-                }
-                self.rangeValues = null;
-            }
-        }
-
-        const render = function(v) {
-            if (v) {
-                if (! Array.isArray(v)) {
-                    v = v.toString().split(',');
-                }
-
-                v = v.map(entry => {
-                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
-                }).join(',');
-            }
-            return v;
-        }
-
-        const normalize = function(v) {
-            if (! Array.isArray(v)) {
-                v = v.toString().split(',');
-            }
-
-            return v.map(item => {
-                if (Number(item) == item) {
-                    return Helpers.numToDate(item);
-                } else {
-                    if (Helpers.isValidDateFormat(item)) {
-                        return item;
-                    } else if (self.format) {
-                        let tmp = Mask.extractDateFromString(item, self.format);
-                        if (tmp) {
-                            return tmp;
-                        }
-                    }
-                }
-            })
-        }
-
-        const extractValueFromInput = function() {
-            let input = getInput();
-            if (input) {
-                let v;
-                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                    v = input.value;
-                } else if (input.isContentEditable) {
-                    v = input.textContent;
-                }
-                if (v) {
-                    return normalize(v).join(',');
-                }
-                return v;
-            }
-        }
-
-        const onopen = function() {
-            let isEditable = false;
-            let value = self.value;
-
-            let input = getInput();
-            if (input) {
-                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
-                } else if (input.isContentEditable) {
-                    isEditable = true;
-                }
-
-                let ret = extractValueFromInput();
-                if (ret && ret !== value) {
-                    value = ret;
-                }
-            }
-
-            if (! isEditable) {
-                self.content.focus();
-            }
-
-            // Update the internal date values
-            setValue(value);
-
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function(modal, origin) {
-            // Cancel range events
-            destroyRange();
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                origin: origin,
-            });
-        }
-
-        const dispatchOnChangeEvent = function() {
-            // Destroy range
-            destroyRange();
-            // Update the internal controllers
-            setValue(self.value);
-            // Events
-            Dispatch.call(self, change, 'change', {
-                instance: self,
-                value: self.value,
-            });
-            // Update input
-            let input = getInput();
-            if (input) {
-                // Update input value
-                input.value = render(self.value);
-                // Dispatch event
-                Dispatch.call(input, null, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-        }
-
-        const events = {
-            focusin: (e) => {
-                if (self.modal && self.isClosed()) {
-                    self.open();
-                }
-            },
-            focusout: (e) => {
-                if (self.modal && ! self.isClosed()) {
-                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
-                        self.modal.close({ origin: 'focusout' });
-                    }
-                }
-            },
-            click: (e) => {
-                if (e.target.classList.contains('lm-calendar-input')) {
-                    self.open();
-                }
-            },
-            keydown: (e) => {
-                if (self.modal) {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-                        if (! self.isClosed()) {
-                            self.content.focus();
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (! self.isClosed()) {
-                            update();
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Escape') {
-                        if (! self.isClosed()) {
-                            self.modal.close({origin: 'escape'});
-                        }
-                    }
-                }
-            },
-            input: (e) => {
-                let input = e.target;
-                if (input.classList.contains('lm-calendar-input')) {
-                    if (! isTrue(self.range)) {
-                        // TODO: process with range
-                        // Apply mask
-                        if (self.format) {
-                            Mask.oninput(e, self.format);
-                        }
-                        let value = null;
-                        // Content
-                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
-                        // Check if that is a valid date
-                        if (Helpers.isValidDateFormat(content)) {
-                            value = content;
-                        } else if (self.format) {
-                            let tmp = Mask.extractDateFromString(content, self.format);
-                            if (tmp) {
-                                value = tmp;
-                            }
-                        }
-                        // Change the calendar view
-                        if (value) {
-                            setValue(value);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Onload
-        onload(() => {
-            if (self.type !== "inline") {
-                // Create modal instance
-                self.modal = {
-                    width: 300,
-                    closed: true,
-                    focus: false,
-                    onopen: onopen,
-                    onclose: onclose,
-                    position: 'absolute',
-                    'auto-close': false,
-                    'auto-adjust': true,
-                };
-                // Generate modal
-                Modal(self.el, self.modal);
-            }
-
-            let ret;
-
-            // Create input controls
-            if (self.input && self.initInput !== false) {
-                if (! self.input.parentNode) {
-                    self.el.parentNode.insertBefore(self.input, self.el);
-                }
-
-                let input = getInput();
-                if (input && input.tagName) {
-                    input.classList.add('lm-input');
-                    input.classList.add('lm-calendar-input');
-                    input.addEventListener('click', events.click);
-                    input.addEventListener('input', events.input);
-                    input.addEventListener('keydown', events.keydown);
-                    input.addEventListener('focusin', events.focusin);
-                    input.addEventListener('focusout', events.focusout);
-                    if (self.placeholder) {
-                        input.setAttribute('placeholder', self.placeholder);
-                    }
-                    if (self.onChange) {
-                        input.addEventListener('change', self.onChange);
-                    }
-
-                    // Retrieve the value
-                    if (self.value) {
-                        input.value = render(self.value);
-                    } else {
-                        let value = extractValueFromInput();
-                        if (value && value !== self.value) {
-                            ret = value;
-                        }
-                    }
-                }
-            }
-
-            // Update the internal date values
-            if (ret) {
-                self.setValue(ret);
-            } else {
-                setValue(self.value);
-            }
-
-            // Reload view
-            reloadView(true);
-
-            /**
-             * Handler keyboard
-             * @param {object} e - event
-             */
-            self.el.addEventListener('keydown', function(e) {
-                let prevent = false;
-                if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                    if (e.target !== self.content) {
-                        self.content.focus();
-                    }
-                    prev(e);
-                    prevent = true;
-                } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                    if (e.target !== self.content) {
-                        self.content.focus();
-                    }
-                    next(e);
-                    prevent = true;
-                } else if (e.key === 'Enter') {
-                    if (e.target === self.content) {
-                        // Item
-                        if (self.cursor.current) {
-                            // Select
-                            select(e, self.cursor.current);
-                            prevent = true;
-                        }
-                    }
-                } else if (e.key === 'Escape') {
-                    if (! self.isClosed()) {
-                        self.close({ origin: 'escape' });
-                        prevent = true;
-                    }
-                }
-
-                if (prevent) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            });
-
-            /**
-             * Mouse wheel handler
-             * @param {object} e - mouse event
-             */
-            self.content.addEventListener('wheel', function(e){
-                if (self.wheel !== false) {
-                    if (e.deltaY < 0) {
-                        prev(e);
-                    } else {
-                        next(e);
-                    }
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            /**
-             * Range handler
-             * @param {object} e - mouse event
-             */
-            self.content.addEventListener('mouseover', function(e){
-                let parent = e.target.parentNode
-                if (parent === self.content) {
-                    let index = Array.prototype.indexOf.call(parent.children, e.target);
-                    updateRange(self.options[index]);
-                }
-            });
-
-            // Create event for focus out
-            self.el.addEventListener("focusout", (e) => {
-                let input = getInput();
-                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
-                    self.close({ origin: 'focusout' });
-                }
-            });
-        });
-
-        onchange((prop) => {
-            if (prop === 'view') {
-                reloadView(true);
-            } else if (prop === 'startingDay') {
-                self.weekdays = getWeekdays(self.startingDay ?? 0);
-            } else if (prop === 'value') {
-                dispatchOnChangeEvent();
-            }
-        })
-
-        // Tracking variables
-        track('value');
-
-        // Public methods
-
-        self.open = function(e) {
-            if (self.modal) {
-                if (self.type === 'auto') {
-                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
-                }
-                self.modal.open();
-            }
-        }
-
-        self.close = function(options) {
-            if (self.modal) {
-                if (options && options.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.setValue = function(v) {
-            // Update value
-            if (v) {
-                let ret = normalize(v);
-                if (isTrue(self.numeric)) {
-                    ret = ret.map(entry => {
-                        return Helpers.dateToNum(entry);
-                    })
-                }
-
-                if (! Array.isArray(v)) {
-                    ret = ret.join(',');
-                }
-
-                if (ret == Number(ret)) {
-                    ret = Number(ret);
-                }
-
-                v = ret;
-            }
-
-            // Events
-            if (v !== self.value) {
-                self.value = v;
-            }
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        self.update = update;
-        self.next = next;
-        self.prev = prev;
-        self.reset = reset;
-        self.setView = setView;
-        self.helpers = Helpers;
-        self.helpers.getDate = Mask.getDate;
-
-        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
-            <div class="lm-calendar-options">
-                <button type="button" onclick="${reset}">${T('Reset')}</button>
-                <button type="button" onclick="${update}">${T('Done')}</button>
-            </div>
-            <div class="lm-calendar-container" data-view="{{self.view}}">
-                <div class="lm-calendar-header">
-                    <div>
-                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
-                        <div class="lm-calendar-navigation">
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
-                        </div>
-                    </div>
-                    <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
-                </div>
-                <div class="lm-calendar-content" :loop="self.options" tabindex="0" :ref="self.content">
-                    <div data-start="{{self.start}}" data-end="{{self.end}}" data-last="{{self.last}}" data-range="{{self.range}}" data-event="{{self.data}}" data-grey="{{self.grey}}" data-bold="{{self.bold}}" data-selected="{{self.selected}}" data-disabled="{{self.disabled}}" onclick="${select}">{{self.title}}</div>
-                </div>
-                <div class="lm-calendar-footer" data-visible="{{self.footer}}">
-                    <div class="lm-calendar-time" data-visible="{{self.time}}"><select :loop="${hours}" :bind="self.hour" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select>:<select :loop="${minutes}" :bind="self.minute" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select></div>
-                    <div class="lm-calendar-update"><input type="button" value="${T('Update')}" onclick="${update}" class="lm-ripple lm-input"></div>
-                </div>
-            </div>
-        </div>`
-    }
-
-    // Register the LemonadeJS Component
-    lemonade.setComponents({ Calendar: Calendar });
-    // Register the web component
-    lemonade.createWebComponent('calendar', Calendar);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Calendar, root, options)
-            return options;
-        } else {
-            return Calendar.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 541:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(72);
-}
-
-if (! Tabs && "function" === 'function') {
-    var Tabs = __webpack_require__(560);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            method(...a);
-        } else if (this.tagName) {
-            // Fallback: dispatch a custom event
-            const event = new CustomEvent(type, {
-                bubbles: true,
-                cancelable: true,
-                detail: options,
-            });
-            this.dispatchEvent(event);
-        }
-    }
-
-    const defaultPalette =  [
-        ["#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1"],
-        ["#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc"],
-        ["#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5"],
-        ["#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae"],
-        ["#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c"],
-        ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b"],
-        ["#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a"],
-        ["#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64"],
-        ["#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f"],
-        ["#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238"],
-    ]
-
-    const Grid = function(children, { onchange }) {
-        const self = this;
-
-        if (! self.palette) {
-            self.palette = defaultPalette;
-        }
-
-        const select = (event) => {
-            if (event.target.tagName === 'TD') {
-                let color = event.target.getAttribute('data-value')
-
-                // Remove current selected mark
-                let selected = self.el.querySelector('.lm-color-selected');
-                if (selected) {
-                    selected.classList.remove('lm-color-selected');
-                }
-
-                // Mark cell as selected
-                if (color) {
-                    event.target.classList.add('lm-color-selected');
-                    self.set(color);
-                }
-            }
-        }
-
-        self.constructRows = function (e) {
-            let tbody = [];
-            e.textContent = '';
-            for (let j = 0; j < self.palette.length; j++) {
-                let tr = document.createElement('tr');
-                e.appendChild(tr);
-
-                for (let i = 0; i < self.palette[j].length; i++) {
-                    let color = self.palette[j][i];
-                    let td = document.createElement('td');
-                    td.setAttribute('data-value', color);
-                    td.style.backgroundColor = color;
-                    tr.appendChild(td);
-                }
-            }
-        }
-
-        onchange(property => {
-            if (property === 'palette') {
-                self.constructRows()
-            }
-        });
-
-        return render => render`<div class="lm-color-grid" :palette="self.palette">
-            <table cellpadding="7" cellspacing="0" onclick="${select}" :ref="self.table" :ready="self.constructRows"></table>
-        </div>`
-    }
-
-    const Spectrum = function(children, { onload }) {
-        let self = this;
-        let context = null;
-
-        let decToHex = function(num) {
-            let hex = num.toString(16);
-            return hex.length === 1 ? "0" + hex : hex;
-        }
-        let rgbToHex = function(r, g, b) {
-            return "#" + decToHex(r) + decToHex(g) + decToHex(b);
-        }
-
-        onload(() => {
-            context = self.canvas.getContext("2d", { willReadFrequently: true });
-            draw();
-        })
-
-        // Drsaw
-        const draw = function() {
-            let g = context.createLinearGradient(0, 0, self.canvas.width, 0);
-            // Create color gradient
-            g.addColorStop(0,    "rgb(255,0,0)");
-            g.addColorStop(0.15, "rgb(255,0,255)");
-            g.addColorStop(0.33, "rgb(0,0,255)");
-            g.addColorStop(0.49, "rgb(0,255,255)");
-            g.addColorStop(0.67, "rgb(0,255,0)");
-            g.addColorStop(0.84, "rgb(255,255,0)");
-            g.addColorStop(1,    "rgb(255,0,0)");
-            context.fillStyle = g;
-            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
-            g = context.createLinearGradient(0, 0, 0, self.canvas.height);
-            g.addColorStop(0,   "rgba(255,255,255,1)");
-            g.addColorStop(0.5, "rgba(255,255,255,0)");
-            g.addColorStop(0.5, "rgba(0,0,0,0)");
-            g.addColorStop(1,   "rgba(0,0,0,1)");
-            context.fillStyle = g;
-            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
-        }
-
-        // Moves the marquee point to the specified position
-        const update = (e) => {
-            let x;
-            let y;
-            let buttons = 1;
-            if (e.type === 'touchmove') {
-                x = e.changedTouches[0].clientX;
-                y = e.changedTouches[0].clientY;
-            } else {
-                buttons = e.buttons;
-                x = e.clientX;
-                y = e.clientY;
-            }
-
-            if (buttons === 1) {
-                let rect = self.el.getBoundingClientRect();
-                let left = x - rect.left;
-                let top = y - rect.top;
-                // Get the color in this pixel
-                let pixel = context.getImageData(left, top, 1, 1).data;
-                // Position pointer
-                self.point.style.left = left + 'px';
-                self.point.style.top = top + 'px';
-                // Return color
-                self.set(rgbToHex(pixel[0], pixel[1], pixel[2]));
-            }
-        }
-
-        return render => render`<div class="lm-color-hsl">
-            <canvas width="240" height="140" :ref="self.canvas" onmousedown="${update}" onmousemove="${update}" ontouchmove="${update}"></canvas>
-            <div class="lm-color-point" :ref="self.point"></div>
-        </div>`;
-    }
-
-    const Color = function(children, { onchange, onload }) {
-        let self = this;
-        let value = null;
-
-        const change = self.onchange;
-        self.onchange = null;
-
-        // Decide the type based on the size of the screen
-        let autoType = self.type === 'auto';
-
-        const applyValue = function(v) {
-            if (self.value !== v) {
-                self.value = v;
-            }
-        }
-
-        const onopen = function(e) {
-            self.open();
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function(modal, origin) {
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                origin: origin,
-            });
-        }
-
-        const update = function() {
-            applyValue(value);
-            self.close({ origin: 'button' });
-        }
-
-        const getInput = function() {
-            let input = self.input;
-            if (input && input.current) {
-                input = input.current;
-            } else {
-                if (self.input) {
-                    input = self.input;
-                }
-            }
-
-            return input;
-        }
-
-        const events = {
-            focusin: (e) => {
-                if (self.modal && self.isClosed()) {
-                    self.open();
-                }
-            },
-            focusout: (e) => {
-                if (self.modal && ! self.isClosed()) {
-                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
-                        self.modal.close({ origin: 'focusout' });
-                    }
-                }
-            },
-            click: (e) => {
-                if (e.target.classList.contains('lm-color-input')) {
-                    self.open();
-                }
-            },
-            keydown: (e) => {
-                if (self.modal) {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-                        if (self.isClosed()) {
-                            self.open();
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (! self.isClosed()) {
-                            update();
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Escape') {
-                        if (! self.isClosed()) {
-                            self.modal.close({origin: 'escape'});
-                        }
-                    }
-                }
-            }
-        }
-
-        const set = function(v) {
-            value = v;
-            // Close
-            if (self.closeOnChange === true) {
-                // Update value
-                self.setValue(v);
-                // Close modal
-                self.close({ origin: 'select' });
-            }
-        }
-
-        self.open = function(e) {
-            if (self.modal) {
-                if (autoType) {
-                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
-                }
-                value = self.value;
-                // Table
-                let table = self.grid.table;
-                // Remove any selection
-                let o = table.querySelector('.lm-color-selected');
-                if (o) {
-                    o.classList.remove('lm-color-selected');
-                }
-                // Selected
-                o = table.querySelector('[data-value="'+self.value+'"]');
-                if (o) {
-                    o.classList.add('lm-color-selected');
-                }
-                // Open modal
-                self.modal.open();
-            }
-        }
-
-        /**
-         * Close the modal
-         */
-        self.close = function(options) {
-            if (self.modal) {
-                if (options && options.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.reset = function() {
-            self.setValue('');
-            self.close({ origin: 'button' });
-        }
-
-        self.setValue = function(v) {
-            self.value = value = v;
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        onchange(prop => {
-            if (prop === 'value') {
-                let input = getInput();
-                if (input) {
-                    input.value = self.value;
-                    if (self.value) {
-                        input.style.color = self.value;
-                    } else {
-                        input.style.color = '';
-                    }
-                }
-
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-        });
-
-        // Input
-        if (self.input === 'auto') {
-            self.input = document.createElement('input');
-            self.input.type = 'text';
-        }
-
-        onload(() => {
-            if (self.type !== "inline") {
-                // Create modal instance
-                self.modal = {
-                    closed: true,
-                    onopen: onopen,
-                    onclose: onclose,
-                    focus: false,
-                    position: 'absolute',
-                    'auto-close': false,
-                    'auto-adjust': true,
-                };
-                // Generate modal
-                Modal(self.el, self.modal);
-            }
-
-            // Create input controls
-            if (self.input && self.initInput !== false) {
-                if (! self.input.parentNode) {
-                    self.el.parentNode.insertBefore(self.input, self.el);
-                }
-
-                let input = getInput();
-                if (input && input.tagName) {
-                    input.classList.add('lm-input');
-                    input.classList.add('lm-color-input');
-                    input.addEventListener('click', events.click);
-                    input.addEventListener('focusin', events.focusin);
-                    input.addEventListener('focusout', events.focusout);
-                    if (self.placeholder) {
-                        input.setAttribute('placeholder', self.placeholder);
-                    }
-                    if (self.onChange) {
-                        input.addEventListener('change', self.onChange);
-                    }
-
-                    // Retrieve the value
-                    if (self.value) {
-                        input.value = self.value;
-                    } else if (input.value && input.value !== self.value) {
-                        self.value = input.value;
-                    }
-                }
-            }
-
-            // Create event for focus out
-            self.el.addEventListener("focusout", (e) => {
-                let input = getInput();
-                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
-                    self.close({ origin: 'focusout' });
-                }
-            });
-        });
-
-        return render => render`<div class="lm-color" :value="self.value">
-            <div class="lm-color-options">
-                <button type="button" onclick="${self.reset}">Reset</button>
-                <button type="button" onclick="${update}">Done</button>
-            </div>
-            <lm-tabs selected="0" position="center" :ref="self.tabs">
-                <div title="Grid"><${Grid} :palette="self.palette" :ref="self.grid" :set="${set}" /></div>
-                <div title="Spectrum"><${Spectrum} :ref="self.spectrum" :set="${set}" /></div>
-            </lm-tabs>
-        </div>`;
-    }
-
-    lemonade.setComponents({ Color: Color });
-    // Register the web component
-    lemonade.createWebComponent('color', Color);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Color, root, options)
-            return options;
-        } else {
-            return Color.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 238:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(72);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // Get the coordinates of the action
-    const getCoords = function(e) {
-        let x;
-        let y;
-
-        if (e.changedTouches && e.changedTouches[0]) {
-            x = e.changedTouches[0].clientX;
-            y = e.changedTouches[0].clientY;
-        } else {
-            x = e.clientX;
-            y = e.clientY;
-        }
-
-        return [x,y];
-    }
-
-    const Item = function() {
-        let self = this;
-
-        self.onload = function() {
-            if (typeof(self.render) === 'function') {
-                self.render.call(self, self.el);
-            }
-        }
-
-        // Initialize expanded state
-        self.expanded = false;
-
-        if (self.type === 'line') {
-            return `<hr role="separator" />`;
-        } else if (self.type === 'inline') {
-            return `<div></div>`;
-        } else {
-            return `<div class="lm-menu-item" role="menuitem" data-disabled="{{self.disabled}}" data-cursor="{{self.cursor}}" data-icon="{{self.icon}}" title="{{self.tooltip}}" data-submenu="${!!self.submenu}" aria-haspopup="${!!self.submenu}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" tabindex="-1" onmouseup="self.parent.mouseUp" onmouseenter="self.parent.mouseEnter" onmouseleave="self.parent.mouseLeave">
-                <span>{{self.title}}</span> <div>{{self.shortcut}}</div>
-            </div>`;
-        }
-    }
-
-    const Create = function() {
-        let self = this;
-
-        // Delay on open
-        let delayTimer;
-        // Save the position of this modal
-        let index = self.parent.modals.length;
-
-        // Blank options
-        self.options = [];
-
-        // Close handler
-        self.onclose = function() {
-            // Reset any cursor
-            resetCursor.call(self);
-            // Parent
-            if (typeof(self.parent.onclose) === 'function') {
-                self.parent.onclose(self.parent, self);
-            }
-        }
-
-        self.onopen = function() {
-            // Parent
-            if (typeof(self.parent.onopen) === 'function') {
-                self.parent.onopen(self.parent, self);
-            }
-        }
-
-        /**
-         * Close the modal
-         */
-        self.close = function() {
-            // Close modals with higher level
-            self.parent.close(index);
-        }
-
-        /**
-         * Open submenu handler
-         * @param {object} s
-         * @param {boolean} cursor - Activate the first item
-         */
-        self.open = function(s, cursor) {
-            if (s.submenu) {
-                // Get the modal in the container of modals
-                let current = self.parent.modals[index+1];
-                // Do not exist yet, create it.
-                if (! current) {
-                    // Modal needs to be created
-                    current = self.parent.create();
-                }
-                // Get the parent from this one
-                let parent = self.parent.modals[index];
-                // Update modal content
-                if (current.options !== s.submenu) {
-                    // Close modals with higher level
-                    current.options = s.submenu;
-                    // Close other modals
-                    self.parent.close(index+1);
-                }
-                // Update the selected modal
-                self.parent.modalIndex = index+1;
-                let rect = parent.modal.el.getBoundingClientRect();
-                // Update modal
-                current.modal.open();
-                // Aria indication
-                current.modal.top = rect.y + s.el.offsetTop + 2;
-                current.modal.left = rect.x + 248;
-                // Keep current item for each modal
-                current.item = s;
-                s.expanded = true;
-
-                // Activate the cursor
-                if (cursor === true) {
-                    // Place cursor in the first position
-                    current.options[0].cursor = true;
-                    // Position cursor
-                    current.cursor = 0;
-                }
-
-                onopen(current, s.submenu)
-            } else {
-                // Close modals with higher level
-                self.parent.close(index+1);
-            }
-        }
-
-        // Mouse open
-        self.mouseUp = function(e, s) {
-            if (typeof(s.onclick) === 'function') {
-                s.onclick.call(s, e, s.el);
-            }
-            if (! s.submenu) {
-                self.close();
-            }
-        }
-
-        self.mouseEnter = function(e, s) {
-            if (delayTimer) {
-                clearTimeout(delayTimer);
-            }
-            delayTimer = setTimeout(function() {
-                self.open(s);
-            }, 200);
-        }
-
-        self.mouseLeave = function(e, s) {
-            if (delayTimer) {
-                clearTimeout(delayTimer);
-            }
-        }
-
-        let template = `<lm-modal :overflow="true" :closed="true" :ref="self.modal" :responsive="false" :auto-adjust="true" :focus="false" :layers="false" :onopen="self.onopen" :onclose="self.onclose">
-            <div class="lm-menu-submenu" role="menu" aria-orientation="vertical">
-                <Item :loop="self.options" />
-            </div>
-        </lm-modal>`;
-
-        return lemonade.element(template, self, { Item: Item });
-    }
-
-    const findNextEnabledCursor = function(startIndex, direction) {
-        if (!this.options || this.options.length === 0) {
-            return null;
-        }
-
-        let cursor = startIndex;
-        let attempts = 0;
-        const maxAttempts = this.options.length;
-
-        while (attempts < maxAttempts) {
-            if (direction) {
-                // Down
-                if (cursor >= this.options.length) {
-                    cursor = 0;
-                }
-            } else {
-                // Up
-                if (cursor < 0) {
-                    cursor = this.options.length - 1;
-                }
-            }
-
-            let item = this.options[cursor];
-            if (item && !item.disabled && item.type !== 'line') {
-                return cursor;
-            }
-
-            cursor = direction ? cursor + 1 : cursor - 1;
-            attempts++;
-        }
-        return null;
-    };
-
-    const setCursor = function(direction) {
-        let cursor = null;
-
-        if (typeof(this.cursor) !== 'undefined') {
-            if (! direction) {
-                // Up
-                cursor = findNextEnabledCursor.call(this, this.cursor - 1, false);
-            } else {
-                // Down
-                cursor = findNextEnabledCursor.call(this, this.cursor + 1, true);
-            }
-        }
-
-        // Remove the cursor
-        if (cursor === null) {
-            if (direction) {
-                cursor = findNextEnabledCursor.call(this, 0, true);
-            } else {
-                cursor = findNextEnabledCursor.call(this, this.options.length - 1, false);
-            }
-        } else if (typeof(this.cursor) !== 'undefined') {
-            this.options[this.cursor].cursor = false;
-        }
-
-        // Add the cursor if found
-        if (cursor !== null) {
-            this.options[cursor].cursor = true;
-            this.cursor = cursor;
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Reset the cursor for a contextmenu
-     */
-    const resetCursor = function() {
-        // Contextmenu modal
-        let item = this.options[this.cursor];
-        // Cursor is found so reset it
-        if (typeof(item) !== 'undefined') {
-            // Remove the cursor style
-            item.cursor = false;
-            // Delete reference index
-            delete this.cursor;
-        }
-    }
-
-    /**
-     * Go through all items of a menu
-     * @param s
-     * @param options
-     */
-    const onopen = function(s, options) {
-        // Onopen
-        for (let i = 0; i < options.length; i++) {
-            if (typeof(options[i].onopen) === 'function') {
-                options[i].onopen(s);
-            }
-        }
-    }
-
-    const Contextmenu = function(children, { onload }) {
-        let self = this;
-
-        // Container for all modals
-        self.modals = [];
-        self.modalIndex = 0;
-
-        self.create = function() {
-            // Create a new self for each modal
-            let s = {
-                parent: self,
-            };
-            // Render the modal inside the main container
-            lemonade.render(Create, self.el, s);
-            // Add the reference of the modal in a container#
-            self.modals.push(s);
-            // Return self
-            return s;
-        }
-
-        self.isClosed = function() {
-            return self.modals[0].modal.closed === true;
-        }
-
-        self.open = function(options, x, y, adjust) {
-            // Get the main modal
-            let menu = self.modals[0];
-            // Reset cursor
-            resetCursor.call(menu);
-            // Define new position
-            menu.modal.top = y;
-            menu.modal.left = x;
-            // Open
-            menu.modal.open();
-            // If the modal is open and the content is different from what is shown. Close modals with higher level
-            self.close(1);
-            // Update the data
-            if (options && menu.options !== options) {
-                // Refresh content
-                menu.options = options;
-            }
-            onopen(self, options);
-
-            // Adjust position to respect mouse cursor after auto-adjust
-            // Use queueMicrotask to ensure it runs after the modal's auto-adjust
-            if (adjust === true) {
-                queueMicrotask(() => {
-                    let modalEl = menu.modal.el;
-                    let rect = modalEl.getBoundingClientRect();
-                    let marginLeft = parseFloat(modalEl.style.marginLeft) || 0;
-                    let marginTop = parseFloat(modalEl.style.marginTop) || 0;
-
-                    // Check if horizontal adjustment was applied (margin is non-zero)
-                    if (marginLeft !== 0) {
-                        // Position modal so its right edge is at x - 1 (cursor 1px to the right of modal)
-                        // Formula: left + margin + width = x - 1, where left = x
-                        // Therefore: margin = -width - 1
-                        let newMarginLeft = -rect.width - 1;
-                        // Check if this would push modal off the left edge
-                        let newLeft = x + newMarginLeft;
-                        if (newLeft < 10) {
-                            // Keep a 10px margin from the left edge
-                            newMarginLeft = 10 - x;
-                        }
-                        modalEl.style.marginLeft = newMarginLeft + 'px';
-                    }
-
-                    // Check if vertical adjustment was applied (margin is non-zero)
-                    if (marginTop !== 0) {
-                        // Position modal so its bottom edge is at y - 1 (cursor 1px below modal)
-                        // Formula: top + margin + height = y - 1, where top = y
-                        // Therefore: margin = -height - 1
-                        let newMarginTop = -rect.height - 1;
-                        // Check if this would push modal off the top edge
-                        let newTop = y + newMarginTop;
-                        if (newTop < 10) {
-                            // Keep a 10px margin from the top edge
-                            newMarginTop = 10 - y;
-                        }
-                        modalEl.style.marginTop = newMarginTop + 'px';
-                    }
-                });
-            }
-            // Focus
-            self.el.classList.add('lm-menu-focus');
-            // Focus on the contextmenu
-            self.el.focus();
-        }
-
-        self.close = function(level) {
-            // Close all modals from the level specified
-            self.modals.forEach(function(menu, k) {
-                if (k >= level) {
-                    if (menu.item) {
-                        menu.item.expanded = false;
-                        menu.item = null;
-                    }
-                    menu.modal.close();
-                }
-            });
-            // Keep the index of the modal that is opened
-            self.modalIndex = level ? level - 1 : 0;
-
-            // Close event
-            if (level === 0) {
-                self.el.classList.remove('lm-menu-focus');
-
-                Dispatch.call(self, self.onclose, 'close', {
-                    instance: self,
-                });
-            }
-        }
-
-        onload(() => {
-            // Create first menu
-            self.create();
-
-            // Create event for focus out
-            self.el.addEventListener("focusout", (e) => {
-                if (! (e.relatedTarget && (self.el.contains(e.relatedTarget) || self.root?.contains(e.relatedTarget)))) {
-                    self.close(0);
-                }
-            });
-
-            // Keyboard event
-            self.el.addEventListener("keydown", function(e) {
-                // Menu object
-                let menu = self.modals[self.modalIndex];
-                // Modal must be opened
-                if (! menu.modal.closed) {
-                    // Something happens
-                    let ret = false;
-                    // Control
-                    if (e.key === 'ArrowLeft') {
-                        if (self.modalIndex > 0) {
-                            // Close modal
-                            menu.close();
-                            // Action happened
-                            ret = true;
-                        }
-                    } else if (e.key === 'ArrowRight') {
-                        // Get the selected cursor
-                        let item = menu.options[menu.cursor];
-                        // Open submenu
-                        if (typeof (item) !== 'undefined') {
-                            // Open submenu in case that exists
-                            if (item.submenu && !item.disabled) {
-                                // Open modal
-                                menu.open(item, true);
-                                // Action happened
-                                ret = true;
-                            }
-                        }
-                    } else if (e.key === 'ArrowUp') {
-                        ret = setCursor.call(menu, 0);
-                    } else if (e.key === 'ArrowDown') {
-                        ret = setCursor.call(menu, 1);
-                    } else if (e.key === 'Enter') {
-                        // Contextmenu modal
-                        let item = menu.options[menu.cursor];
-                        // Cursor is found so reset it
-                        if (typeof(item) !== 'undefined') {
-                            // Execute action
-                            if (typeof (item.onclick) === 'function') {
-                                item.onclick.call(item, e, item.el);
-                            }
-                            // Open sub menu in case exists
-                            if (item.submenu) {
-                                // Open menu
-                                menu.open(item, true);
-                                // Action happened
-                                ret = true;
-                            } else {
-                                // Close all menu
-                                self.close(0);
-                                // Action happened
-                                ret = true;
-                            }
-                        }
-                    } else if (e.key === 'Escape') {
-                        self.close(0);
-                    }
-
-                    // Something important happen so block any progression
-                    if (ret === true) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                }
-            });
-
-            if (! self.root) {
-                if (self.tagName) {
-                    self.root = self.el.parentNode.parentNode;
-                } else {
-                    self.root = self.el.parentNode;
-                }
-            }
-
-            // Parent
-            self.root.addEventListener("contextmenu", function(e) {
-                if (Array.isArray(self.options) && self.options.length) {
-                    let [x, y] = getCoords(e);
-                    self.open(self.options, x, y, true);
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            });
-        });
-
-        return `<div class="lm-menu" role="menu" aria-orientation="vertical" tabindex="0"></div>`;
-    }
-
-    lemonade.setComponents({ Contextmenu: Contextmenu });
-
-    lemonade.createWebComponent('contextmenu', Contextmenu);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Contextmenu, root, options)
-            return options;
-        } else {
-            return Contextmenu.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 692:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-/**
- * Implement page up and down navigation
- * Implement color attribute for items
- */
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-if (!Modal && "function" === 'function') {
-    var Modal = __webpack_require__(72);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            return this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // Default row height
-    let defaultRowHeight = 24;
-
-    // Translations
-    const T = function(t) {
-        if (typeof(document) !== "undefined" && document.dictionary) {
-            return document.dictionary[t] || t;
-        } else {
-            return t;
-        }
-    }
-
-    const isEmpty = function(v) {
-        return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
-    }
-
-    /**
-     * Compare two values (arrays, strings, numbers, etc.)
-     * Returns true if both are equal or empty
-     * @param {*} a1
-     * @param {*} a2
-     */
-    const compareValues = function(a1, a2) {
-        if (a1 === a2 || (isEmpty(a1) && isEmpty(a2))) {
-            return true;
-        }
-
-        if (!a1 || !a2) {
-            return false;
-        }
-
-        if (Array.isArray(a1) && Array.isArray(a2)) {
-            if (a1.length !== a2.length) {
-                return false;
-            }
-            for (let i = 0; i < a1.length; i++) {
-                if (a1[i] !== a2[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        return a1 === a2;
-    }
-
-    const lazyLoading = function (self) {
-        /**
-         * Get the position from top of a row by its index
-         * @param item
-         * @returns {number}
-         */
-        const getRowPosition = function (item) {
-            // Position from top
-            let top = 0;
-            if (item) {
-                let items = self.rows;
-                if (items && items.length) {
-                    let index = self.rows.indexOf(item);
-                    // Go through the items
-                    for (let j = 0; j < index; j++) {
-                        top += items[j].height || defaultRowHeight;
-                    }
-                }
-            }
-            return top;
-        }
-
-        const updateScroll = function () {
-            let items = self.rows;
-            if (items) {
-                // Before control
-                let before = true;
-                // Total of items in the container
-                let numOfItems = items.length;
-                // Position from top
-                let height = 0;
-                // Size of the adjustment
-                let size = 0;
-                // Go through the items
-                for (let j = 0; j < numOfItems; j++) {
-                    let h = items[j].height || defaultRowHeight;
-                    // Height
-                    height += h;
-                    // Start tracking all items as before
-                    if (items[j] === self.result[0]) {
-                        before = false;
-                    }
-                    // Adjustment
-                    if (before) {
-                        size += h;
-                    }
-                }
-                // Update height
-                scroll.style.height = height + 'px';
-                // Adjust scroll position
-                return size;
-            }
-            return false;
-        }
-
-        const getVisibleRows = function (reset) {
-            let items = self.rows;
-            if (items) {
-                let adjust;
-                // Total of items in the container
-                let numOfItems = items.length;
-                // Get the position from top
-                let y = el.scrollTop;
-                // Get the height
-                let h = null;
-                if (self.type === 'searchbar' || self.type === 'picker') {
-                    // Priority should be the size used on the viewport
-                    h = y + (el.offsetHeight || self.height);
-                } else {
-                    // Priority is the height define during initialization
-                    h = y + (self.height || el.offsetHeight);
-                }
-                // Go through the items
-                let rows = [];
-                // Height
-                let height = 0;
-                // Go through all items
-                for (let j = 0; j < numOfItems; j++) {
-                    if (items[j].visible !== false) {
-                        // Height
-                        let rowHeight = items[j].height || defaultRowHeight;
-                        // Return on partial width
-                        if (height + rowHeight > y && height < h) {
-                            rows.push(items[j]);
-                        }
-                        height += rowHeight;
-                    }
-                }
-
-                // Update visible rows
-                if (reset || !compareValues(rows, self.result)) {
-                    // Render the items
-                    self.result = rows;
-                    // Adjust scroll height
-                    let adjustScroll = reset;
-                    // Adjust scrolling
-                    for (let i = 0; i < rows.length; i++) {
-                        // Item
-                        let item = rows[i];
-                        // Item height
-                        let h = item.el.offsetHeight;
-                        // Update row height
-                        if (!item.height || h !== item.height) {
-                            // Keep item height
-                            item.height = h;
-                            // Adjust total height
-                            adjustScroll = true;
-                        }
-                    }
-
-                    // Update scroll if the height of one element has been changed
-                    if (adjustScroll) {
-                        // Adjust the scroll height
-                        adjust = updateScroll();
-                    }
-                }
-
-                // Adjust position of the first element
-                let position = getRowPosition(self.result[0]);
-                let diff = position - el.scrollTop;
-                if (diff > 0) {
-                    diff = 0;
-                }
-                self.container.style.top = diff + 'px';
-
-                return adjust;
-            }
-        }
-
-        /**
-         * Move the position to the top and re-render based on the scroll
-         * @param reset
-         */
-        const render = function (reset) {
-            // Move scroll to the top
-            el.scrollTop = 0;
-            // Reset scroll
-            updateScroll();
-            // Append first batch
-            getVisibleRows(reset);
-        }
-
-        /**
-         * Will adjust the items based on the scroll position offset
-         */
-        self.adjustPosition = function (item) {
-            if (item.el) {
-                let h = item.el.offsetHeight;
-                let calc = item.el.offsetTop + h;
-                if (calc > el.offsetHeight) {
-                    let size = calc - el.offsetHeight;
-                    if (size < h) {
-                        size = h;
-                    }
-                    el.scrollTop -= -1 * size;
-                }
-            }
-        }
-
-        // Controls
-        const scrollControls = function () {
-            getVisibleRows(false);
-        }
-
-        // Element for scrolling
-        let el = self.container.parentNode;
-        el.classList.add('lm-lazy');
-        // Div to represent the height of the content
-        const scroll = document.createElement('div');
-        scroll.classList.add('lm-lazy-scroll');
-        // Force the height and add scrolling
-        el.appendChild(scroll);
-        el.addEventListener('scroll', scrollControls, { passive: true });
-        el.addEventListener('wheel', scrollControls, { passive: true });
-        self.container.classList.add('lm-lazy-items');
-
-        self.goto = function (item) {
-            el.scrollTop = getRowPosition(item);
-            let adjust = getVisibleRows(false);
-            if (adjust) {
-                el.scrollTop = adjust;
-                // Last adjust on the visible rows
-                getVisibleRows(false);
-            }
-        }
-
-        return (prop) => {
-            if (prop === 'rows') {
-                render(true);
-            }
-        }
-    }
-
-    const getAttributeName = function(prop) {
-        if (prop.substring(0,1) === ':') {
-            prop = prop.substring(1);
-        } else if (prop.substring(0,3) === 'lm-') {
-            prop = prop.substring(3);
-        }
-        return prop.toLowerCase();
-    }
-
-    const extractFromHtml =  function(element) {
-        let data = [];
-        // Content
-        for (let i = 0; i < element.children.length; i++) {
-            let e = element.children[i];
-            let item = {
-                text: e.textContent || e.getAttribute('title'),
-                value: e.getAttribute('value'),
-            }
-            if (item.value == null) {
-                item.value = item.text;
-            }
-            data.push(item);
-        }
-
-        return data;
-    }
-
-    const extract = function(children) {
-        let data = [];
-
-        if (this.tagName) {
-            data = extractFromHtml(this);
-            // Remove all elements
-            this.textContent = '';
-        } else {
-            // Get data
-            if (typeof(children) === 'string') {
-                // Version 4
-                let d = document.createElement('div');
-                d.innerHTML = children;
-                data = extractFromHtml(d);
-            } else if (children && children.length) {
-                // Version 5
-                children.forEach((v) => {
-                    let item = {}
-                    v.props.forEach((prop) => {
-                        item[getAttributeName(prop.name)] = prop.value;
-                    });
-                    if (! item.text) {
-                        item.text = v.children[0]?.props[0]?.value || '';
-                    }
-                    data.push(item);
-                });
-                // Block children
-                children.length = 0;
-            }
-        }
-
-        return data;
-    }
-
-    const isDOM = function(o) {
-        return (o instanceof Element || o instanceof HTMLDocument || o instanceof DocumentFragment);
-    }
-
-    const Dropdown = function (children, { onchange, onload }) {
-        let self = this;
-        // Data
-        let data = [];
-        // Internal value controllers
-        let value = [];
-        // Cursor
-        let cursor = null;
-        // Control events
-        let ignoreEvents = false;
-        // Lazy loading global instance
-        let lazyloading = null;
-        // Tracking changes
-        let changesDetected = false;
-        // Debounce timer for search
-        let searchTimeout = null;
-
-        // Data
-        if (! Array.isArray(self.data)) {
-            self.data = [];
-        }
-
-        let d = extract.call(this, children);
-        if (d) {
-            d.forEach((v) => {
-                self.data.push(v)
-            })
-        }
-
-        // Decide the type based on the size of the screen
-        let autoType = self.type === 'auto';
-
-        // Custom events defined by the user
-        let load = self.onload;
-        self.onload = null;
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Compatibility
-        if (typeof self.newOptions !== 'undefined') {
-            self.insert = self.newOptions;
-        }
-
-        // Cursor controllers
-        const setCursor = function (index, force) {
-            let item = self.rows[index];
-            if (typeof (item) !== 'undefined') {
-                // Set the cursor number
-                cursor = index;
-                // Set visual indication
-                item.cursor = true;
-                // Go to the item on the scroll in case the item is not on the viewport
-                if (!(item.el && item.el.parentNode) || force === true) {
-                    // Goto method
-                    self.goto(item);
-                }
-                // Adjust cursor position
-                setTimeout(function () {
-                    self.adjustPosition(item);
-                });
-            }
-        }
-
-        const removeCursor = function (reset) {
-            if (cursor !== null) {
-                if (typeof (self.rows[cursor]) !== 'undefined') {
-                    self.rows[cursor].cursor = false;
-                }
-                if (reset) {
-                    // Cursor is null
-                    cursor = null;
-                }
-            }
-        }
-
-        const moveCursor = function (direction, jump) {
-            // Remove cursor
-            removeCursor();
-            // Last item
-            let last = self.rows.length - 1;
-            if (jump) {
-                if (direction < 0) {
-                    cursor = 0;
-                } else {
-                    cursor = last;
-                }
-            } else {
-                // Position
-                if (cursor === null) {
-                    cursor = 0;
-                } else {
-                    // Move previous
-                    cursor = cursor + direction;
-                }
-                // Reach the boundaries
-                if (direction < 0) {
-                    // Back to the last one
-                    if (cursor < 0) {
-                        cursor = last;
-                    }
-                } else {
-                    // Back to the first one
-                    if (cursor > last) {
-                        cursor = 0;
-                    }
-                }
-            }
-            // Add cursor
-            setCursor(cursor);
-        }
-
-        const adjustDimensions = function(data) {
-            // Estimate width
-            let width = self.width ?? 0;
-            // Adjust the width
-            let w = getInput().offsetWidth;
-            if (width < w) {
-                width = w;
-            }
-            // Width && values
-            data.map(function (s) {
-                // Estimated width of the element
-                if (s.text) {
-                    let w = Math.max(width, s.text.length * 7.5);
-                    if (width < w) {
-                        width = w;
-                    }
-                }
-            });
-            // Min width for the container
-            self.container.parentNode.style.width = (width - 2) + 'px';
-        }
-
-        const setData = function () {
-            // Data
-            data = JSON.parse(JSON.stringify(self.data));
-            // Re-order to make sure groups are in sequence
-            if (data && data.length) {
-                // Adjust width and height
-                adjustDimensions(data);
-                // Groups
-                data.sort((a, b) => {
-                    // Compare groups
-                    if (a.group && b.group) {
-                        return a.group.localeCompare(b.group);
-                    }
-                    return 0;
-                });
-                let group = '';
-                // Define group headers
-                data.map((v) => {
-                    // Compare groups
-                    if (v && v.group && v.group !== group) {
-                        v.header = v.group;
-                        group = v.group;
-                    }
-                });
-            }
-            // Data to be listed
-            self.rows = data;
-        }
-
-        const updateLabel = function () {
-            if (value && value.length) {
-                getInput().textContent = value.filter(v => v.selected).map(i => i.text).join('; ');
-            } else {
-                getInput().textContent = '';
-            }
-        }
-
-        const setValue = function (v, ignoreEvent) {
-            // Values
-            let newValue;
-            if (! Array.isArray(v)) {
-                if (typeof(v) === 'string') {
-                    newValue = v.split(self.divisor ?? ';');
-                } else {
-                    newValue = [v];
-                }
-            } else {
-                newValue = v;
-            }
-
-            // Width && values
-            value = [];
-
-            if (Array.isArray(data)) {
-                data.map(function (s) {
-                    s.selected = newValue.some(v => v == s.value);
-                    if (s.selected) {
-                        value.push(s);
-                    }
-                });
-            }
-
-            // Update label
-            if (self.isClosed()) {
-                updateLabel();
-            }
-
-            // Component onchange
-            if (! ignoreEvent) {
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: getValue(),
-                });
-            }
-        }
-
-        const getValue = function () {
-            if (self.multiple) {
-                if (value && value.length) {
-                    return value.filter(v => v.selected).map(i => i.value);
-                }
-            } else {
-                if (value && value.length) {
-                    return value[0].value;
-                }
-            }
-
-            return null;
-        }
-
-        const onopen = function () {
-            self.state = true;
-            // Value
-            let v = value[value.length - 1];
-            // Make sure goes back to the top of the scroll
-            if (self.container.parentNode.scrollTop > 0) {
-                self.container.parentNode.scrollTop = 0;
-            }
-            // Move to the correct position
-            if (v) {
-                // Mark the position of the cursor to the same element
-                setCursor(self.rows.indexOf(v), true);
-            }
-            // Prepare search field
-            if (self.autocomplete) {
-                // Get the input
-                let input = getInput();
-                // Editable
-                input.setAttribute('contenteditable', true);
-                // Clear input
-                input.textContent = '';
-                // Focus on the item
-                input.focus();
-            }
-            // Adjust width and height
-            adjustDimensions(self.data);
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function (options, origin) {
-            // Cursor
-            removeCursor(true);
-            // Reset search
-            if (self.autocomplete) {
-                // Go to begin of the data
-                self.rows = data;
-                // Get the input
-                let input = getInput();
-                if (input) {
-                    // Remove editable attribute
-                    input.removeAttribute('contenteditable');
-                    // Clear input
-                    input.textContent = '';
-                }
-            }
-
-            if (origin === 'escape') {
-                // Cancel operation and keep the same previous value
-                setValue(self.value, true);
-            } else {
-                // Current value
-                let newValue = getValue();
-
-                // If that is different from the component value
-                if (changesDetected === true && ! compareValues(newValue, self.value)) {
-                    self.value = newValue;
-                } else {
-                    // Update label
-                    updateLabel();
-                }
-            }
-
-            // Identify the new state of the dropdown
-            self.state = false;
-
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                ...options
-            });
-        }
-
-        const normalizeData = function(result) {
-            if (result && result.length) {
-                return result.map((v) => {
-                    if (typeof v === 'string' || typeof v === 'number') {
-                        return { value: v, text: v };
-                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
-                        return { value: v.id, text: v.name };
-                    } else {
-                        return v;
-                    }
-                });
-            }
-        }
-
-        const loadData = function(result) {
-            result = normalizeData(result);
-            // Loading controls
-            lazyloading = lazyLoading(self);
-            // Loading new data from a remote source
-            if (result) {
-                result.forEach((v) => {
-                    self.data.push(v);
-                });
-            }
-            // Process the data
-            setData();
-            // Set value
-            if (typeof(self.value) !== 'undefined') {
-                setValue(self.value, true);
-            }
-            // Onload method
-            Dispatch.call(self, load, 'load', {
-                instance: self
-            });
-            // Remove loading spin
-            self.input.classList.remove('lm-dropdown-loading');
-        }
-
-        const resetData = function(result) {
-            result = normalizeData(result);
-            // Reset cursor
-            removeCursor(true);
-            let r = data.filter(item => {
-                return item.selected === true;
-            });
-            // Loading new data from a remote source
-            if (result) {
-                result.forEach((v) => {
-                    r.push(v);
-                });
-            }
-            self.rows = r;
-            // Remove loading spin
-            self.input.classList.remove('lm-dropdown-loading');
-
-            // Event
-            Dispatch.call(self, self.onsearch, 'search', {
-                instance: self,
-                result: result,
-            });
-        }
-
-        const getInput = function() {
-            return self.input;
-        }
-
-        const search = function(query) {
-            if (! self.isClosed() && self.autocomplete) {
-
-                // Remote or normal search
-                if (self.remote === true) {
-                    // Clear existing timeout
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-                    // Loading spin
-                    self.input.classList.add('lm-dropdown-loading');
-                    // Headers
-                    let http = {
-                        headers: {
-                            'Content-Type': 'text/json',
-                        }
-                    }
-                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
-                        instance: self,
-                        http: http,
-                        query: query,
-                    });
-
-                    if (ret === false) {
-                        return;
-                    }
-
-                    // Debounce the search with 300ms delay
-                    searchTimeout = setTimeout(() => {
-                        fetch(`${self.url}?q=${query}`, http).then(r => r.json()).then(resetData).catch((error) => {
-                            resetData([]);
-                        });
-                    }, 300);
-                } else {
-                    // Filter options
-                    let temp;
-
-                    const find = (prop) => {
-                        if (prop) {
-                            if (Array.isArray(prop)) {
-                                // match if ANY element contains the query (case-insensitive)
-                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
-                            }
-                            // handle strings/numbers/others
-                            return prop.toString().toLowerCase().includes(query);
-                        }
-                        return false;
-                    };
-
-                    if (! query) {
-                        temp = data;
-                    } else {
-                        temp = data.filter(item => {
-                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
-                        });
-                    }
-
-                    // Cursor
-                    removeCursor(true);
-                    // Update the data from the dropdown
-                    self.rows = temp;
-                }
-            }
-        }
-
-        const events = {
-            focusout: (e) => {
-                if (self.modal) {
-                    if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
-                        if (! self.isClosed()) {
-                            self.close({ origin: 'focusout '});
-                        }
-                    }
-                }
-            },
-            keydown: (e) => {
-                if (! self.isClosed()) {
-                    let prevent = false;
-                    if (e.code === 'ArrowUp') {
-                        moveCursor(-1);
-                        prevent = true;
-                    } else if (e.code === 'ArrowDown') {
-                        moveCursor(1);
-                        prevent = true;
-                    } else if (e.code === 'Home') {
-                        moveCursor(-1, true);
-                        if (!self.autocomplete) {
-                            prevent = true;
-                        }
-                    } else if (e.code === 'End') {
-                        moveCursor(1, true);
-                        if (!self.autocomplete) {
-                            prevent = true;
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (e.target.tagName === 'BUTTON') {
-                            e.target.click();
-                            let input = getInput();
-                            input.focus();
-                        } else {
-                            select(e, self.rows[cursor]);
-                        }
-                        prevent = true;
-                    } else if (e.code === 'Escape') {
-                        self.close({ origin: 'escape'});
-                        prevent = true;
-                    } else {
-                        if (e.keyCode === 32 && !self.autocomplete) {
-                            select(e, self.rows[cursor]);
-                        }
-                    }
-
-                    if (prevent) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                } else {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Enter') {
-                        self.open();
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                }
-            },
-            mousedown: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    if (self.autocomplete) {
-                        let x;
-                        if (e.changedTouches && e.changedTouches[0]) {
-                            x = e.changedTouches[0].clientX;
-                        } else {
-                            x = e.clientX;
-                        }
-                        if (e.target.offsetWidth - (x - e.target.offsetLeft) < 20) {
-                            toggle();
-                        } else {
-                            self.open();
-                        }
-                    } else {
-                        toggle();
-                    }
-                }
-            },
-            paste: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    let text;
-                    if (e.clipboardData || e.originalEvent.clipboardData) {
-                        text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                    } else if (window.clipboardData) {
-                        text = window.clipboardData.getData('Text');
-                    }
-                    text = text.replace(/(\r\n|\n|\r)/gm, "");
-                    document.execCommand('insertText', false, text)
-                    e.preventDefault();
-                }
-            },
-            input: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    search(e.target.textContent.toLowerCase());
-                }
-            },
-        }
-
-        const selectItem = function(s) {
-            if (self.remote === true) {
-                if (data.indexOf(s) === -1) {
-                    self.data.push(s);
-                    data.push(s);
-                }
-            }
-
-            if (self.multiple === true) {
-                let position = value.indexOf(s);
-                if (position === -1) {
-                    value.push(s);
-                    s.selected = true;
-                } else {
-                    value.splice(position, 1);
-                    s.selected = false;
-                }
-            } else {
-                if (value[0] === s) {
-                    if (self.allowEmpty === false) {
-                        s.selected = true;
-                    } else {
-                        s.selected = !s.selected;
-                    }
-                } else {
-                    if (value[0]) {
-                        value[0].selected = false;
-                    }
-                    s.selected = true;
-                }
-                if (s.selected) {
-                    value = [s];
-                } else {
-                    value = [];
-                }
-            }
-
-            changesDetected = true;
-        }
-
-        const add = async function (e) {
-            let input = getInput();
-            let text = input.textContent;
-            if (! text) {
-                return false;
-            }
-
-            // New item
-            let s = {
-                text: text,
-                value: text,
-            }
-
-            self.add(s);
-
-            e.preventDefault();
-        }
-
-        const select = function (e, s) {
-            if (s && s.disabled !== true) {
-                selectItem(s);
-                // Close the modal
-                if (self.multiple !== true) {
-                    self.close({ origin: 'button' });
-                }
-            }
-        }
-
-        const toggle = function () {
-            if (self.modal) {
-                if (self.isClosed()) {
-                    self.open();
-                } else {
-                    self.close({ origin: 'button' });
-                }
-            }
-        }
-
-        self.add = async function (newItem) {
-            // Event
-            if (typeof(self.onbeforeinsert) === 'function') {
-                self.input.classList.add('lm-dropdown-loading');
-                let ret = await self.onbeforeinsert(self, newItem);
-                self.input.classList.remove('lm-dropdown-loading');
-                if (ret === false) {
-                    return;
-                } else if (ret) {
-                    newItem = ret;
-                }
-            }
-            // Process the data
-            data.push(newItem);
-            self.data.push(newItem);
-            // Refresh screen
-            self.result.unshift(newItem);
-            self.rows.unshift(newItem);
-            self.refresh('result');
-
-            Dispatch.call(self, self.oninsert, 'insert', {
-                instance: self,
-                item: newItem,
-            });
-        }
-
-        self.open = function () {
-            if (self.modal && ! self.disabled) {
-                if (self.isClosed()) {
-                    if (autoType) {
-                        self.type = window.innerWidth > 640 ? self.type = 'default' : (self.autocomplete ? 'searchbar' : 'picker');
-                    }
-                    // Track
-                    changesDetected = false;
-                    // Open the modal
-                    self.modal.open();
-                }
-            }
-        }
-
-        self.close = function (options) {
-            if (self.modal) {
-                if (options?.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.setData = function(data) {
-            self.data = data;
-        }
-
-        self.getData = function() {
-            return self.data;
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.setValue = function(v) {
-            self.value = v;
-        }
-
-        self.reset = function() {
-            self.value = null;
-            self.close({ origin: 'button' });
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        // Init with a
-        let input = self.input;
-
-        onload(() => {
-            if (self.type === "inline") {
-                // For inline dropdown
-                self.el.setAttribute('tabindex', 0);
-                // Remove search
-                self.input.remove();
-            } else {
-                // Create modal instance
-                self.modal = {
-                    closed: true,
-                    focus: false,
-                    onopen: onopen,
-                    onclose: onclose,
-                    position: 'absolute',
-                    'auto-adjust': true,
-                    'auto-close': false,
-                };
-                // Generate modal
-                Modal(self.el.children[1], self.modal);
-            }
-
-            if (self.remote === 'true') {
-                self.remote = true;
-            }
-
-            if (self.autocomplete === 'true') {
-                self.autocomplete = true;
-            }
-
-            if (self.multiple === 'true') {
-                self.multiple = true;
-            }
-
-            if (self.insert === 'true') {
-                self.insert = true;
-            }
-
-            // Autocomplete will be forced to be true when insert action is active
-            if ((self.insert === true || self.type === 'searchbar' || self.remote === true) && ! self.autocomplete) {
-                self.autocomplete = true;
-            }
-
-            if (typeof(input) !== 'undefined') {
-                // Remove the native element
-                if (isDOM(input)) {
-                    input.classList.add('lm-dropdown-input');
-                }
-                // Remove search
-                self.input.remove();
-                // New input
-                self.input = input;
-            } else {
-                self.el.children[0].style.position = 'relative';
-            }
-
-            // Default width
-            if (self.width) {
-                // Dropdown
-                self.el.style.width = self.width + 'px';
-            }
-
-            // Height
-            self.height = 400;
-
-            // Animation for mobile
-            if (document.documentElement.clientWidth < 800) {
-                self.animation = true;
-            }
-
-            // Events
-            self.el.addEventListener('focusout', events.focusout);
-            self.el.addEventListener('keydown', events.keydown);
-            self.el.addEventListener('mousedown', events.mousedown);
-            self.el.addEventListener('paste', events.paste);
-            self.el.addEventListener('input', events.input);
-
-            // Load remote data
-            if (self.url) {
-                if (self.remote === true) {
-                    loadData();
-                } else {
-                    // Loading spin
-                    self.input.classList.add('lm-dropdown-loading');
-                    // Load remote data
-                    fetch(self.url, {
-                        headers: {
-                            'Content-Type': 'text/json',
-                        }
-                    }).then(r => r.json()).then(loadData).catch(() => {
-                        loadData();
-                    });
-                }
-            } else {
-                loadData();
-            }
-        });
-
-        onchange(prop => {
-            if (prop === 'value') {
-                setValue(self.value);
-            } else if (prop === 'data') {
-                setData();
-                self.value = null;
-            }
-
-            if (typeof (lazyloading) === 'function') {
-                lazyloading(prop);
-            }
-        });
-
-        return render => render`<div class="lm-dropdown" data-state="{{self.state}}" data-insert="{{self.insert}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" :value="self.value" :data="self.data">
-            <div class="lm-dropdown-header">
-                <div class="lm-dropdown-input" placeholder="{{self.placeholder}}" :ref="self.input" tabindex="0"></div>
-                <button class="lm-dropdown-add" onclick="${add}" tabindex="0"></button>
-                <div class="lm-dropdown-header-controls">
-                    <button onclick="self.reset" class="lm-dropdown-done">${T('Reset')}</button>
-                    <button onclick="self.close" class="lm-dropdown-done">${T('Done')}</button>
-                </div>
-            </div>
-            <div class="lm-dropdown-content">
-                <div>
-                    <div :loop="self.result" :ref="self.container" :rows="self.rows">
-                        <div class="lm-dropdown-item" onclick="${select}" data-cursor="{{self.cursor}}" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" data-group="{{self.header}}">
-                            <div><img :src="self.image" /> <div>{{self.text}}</div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    }
-
-    lemonade.setComponents({ Dropdown: Dropdown });
-
-    lemonade.createWebComponent('dropdown', Dropdown);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Dropdown, root, options)
-            return options;
-        } else {
-            return Dropdown.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 72:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-/**
- * pin the modal to the left panel
- */
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // References
-    const modals = [];
-    // State of the resize and move modal
-    let state = {};
-    // Internal controls of the action of resize and move
-    let controls = {};
-    // Width of the border
-    let cornerSize = 10;
-    // Container with minimized modals
-    const minimizedModals = [];
-    // Default z-index for the modals
-    const defaultZIndex = 20;
-
-    /**
-     * Send the modal to the front
-     * @param container
-     */
-    const sendToFront = function(container) {
-        let highestXIndex = defaultZIndex;
-        for (let i = 0; i < modals.length; i++) {
-            const zIndex = parseInt(modals[i].el.style.zIndex);
-            if (zIndex > highestXIndex) {
-                highestXIndex = zIndex;
-            }
-        }
-        container.style.zIndex = highestXIndex + 1;
-    }
-
-    /**
-     * Send modal to the back
-     * @param container
-     */
-    const sendToBack = function(container) {
-        container.style.zIndex = defaultZIndex;
-    }
-
-    // Get the coordinates of the action
-    const getCoords = function(e) {
-        let x;
-        let y;
-
-        if (e.changedTouches && e.changedTouches[0]) {
-            x = e.changedTouches[0].clientX;
-            y = e.changedTouches[0].clientY;
-        } else {
-            x = e.clientX;
-            y = e.clientY;
-        }
-
-        return [x,y];
-    }
-
-    // Get the button status
-    const getButton = function(e) {
-        e = e || window.event;
-        if (e.buttons) {
-            return e.buttons;
-        } else if (e.button) {
-            return e.button;
-        } else {
-            return e.which;
-        }
-    }
-
-    // Finalize any potential action
-    const mouseUp = function(e) {
-        // Finalize all actions
-        if (typeof(controls.action) === 'function') {
-            controls.action();
-        }
-        setTimeout(function() {
-            // Remove cursor
-            if (controls.e) {
-                controls.e.style.cursor = '';
-            }
-            // Reset controls
-            controls = {};
-            // Reset state controls
-            state = {
-                x: null,
-                y: null,
-            }
-        }, 0)
-    }
-
-    const mouseMove = function(e) {
-        if (! getButton(e)) {
-            return false;
-        }
-        // Get mouse coordinates
-        let [x,y] = getCoords(e);
-
-        // Move modal
-        if (controls.type === 'move') {
-            if (state && state.x == null && state.y == null) {
-                state.x = x;
-                state.y = y;
-            }
-
-            let dx = x - state.x;
-            let dy = y - state.y;
-            let top = controls.e.offsetTop + dy;
-            let left = controls.e.offsetLeft + dx;
-
-            // Update position
-            controls.top = top;
-            controls.left = left;
-            controls.e.style.top = top + 'px';
-            controls.e.style.left = left + 'px';
-
-            state.x = x;
-            state.y = y;
-            state.top = top;
-            state.left = left;
-        } else if (controls.type === 'resize') {
-            let top = null;
-            let left = null;
-            let width = null;
-            let height = null;
-
-            if (controls.d === 'e-resize' || controls.d === 'ne-resize' || controls.d === 'se-resize') {
-                width = controls.w + (x - controls.x);
-
-                if (e.shiftKey) {
-                    height = controls.h + (x - controls.x) * (controls.h / controls.w);
-                }
-            } else if (controls.d === 'w-resize' || controls.d === 'nw-resize'|| controls.d === 'sw-resize') {
-                left = controls.l + (x - controls.x);
-                // Do not move further
-                if (left >= controls.l) {
-                    left = controls.l;
-                }
-                // Update width
-                width = controls.l + controls.w - left;
-                // Consider shift to update height
-                if (e.shiftKey) {
-                    height = controls.h - (x - controls.x) * (controls.h / controls.w);
-                }
-            }
-
-            if (controls.d === 's-resize' || controls.d === 'se-resize' || controls.d === 'sw-resize') {
-                if (! height) {
-                    height = controls.h + (y - controls.y);
-                }
-            } else if (controls.d === 'n-resize' || controls.d === 'ne-resize' || controls.d === 'nw-resize') {
-                top = controls.t + (y - controls.y);
-                // Do not move further
-                if (top >= controls.t) {
-                    top = controls.t;
-                }
-                // Update height
-                height = controls.t + controls.h - top;
-            }
-
-            if (top) {
-                controls.e.style.top = top + 'px';
-            }
-            if (left) {
-                controls.e.style.left = left + 'px';
-            }
-            if (width) {
-                controls.e.style.width = width + 'px';
-            }
-            if (height) {
-                controls.e.style.height = height + 'px';
-            }
-        }
-    }
-
-    if (typeof(document) !== "undefined") {
-        document.addEventListener('mouseup', mouseUp);
-        document.addEventListener('mousemove', mouseMove);
-    }
-
-    const isTrue = function(e) {
-        return e === true || e === 1 || e === 'true';
-    }
-
-    const refreshMinimized = function() {
-        let items = minimizedModals;
-        let numOfItems = items.length;
-        let width = 10;
-        let height = 55;
-        let offsetWidth = window.innerWidth;
-        let offsetHeight = window.innerHeight;
-        for (let i = 0; i < numOfItems; i++) {
-            let item = items[i];
-            item.el.style.left = width + 'px';
-            item.el.style.top = offsetHeight - height + 'px';
-            width += 205;
-
-            if (offsetWidth - width < 205) {
-                width = 10;
-                height += 50;
-            }
-        }
-    }
-
-    const delayAction = function(self, action) {
-        // Make sure to remove the transformation before minimize to preserve the animation
-        if (self.el.style.marginLeft || self.el.style.marginTop) {
-            // Make sure no animation during this process
-            self.el.classList.add('action');
-            // Remove adjustment
-            removeMargin(self);
-            // Make sure to continue with minimize
-            setTimeout(function() {
-                // Remove class
-                self.el.classList.remove('action');
-                // Call action
-                action(self);
-            },0)
-
-            return true;
-        }
-    }
-
-    const setMini = function(self) {
-        if (delayAction(self, setMini)) {
-            return;
-        }
-
-        // Minimize modals
-        minimizedModals.push(self);
-
-        self.el.top = self.el.offsetTop;
-        self.el.left = self.el.offsetLeft;
-
-        if (! self.el.style.top) {
-            self.el.style.top = self.el.top + 'px';
-        }
-        if (! self.el.style.left) {
-            self.el.style.left = self.el.left + 'px';
-        }
-
-        self.el.translateY = 0;
-        self.el.translateX = 0;
-
-        // Refresh positions
-        setTimeout(function() {
-            refreshMinimized();
-            self.minimized = true;
-        },10)
-    }
-
-    const removeMini = function(self) {
-        minimizedModals.splice(minimizedModals.indexOf(self), 1);
-        self.minimized = false;
-        self.el.style.top = self.el.top + 'px';
-        self.el.style.left = self.el.left + 'px';
-        // Refresh positions
-        setTimeout(() => {
-            refreshMinimized();
-        }, 10);
-        // Refresh positions
-        setTimeout(() => {
-            if (self.top === '') {
-                self.el.style.top = '';
-            }
-            if (self.left === '') {
-                self.el.style.left = '';
-            }
-        }, 400);
-    }
-
-    const removeMargin = function(self) {
-        if (self.el.style.marginLeft) {
-            let y = self.el.offsetLeft;
-            self.el.style.marginLeft = '';
-            self.left = y;
-        }
-
-        if (self.el.style.marginTop) {
-            let x = self.el.offsetTop;
-            self.el.style.marginTop = '';
-            self.top = x;
-        }
-    }
-
-    const adjustHorizontal = function(self) {
-        if (! isTrue(self['auto-adjust'])) {
-            return false;
-        }
-
-        self.el.style.marginLeft = '';
-        let viewportWidth = window.innerWidth;
-        let margin = 10;
-
-        if (self.position) {
-            if (self.position === 'absolute') {
-                let w = document.documentElement.offsetWidth;
-                if (w > viewportWidth) {
-                    //viewportWidth = w;
-                }
-            } else if (self.position !== 'center') {
-                margin = 0;
-            }
-        }
-
-        let el = self.el.getBoundingClientRect();
-
-        let rightEdgeDistance = viewportWidth - (el.left + el.width);
-        let transformX = 0;
-
-        if (self.position === 'absolute') {
-            if (rightEdgeDistance < 0) {
-                transformX = rightEdgeDistance - margin - 10; // 10 is the scroll width
-            }
-        } else {
-            if (rightEdgeDistance < 0) {
-                transformX = rightEdgeDistance - margin;
-            }
-        }
-
-        if (el.left < 0) {
-            transformX = margin - el.left;
-        }
-        if (transformX !== 0) {
-            self.el.style.marginLeft = transformX + 'px';
-        }
-    }
-
-    const adjustVertical = function(self) {
-        if (! isTrue(self['auto-adjust'])) {
-            return false;
-        }
-
-        self.el.style.marginTop = '';
-        let viewportHeight = window.innerHeight;
-        let margin = 10;
-
-        if (self.position) {
-            if (self.position === 'absolute') {
-                let h = document.documentElement.offsetHeight;
-                if (h > viewportHeight) {
-                    //viewportHeight = h;
-                }
-            } else if (self.position !== 'center') {
-                margin = 0;
-            }
-        }
-
-        let el = self.el.getBoundingClientRect();
-
-        let bottomEdgeDistance = viewportHeight - (el.top + el.height);
-        let transformY = 0;
-
-        if (self.position === 'absolute') {
-            if (bottomEdgeDistance < 5) {
-                transformY = (-1 * el.height) - margin - 12;
-                if (el.top + transformY < 0) {
-                    transformY = -el.top + 10;
-                }
-            }
-        } else {
-            if (bottomEdgeDistance < 0) {
-                transformY = bottomEdgeDistance - margin;
-            }
-        }
-
-        if (el.top < 0) {
-            transformY = margin - el.top;
-        }
-        if (transformY !== 0) {
-            self.el.style.marginTop = transformY + 'px';
-        }
-    }
-
-    const removeElements = function(root) {
-        // Keep the DOM elements
-        let elements = [];
-        if (root) {
-            while (root.firstChild) {
-                elements.push(root.firstChild);
-                root.firstChild.remove();
-            }
-        }
-        return elements;
-    }
-
-    const appendElements = function(root, elements) {
-        if (elements && elements.length) {
-            while (elements[0]) {
-                root.appendChild(elements.shift());
-            }
-        }
-    }
-
-    const Modal = function (template, { onchange, onload }) {
-        let self = this;
-        let backdrop = null;
-        let elements = null;
-
-        if (this.tagName) {
-            // Remove elements from the DOM
-            elements = removeElements(this);
-
-            this.addEventListener('dragstart', (e) => {
-                e.preventDefault();
-            });
-        }
-
-        // Make sure keep the state as boolean
-        self.closed = !! self.closed;
-
-        // Keep all modals references
-        modals.push(self);
-
-        // External onload remove from the lifecycle
-        let change = self.onchange;
-        self.onchange = null;
-
-        let load = self.onload;
-        self.onload = null;
-
-        let ignoreEvents = false;
-
-        const click = function(e) {
-            if (e.target.classList.contains('lm-modal-close')) {
-                self.close({ origin: 'button' });
-            }
-
-            if (e.target.classList.contains('lm-modal-minimize')) {
-                // Handles minimized modal positioning
-                if (self.minimized === true) {
-                    removeMini(self);
-                } else {
-                    setMini(self);
-                }
-            }
-        }
-
-        const mousemove = function(e) {
-            if (getButton(e)) {
-                return;
-            }
-
-            // Get mouse coordinates
-            let [x,y] = getCoords(e);
-            // Root element of the component
-            let item = self.el;
-            // Get the position and dimensions
-            let rect = item.getBoundingClientRect();
-
-            controls.type = null;
-            controls.d = null;
-            controls.e = item;
-            controls.w = rect.width;
-            controls.h = rect.height;
-            controls.t = rect.top;
-            controls.l = rect.left;
-
-            // When resizable
-            if (isTrue(self.resizable)) {
-                if (e.clientY - rect.top < cornerSize) {
-                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                        item.style.cursor = 'ne-resize';
-                    } else if (e.clientX - rect.left < cornerSize) {
-                        item.style.cursor = 'nw-resize';
-                    } else {
-                        item.style.cursor = 'n-resize';
-                    }
-                } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
-                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                        item.style.cursor = 'se-resize';
-                    } else if (e.clientX - rect.left < cornerSize) {
-                        item.style.cursor = 'sw-resize';
-                    } else {
-                        item.style.cursor = 's-resize';
-                    }
-                } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                    item.style.cursor = 'e-resize';
-                } else if (e.clientX - rect.left < cornerSize) {
-                    item.style.cursor = 'w-resize';
-                } else {
-                    item.style.cursor = '';
-                }
-
-                if (item.style.cursor) {
-                    controls.type = 'resize';
-                    controls.d = item.style.cursor;
-                } else {
-                    controls.type = null;
-                    controls.d = null;
-                }
-            }
-
-            if (controls.type == null && isTrue(self.draggable)) {
-                if (y - rect.top < 40) {
-                    item.style.cursor = 'move';
-                } else {
-                    item.style.cursor = '';
-                }
-
-                if (item.style.cursor) {
-                    controls.type = 'move';
-                    controls.d = item.style.cursor;
-                } else {
-                    controls.type = null;
-                    controls.d = null;
-                }
-            }
-        }
-
-        const mousedown = function(e) {
-            if (! self.minimized) {
-                // Get mouse coordinates
-                let [x,y] = getCoords(e);
-                controls.x = x;
-                controls.y = y;
-                // Root element of the component
-                let item = self.el;
-                // Get the position and dimensions
-                let rect = item.getBoundingClientRect();
-                controls.e = item;
-                controls.w = rect.width;
-                controls.h = rect.height;
-                controls.t = rect.top;
-                controls.l = rect.left;
-                // If is not minimized
-                if (controls.type === 'resize') {
-                    // Make sure the width and height is defined for the modal
-                    if (! item.style.width) {
-                        item.style.width = controls.w + 'px';
-                    }
-                    if (! item.style.height) {
-                        item.style.height = controls.h + 'px';
-                    }
-                    // This will be the callback when finalize the resize
-                    controls.action = function () {
-                        self.width = parseInt(item.style.width);
-                        self.height = parseInt(item.style.height);
-                        controls.e.classList.remove('action');
-                        // Event
-                        Dispatch.call(self, self.onresize, 'resize', {
-                            instance: self,
-                            width: self.width,
-                            height: self.height,
-                        });
-                    }
-                    controls.e.classList.add('action');
-                } else if (isTrue(self.draggable) && y - rect.top < 40) {
-                    // Callback
-                    controls.action = function () {
-                        self.top = parseInt(item.style.top);
-                        self.left = parseInt(item.style.left);
-                        controls.e.classList.remove('action');
-                        // Open event
-                        Dispatch.call(self, self.onmove, 'move', {
-                            instance: self,
-                            top: self.top,
-                            left: self.left,
-                        });
-                    }
-                    controls.e.classList.add('action');
-                    // Remove transform
-                    removeMargin(self);
-                }
-            }
-        }
-
-        self.back = function() {
-            sendToBack(self.el);
-        }
-
-        self.front = function() {
-            sendToFront(self.el);
-        }
-
-        self.open = function() {
-            if (self.closed === true) {
-                self.closed = false;
-                // Close event
-                Dispatch.call(self, self.onopen, 'open', {
-                    instance: self
-                });
-            }
-        }
-
-        self.close = function(options) {
-            if (self.closed === false) {
-                self.closed = true;
-                // Close event
-                Dispatch.call(self, self.onclose, 'close', {
-                    instance: self,
-                    ...options
-                });
-            }
-        }
-
-        self.isClosed = function() {
-            return self.closed;
-        }
-
-        if (! template || typeof(template) !== 'string') {
-            template = '';
-        }
-
-        // Custom Root Configuration
-        self.settings = {
-            getRoot: function() {
-                return self.root;
-            }
-        }
-
-        // Native lemonade
-        onload(() => {
-            // Dimensions
-            if (self.width) {
-                self.el.style.width = self.width + 'px';
-            }
-            if (self.height) {
-                self.el.style.height = self.height + 'px';
-            }
-            // Position
-            if (self.top) {
-                self.el.style.top = self.top + 'px';
-            }
-            if (self.left) {
-                self.el.style.left = self.left + 'px';
-            }
-
-            if (self.position === 'absolute' || self.position === 'right' || self.position === 'bottom' || self.position === 'left') {
-
-            } else {
-                if (!self.width && self.el.offsetWidth) {
-                    self.width = self.el.offsetWidth;
-                }
-                if (!self.height && self.el.offsetHeight) {
-                    self.height = self.el.offsetHeight;
-                }
-
-                // Initial centralize
-                if (self.position === 'center' || !self.top) {
-                    self.top = (window.innerHeight - self.height) / 2;
-                }
-                if (self.position === 'center' || !self.left) {
-                    self.left = (window.innerWidth - self.width) / 2;
-                }
-
-                // Responsive
-                if (document.documentElement.clientWidth < 800) {
-                    // Full screen
-                    if (self.height > 300) {
-                        self.el.classList.add('fullscreen');
-                    }
-                }
-            }
-
-            // Auto adjust
-            adjustHorizontal(self);
-            adjustVertical(self);
-
-            // Backdrop
-            if (self.backdrop === true) {
-                backdrop = document.createElement('div');
-                backdrop.classList.add('lm-modal-backdrop');
-                backdrop.addEventListener('click', () => {
-                    self.close({ origin: 'backdrop' });
-                });
-
-                if (self.closed === false) {
-                    self.el.parentNode.insertBefore(backdrop, self.el);
-                }
-            }
-
-            // Import content from DOM
-            if (self.content) {
-                if (typeof(self.content) === 'string') {
-                    template = self.content;
-                } else if (typeof(self.content) === 'object' && self.content.tagName) {
-                    self.root.appendChild(self.content);
-                }
-            }
-
-            // Focus out of the component
-            self.el.addEventListener('focusout', function(e) {
-                if (! self.el.contains(e.relatedTarget)) {
-                    if (isTrue(self['auto-close'])) {
-                        self.close({ origin: 'focusout' });
-                    }
-                    // Remove focus
-                    self.el.classList.remove('lm-modal-focus');
-                }
-            });
-
-            // Focus out of the component
-            self.el.addEventListener('focusin', function(e) {
-                self.el.classList.add('lm-modal-focus');
-            });
-
-            // Close and stop propagation
-            self.el.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (self.closed === false) {
-                        self.close({ origin: 'escape' });
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                } else if (e.key === 'Enter') {
-                    click(e);
-                }
-            });
-
-            // Append elements to the container
-            appendElements(self.el.children[1], elements);
-
-            if (self.url) {
-                fetch(self.url)
-                    .then(response => response.clone().body)
-                    .then(body => {
-                        let reader = body.getReader();
-                        reader.read().then(({ done, value }) => {
-                            // Add HTML to the modal
-                            self.root.innerHTML = new TextDecoder().decode(value.buffer);
-                            // Call onload event
-                            Dispatch.call(self, load, 'load', {
-                                instance: self
-                            });
-                        });
-                    });
-            } else {
-                // Call onload event
-                Dispatch.call(self, load, 'load', {
-                    instance: self
-                });
-            }
-        });
-
-        onchange((property) => {
-            if (ignoreEvents) {
-                return false;
-            }
-
-            if (property === 'closed') {
-                if (self.closed === false) {
-                    // Focus on the modal
-                    if (self.focus !== false) {
-                        self.el.focus();
-                    }
-                    // Show backdrop
-                    if (backdrop) {
-                        self.el.parentNode.insertBefore(backdrop, self.el);
-                    }
-
-                    // Auto adjust
-                    queueMicrotask(() => {
-                        adjustHorizontal(self);
-                        adjustVertical(self);
-                    });
-                } else {
-                    // Hide backdrop
-                    if (backdrop) {
-                        backdrop.remove();
-                    }
-                }
-            } else if (property === 'top' || property === 'left' || property === 'width' || property === 'height') {
-                if (self[property] !== '') {
-                    self.el.style[property] = self[property] + 'px';
-                } else {
-                    self.el.style[property] = '';
-                }
-
-                if (self.closed === false) {
-                    queueMicrotask(() => {
-                        if (property === 'top') {
-                            adjustVertical(self);
-                        }
-                        if (property === 'left') {
-                            adjustHorizontal(self);
-                        }
-                    });
-                }
-            } else if (property === 'position') {
-                if (self.position) {
-                    if (self.position === 'center') {
-                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
-                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
-                    } else {
-                        self.top = '';
-                        self.left = '';
-                    }
-                } else {
-                    if (! self.top) {
-                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
-                    }
-                    if (! self.left) {
-                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
-                    }
-                }
-            }
-        });
-
-        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" :top="self.top" :left="self.left" :width="self.width" :height="self.height" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
-            <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
-            <div :ref="self.root">${template}</div>
-        </div>`
-    }
-
-    const Component = function (root, options) {
-        if (typeof(root) === 'object') {
-            // Remove elements from the DOM
-            let elements = removeElements(root);
-            // Create the modal
-            let e = lemonade.render(Modal, root, options);
-            // Add elements to the container
-            appendElements(e.children[1], elements);
-
-            return options;
-        } else {
-            return Modal.call(this);
-        }
-    }
-
-    // Create LemonadeJS Component
-    lemonade.setComponents({ Modal: Modal });
-    // Create Web Component
-    lemonade.createWebComponent('modal', Modal)
-
-    return Component;
-})));
-
-/***/ }),
-
-/***/ 867:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    const Rating = function(children, { onchange, onload }) {
-        let self = this;
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        if (! self.number) {
-            self.number = 5;
-        }
-
-        self.stars = [];
-
-        // Current self star
-        let current = null;
-
-        /**
-         * Update the number of stars
-         */
-        const len = function () {
-            // Remove stars
-            if (self.number < self.stars.length) {
-                self.stars.splice(self.number, self.stars.length);
-                if (self.value > self.number) {
-                    self.value = self.number;
-                }
-            }
-            // Add missing stars
-            for (let i = 0; i < self.number; i++) {
-                if (! self.stars[i]) {
-                    self.stars[i] = {
-                        icon: 'star',
-                    };
-                    if (self.tooltip[i]) {
-                        self.stars[i].title = self.tooltip[i];
-                    }
-                }
-            }
-            // Refresh
-            self.refresh('stars');
-        }
-
-        const val = function (index, events) {
-            if (typeof(index) === 'string') {
-                index = Number(index);
-            }
-            // Apply value to the selected property in each star
-            for (let i = 0; i < self.number; i++) {
-                self.stars[i].selected = i <= index - 1 ? 1 : 0;
-            }
-            // Keep current value
-            current = index;
-            // Dispatch method
-            if (events !== false) {
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: index,
-                });
-            }
-        }
-
-        const getElementPosition = function(child) {
-            if (child.tagName === 'I') {
-                let root = self.el;
-                for (let i = 0; i < root.children.length; i++) {
-                    let c = root.children[i];
-                    if (c === child) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
-
-        const click = function(e, s) {
-            let ret = getElementPosition(e.target);
-            if (ret !== -1) {
-                let index = ret + 1;
-                if (index === current) {
-                    index = 0;
-                }
-                self.value = index;
-            }
-        }
-
-        const mouseover = function(e, s) {
-            let index = getElementPosition(e.target);
-            if (index !== -1) {
-                for (let i = 0; i < self.number; i++) {
-                    if (i <= index) {
-                        self.stars[i].hover = 1;
-                    } else {
-                        self.stars[i].hover = 0;
-                    }
-                }
-            }
-        }
-
-        const mouseout = function(e, s) {
-            for (let i = 0; i < self.number; i++) {
-                self.stars[i].hover = 0;
-            }
-        }
-
-        onchange((prop) => {
-            if (prop === 'number') {
-                len();
-            } else if (prop === 'value') {
-                val(self.value);
-            } else if (prop === 'tooltip') {
-                if (typeof(self.tooltip) === 'string') {
-                    self.tooltip = self.tooltip.split(',')
-                }
-                len();
-            }
-        })
-
-        onload(() => {
-            // Bind global method to be compatible with LemonadeJS forms
-            self.el.val = function (v) {
-                if (typeof (v) === 'undefined') {
-                    return self.value;
-                } else {
-                    self.value = v;
-                }
-            }
-
-            if (self.tooltip && typeof(self.tooltip) === 'string') {
-                self.tooltip = self.tooltip.split(',')
-            } else {
-                self.tooltip = '';
-            }
-            len();
-            // Ignore events
-            val(self.value, false);
-
-            self.el.addEventListener('click', click);
-            self.el.addEventListener('mouseout', mouseout);
-            self.el.addEventListener('mouseover', mouseover);
-        });
-
-        self.getValue = function () {
-            return Number(self.value);
-        }
-
-        self.setValue = function (index) {
-            self.value = index;
-        }
-
-        return `<div class="lm-rating" value="{{self.value}}" number="{{self.number}}" name="{{self.name}}" data-size="{{self.size}}" :loop="self.stars">
-            <i class="material-symbols-outlined material-icons" data-selected="{{self.selected}}" data-hover="{{self.hover}}" title="{{self.title}}">star</i>
-        </div>`;
-    }
-
-    // Register the LemonadeJS Component
-    lemonade.setComponents({ Rating: Rating });
-    // Register the web component
-    lemonade.createWebComponent('rating', Rating);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Rating, root, options)
-            return options;
-        } else {
-            return Rating.call(this, root)
-        }
-    }
-
-})));
-
-/***/ }),
-
-/***/ 539:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    const Switch = function (children, { onchange, onload }) {
-        let self = this;
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        const state = () => {
-            let s = self.el.firstChild.checked;
-            if (s !== self.checked) {
-                self.checked = s;
-            }
-        }
-
-        onchange((prop, a, b, c, d) => {
-            if (a !== b) {
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-
-            state();
-        })
-
-        onload(state);
-
-        return render => render`<label class="lm-switch" position="{{self.position}}" data-color="{{self.color}}">
-            <input type="checkbox" name="{{self.name}}" disabled="{{self.disabled}}" checked="{{self.checked}}" :bind="self.value" /> <span>{{self.text}}</span>
-        </label>`
-    }
-
-    // Create LemonadeJS references
-    lemonade.setComponents({ Switch: Switch });
-    // Create web-component
-    lemonade.createWebComponent('switch', Switch);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Switch, root, options)
-            return options;
-        } else {
-            return Switch.call(this, root);
-        }
-    }
-
-})));
-
-/***/ }),
-
-/***/ 560:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    const extract = function(root, self) {
-        if (! Array.isArray(self.data)) {
-            self.data = [];
-        }
-
-        if (root.tagName) {
-            for (let i = 0; i < root.children.length; i++) {
-                self.data.push({
-                    el: root.children[i],
-                })
-            }
-        } else {
-            root.forEach((child) => {
-                self.data.push({
-                    el: child.element,
-                })
-            });
-        }
-    }
-
-    const sorting = function(el, options) {
-        const obj = {};
-
-        let dragElement = null;
-
-        el.addEventListener('dragstart', function(e) {
-            let target = e.target;
-            if (target.nodeType === 3) {
-                if (target.parentNode.getAttribute('draggable') === 'true') {
-                    target = target.parentNode;
-                } else {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
-                }
-            }
-
-            if (target.getAttribute('draggable') === 'true') {
-                let position = Array.prototype.indexOf.call(target.parentNode.children, target);
-                dragElement = {
-                    element: target,
-                    o: position,
-                    d: position
-                }
-                target.style.opacity = '0.25';
-                e.dataTransfer.setDragImage(target,0,0);
-            }
-        });
-
-        el.addEventListener('dragover', function(e) {
-            e.preventDefault();
-
-            if (dragElement && getElement(e.target) && e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
-                let element = e.target.clientWidth / 2 > e.offsetX ? e.target : e.target.nextSibling;
-                e.target.parentNode.insertBefore(dragElement.element, element);
-                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
-            }
-        });
-
-        el.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-        });
-
-        el.addEventListener('dragend', function(e) {
-            e.preventDefault();
-
-            if (dragElement) {
-                let element = dragElement.o < dragElement.d ? e.target.parentNode.children[dragElement.o] : e.target.parentNode.children[dragElement.o].nextSibling
-                e.target.parentNode.insertBefore(dragElement.element, element);
-                dragElement.element.style.opacity = '';
-                dragElement = null;
-            }
-        });
-
-        el.addEventListener('drop', function(e) {
-            e.preventDefault();
-
-            if (dragElement) {
-                if (dragElement.o !== dragElement.d) {
-                    if (typeof(options.ondrop) == 'function') {
-                        options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
-                    }
-                }
-
-                dragElement.element.style.opacity = '';
-                dragElement = null;
-            }
-        });
-
-        const getElement = function(element) {
-            var sorting = false;
-
-            function path (element) {
-                if (element === el) {
-                    sorting = true;
-                }
-
-                if (! sorting) {
-                    path(element.parentNode);
-                }
-            }
-
-            path(element);
-
-            return sorting;
-        }
-
-        for (let i = 0; i < el.children.length; i++) {
-            if (! el.children[i].hasAttribute('draggable')) {
-                el.children[i].setAttribute('draggable', 'true');
-            }
-        }
-
-        return el;
-    }
-
-    const Tabs = function(children, { onchange, onload }) {
-        let self = this
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Add new tab
-        let createButton;
-
-        // Get the references from the root web component
-        let root;
-        let template = '';
-        if (this.tagName) {
-            root = this;
-        } else {
-            // References from LemonadeJS
-            if (typeof(children) === 'string') {
-                // Version 4
-                template = children;
-            } else if (children && children.length) {
-                // Version 5
-                root = children;
-            }
-        }
-
-        if (root) {
-            extract(root, self);
-        }
-
-        // Process the data
-        if (self.data) {
-            for (let i = 0; i < self.data.length; i++) {
-                if (! self.data[i].el) {
-                    // Create element
-                    self.data[i].el = document.createElement('div');
-                    // Create from content
-                    if (self.data[i].content) {
-                        self.data[i].el.innerHTML = self.data[i].content;
-                    }
-                }
-            }
-        }
-
-        let props = ['title', 'selected', 'data-icon'];
-
-        const select = function(index) {
-            // Make sure the index is a number
-            index = parseInt(index);
-            // Do not select tabs that does not exist
-            if (index >= 0 && index < self.data.length) {
-                for (let i = 0; i < self.root.children.length; i++) {
-                    self.headers.children[i].classList.remove('selected');
-                    self.root.children[i].classList.remove('selected');
-                }
-                self.headers.children[index].classList.add('selected');
-                self.root.children[index].classList.add('selected');
-            }
-        }
-
-        const init = function(selected) {
-            let tabs = [];
-
-            for (let i = 0; i < self.data.length; i++) {
-                // Extract meta information from the DOM
-                if (props) {
-                    props.forEach((prop) => {
-                        let short = prop.replace('data-', '');
-                        if (! self.data[i][short]) {
-                            let ret = self.data[i].el.getAttribute(prop);
-                            if (ret != null) {
-                                self.data[i][short] = ret;
-                            }
-                        }
-                    });
-                }
-                // Create tabs object
-                tabs[i] = {
-                    title: self.data[i].title,
-                }
-                // Which one is selected by default
-                if (self.data[i].selected) {
-                    selected = i;
-                }
-                if (self.data[i].icon) {
-                    tabs[i].icon = self.data[i].icon;
-                }
-
-                self.root.appendChild(self.data[i].el);
-            }
-
-            // Create headers
-            self.tabs = tabs;
-
-            // Default selected
-            if (typeof(selected) !== 'undefined') {
-                self.selected = selected;
-            }
-
-            if (props) {
-                // Add create new tab button
-                if (createButton) {
-                    self.headers.appendChild(createButton);
-                }
-                // Add sorting
-                sorting(self.el.firstChild.firstChild, {
-                    ondrop: (el, fromIndex, toIndex) => {
-                        // Remove the item from its original position
-                        const [movedItem] = self.data.splice(fromIndex, 1);
-                        // Insert it into the new position
-                        self.data.splice(toIndex, 0, movedItem);
-                        // Make sure correct order
-                        for (let i = 0; i < self.data.length; i++) {
-                            self.root.appendChild(self.data[i].el);
-                        }
-                        // Select new position
-                        self.selected = toIndex;
-                        // Dispatch event
-                        Dispatch.call(self, self.onchangeposition, 'changeposition', {
-                            instance: self,
-                            fromIndex: fromIndex,
-                            toIndex: toIndex,
-                        });
-                    }
-                })
-            }
-
-            props = null;
-        }
-
-        const create = function() {
-            // Create a new item
-            self.create({ title: 'Untitled' }, null, true);
-        }
-
-        const open = function(e) {
-            if (e.target.tagName === 'LI') {
-                // Avoid select something already selected
-                let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
-                if (index !== self.selected) {
-                    self.selected = index;
-                }
-            }
-        }
-
-        const keydown = function(e, s) {
-            let index = null;
-            if (e.key === 'Enter') {
-                self.click(e, s);
-            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                index = self.selected - 1;
-                if (index < 0) {
-                    index = 0;
-                }
-            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                index = self.selected + 1;
-                if (index > self.tabs.length-1) {
-                    index = self.tabs.length-1;
-                }
-            }
-
-            // Make selection
-            if (index !== null) {
-                self.tabs[index].el.focus();
-            }
-        }
-
-        onload(() => {
-            if (template) {
-                extract(self.root, self);
-            }
-
-            init(self.selected || 0);
-        })
-
-        onchange((property) => {
-            if (property === 'selected') {
-                select(self.selected);
-
-                Dispatch.call(self, self.onopen, 'open', {
-                    instance: self,
-                    selected: self.selected,
-                });
-
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: self.selected,
-                });
-            }
-        })
-
-        self.open = function (index) {
-            self.selected = index;
-        }
-
-        self.create = function(item, position, select) {
-            // Create element
-            if (typeof(item) !== 'object') {
-                console.error('Item must be an object');
-            } else {
-
-                let ret = Dispatch.call(self, self.onbeforecreate, 'beforecreate', {
-                    instance: self,
-                    item: item,
-                    position: position,
-                });
-
-                if (ret === false) {
-                    return false;
-                }
-
-                // Create DOM
-                item.el = document.createElement('div');
-                // Create from content
-                if (item.content) {
-                    item.el.innerHTML = item.content;
-                }
-
-                // Add the new item in the end
-                if (typeof(position) === 'undefined' || position === null) {
-                    // Mew item
-                    position = self.data.length;
-                    // Add in the end
-                    self.data.push(item);
-                } else {
-                    self.data.splice(position, 0, item);
-                }
-                // New position
-                if (select) {
-                    // Refresh
-                    init(self.data.indexOf(item));
-                } else {
-                    init(self.selected);
-                }
-
-                self.tabs.forEach(item => {
-                    item.el.setAttribute('draggable', 'true');
-                })
-
-                Dispatch.call(self, self.oncreate, 'create', {
-                    instance: self,
-                    item: item,
-                    position: position,
-                });
-            }
-        }
-
-        self.allowCreate = !! self.allowCreate;
-
-        return render => render`<div class="lm-tabs" data-position="{{self.position}}" data-round="{{self.round}}">
-            <div role="tabs" class="lm-tabs-headers">
-                <ul :ref="self.headers" :loop="self.tabs" :selected="self.selected" onclick="${open}" onkeydown="${keydown}" onfocusin="${open}"><li class="lm-tab" tabindex="0" role="tab" data-icon="{{self.icon}}">{{self.title}}</li></ul>
-                <div data-visible="{{self.allowCreate}}" class="lm-tabs-insert-button" role="insert-tab" onclick="${create}">add</div>
-            </div>
-            <div :ref="self.root" class="lm-tabs-content">${template}</div>
-        </div>`
-    }
-
-    lemonade.setComponents({ Tabs: Tabs });
-
-    lemonade.createWebComponent('tabs', Tabs);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            if (typeof(options) !== 'object') {
-                options = {};
-            }
-            // Extract DOM references
-            extract(root, options);
-            // Create the modal
-            lemonade.render(Tabs, root, options);
-            // Return self
-            return options;
-        } else {
-            return Tabs.call(this);
-        }
-    };
-})));
-
-/***/ }),
-
-/***/ 330:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(966);
-}
-
-if (! Contextmenu && "function" === 'function') {
-    var Contextmenu = __webpack_require__(238);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    const Topmenu = function(children, { onload, onchange }) {
-        let self = this;
-
-        // Current selection
-        let currentIndex = null;
-
-        const getElementPosition = function(child) {
-            let root = self.el.children[0];
-            for (let i = 0; i < root.children.length; i++) {
-                let c = root.children[i];
-                if (c === child) {
-                    return i;
-                }
-            }
-            return -1;
-        }
-
-        const select = function(e, s) {
-            if (! self.menu.isClosed()) {
-                let index = self.options.indexOf(s);
-                if (index !== currentIndex) {
-                    open(index);
-                }
-            }
-        }
-
-        const deselect = function() {
-            if (self.options) {
-                self.options.forEach(v => v.selected = false);
-            }
-        }
-
-        const selectIndex = function(newIndex) {
-            if (self.options) {
-                let s = self.options[newIndex];
-                if (s && ! s.disabled) {
-                    deselect();
-                    // Make it selected
-                    s.selected = true;
-                    // New index
-                    currentIndex = newIndex;
-                    // Focus
-                    s.el.focus();
-                }
-            }
-        }
-
-        const open = function(index) {
-            // Update cursor position
-            selectIndex(index);
-            let s = self.options[currentIndex];
-            if (s && s.submenu) {
-                let x = s.el.offsetLeft;
-                let y = s.el.offsetTop + s.el.offsetHeight + 2;
-                self.menu.open(s.submenu, x, y);
-                s.expanded = true;
-            }
-        }
-
-        const close = function() {
-            self.menu.close(0);
-            let s = self.options[currentIndex];
-            if (s) {
-                s.el.focus();
-                s.expanded = false;
-            }
-        }
-
-        const toggle = function(e, s) {
-            if (s.submenu && ! s.disabled) {
-                let index = self.options.indexOf(s);
-                if (index === currentIndex && ! self.menu.isClosed()) {
-                    close();
-                } else {
-                    open(index);
-                }
-                cancel(e);
-            }
-        }
-
-        const findNextEnabledIndex = function(startIndex) {
-            if (!self.options || self.options.length === 0) {
-                return null;
-            }
-
-            let index = startIndex;
-            let attempts = 0;
-            const maxAttempts = self.options.length;
-
-            while (attempts < maxAttempts) {
-                if (index >= self.options.length) {
-                    index = 0;
-                }
-                if (!self.options[index].disabled) {
-                    return index;
-                }
-                index++;
-                attempts++;
-            }
-            return null;
-        };
-
-        const findPreviousEnabledIndex = function(startIndex) {
-            if (!self.options || self.options.length === 0) {
-                return null;
-            }
-
-            let index = startIndex;
-            let attempts = 0;
-            const maxAttempts = self.options.length;
-
-            while (attempts < maxAttempts) {
-                if (index < 0) {
-                    index = self.options.length - 1;
-                }
-                if (!self.options[index].disabled) {
-                    return index;
-                }
-                index--;
-                attempts++;
-            }
-            return null;
-        };
-
-        const adjustOptionProperties = function() {
-            if (self.options) {
-                self.options.forEach(v => {
-                    v.haspopup = !!v.submenu;
-                    v.expanded = false;
-
-                    if (v.disabled) {
-                        v.el.removeAttribute('tabindex');
-                    } else {
-                        v.el.setAttribute('tabindex', '0');
-                    }
-                })
-            }
-        };
-
-        /**
-         * Open a submenu programaticaly. Default 0
-         * @param {number} index
-         */
-        self.open = function(index) {
-            if (typeof index === 'undefined') {
-                index = currentIndex;
-            }
-            if (! index) {
-                index = 0;
-            }
-
-            let s = self.options[index];
-            if (s) {
-                open(index);
-            }
-        }
-
-        onchange((prop) => {
-            if (prop === 'options') {
-                adjustOptionProperties();
-            }
-        });
-
-        // Keyboard event
-        onload(() => {
-            self.el.addEventListener("focusin", function(e) {
-                let index = getElementPosition(e.target);
-                if (index !== -1) {
-                    if (e.relatedTarget === self.menu.el) {
-                        close();
-                    } else {
-                        selectIndex(index);
-                    }
-                }
-            });
-
-            self.el.addEventListener("focusout", function(e) {
-                if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
-                    if (self.options[currentIndex]) {
-                        self.options[currentIndex].selected = false;
-                    }
-                }
-            });
-
-            self.el.addEventListener("keydown", function(e) {
-                let o = self.options;
-                // Select top menu
-                let select = null;
-
-                if (e.key === 'Enter') {
-                    toggle(e, o[currentIndex])
-                } else if (e.key === 'ArrowLeft') {
-                    select = findPreviousEnabledIndex(currentIndex - 1);
-                } else if (e.key === 'ArrowRight') {
-                    select = findNextEnabledIndex(currentIndex + 1);
-                }
-
-                if (select !== null) {
-                    if (self.menu.isClosed()) {
-                        selectIndex(select);
-                    } else {
-                        open(select);
-                    }
-                }
-            });
-
-            adjustOptionProperties();
-        });
-
-        const cancel = function(e) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-        }
-
-        return render => render`<div class="lm-topmenu" role="menubar" aria-orientation="horizontal" oncontextmenu="${cancel}">
-            <div class="lm-topmenu-options" :loop="self.options">
-                <div class="lm-topmenu-title" role="menuitem" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" tabindex="0" aria-haspopup="{{self.haspopup}}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" onmousedown="${toggle}" onmouseenter="${select}">{{self.title}}</div>
-            </div>
-            <Contextmenu :ref="self.menu" :root="self.el" />
-        </div>`
-    }
-
-    lemonade.setComponents({ Topmenu: Topmenu });
-
-    // Register the web component
-    lemonade.createWebComponent('topmenu', Topmenu);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Topmenu, root, options)
-            return options;
-        } else {
-            return Topmenu.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 966:
-/***/ (function(module) {
-
-/**
- * LemonadeJS v5
- *
- * Website: https://lemonadejs.com
- * Description: Create amazing web based reusable components.
- *
- * This software is distributed under MIT License
- * @Roadmap
- * Accept interpolated values on properties `<div test="test: ${state}"></div>
- */
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    'use strict';
-
-    /**
-     * Global control element
-     */
-    let R = {
-        queue: [],
-        container: {},
-        tracking: new Map,
-        components: {},
-        version: 5,
-    };
-
-    // Global LemonadeJS controllers
-    if (typeof(document) !== "undefined") {
-        if (! document.lemonadejs) {
-            document.lemonadejs = R;
-        } else {
-            R = document.lemonadejs;
-        }
-    }
-
-    // Get any conflict of versions
-    if (! R.version) {
-        console.error('This project seems to be using version 4 and version 5 causing a conflict of versions.');
-    }
-
-    // Script expression inside LemonadeJS templates
-    let isScript = /{{(.*?)}}/g;
-
-    /**
-     * Apply value in a object based on the address
-     */
-    const Path = function(str, val, remove) {
-        str = str.split('.');
-        if (str.length) {
-            let o = this;
-            let p = null;
-            while (str.length > 1) {
-                // Get the property
-                p = str.shift();
-                // Check if the property exists
-                if (o.hasOwnProperty(p)) {
-                    o = o[p];
-                } else {
-                    // Property does not exist
-                    if (typeof(val) === 'undefined') {
-                        return undefined;
-                    } else {
-                        // Create the property
-                        o[p] = {};
-                        // Next property
-                        o = o[p];
-                    }
-                }
-            }
-            // Get the property
-            p = str.shift();
-            // Set or get the value
-            if (typeof(val) !== 'undefined') {
-                if (remove === true) {
-                    delete o[p];
-                } else {
-                    o[p] = val;
-                }
-                // Success
-                return true;
-            } else {
-                // Return the value
-                if (o) {
-                    return o[p];
-                }
-            }
-        }
-        // Something went wrong
-        return false;
-    }
-
-    /**
-     * Show a better error developers
-     */
-    const createError = function() {
-        throw new Error('LemonadeJS ' + Array.from(arguments).join(' '));
-    }
-
-    /**
-     * Reference token is a string that define a token and not an expression
-     * @param {string} token
-     * @param {boolean?} topLevelOnly
-     * @returns {boolean}
-     */
-    function isReferenceToken(token, topLevelOnly) {
-        if (topLevelOnly) {
-            return /^(this|self)(\.\w+)$/gm.test(token);
-        } else {
-            return /^(this|self)(\.\w+|\[\d+])*$/gm.test(token);
-        }
-    }
-
-    /**
-     * Extract all valid tokens from a string
-     * @param {string} content
-     * @returns {string[]}
-     */
-    function extractTokens(content) {
-        // Input validation
-        if (typeof content !== 'string') {
-            throw new TypeError('Content must be a string');
-        }
-        // Single regex pattern to match both 'self.' and 'this.' prefixed identifiers Negative lookahead (?!\.\w) prevents matching nested properties
-        //const pattern =  /(?:self|this)\.\w+\b(?!\.\w)/g;
-        const pattern = /(?<=(?:this|self)\.)[a-zA-Z_]\w*/gm
-
-        // If no matches found, return empty array early
-        const matches = content.match(pattern);
-        if (!matches) {
-            return [];
-        }
-        // Create Set directly from matches array with map transform This is more efficient than adding items one by one
-        return [...new Set(matches.map(match => match.slice(match.indexOf('.') + 1)))];
-    }
-
-    /**
-     * Bind a property to one action and start tracking
-     * @param {object} lemon
-     * @param {string} prop
-     */
-    const trackProperty = function(lemon, prop) {
-        // Lemon handler
-        let s = lemon.self;
-        if (typeof(s) === 'object') {
-            // Change
-            let change = lemon.change;
-            // Events
-            let events = lemon.events[prop];
-            // Current value
-            let value = s[prop];
-            // Do not allow undefined
-            if (typeof(value) === 'undefined') {
-                value = '';
-            }
-            // Create the observer
-            Object.defineProperty(s, prop, {
-                set: function(v) {
-                    // Old value
-                    let oldValue = value;
-                    // New value
-                    value = v;
-                    // Dispatch reactions
-                    if (events) {
-                        events.forEach((action) => {
-                            action();
-                        });
-                    }
-                    // Refresh bound elements
-                    if (change && change.length) {
-                        change.forEach((action) => {
-                            if (typeof (action) === 'function') {
-                                action.call(s, prop, oldValue, v);
-                            }
-                        })
-                    }
-                },
-                get: function () {
-                    // Get value
-                    return value;
-                },
-                configurable: true,
-                enumerable: true,
-            });
-        }
-    }
-
-    /**
-     * Check if an element is appended to the DOM or a shadowRoot
-     * @param {HTMLElement} node
-     * @return {boolean}
-     */
-    const isAppended = function(node) {
-        while (node) {
-            if (node === document.body) {
-                return true; // Node is in main document
-            }
-
-            if (node.parentNode === null) {
-                if (node.host) {
-                    node = node.host; // Traverse up through ShadowRoot
-                } else {
-                    return false; // Detached node
-                }
-            } else {
-                node = node.parentNode; // Traverse up through parentNode
-            }
-        }
-        return false;
-    }
-
-    const elementNotReady = new Set;
-
-    /**
-     * Execute all pending events from onload
-     * @param lemon
-     */
-    const executeOnload = function(lemon) {
-        let s = lemon.self;
-        // Ready event
-        while (lemon.ready.length) {
-            lemon.ready.shift()();
-        }
-        // Native onload
-        if (typeof(s.onload) === 'function') {
-            s.onload.call(s, s.el);
-        }
-        // Current self
-        if (typeof(lemon.load) === 'function') {
-            lemon.load.call(s, s.el);
-        }
-    }
-
-    /**
-     * Process the onload methods
-     */
-    const processOnload = function(lemon) {
-        let root = lemon.tree.element;
-        if (root.tagName === 'ROOT' && lemon.elements) {
-            root = lemon.elements[0];
-        }
-        // Add to the queue
-        elementNotReady.add(lemon);
-        // Check if the element is appended to the DOM
-        if (isAppended(root)) {
-            elementNotReady.forEach((item) => {
-                // Remove from the list
-                elementNotReady.delete(item);
-                // Run onload and ready events
-                executeOnload(item);
-            })
-        }
-    }
-
-    /**
-     * Return the element based on the type
-     * @param item
-     * @returns {*}
-     */
-    const getElement = function(item) {
-        return typeof(item.type) === 'function' ? item.self : item.element;
-    }
-
-    const HTMLParser = function(html, values) {
-        /**
-         * process the scape chars
-         * @param char
-         * @returns {*|string}
-         */
-        function escape(char) {
-            const escapeMap = {
-                'n': String.fromCharCode(0x0A),
-                'r': String.fromCharCode(0x0D),
-                't': String.fromCharCode(0x09),
-                'b': String.fromCharCode(0x08),
-                'f': String.fromCharCode(0x0C),
-                'v': String.fromCharCode(0x0B),
-                '0': String.fromCharCode(0x00)
-            };
-
-            return escapeMap[char] || char;
-        }
-
-        /**
-         * Check if is a self-closing tag
-         * @param {string|function} type - Tag name or component function
-         * @returns {boolean}
-         */
-        function isSelfClosing(type) {
-            if (! type) {
-                return false;
-            } else {
-                // List of self-closing or void HTML elements
-                const selfClosingTags = [
-                    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'
-                ];
-                // Convert tagName to lowercase to ensure case-insensitive comparison
-                return typeof(type) === 'function' || selfClosingTags.includes(type.toLowerCase());
-            }
-        }
-
-        /**
-         * Create a text node and add it to current node's children
-         * @param {Object} tag - Text node properties
-         */
-        const createTextNode = function(tag) {
-            if (! this.current.children) {
-                this.current.children = [];
-            }
-
-            this.current.children.push({
-                type: '#text',
-                parent: this.current,
-                props: [tag],
-            });
-        }
-
-        /**
-         * Find the parent node by tag name
-         * @param {Object} node - Current node
-         * @param {string} type - Tag name to find
-         * @returns {Object|undefined}
-         */
-        const findParentByTagName = function(node, type) {
-            if (node && type) {
-                if (node.type === type) {
-                    return node;
-                } else {
-                    return findParentByTagName(node.parent, type);
-                }
-            }
-
-            return undefined;
-        }
-
-        /**
-         * Get expression value and update tag metadata
-         * @param {Object} tag - Tag to update
-         * @returns {*} Expression value
-         */
-        const getExpression = function(tag) {
-            // Get value
-            const v = values && values[this.index] !== undefined ? values[this.index] : '';
-            if (tag) {
-                // Keep the reference
-                tag.expression = this.reference;
-                // Keep the index
-                tag.index = this.index;
-            }
-            // Move the value index
-            this.index++;
-            // Delete reference
-            delete this.reference;
-            // Return value
-            return v;
-        }
-
-        /**
-         * Handle the text node creation
-         */
-        const commitText = function() {
-            if (typeof(this.text) !== 'undefined') {
-                const text = this.text.replace(/\r?\n\s+/g, '');
-                if (text) {
-                    createTextNode.call(this, { name: 'textContent', value: text });
-                }
-                delete this.text;
-            }
-        }
-
-        const commitComments = function() {
-            if (typeof(this.comments) !== 'undefined') {
-                let comments = this.comments;
-                if (comments) {
-                    comments = comments
-                        .replace('<!--', '')
-                        .replace('-->', '')
-
-                    if (! this.current.children) {
-                        this.current.children = [];
-                    }
-
-                    this.current.children.push({
-                        type: '#comments',
-                        parent: this.current,
-                        props: [{ name: 'text', value: comments }],
-                    });
-                }
-                delete this.comments;
-            }
-        }
-
-        /**
-         * Save the attribute to the tag
-         */
-        const commitAttribute = function() {
-            if (this.tag.attributeName) {
-                // Commit any current attribute
-                if (! this.tag.props) {
-                    this.tag.props = [];
-                }
-
-                let k = this.tag.attributeName;
-                let v = this.tag.attributeValue;
-
-                if (typeof(v) === 'undefined') {
-                    v = k;
-                }
-
-                let tag = {
-                    name: k,
-                    value: v,
-                };
-
-                if (typeof(this.tag.expression) !== 'undefined') {
-                    tag.index = this.tag.index;
-                    tag.expression = this.tag.expression;
-                }
-
-                this.tag.props.push(tag);
-
-                // Clean up temporary properties
-                delete this.tag.attributeName;
-                delete this.tag.attributeValue;
-                delete this.tag.index;
-                delete this.tag.expression;
-
-                if (this.tag.attributeIsReadyToClose) {
-                    delete this.tag.attributeIsReadyToClose;
-                }
-            }
-        }
-
-        /**
-         * Actions controller
-         * @param {Object} control - Parser control object
-         * @param {string} char - Current character
-         */
-        const actions = function(control, char) {
-            const method = control.action || 'text';
-            if (typeof actions[method] === 'function') {
-                actions[method].call(control, char);
-            }
-        }
-
-        /**
-         * Extract content between expression markers, handling quoted content
-         * @param {string} html - Full HTML string
-         * @param {number} startIndex - Starting index (position after ${})
-         * @returns {Object} Expression content and ending position
-         */
-        function extractExpressionContent(html, startIndex) {
-            let text = '';
-            let i = startIndex;
-            let insideQuotes = null;
-
-            while (i < html.length) {
-                const char = html[i];
-
-                // Handle quotes
-                if ((char === '"' || char === "'" || char === '`')) {
-                    if (!insideQuotes) {
-                        insideQuotes = char;
-                    } else if (char === insideQuotes) {
-                        insideQuotes = null;
-                    }
-                }
-
-                // Found closing brace outside quotes
-                if (char === '}' && !insideQuotes) {
-                    return {
-                        content: text,
-                        position: i
-                    };
-                }
-
-                text += char;
-                i++;
-            }
-
-            return {
-                content: text,
-                position: i
-            };
-        }
-
-        /**
-         * Process a new tag
-         * @param char
-         */
-        actions.processTag = function(char) {
-            // Just to check if there are any text to commit
-            commitText.call(this);
-
-            // Process the tag
-            if (char === '<') {
-                // Create new tag
-                this.tag = {
-                    type: '',
-                    parent: this.current
-                };
-            } else if (char.match(/[a-zA-Z0-9-]/)) {
-                // Tag name
-                this.tag.type += char;
-            } else {
-                if (char === '$' && this.reference) {
-                    // Custom tags
-                    this.tag.type = getExpression.call(this);
-                }
-                // Finished with tag name, move to attribute handling
-                this.action = 'attributeName';
-            }
-        }
-
-        /**
-         * Handle tag closing
-         * @param char
-         */
-        actions.closeTag = function(char) {
-            // Make sure to commit attribute
-            commitAttribute.call(this);
-            // Close the tag
-            if (char === '>') {
-                // Get the new parent
-                if (isSelfClosing(this.tag.type)) {
-                    // Push new tag to the parent
-                    if (! this.tag.parent.children) {
-                        this.tag.parent.children = [];
-                    }
-                    this.tag.parent.children.push(this.tag);
-                } else if (this.tag.closingTag) {
-                    // Need to find the parent on the chain
-                    const parentNode = findParentByTagName(this.tag.parent, this.tag.type);
-                    if (parentNode) {
-                        this.current = parentNode.parent;
-                    }
-                } else {
-                    if (this.tag.closing) {
-                        // Current is the parent
-                        this.current = this.tag.parent;
-                    } else {
-                        this.current = this.tag;
-                    }
-
-                    // Push new tag to the parent
-                    if (! this.tag.parent.children) {
-                        this.tag.parent.children = [];
-                    }
-                    this.tag.parent.children.push(this.tag);
-                }
-
-                // Remote temporary properties
-                delete this.tag.insideQuote;
-                delete this.tag.closingTag;
-                delete this.tag.closing;
-                // Finalize tag
-                this.tag = null;
-                // New action
-                this.action = 'text';
-            } else if (! this.tag.locked) {
-                if (char === '/') {
-                    if (! this.tag.type) {
-                        // This is a closing tag
-                        this.tag.closingTag = true;
-                    }
-                    // Closing character is found
-                    this.tag.closing = true;
-                } else if (char.match(/[a-zA-Z0-9-]/)) {
-                    // If is a closing tag, get the tag name
-                    if (this.tag.closingTag) {
-                        this.tag.type += char;
-                    }
-                } else {
-                    // Wait to the closing sign
-                    if (this.tag.type) {
-                        this.locked = true;
-                    }
-                }
-            }
-        }
-
-        actions.attributeName = function(char) {
-            // There is another attribute to commit
-            if (this.tag.attributeIsReadyToClose) {
-                commitAttribute.call(this);
-            }
-
-            // Build attribute name
-            if (char.match(/[a-zA-Z0-9-:]/)) {
-                if (! this.tag.attributeName) {
-                    this.tag.attributeName = '';
-                }
-                this.tag.attributeName += char;
-            } else if (char === '=') {
-                // Move to attribute value
-                if (this.tag.attributeName) {
-                    this.action = 'attributeValue';
-                    delete this.tag.attributeIsReadyToClose;
-                }
-            } else if (char.match(/\s/)) {
-                if (this.tag.attributeName) {
-                    this.tag.attributeIsReadyToClose = true;
-                }
-            }
-        };
-
-        actions.attributeValue = function(char) {
-            if (! this.tag.attributeValue) {
-                this.tag.attributeValue = '';
-            }
-
-            if (char === '"' || char === "'") {
-                if (this.tag.insideQuote) {
-                    if (this.tag.insideQuote === char) {
-                        this.tag.insideQuote = false;
-                    } else {
-                        this.tag.attributeValue += char;
-                    }
-                } else {
-                    this.tag.insideQuote = char;
-                }
-            } else {
-                if (char === '$' && this.reference) {
-                    // Custom tags
-                    char = getExpression.call(this, this.tag);
-                }
-                // Inside quotes, keep appending to the attribute value
-                if (this.tag.insideQuote) {
-                    if (this.tag.attributeValue) {
-                        this.tag.attributeValue += char;
-                    } else {
-                        this.tag.attributeValue = char;
-                    }
-                } else if (typeof(char) === 'string' && char.match(/\s/)) {
-                    if (this.tag.attributeValue) {
-                        this.action = 'attributeName';
-                    }
-                    this.tag.attributeIsReadyToClose = true;
-                } else {
-                    if (this.tag.attributeIsReadyToClose) {
-                        this.action = 'attributeName';
-                        actions.attributeName.call(this, char);
-                    } else {
-                        if (this.tag.attributeValue) {
-                            this.tag.attributeValue += char;
-                        } else {
-                            this.tag.attributeValue = char;
-                        }
-                    }
-                }
-            }
-        }
-
-        actions.text = function(char) {
-            if (char === '$' && this.reference) {
-                // Just to check if there are any text to commit
-                commitText.call(this);
-                // Custom tags
-                let tag = { name: 'textContent' }
-                tag.value = getExpression.call(this, tag);
-                // Add node tag
-                createTextNode.call(this, tag);
-            } else {
-                if (referenceControl === 1) {
-                    // Just to check if there are any text to commit
-                    commitText.call(this);
-                }
-
-                // Normal text processing
-                if (! this.text) {
-                    this.text = '';
-                }
-                this.text += char; // Keep appending to text content
-
-                if (referenceControl === 2) {
-                    // Just to check if there are any text to commit
-                    commitText.call(this);
-                }
-            }
-        }
-
-        actions.comments = function(char) {
-            if (! this.comments) {
-                this.comments = '';
-            }
-            this.comments += char;
-
-            if (this.comments.endsWith('-->')) {
-                commitComments.call(this);
-                this.action = 'text';
-            }
-        }
-
-        // Control the LemonadeJS native references
-        let referenceControl = null;
-
-        const result = { type: 'template' };
-        const control = {
-            current: result,
-            action: 'text',
-            index: 0,
-        };
-
-        // Input validation
-        if (typeof html !== 'string') {
-            throw new TypeError('HTML input must be a string');
-        }
-
-        // Main loop to process the HTML string
-        for (let i = 0; i < html.length; i++) {
-            // Current char
-            let char = html[i];
-
-            if (control.action === 'text' && char === '<' && html[i+1] === '!' && html[i+2] === '-' && html[i+3] === '-') {
-                control.action = 'comments';
-            }
-
-            if (control.action !== 'comments') {
-                let escaped = false;
-
-                if (values !== null) {
-                    // Handle scape
-                    if (char === '\\') {
-                        // This is a escaped char
-                        escaped = true;
-                        // Parse escape char
-                        char = escape(html[i+1]);
-                        // Move to the next char
-                        i++;
-                    }
-                }
-
-                // Global control logic
-                if (control.tag) {
-                    if (char === '>' || char === '/') {
-                        // End of tag, commit any attributes and go back to text parsing
-                        if (!control.tag.insideQuote) {
-                            control.action = 'closeTag';
-                        }
-                    }
-                } else {
-                    if (char === '<') {
-                        control.action = 'processTag';
-                    }
-                }
-
-                // Register references for a dynamic template
-                if (!escaped && char === '$' && html[i + 1] === '{') {
-                    const result = extractExpressionContent(html, i + 2);
-                    control.reference = result.content;
-                    i = result.position;
-                }
-
-                // Control node references
-                if (char === '{' && html[i + 1] === '{') {
-                    referenceControl = 1;
-                } else if (char === '}' && html[i - 1] === '}') {
-                    referenceControl = 2;
-                }
-            }
-
-            // Execute action
-            actions(control, char);
-
-            // Reference control
-            referenceControl = null;
-        }
-
-        // Handle any remaining text
-        commitText.call(control);
-
-        return result.children && result.children[0];
-    }
-
-    const generateHTML = function(lemon) {
-
-        const appendEvent = function(token, event, exec) {
-            if (! lemon.events[token]) {
-                lemon.events[token] = []
-            }
-            // Push the event
-            lemon.events[token].push(event);
-            // Execute
-            if (exec) {
-                event();
-            }
-        }
-
-        const createEventsFromExpression = function(expression, event, exec) {
-            // Get the tokens should be updated to populate this attribute
-            let tokens = extractTokens(expression);
-            if (tokens.length) {
-                // Process all the tokens
-                for (let i = 0; i < tokens.length; i++) {
-                    appendEvent(tokens[i], event);
-                }
-            }
-            // Execute method
-            if (exec) {
-                event();
-            }
-        }
-
-        const setDynamicValue = function(item, prop, attributeName) {
-            // Create a reference to the DOM element
-            let property = prop.expression || prop.value;
-
-            if (isReferenceToken(property)) {
-                // Event
-                let event = function() {
-                    // Reference
-                    let value = extractFromPath.call(lemon.self, property);
-                    // Update reference
-                    setAttribute(getElement(item), attributeName, value);
-                }
-                // Append event only for the top level properties in the self
-                if (isReferenceToken(property, true)) {
-                    let p = extractFromPath.call(lemon.self, property, true);
-                    if (p) {
-                        // Append event to the token change
-                        let token = p[1]
-                        // Append event
-                        appendEvent(token, event);
-                    }
-                }
-                // Execute the event in the first time
-                event();
-            } else {
-                setAttribute(getElement(item), attributeName, castProperty(prop.value));
-            }
-        }
-
-        const dynamicContent = function(text) {
-            try {
-                // Cast value
-                let cast = null;
-                // Replace the text
-                text = text.replace(isScript, function (a, b) {
-                    let s = lemon.self;
-                    // Try to find the property
-                    let result = extractFromPath.call(s, b);
-                    // Evaluation for legacy purposes
-                    if (typeof(result) === 'undefined') {
-                        // This is deprecated and will be dropped on LemonadeJS 6
-                        result = run.call(s, b);
-                        if (typeof (result) === 'undefined') {
-                            result = '';
-                        }
-                    } else if (result === null) {
-                        result = '';
-                    }
-                    // Parse correct type
-                    if (typeof(result) !== 'string' && a === text) {
-                        cast = result;
-                    }
-                    // Return
-                    return result;
-                });
-
-                if (cast !== null) {
-                    return cast;
-                }
-
-                return text;
-            } catch (e) {
-            }
-        }
-
-        const isHTML = function(str) {
-            return /<[^>]*>/.test(str);
-        }
-
-        const appendHTMLBeforeNode = function(item, value) {
-            // Remove previous elements
-            if (item.current) {
-                item.current.forEach(e => e?.remove());
-            }
-            item.current = [];
-            // Node container
-            let node = getElement(item);
-            // Append content
-            if (! isHTML(value)) {
-                node.textContent = value;
-            } else {
-                // TODO: improve that
-                queueMicrotask(() => {
-                    // Create a temporary container
-                    const t = document.createElement('div');
-                    t.innerHTML = value;
-                    // Insert elements and store references
-                    while (t.firstChild) {
-                        item.current.push(t.firstChild);
-                        node.parentNode.insertBefore(t.firstChild, node);
-                    }
-                });
-            }
-        }
-
-        const applyElementAttribute = function(item, prop) {
-            if (typeof(prop.expression) !== 'undefined') {
-                // Event to update the designed position
-                let event = function() {
-                    // Extra value from the template
-                    let value = lemon.view(parseTemplate)[prop.index];
-                    // Process the NODE
-                    if (item.type === '#text') {
-                        appendHTMLBeforeNode(item, value);
-                    } else {
-                        // Set attribute
-                        setAttribute(getElement(item), prop.name, value);
-                    }
-                }
-                // Bind event to any tokens change
-                createEventsFromExpression(prop.expression, event, true);
-                // Register event for state changes
-                lemon.events[prop.index] = event;
-            } else {
-                // Get the tokens should be updated to populate this attribute
-                let tokens = extractTokens(prop.value);
-                if (tokens.length) {
-                    // Dynamic
-                    createEventsFromExpression(prop.value, function() {
-                        // Dynamic text
-                        let value = dynamicContent(prop.value);
-                        // Get the dynamic value
-                        setAttribute(getElement(item), prop.name, value);
-                    }, true)
-                } else {
-                    let value = prop.value;
-                    if (value.match(isScript)) {
-                        value = dynamicContent(value);
-                    }
-
-                    setAttribute(getElement(item), prop.name, value, true);
-                }
-            }
-        }
-
-        /**
-         * Create a LemonadeJS self bind
-         * @param item
-         * @param prop
-         */
-        const applyBindHandler = function(item, prop) {
-            // Create a reference to the DOM element
-            let property = prop.expression || prop.value;
-
-            if (isReferenceToken(property, true)) {
-                let prop = property.split('.')[1];
-
-                // Event from component to the property
-                let event = function () {
-                    let value = getAttribute(getElement(item), 'value');
-                    if (lemon.self[prop] !== value) {
-                        lemon.self[prop] = value;
-                    }
-                }
-
-                if (typeof (item.type) === 'function') {
-                    item.bind = event;
-                } else {
-                    item.element.addEventListener('input', event);
-                }
-
-                // Event property to the element
-                event = () => {
-                    let value = getAttribute(getElement(item), 'value');
-                    if (lemon.self[prop] !== value) {
-                        setAttribute(getElement(item), 'value', lemon.self[prop]);
-                    }
-                }
-                // Append event
-                appendEvent(prop, event, true);
-            }
-        }
-
-        /**
-         * Create a LemonadeJS self render
-         * @param item
-         * @param prop
-         */
-        const applyRenderHandler = function(item, prop) {
-            // Create a reference to the DOM element
-            let property = prop.expression || prop.value;
-            let getValue = null;
-            let token = null;
-
-            if (isReferenceToken(property, true)) {
-                token = property.split('.')[1];
-                // Get value
-                getValue = () => {
-                    return lemon.self[token];
-                }
-            } else {
-                if (typeof(prop.expression) !== 'undefined') {
-                    getValue = () => {
-                        // Extra value from the template
-                        let data = lemon.view(parseTemplate)[prop.index];
-                        if (data instanceof state) {
-                            data = data.value;
-                        }
-                        return data;
-                    }
-                }
-            }
-
-            if (getValue) {
-                // Create container to keep the elements
-                item.container = [];
-
-                // Event property to the element
-                let event = () => {
-                    // Root element
-                    let root = typeof(item.type) === 'function' ? item.self.el : item.element;
-                    // Curren value
-                    let value = getValue();
-                    if (value) {
-                        item.container.forEach(e => {
-                            root.appendChild(e);
-                        });
-                    } else {
-                        while (root.firstChild) {
-                            item.container.push(root.firstChild);
-                            root.firstChild.remove();
-                        }
-                    }
-                }
-
-                if (token) {
-                    // Append event
-                    appendEvent(token, event);
-                } else {
-                    if (typeof(prop.expression) !== 'undefined') {
-                        lemon.events[prop.index] = event;
-                        createEventsFromExpression(prop.expression, event);
-                    }
-                }
-
-                // Execute event
-                let root = typeof(item.type) === 'function' ? item.self.el : item.element;
-                if (root) {
-                    event();
-                } else {
-                    lemon.ready.push(event);
-                }
-            }
-        }
-
-        /**
-         * Create a dynamic reference
-         * @param item
-         * @param prop
-         */
-        const createReference = function(item, prop) {
-            let ref = getElement(item);
-            if (typeof(prop.value) === 'function') {
-                prop.value(ref);
-            } else {
-                // Create a reference to the DOM element
-                let property = prop.expression || prop.value;
-                // Reference
-                if (isReferenceToken(property)) {
-                    let p = extractFromPath.call(lemon.self, property, true);
-                    if (p) {
-                        lemon.self[p[1]] = ref;
-                    }
-                }
-            }
-        }
-
-        /**
-         * Process the :ready. Call when DOM is ready
-         * @param item
-         * @param prop
-         */
-        const whenIsReady = function(item, prop) {
-            let value = prop.value;
-            // If not a method, should be converted to a method
-            if (typeof(value) !== 'function') {
-                let t = extractFromPath.call(lemon.self, value);
-                if (t) {
-                    value = t;
-                }
-            }
-            // Must be a function
-            if (typeof(value) === 'function') {
-                lemon.ready.push(function() {
-                    value(getElement(item), lemon.self);
-                });
-            } else {
-                createError(`:ready ${value} is not a function`)
-            }
-        }
-
-        const getRoot = function(item) {
-            if (typeof(item.type) === 'function') {
-                if (item.parent.type === 'template') {
-                    return lemon.root;
-                } else {
-                    return item.parent.element;
-                }
-            }
-
-            return item.element;
-        }
-
-        const registerLoop = function(item, prop) {
-            // Create a reference to the DOM element
-            let property = prop.expression || prop.value;
-
-            // Append the template back to the correct position
-            if (lemon.self.settings?.loop) {
-                lemon.self.settings.loop(item)
-            }
-
-            // Event
-            let updateLoop = function(data) {
-                // Component
-                let method = typeof(item.type) === 'function' ? item.type : Basic;
-                // Remove all DOM
-                let root = getRoot(item);
-                if (root) {
-                    while (root.firstChild) {
-                        root.firstChild.remove();
-                    }
-                }
-                // Process the data
-                if (data && Array.isArray(data)) {
-                    // Process data
-                    data.forEach(function(self) {
-                        let el = self.el;
-                        if (el) {
-                            root.appendChild(el);
-                        } else {
-                            // Register parent
-                            register(self, 'parent', lemon.self);
-                            // Render
-                            L.render(method, root, self, item);
-                        }
-
-                        if (root?.getAttribute('unique') === 'false') {
-                            delete self.el;
-                        }
-                    })
-                }
-            }
-
-            // Event
-            let event;
-
-            // Type of property
-            if (isReferenceToken(property)) {
-                // Event
-                event = function() {
-                    // Reference
-                    let data = extractFromPath.call(lemon.self, property);
-                    // Update reference
-                    updateLoop(data);
-                }
-
-                // Append event only for the top level properties in the self
-                if (isReferenceToken(property, true)) {
-                    let p = extractFromPath.call(lemon.self, property, true);
-                    if (p) {
-                        // Append event to the token change
-                        appendEvent(p[1], event);
-                    }
-                }
-            } else {
-                if (typeof(prop.expression) !== 'undefined') {
-                    event = function() {
-                        // Extra value from the template
-                        let data = lemon.view(parseTemplate)[prop.index];
-                        if (data instanceof state) {
-                            data = data.value;
-                        }
-                        // Update the data
-                        updateLoop(data);
-                    }
-                    // Register event for state changes
-                    lemon.events[prop.index] = event;
-                }
-            }
-
-            // Defer event since the dom is not ready
-            if (event) {
-                if (getRoot(item)) {
-                    event();
-                } else {
-                    lemon.ready.push(event);
-                }
-            }
-        }
-
-        const isLoopAttribute = function(props) {
-            let test = false;
-            props.forEach(function(prop) {
-                if (prop.name === ':loop' || prop.name === 'lm-loop' || prop.name === '@loop') {
-                    test = true;
-                }
-            });
-            return test;
-        }
-
-        const registerPath = function(item, prop) {
-            if (! lemon.path.elements) {
-                lemon.path.elements = [];
-            }
-
-            let element = getElement(item);
-
-            lemon.path.elements.push({
-                element: element,
-                path: prop.value
-            });
-
-            // Event from component to the property
-            let event = function () {
-                // Get the current value of my HTML form element or component
-                let value = getAttribute(element, 'value');
-                // Apply the new value on the path on the object
-                if (lemon.path.value) {
-                    Path.call(lemon.path.value, prop.value, value);
-                    // Call the callback when exist
-                    if (typeof(lemon.path.change) === 'function') {
-                        lemon.path.change(value, prop.value, element);
-                    }
-                } else {
-                    console.log('Use setPath to define the form container before using lm-path');
-                }
-            }
-
-            if (typeof(item.type) === 'function') {
-                item.path = event;
-            } else {
-                item.element.addEventListener('input', event);
-            }
-        }
-
-        const appendChildren = function(container, children) {
-            if (container && children) {
-                for (let i = 0; i < children.length; i++) {
-                    let child = children[i];
-                    if (typeof(child) === 'string') {
-                        container.appendChild(document.createTextNode(child));
-                    } else if (child.element) {
-                        if (child.element.tagName === 'ROOT') {
-                            while (child.element.firstChild) {
-                                container.appendChild(child.element.firstChild);
-                            }
-                        } else {
-                            container.appendChild(child.element);
-                        }
-                    }
-                }
-            }
-        }
-
-        const getAttributeName = function(prop) {
-            return prop[0] === ':' || prop[0] === '@' ? prop.substring(1) : prop.substring(3);
-        }
-
-        const getAttributeEvent = function(event) {
-            event = event.toLowerCase();
-            if (event.startsWith('on')) {
-                return event.toLowerCase();
-            } else if (event.startsWith(':on')) {
-                return getAttributeName(event);
-            }
-        }
-
-        /**
-         * CHeck if the event name is a valid DOM event name
-         * @param element
-         * @param eventName
-         * @returns {boolean}
-         */
-        const isValidEventName = function(element, eventName) {
-            const validEventPattern = /^on[a-z]+$/;
-            return validEventPattern.test(eventName);
-        }
-
-        /**
-         * Create element from the string tagname
-         * @param tagName
-         * @returns {*}
-         */
-        const createElementFromString = function(tagName) {
-            // List of SVG tags (you can expand this list if needed)
-            const svgTags = [
-                "svg", "path", "circle", "rect", "line", "polygon", "polyline", "text"
-            ];
-
-            if (svgTags.includes(tagName)) {
-                // For SVG elements, use createElementNS with the correct namespace
-                return document.createElementNS("http://www.w3.org/2000/svg", tagName);
-            } else {
-                // For regular HTML elements, use createElement
-                return document.createElement(tagName);
-            }
-        }
-
-        const reorderProps = function(arr) {
-            // Define the desired order of names
-            const orderPriority = ['ref', 'bind', 'loop', 'ready'];
-
-            // Separate items into prioritized and non-prioritized
-            const prioritized = [];
-            const others = [];
-
-            // Sort items into respective arrays
-            arr.forEach(item => {
-                if (orderPriority.includes(item.name.substring(1)) || orderPriority.includes(item.name.substring(3))) {
-                    prioritized.push(item);
-                } else {
-                    others.push(item);
-                }
-            });
-
-            // Return combined array with prioritized items at the end
-            return [...others, ...prioritized];
-        }
-
-
-        const createElements = function(item) {
-            if (typeof(item) === 'object') {
-                // Create an element
-                if (item.type === '#comments') {
-                    item.element = document.createComment(item.props[0].value);
-                } else if (item.type === '#text') {
-                    // Text node
-                    item.element = document.createTextNode('');
-                    // Check for dynamic content
-                    applyElementAttribute(item, item.props[0]);
-                } else {
-                    // Apply attributes if they exist
-                    if (item.props && ! Array.isArray(item.props)) {
-                        let props = [];
-                        let keys = Object.keys(item.props);
-                        for (let i = 0; i < keys.length; i++) {
-                            props.push({ name: keys[i], value: item.props[keys[i]] });
-                        }
-                        item.props = props;
-                    } else if (! item.props) {
-                        item.props = [];
-                    }
-
-                    // This item is a parent for a loop
-                    if (isLoopAttribute(item.props)) {
-                        // Mark this item as a loop
-                        item.loop = true;
-                    }
-
-                    if (! item.type) {
-                        item.type = 'root';
-                    }
-
-                    if (typeof(item.type) === 'string') {
-                        if (item.type.match(/^[A-Z][a-zA-Z0-9\-]*$/g)) {
-                            let controller = item.type.toUpperCase();
-                            if (typeof(R.components[controller]) === 'function') {
-                                item.type = R.components[controller];
-                            } else if (typeof (lemon.components[controller]) === 'function') {
-                                item.type = lemon.components[controller];
-                            } else {
-                            }
-                        }
-                    }
-
-                    if (typeof(item.type) === 'string') {
-                        item.element = createElementFromString(item.type);
-                    } else if (typeof(item.type) === 'function') {
-                        // Create instance without calling constructor
-                        if (isClass(item.type)) {
-                            item.self = new item.type;
-                        } else {
-                            item.self = {};
-                        }
-                    }
-
-                    // Create all children
-                    if (! item.loop) {
-                        if (item.children && Array.isArray(item.children)) {
-                            item.children.forEach(child => {
-                                createElements(child);
-                            });
-                        }
-                        if (item.element) {
-                            appendChildren(item.element, item.children);
-                        }
-                    }
-
-                    // Process attributes
-                    if (item.props.length) {
-                        // Reorder props
-                        item.props = reorderProps(item.props);
-                        // Order by priority
-                        item.props.forEach(function(prop) {
-                            // If the property is an event
-                            let event = getAttributeEvent(prop.name);
-                            // When event for a DOM
-                            if (event) {
-                                // Element
-                                let element = item.element;
-                                // Value
-                                let value = prop.value;
-                                if (value) {
-                                    let handler = null; // Reset handler for each iteration
-                                    if (typeof (value) === 'function') {
-                                        handler = value;
-                                    } else {
-                                        let t = extractFromPath.call(lemon.self, value);
-                                        if (t) {
-                                            if (typeof (t) === 'function') {
-                                                prop.value = handler = t;
-                                            }
-                                        }
-                                    }
-                                    // When the element is a DOM
-                                    if (isDOM(element)) {
-                                        // Create the event handler
-                                        let eventHandler;
-                                        // Bind event
-                                        if (typeof(handler) === 'function') {
-                                            eventHandler = function(e, a, b) {
-                                                return handler.call(element, e, lemon.self, a, b);
-                                            }
-                                        } else {
-                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
-                                            eventHandler = function (e) {
-                                                return Function('e', 'self', value).call(element, e, lemon.self); // TODO, quebra tudo se mudar
-                                            }
-                                        }
-
-                                        if (isValidEventName(element, prop.name)) {
-                                            element.addEventListener(event.substring(2), eventHandler);
-                                        } else {
-                                            if (element.tagName?.includes('-')) {
-                                                element[event] = handler;
-                                            } else {
-                                                element[event] = eventHandler;
-                                            }
-                                        }
-                                    } else {
-                                        item.self[event] = handler || value;
-                                    }
-                                }
-                            } else if (prop.name.startsWith(':') || prop.name.startsWith('@') || prop.name.startsWith('lm-')) {
-                                // Special lemonade attribute name
-                                let attrName = getAttributeName(prop.name);
-                                // Special properties bound to the self
-                                if (attrName === 'ready') {
-                                    whenIsReady(item, prop);
-                                } else if (attrName === 'ref') {
-                                    createReference(item, prop);
-                                } else if (attrName === 'loop') {
-                                    registerLoop(item, prop);
-                                } else if (attrName === 'bind') {
-                                    applyBindHandler(item, prop);
-                                } else if (attrName === 'path') {
-                                    registerPath(item, prop);
-                                } else if (attrName === 'render') {
-                                    applyRenderHandler(item, prop);
-                                } else {
-                                    setDynamicValue(item, prop, attrName);
-                                }
-                            } else {
-                                applyElementAttribute(item, prop);
-                            }
-                        })
-                    }
-
-                    // Do not create elements at this state if this is a loop
-                    if (! item.loop) {
-                        if (typeof(item.type) === 'function') {
-                            // Execute component
-                            item.element = L.render(item.type, null, item.self, item);
-
-                            // Create all children
-                            if (item.children) {
-                                let root = item.element;
-                                if (typeof(item.self?.settings?.getRoot) === 'function') {
-                                    root = item.self.settings.getRoot();
-                                }
-                                appendChildren(root, item.children);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // Create DOM elements
-        createElements(lemon.tree);
-
-        return lemon.tree.element;
-    }
-
-    /**
-     * Extract a property from a nested object using a string address
-     * @param {string} str address inside the nested object
-     * @param {boolean} config get the configuration obj => property
-     */
-    const extractFromPath = function(str, config) {
-        try {
-            let t = str.toString().replace(/[\[\]]/g, '.').split('.');
-            if (t[0] === 'self' || t[0] === 'this') {
-                t.shift();
-            }
-            // Remove blanks
-            t = t.filter(item => item !== '');
-            // Object
-            let o = this;
-            let lastObject;
-            while (t.length) {
-                // Get the property
-                let p = t.shift();
-                // Process config
-                if (config) {
-                    if (typeof(o) === 'object' && ! Array.isArray(o)) {
-                        lastObject = [o,p];
-                    }
-                    if (t.length === 0) {
-                        return lastObject;
-                    }
-                }
-                // Check if the property exists
-                if (o.hasOwnProperty(p) || typeof(o[p]) !== 'undefined') {
-                    o = o[p];
-                } else {
-                    return undefined;
-                }
-            }
-
-            if (typeof(o) !== 'undefined') {
-                return o;
-            }
-        } catch (e) {}
-
-        // Something went wrong
-        return undefined;
-    }
-
-    /**
-     * Cast the value of an attribute
-     */
-    const castProperty = function(attr) {
-        // Parse type
-        try {
-            if (typeof(attr) === 'string' && attr) {
-                // Remove any white spaces
-                attr = attr.trim();
-                if (attr === 'true') {
-                    return true;
-                } else if (attr === 'false') {
-                    return false;
-                } else if (! isNaN(attr)) {
-                    return Number(attr);
-                } else {
-                    let firstChar = attr[0];
-                    if (firstChar === '{' || firstChar === '[') {
-                        if (attr.slice(-1) === '}' || attr.slice(-1) === ']') {
-                            return JSON.parse(attr);
-                        }
-                    } else if (attr.startsWith('self.') || attr.startsWith('this.')) {
-                        let v = extractFromPath.call(this, attr);
-                        if (typeof(v) !== 'undefined') {
-                            return v;
-                        }
-                    }
-                }
-            }
-        } catch (e) {}
-
-        return attr;
-    }
-
-    /**
-     * This allows to run inline script on LEGACY system. Inline script can lead to security issues so use carefully.
-     * @param {string} s string to function
-     */
-    const run = function(s) {
-        return Function('self', '"use strict";return (' + s + ')')(this);
-    }
-
-    /**
-     * Check if the content {o} is a valid DOM Element
-     * @param {HTMLElement|DocumentFragment|object} o - is this a valid dom?
-     * @return {boolean}
-     */
-    const isDOM = function(o) {
-        return (o instanceof HTMLElement || o instanceof Element || o instanceof DocumentFragment);
-    }
-
-    /**
-     * Check if the method is a method or a class
-     * @param {function} f
-     * @return {boolean}
-     */
-    const isClass = function(f) {
-        return typeof f === 'function' && /^class\s/.test(Function.prototype.toString.call(f));
-    }
-
-    /**
-     * Basic handler
-     * @param {string|object} t - HTML template
-     * @return {string|object}
-     */
-    const Basic = function(t) {
-        return t;
-    }
-
-    /**
-     * Get the attribute helper
-     * @param {object} e Element
-     * @param {string} attribute
-     */
-    const getAttribute = function(e, attribute) {
-        let value;
-        if (attribute === 'value') {
-            if (typeof(e.val) === 'function') {
-                value = e.val();
-            } else {
-                if (e.getAttribute) {
-                    if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
-                        value = [];
-                        for (let i = 0; i < e.options.length; i++) {
-                            if (e.options[i].selected) {
-                                value.push(e.options[i].value);
-                            }
-                        }
-                    } else if (e.type === 'checkbox') {
-                        value = e.checked && e.getAttribute('value') ? e.value : e.checked;
-                    } else if (e.getAttribute('contenteditable')) {
-                        value = e.innerHTML;
-                    } else {
-                        value = e.value;
-                    }
-                } else {
-                    value = e.value;
-                }
-            }
-        }
-        return value;
-    }
-
-    /**
-     * Set attribute value helper
-     * @param {object} e Element
-     * @param {string} attribute
-     * @param {any} value
-     * @param {boolean?} propertyValue
-     */
-    const setAttribute = function(e, attribute, value, propertyValue) {
-        // Handle state
-        if (value instanceof state) {
-            value = value.value;
-        } else if (typeof(value) === 'undefined') {
-            value = '';
-        }
-
-        if (attribute === 'value' && ! propertyValue) {
-            // Update HTML form element
-            if (typeof (e.val) === 'function') {
-                if (e.val() != value) {
-                    e.val(value);
-                }
-            } else if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
-                for (let j = 0; j < e.children.length; j++) {
-                    e.children[j].selected = value.indexOf(e.children[j].value) >= 0;
-                }
-            } else if (e.type === 'checkbox') {
-                e.checked = !(!value || value === '0' || value === 'false');
-            } else if (e.type === 'radio') {
-                e.checked = e.value == value;
-            } else if (e.getAttribute && e.getAttribute('contenteditable')) {
-                if (e.innerHTML != value) {
-                    e.innerHTML = value;
-                }
-            } else {
-                // Make sure apply that to the value
-                e.value = value;
-                // Update attribute if exists
-                if (e.getAttribute && e.getAttribute('value') !== null) {
-                    e.setAttribute('value', value);
-                }
-            }
-        } else if (typeof(value) === 'object' || typeof(value) === 'function') {
-            e[attribute] = value;
-        } else {
-            if (isDOM(e)) {
-                if (typeof (e[attribute]) !== 'undefined' && !(e.namespaceURI && e.namespaceURI.includes('svg'))) {
-                    e[attribute] = value;
-                } else {
-                    if (value === '') {
-                        e.removeAttribute(attribute);
-                    } else {
-                        e.setAttribute(attribute, value);
-                    }
-                }
-            } else {
-                e[attribute] = value;
-            }
-        }
-    }
-
-    /**
-     * Get attributes as an object
-     * @param {boolean} props - all attributes that are not undefined
-     * @return {object}
-     */
-    const getAttributes = function(props) {
-        let o = {};
-        let k = null;
-        let a = this.attributes;
-        if (a && a.length) {
-            for (let i = 0; i < a.length; i++) {
-                k = a[i].name;
-                if (props && typeof(this[k]) !== 'undefined') {
-                    o[k] = this[k];
-                } else {
-                    o[k] = a[i].value;
-                }
-            }
-        }
-        return o;
-    }
-
-    /**
-     * Register a getter without setter for a self object
-     * @param {object} s - self object
-     * @param {string} p - self property
-     * @param {string|object|number} v - value
-     */
-    const register = function(s, p, v) {
-        if (typeof(s) === 'object') {
-            Object.defineProperty(s, p, {
-                enumerable: false,
-                configurable: true,
-                get: function () {
-                    return v;
-                }
-            });
-        }
-    }
-
-    /**
-     * Extract variables from the dynamic and append to the self
-     * @return {[string, array]} grab the literal injection
-     */
-    const parseTemplate = function() {
-        let args = Array.from(arguments);
-        // Remove first
-        args.shift()
-        // Return the final template
-        return args;
-    }
-
-    function cloneChildren(element) {
-        // Base case: if an element is null/undefined or not an object, return as is
-        if (!element || typeof element !== 'object') {
-            return element;
-        }
-
-        // Handle arrays
-        if (Array.isArray(element)) {
-            return element.map(item => cloneChildren(item));
-        }
-
-        // Create a new object
-        const cloned = {};
-
-        // Clone each property
-        for (const key in element) {
-            if (key === 'children') {
-                // Handle children especially as before
-                cloned.children = element.children ? cloneChildren(element.children) : undefined;
-            } else if (key === 'props') {
-                // Deep clone props array
-                cloned.props = element.props.map(prop => ({
-                    ...prop,
-                    value: prop.value // If value is a function, it will maintain the reference which is what we want
-                }));
-            } else {
-                // Clone other properties
-                cloned[key] = element[key];
-            }
-        }
-
-        return cloned;
-    }
-
-    // LemonadeJS object
-    const L = {};
-
-    /**
-     * Render a lemonade DOM element, method or class into a root DOM element
-     * @param {function} component - LemonadeJS component or DOM created
-     * @param {HTMLElement} root - root DOM element to receive the new HTML
-     * @param {object?} self - self to be used
-     * @param {object?} item - item
-     * @return {HTMLElement|boolean} o
-     */
-    L.render = function(component, root, self, item) {
-        if (typeof(component) !== 'function') {
-            console.error('Component is not a function');
-            return false;
-        }
-
-        // In case the self has not initial definition by the developer
-        if (typeof(self) === 'undefined') {
-            self = {};
-        }
-
-        // Web component
-        if (self.tagName && self.tagName.includes('-')) {
-            let props = getAttributes.call(self, true);
-            // Copy all values to the object
-            L.setProperties.call(self, props, true);
-        }
-
-        // Arguments
-        let args = Array.from(arguments);
-
-        // Lemonade component object
-        let lemon = {
-            self: self,
-            ready: [],
-            change: [],
-            events: [],
-            components: {},
-            elements: [],
-            root: root,
-            path: {},
-        }
-
-        // Current onchange
-        let externalOnchange = self.onchange;
-        let externalOnload = self.onload;
-
-        if (! item) {
-            item = {};
-        } else if (typeof(item) === 'string') {
-            item = {
-                children: item,
-            }
-        }
-
-        let view;
-        let result;
-
-        // New self
-        if (component === Basic) {
-            view = cloneChildren(item.children[0]);
-        } else {
-            R.currentLemon = lemon;
-
-            const tools = {
-                onload: (...args) => setOnload(lemon, ...args),
-                onchange: (...args) => setOnchange(lemon, ...args),
-                track: (...args) => setTrack(lemon, ...args),
-                state: (...args) => setState(lemon, ...args),
-                setPath: (...args) => setPath(lemon, ...args),
-            };
-
-            if (isClass(component)) {
-                if (! (self instanceof component)) {
-                    lemon.self = self = new component(self);
-                }
-                view = self.render(item.children, tools);
-            } else {
-                // Execute component
-                view = component.call(self, item.children, tools);
-            }
-
-            // Resolve onchange scope conflict
-            if (typeof(self.onchange) === 'function' && externalOnchange !== self.onchange) {
-                // Keep onchange event in the new onchange format
-                lemon.change.push(self.onchange);
-                // Keep the external onchange
-                self.onchange = externalOnchange;
-            }
-
-            R.currentLemon = null;
-        }
-
-        // Values
-        let values = null;
-        // Process return
-        if (typeof(view) === 'function') {
-            values = view(parseTemplate);
-            // Curren values
-            lemon.values = values;
-            // A render template to be executed
-            lemon.view = view;
-            // Template from the method
-            result = view.toString().split('`');
-            // Get the original template
-            if (result) {
-                // Remove the last element
-                result.shift();
-                result.pop();
-                // Join everything else
-                result = result.join('`').trim();
-            }
-        } else {
-            result = view;
-        }
-
-        // Virtual DOM tree
-        if (typeof(result) === 'string') {
-            result = HTMLParser(result.trim(), values);
-        }
-
-        let element;
-
-        // Process the result
-        if (result) {
-            // Get the HTML virtual DOM representation
-            lemon.tree = result;
-
-            // Create real DOM and append to the root
-            element = generateHTML(lemon);
-
-            if (element) {
-                // Parents
-                lemon.elements = [];
-                // Append parents
-                if (element.tagName === 'ROOT') {
-                    element.childNodes.forEach((e) => {
-                        lemon.elements.push(e);
-                    });
-                } else {
-                    lemon.elements.push(element);
-                }
-
-                // Register element when is not registered inside the component
-                register(lemon.self, 'el', element);
-
-                const destroy = () => {
-                    // Do not add in the same root
-                    let div = document.createElement('div');
-                    // Append temporary DIV to the same position
-                    lemon.elements[0].parentNode.insertBefore(div, lemon.elements[0]);
-                    // Remove the old elements
-                    lemon.elements.forEach((e) => {
-                        e.remove();
-                    });
-                    // Root element
-                    args[1] = div;
-                    // Create a new component
-                    L.render(...args);
-                    // Append elements in the same position in the DOM tree
-                    while (div.firstChild) {
-                        div.parentNode.insertBefore(div.firstChild, div);
-                    }
-                    // Remove DIV
-                    div.remove();
-                    // Object not in use
-                    lemon = null;
-                }
-
-                // Refresh
-                register(lemon.self, 'refresh', (prop) => {
-                    if (prop) {
-                        if (prop === true) {
-                            destroy();
-                        } else {
-                            lemon.self[prop] = lemon.self[prop];
-                        }
-                    } else {
-                        if (lemon.view) {
-                            runViewValues(lemon);
-                        } else {
-                            destroy();
-                        }
-                    }
-                });
-
-                // Append element to the DOM
-                if (root) {
-                    lemon.elements.forEach((e) => {
-                        root.appendChild(e);
-                    });
-                }
-            } else {
-                // Refresh
-                register(lemon.self, 'refresh', (prop) => {
-                    if (prop) {
-                        if (prop === true) {
-                            runViewValues(lemon);
-                        } else {
-                            lemon.self[prop] = lemon.self[prop];
-                        }
-                    }
-                });
-            }
-        }
-
-        // Bind to custom component
-        if (item.bind || item.path) {
-            let token = 'value';
-            if (! lemon.events[token]) {
-                lemon.events[token] = []
-            }
-            // Push the event
-            if (item.bind) {
-                lemon.events[token].push(item.bind);
-            }
-            if (item.path) {
-                lemon.events[token].push(item.path);
-            }
-        }
-
-        // In case initial exists
-        if (typeof(lemon.path.initial) === 'object') {
-            // Get the value of the draft
-            let newValue = lemon.path.initial;
-            // Delete draft
-            delete lemon.path.initial;
-            // Apply new values
-            lemon.path.setValue(newValue);
-
-        }
-
-        // Apply events
-        if (lemon.events) {
-            let props = Object.keys(lemon.events);
-            if (props.length) {
-                for (let i = 0; i <props.length; i++) {
-                    trackProperty(lemon, props[i]);
-                }
-            }
-        }
-
-        // Process the onload
-        if (element) {
-            processOnload(lemon);
-        }
-
-        return element;
-    }
-
-    const registerComponents = function(components) {
-        if (components && R.currentLemon) {
-            for (const key in components) {
-                R.currentLemon.components[key.toUpperCase()] = components[key];
-            }
-        }
-    }
-
-    /**
-     * Deprecated
-     * @param {string} template
-     * @param {object?} s (self)
-     * @param {object?} components
-     */
-    L.element = function(template, s, components) {
-        if (R.currentLemon && s && typeof(s) === 'object') {
-            if (s !== R.currentLemon.self) {
-                R.currentLemon.self = s;
-            }
-        }
-        registerComponents(components);
-        return template;
-    }
-
-    /**
-     * Apply self to an existing appended DOM element
-     * @param {HTMLElement} el - element root
-     * @param {object} s - self to associate to the template
-     * @param {object?} components - object with component declarations
-     */
-    L.apply = function(el, s, components) {
-        let template = el.innerHTML;
-        el.textContent = '';
-        let Component = function() {
-            registerComponents(components);
-            return `<>${template}</>`;
-        }
-        return L.render(Component,el,s);
-    }
-
-    /**
-     * Get all properties existing in {o} and create a new object with the values from {this};
-     * @param {object} o - reference object with the properties relevant to the new object
-     * @return {object} n - the new object with all new values
-     */
-    L.getProperties = function(o) {
-        // The new object with all properties found in {o} with values from {this}
-        let n = {};
-        for (let p in o) {
-            n[p] = this[p];
-        }
-        return n;
-    }
-
-    /**
-     * Set the values from {o} to {this}
-     * @param {object} o set the values of {this} when the `this[property]` is found in {o}, or when flag force is true
-     * @param {boolean} f create a new property when that does not exist yet, but is found in {o}
-     * @return {object} this is redundant since object {this} is a reference and is already available in the caller
-     */
-    L.setProperties = function(o, f) {
-        for (let p in o) {
-            if (this.hasOwnProperty(p) || f) {
-                this[p] = o[p];
-            }
-        }
-        return this;
-    }
-
-    /**
-     * Reset the values of any common property name between this and a given object
-     * @param {object} o - all properties names in the object {o} found in {this} will be reset.
-     */
-    L.resetProperties = function(o) {
-        for (let p in o) {
-            this[p] = '';
-        }
-    }
-
-    /**
-     * Lemonade CC (common container) helps you share a self or function through the whole application
-     * @param {string} name alias for your declared object(self) or function
-     * @returns {Object | Function} - registered element
-     */
-    L.get = function(name) {
-        return R.container[name];
-    }
-
-    /**
-     * Register something to the Lemonade CC (common container)
-     * @param {string} name - alias for your declared object(self) or function
-     * @param {object|function} e - the element to be added to the common container. Can be an object(self) or function.
-     * @param {boolean} persistence - optional the persistence flag. Only applicable for functions.
-     */
-    L.set = function(name, e, persistence) {
-        // Applicable only when the o is a function
-        if (typeof(e) === 'function' && persistence === true) {
-            // Keep the flag
-            e.storage = true;
-            // Any existing values
-            let t = window.localStorage.getItem(name);
-            if (t) {
-                // Parse JSON
-                t = JSON.parse(t);
-                // Execute method with the existing values
-                e(t);
-            }
-        }
-        // Save to the sugar container
-        R.container[name] = e;
-    }
-
-    /**
-     * Dispatch the new values to the function
-     * @param {string} name - alias to the element saved on the Lemonade CC (common container)
-     * @param {object?} data - data to be dispatched
-     */
-    L.dispatch = function(name, data) {
-        // Get from the container
-        let e = R.container[name];
-        // Confirm that the alias is a function
-        if (typeof(e) === 'function') {
-            // Save the data to the local storage
-            if (e.storage === true) {
-                window.localStorage.setItem(name, JSON.stringify(data));
-            }
-            // Dispatch the data to the function
-            return e(data);
-        }
-    }
-
-    /**
-     * Register components
-     * @param {object} components - register components
-     */
-    L.setComponents = function(components) {
-        if (typeof(components) === 'object') {
-            // Component names
-            let k = Object.keys(components);
-            // Make sure they follow the standard
-            for (let i = 0; i < k.length; i++) {
-                R.components[k[i].toUpperCase()] = components[k[i]];
-            }
-        }
-    }
-
-    L.component = class {}
-
-    /**
-     * Create a Web Component
-     * @param {string} name - web component name
-     * @param {function} handler - lemonadejs component
-     * @param {object} options - options to create the web components
-     */
-    L.createWebComponent = function(name, handler, options) {
-        if (typeof(window) === 'undefined') {
-            return;
-        }
-
-        if (typeof(handler) !== 'function') {
-            return 'Handler should be an function';
-        }
-        // Prefix
-        let prefix = options && options.prefix ? options.prefix : 'lm';
-
-        // Component name
-        const componentName = prefix + '-' + name;
-
-        // Check if the component is already defined
-        if (! window.customElements.get(componentName)) {
-            class Component extends HTMLElement {
-                constructor() {
-                    super();
-                }
-
-                connectedCallback() {
-                    // LemonadeJS self
-                    let self = this;
-                    // First call
-                    let state = typeof(this.el) === 'undefined';
-                    // LemonadeJS is already rendered
-                    if (state === true) {
-                        // Render
-                        if (options && options.applyOnly === true) {
-                            // Merge component
-                            handler.call(this);
-                            // Apply
-                            L.apply(this, self);
-                        } else {
-                            let root = this;
-                            if (options && options.shadowRoot === true) {
-                                this.attachShadow({ mode: 'open' });
-                                root = document.createElement('div');
-                                this.shadowRoot.appendChild(root);
-                            }
-                            // Give the browser time to calculate all width and heights
-                            L.render(handler, root, self);
-                        }
-                    }
-
-                    queueMicrotask(() => {
-                        // Event
-                        if (typeof(self.onconnect) === 'function') {
-                            self.onconnect(self, state);
-                        }
-                    });
-                }
-
-                disconnectedCallback() {
-                    if (typeof(this.ondisconnect) === 'function') {
-                        this.ondisconnect(this);
-                    }
-                }
-            }
-
-            if (! window.customElements.get(componentName)) {
-                window.customElements.define(componentName, Component);
-            }
-        }
-    }
-
-    L.h = function(type, props, ...children) {
-        return { type, props: props || {}, children };
-    }
-
-    L.Fragment = function(props) {
-        return props.children;
-    }
-
-    const wrongLevel = 'Hooks must be called at the top level of your component';
-
-    const setOnload = function(lemon, event) {
-        lemon.load = event;
-    }
-
-    const setOnchange = function(lemon, event) {
-        lemon.change.push(event);
-    }
-
-    const setTrack = function(lemon, prop) {
-        if (! lemon.events[prop]) {
-            lemon.events[prop] = [];
-        }
-    }
-
-    const setPath = function(lemon, initialValues, change) {
-        // My value object
-        let value = {};
-        // Create a method to update the state
-        const setValue = (newValue) => {
-            if (typeof(lemon.path.initial) === 'undefined') {
-                if (typeof (newValue) === 'object') {
-                    // If my has been declared
-                    let elements = lemon.path.elements;
-                    if (elements) {
-                        for (let i = 0; i < elements.length; i++) {
-                            let v = Path.call(newValue, elements[i].path)
-                            setAttribute(elements[i].element, 'value', v);
-                        }
-                    }
-                }
-            } else {
-                lemon.path.initial = newValue;
-            }
-        }
-
-        const getValue = () => {
-            let ret = {};
-            // If my has been declared
-            let elements = lemon.path.elements;
-            if (elements) {
-                for (let i = 0; i < elements.length; i++) {
-                    let v = getAttribute(elements[i].element, 'value');
-                    Path.call(ret, elements[i].path, v);
-                }
-            }
-            return ret;
-        }
-
-        lemon.path = {
-            setValue: setValue,
-            value: value,
-            change: change,
-            initial: initialValues || {}
-        };
-
-        return [value, setValue, getValue];
-    }
-
-    const setState = function(lemon, value, callback) {
-        // Create a state container
-        const s = new state();
-        // Create a method to update the state
-        const setValue = (newValue) => {
-            let oldValue = value;
-            // Update original value
-            value = typeof newValue === 'function' ? newValue(value) : newValue;
-            // Values from the view
-            runViewValues(lemon, s);
-            // Call back
-            callback?.(value, oldValue);
-        }
-        // Make the value attribute dynamic
-        Object.defineProperty(s, 'value', {
-            set: setValue,
-            get: () => value
-        });
-
-        return s;
-    }
-
-    L.onload = function(event) {
-        if (! R.currentLemon) {
-            createError(wrongLevel);
-        }
-        return setOnload(R.currentLemon, event);
-    }
-
-    L.onchange = function(event) {
-        if (! R.currentLemon) {
-            createError(wrongLevel);
-        }
-        return setOnchange(R.currentLemon, event);
-    }
-
-    L.track = function(prop) {
-        if (! R.currentLemon) {
-            createError(wrongLevel);
-        }
-        return setTrack(R.currentLemon, prop);
-    }
-
-    L.setPath = function(initialValues, change) {
-        if (! R.currentLemon) {
-            createError(wrongLevel);
-        }
-        return setPath(R.currentLemon, initialValues, change);
-    }
-
-    /**
-     * Run view values
-     * @param lemon
-     * @param s - refresh from state
-     */
-    const runViewValues = function(lemon, s) {
-        let values = lemon.view(parseTemplate);
-        if (values && values.length) {
-            values.forEach((v, k) => {
-                let current = lemon.values[k];
-                // Compare if the previous value
-                if (s && s === v || v !== current) {
-                    // Update current value
-                    lemon.values[k] = v;
-                    // Trigger state events
-                    if (typeof(lemon.events[k]) === 'function') {
-                        lemon.events[k]();
-                    }
-                }
-            });
-        }
-    }
-
-    const state = function() {}
-
-    state.prototype.toString = function() {
-        return this.value.toString();
-    }
-
-    state.prototype.valueOf = function() {
-        return this.value;
-    }
-
-    state.prototype[Symbol.toPrimitive] = function(hint) {
-        if (hint === 'string') {
-            return this.value.toString();
-        }
-        return this.value;
-    }
-
-    // TODO: Proxy for Objects and Arrays
-    L.state = function(value, callback) {
-        if (! R.currentLemon) {
-            createError(wrongLevel);
-        }
-
-        return setState(R.currentLemon, value, callback);
-    }
-
-    L.helpers = {
-        path: extractFromPath,
-        properties: {
-            get: L.getProperties,
-            set: L.setProperties,
-            reset: L.resetProperties,
-        }
-    }
-
-    L.events = (function() {
-        class CustomEvents extends Event {
-            constructor(type, props, options) {
-                super(type, {
-                    bubbles: true,
-                    composed: true,
-                    ...options,
-                });
-
-                if (props) {
-                    for (const key in props) {
-                        // Avoid assigning if property already exists anywhere on `this`
-                        if (! (key in this)) {
-                            this[key] = props[key];
-                        }
-                    }
-                }
-            }
-        }
-
-        const create = function(type, props, options) {
-            return new CustomEvents(type, props, options);
-        };
-
-        return {
-            create: create,
-            dispatch(element, event, options) {
-                if (typeof event === 'string') {
-                    event = create(event, options);
-                }
-                element.dispatchEvent(event);
-            }
-        };
-    })();
-
-    return L;
-})));
-
-/***/ }),
-
-/***/ 195:
-/***/ (function(module) {
-
-/**
- * (c) jSuites Javascript Plugins and Web Components (v4)
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- * Plugin: Organogram
- *
- * MIT License
- */
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    return (function(str) {
-        function int64(msint_32, lsint_32) {
-            this.highOrder = msint_32;
-            this.lowOrder = lsint_32;
-        }
-
-        var H = [new int64(0x6a09e667, 0xf3bcc908), new int64(0xbb67ae85, 0x84caa73b),
-            new int64(0x3c6ef372, 0xfe94f82b), new int64(0xa54ff53a, 0x5f1d36f1),
-            new int64(0x510e527f, 0xade682d1), new int64(0x9b05688c, 0x2b3e6c1f),
-            new int64(0x1f83d9ab, 0xfb41bd6b), new int64(0x5be0cd19, 0x137e2179)];
-
-        var K = [new int64(0x428a2f98, 0xd728ae22), new int64(0x71374491, 0x23ef65cd),
-            new int64(0xb5c0fbcf, 0xec4d3b2f), new int64(0xe9b5dba5, 0x8189dbbc),
-            new int64(0x3956c25b, 0xf348b538), new int64(0x59f111f1, 0xb605d019),
-            new int64(0x923f82a4, 0xaf194f9b), new int64(0xab1c5ed5, 0xda6d8118),
-            new int64(0xd807aa98, 0xa3030242), new int64(0x12835b01, 0x45706fbe),
-            new int64(0x243185be, 0x4ee4b28c), new int64(0x550c7dc3, 0xd5ffb4e2),
-            new int64(0x72be5d74, 0xf27b896f), new int64(0x80deb1fe, 0x3b1696b1),
-            new int64(0x9bdc06a7, 0x25c71235), new int64(0xc19bf174, 0xcf692694),
-            new int64(0xe49b69c1, 0x9ef14ad2), new int64(0xefbe4786, 0x384f25e3),
-            new int64(0x0fc19dc6, 0x8b8cd5b5), new int64(0x240ca1cc, 0x77ac9c65),
-            new int64(0x2de92c6f, 0x592b0275), new int64(0x4a7484aa, 0x6ea6e483),
-            new int64(0x5cb0a9dc, 0xbd41fbd4), new int64(0x76f988da, 0x831153b5),
-            new int64(0x983e5152, 0xee66dfab), new int64(0xa831c66d, 0x2db43210),
-            new int64(0xb00327c8, 0x98fb213f), new int64(0xbf597fc7, 0xbeef0ee4),
-            new int64(0xc6e00bf3, 0x3da88fc2), new int64(0xd5a79147, 0x930aa725),
-            new int64(0x06ca6351, 0xe003826f), new int64(0x14292967, 0x0a0e6e70),
-            new int64(0x27b70a85, 0x46d22ffc), new int64(0x2e1b2138, 0x5c26c926),
-            new int64(0x4d2c6dfc, 0x5ac42aed), new int64(0x53380d13, 0x9d95b3df),
-            new int64(0x650a7354, 0x8baf63de), new int64(0x766a0abb, 0x3c77b2a8),
-            new int64(0x81c2c92e, 0x47edaee6), new int64(0x92722c85, 0x1482353b),
-            new int64(0xa2bfe8a1, 0x4cf10364), new int64(0xa81a664b, 0xbc423001),
-            new int64(0xc24b8b70, 0xd0f89791), new int64(0xc76c51a3, 0x0654be30),
-            new int64(0xd192e819, 0xd6ef5218), new int64(0xd6990624, 0x5565a910),
-            new int64(0xf40e3585, 0x5771202a), new int64(0x106aa070, 0x32bbd1b8),
-            new int64(0x19a4c116, 0xb8d2d0c8), new int64(0x1e376c08, 0x5141ab53),
-            new int64(0x2748774c, 0xdf8eeb99), new int64(0x34b0bcb5, 0xe19b48a8),
-            new int64(0x391c0cb3, 0xc5c95a63), new int64(0x4ed8aa4a, 0xe3418acb),
-            new int64(0x5b9cca4f, 0x7763e373), new int64(0x682e6ff3, 0xd6b2b8a3),
-            new int64(0x748f82ee, 0x5defb2fc), new int64(0x78a5636f, 0x43172f60),
-            new int64(0x84c87814, 0xa1f0ab72), new int64(0x8cc70208, 0x1a6439ec),
-            new int64(0x90befffa, 0x23631e28), new int64(0xa4506ceb, 0xde82bde9),
-            new int64(0xbef9a3f7, 0xb2c67915), new int64(0xc67178f2, 0xe372532b),
-            new int64(0xca273ece, 0xea26619c), new int64(0xd186b8c7, 0x21c0c207),
-            new int64(0xeada7dd6, 0xcde0eb1e), new int64(0xf57d4f7f, 0xee6ed178),
-            new int64(0x06f067aa, 0x72176fba), new int64(0x0a637dc5, 0xa2c898a6),
-            new int64(0x113f9804, 0xbef90dae), new int64(0x1b710b35, 0x131c471b),
-            new int64(0x28db77f5, 0x23047d84), new int64(0x32caab7b, 0x40c72493),
-            new int64(0x3c9ebe0a, 0x15c9bebc), new int64(0x431d67c4, 0x9c100d4c),
-            new int64(0x4cc5d4be, 0xcb3e42b6), new int64(0x597f299c, 0xfc657e2a),
-            new int64(0x5fcb6fab, 0x3ad6faec), new int64(0x6c44198c, 0x4a475817)];
-
-        var W = new Array(64);
-        var a, b, c, d, e, f, g, h, i, j;
-        var T1, T2;
-        var charsize = 8;
-
-        function utf8_encode(str) {
-            return unescape(encodeURIComponent(str));
-        }
-
-        function str2binb(str) {
-            var bin = [];
-            var mask = (1 << charsize) - 1;
-            var len = str.length * charsize;
-
-            for (var i = 0; i < len; i += charsize) {
-                bin[i >> 5] |= (str.charCodeAt(i / charsize) & mask) << (32 - charsize - (i % 32));
-            }
-
-            return bin;
-        }
-
-        function binb2hex(binarray) {
-            var hex_tab = "0123456789abcdef";
-            var str = "";
-            var length = binarray.length * 4;
-            var srcByte;
-
-            for (var i = 0; i < length; i += 1) {
-                srcByte = binarray[i >> 2] >> ((3 - (i % 4)) * 8);
-                str += hex_tab.charAt((srcByte >> 4) & 0xF) + hex_tab.charAt(srcByte & 0xF);
-            }
-
-            return str;
-        }
-
-        function safe_add_2(x, y) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (x.lowOrder & 0xFFFF) + (y.lowOrder & 0xFFFF);
-            msw = (x.lowOrder >>> 16) + (y.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (x.highOrder & 0xFFFF) + (y.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (x.highOrder >>> 16) + (y.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function safe_add_4(a, b, c, d) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF);
-            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function safe_add_5(a, b, c, d, e) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF) + (e.lowOrder & 0xFFFF);
-            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (e.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (e.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (e.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function maj(x, y, z) {
-            return new int64(
-                (x.highOrder & y.highOrder) ^ (x.highOrder & z.highOrder) ^ (y.highOrder & z.highOrder),
-                (x.lowOrder & y.lowOrder) ^ (x.lowOrder & z.lowOrder) ^ (y.lowOrder & z.lowOrder)
-            );
-        }
-
-        function ch(x, y, z) {
-            return new int64(
-                (x.highOrder & y.highOrder) ^ (~x.highOrder & z.highOrder),
-                (x.lowOrder & y.lowOrder) ^ (~x.lowOrder & z.lowOrder)
-            );
-        }
-
-        function rotr(x, n) {
-            if (n <= 32) {
-                return new int64(
-                    (x.highOrder >>> n) | (x.lowOrder << (32 - n)),
-                    (x.lowOrder >>> n) | (x.highOrder << (32 - n))
-                );
-            } else {
-                return new int64(
-                    (x.lowOrder >>> n) | (x.highOrder << (32 - n)),
-                    (x.highOrder >>> n) | (x.lowOrder << (32 - n))
-                );
-            }
-        }
-
-        function sigma0(x) {
-            var rotr28 = rotr(x, 28);
-            var rotr34 = rotr(x, 34);
-            var rotr39 = rotr(x, 39);
-
-            return new int64(
-                rotr28.highOrder ^ rotr34.highOrder ^ rotr39.highOrder,
-                rotr28.lowOrder ^ rotr34.lowOrder ^ rotr39.lowOrder
-            );
-        }
-
-        function sigma1(x) {
-            var rotr14 = rotr(x, 14);
-            var rotr18 = rotr(x, 18);
-            var rotr41 = rotr(x, 41);
-
-            return new int64(
-                rotr14.highOrder ^ rotr18.highOrder ^ rotr41.highOrder,
-                rotr14.lowOrder ^ rotr18.lowOrder ^ rotr41.lowOrder
-            );
-        }
-
-        function gamma0(x) {
-            var rotr1 = rotr(x, 1), rotr8 = rotr(x, 8), shr7 = shr(x, 7);
-
-            return new int64(
-                rotr1.highOrder ^ rotr8.highOrder ^ shr7.highOrder,
-                rotr1.lowOrder ^ rotr8.lowOrder ^ shr7.lowOrder
-            );
-        }
-
-        function gamma1(x) {
-            var rotr19 = rotr(x, 19);
-            var rotr61 = rotr(x, 61);
-            var shr6 = shr(x, 6);
-
-            return new int64(
-                rotr19.highOrder ^ rotr61.highOrder ^ shr6.highOrder,
-                rotr19.lowOrder ^ rotr61.lowOrder ^ shr6.lowOrder
-            );
-        }
-
-        function shr(x, n) {
-            if (n <= 32) {
-                return new int64(
-                    x.highOrder >>> n,
-                    x.lowOrder >>> n | (x.highOrder << (32 - n))
-                );
-            } else {
-                return new int64(
-                    0,
-                    x.highOrder << (32 - n)
-                );
-            }
-        }
-
-        var str = utf8_encode(str);
-        var strlen = str.length*charsize;
-        str = str2binb(str);
-
-        str[strlen >> 5] |= 0x80 << (24 - strlen % 32);
-        str[(((strlen + 128) >> 10) << 5) + 31] = strlen;
-
-        for (var i = 0; i < str.length; i += 32) {
-            a = H[0];
-            b = H[1];
-            c = H[2];
-            d = H[3];
-            e = H[4];
-            f = H[5];
-            g = H[6];
-            h = H[7];
-
-            for (var j = 0; j < 80; j++) {
-                if (j < 16) {
-                    W[j] = new int64(str[j*2 + i], str[j*2 + i + 1]);
-                } else {
-                    W[j] = safe_add_4(gamma1(W[j - 2]), W[j - 7], gamma0(W[j - 15]), W[j - 16]);
-                }
-
-                T1 = safe_add_5(h, sigma1(e), ch(e, f, g), K[j], W[j]);
-                T2 = safe_add_2(sigma0(a), maj(a, b, c));
-                h = g;
-                g = f;
-                f = e;
-                e = safe_add_2(d, T1);
-                d = c;
-                c = b;
-                b = a;
-                a = safe_add_2(T1, T2);
-            }
-
-            H[0] = safe_add_2(a, H[0]);
-            H[1] = safe_add_2(b, H[1]);
-            H[2] = safe_add_2(c, H[2]);
-            H[3] = safe_add_2(d, H[3]);
-            H[4] = safe_add_2(e, H[4]);
-            H[5] = safe_add_2(f, H[5]);
-            H[6] = safe_add_2(g, H[6]);
-            H[7] = safe_add_2(h, H[7]);
-        }
-
-        var binarray = [];
-        for (var i = 0; i < H.length; i++) {
-            binarray.push(H[i].highOrder);
-            binarray.push(H[i].lowOrder);
-        }
-
-        return binb2hex(binarray);
-    });
-
-})));
-
-
-/***/ }),
-
-/***/ 559:
+/***/ 791:
 /***/ (function(module) {
 
 /**
@@ -12011,13 +4062,7962 @@ if (! Contextmenu && "function" === 'function') {
     return { Mask: Mask, Helpers: Helpers };
 })));
 
+/***/ }),
+
+/***/ 763:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! utils && "function" === 'function') {
+    var utils = __webpack_require__(791);
+}
+
+const Helpers = utils.Helpers;
+const Mask = utils.Mask;
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const filterData = function(year, month) {
+        // Data for the month
+        let data = {};
+        if (Array.isArray(this.data)) {
+            this.data.map(function (v) {
+                let d = year + '-' + Helpers.two(month + 1);
+                if (v.date.substring(0, 7) === d) {
+                    if (!data[v.date]) {
+                        data[v.date] = [];
+                    }
+                    data[v.date].push(v);
+                }
+            });
+        }
+        return data;
+    }
+
+    // Get the short weekdays name
+    const getWeekdays = function(firstDayOfWeek) {
+        const reorderedWeekdays = [];
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = (firstDayOfWeek + i) % 7;
+            reorderedWeekdays.push(Helpers.weekdays[dayIndex]);
+        }
+
+        return reorderedWeekdays.map(w => {
+            return { title: w.substring(0, 1) };
+        });
+    }
+
+    const Views = function(self) {
+        const view = {};
+
+        // Create years container
+        view.years = [];
+        view.months = [];
+        view.days = [];
+        view.hours = [];
+        view.minutes = [];
+
+        for (let i = 0; i < 16; i++) {
+            view.years.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 12; i++) {
+            view.months.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 42; i++) {
+            view.days.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 24; i++) {
+            view.hours.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        for (let i = 0; i < 60; i++) {
+            view.minutes.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        view.years.update = function(date) {
+            let year = date.getUTCFullYear();
+            let start = year - (year % 16);
+
+            for (let i = 0; i < 16; i++) {
+                let item = view.years[i];
+                let value = start + i;
+
+                item.title = value
+                item.value = value;
+
+                if (self.cursor.y === value) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.months.update = function(date) {
+            let year = date.getUTCFullYear();
+
+            for (let i = 0; i < 12; i++) {
+                let item = view.months[i];
+
+                item.title = Helpers.months[i].substring(0,3);
+                item.value = i;
+
+                if (self.cursor.y === year && self.cursor.m === i) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.days.update = function(date) {
+            let year = date.getUTCFullYear();
+            let month = date.getUTCMonth();
+            let data = filterData.call(self, year, month);
+
+            // First day
+            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+            let firstDayOfMonth = tmp.getUTCDay();
+            let firstDayOfWeek = self.startingDay ?? 0;
+
+            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
+
+            let index = -1 * offset;
+
+            for (let i = 0; i < 42; i++) {
+                index++;
+                // Item
+                let item = view.days[i];
+                // Get the day
+                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
+                // Day
+                let day = tmp.getUTCDate();
+
+                // Create the item
+                item.title = day;
+                item.value = index;
+                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
+
+                // Reset range properties for each item
+                item.start = false;
+                item.end = false;
+                item.range = false;
+                item.last = false;
+                item.disabled = false;
+                item.data = null;
+
+                // Check selections
+                if (tmp.getUTCMonth() !== month) {
+                    // Days are not in the current month
+                    item.grey = true;
+                } else {
+                    // Check for data
+                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
+
+                    if (data && data[d]) {
+                        item.data = data[d];
+                    }
+
+                    item.grey = false;
+                }
+                // Month
+                let m = tmp.getUTCMonth();
+
+                // Select cursor
+                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+
+
+                // Valid ranges
+                if (self.validRange) {
+                    if (typeof self.validRange === 'function') {
+                        let ret = self.validRange(day,m,year,item);
+                        if (typeof ret !== 'undefined') {
+                            item.disabled = ret;
+                        }
+                    } else {
+                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
+
+                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
+                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
+
+                        if (! (test1 && test2)) {
+                            item.disabled = true;
+                        }
+                    }
+                }
+
+                // Select range
+                if (self.range && self.rangeValues) {
+                    // Only mark start/end if the number matches
+                    item.start = self.rangeValues[0] === item.number;
+                    item.end = self.rangeValues[1] === item.number;
+                    // Mark as part of range if between start and end
+                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
+                }
+            }
+        }
+
+        return view;
+    }
+
+    const isTrue = function(v) {
+        return v === true || v === 'true';
+    }
+
+    const isNumber = function (num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const Calendar = function(children, { onchange, onload, track }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Weekdays
+        self.weekdays = getWeekdays(self.startingDay ?? 0);
+
+        // Cursor
+        self.cursor = {};
+
+        // Time
+        self.time = !! self.time;
+
+        // Range values
+        self.rangeValues = null;
+
+        // Calendar date
+        let date = new Date();
+
+        // Views
+        const views = Views(self);
+        const hours = views.hours;
+        const minutes = views.minutes;
+
+        // Initial view
+        self.view = 'days';
+
+        // Auto Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+
+        // Get the position of the data based on the view
+        const getPosition = function() {
+            let position = 2;
+            if (self.view === 'years') {
+                position = 0;
+            } else if (self.view === 'months') {
+                position = 1;
+            }
+            return position;
+        }
+
+        const setView = function(e) {
+            if (typeof e === 'object') {
+                e = this.getAttribute('data-view');
+            }
+
+            // Valid views
+            const validViews = ['days', 'months', 'years'];
+
+            // Define new view
+            if (validViews.includes(e) && self.view !== e) {
+                self.view = e;
+            }
+        }
+
+        const reloadView = function(reset) {
+            if (reset) {
+                // Update options to the view
+                self.options = views[self.view];
+            }
+            // Update the values of hte options of hte view
+            views[self.view]?.update.call(self, date);
+        }
+
+        const getValue = function() {
+            let value = null;
+            if (isTrue(self.range)) {
+                if (Array.isArray(self.rangeValues)) {
+                    if (isTrue(self.numeric)) {
+                        value = self.rangeValues;
+                    } else {
+                        value = [
+                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
+                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
+                        ];
+                    }
+                }
+            } else {
+                value = getDate();
+                if (isTrue(self.numeric)) {
+                    value = Helpers.dateToNum(value);
+                }
+            }
+            return value;
+        }
+
+        const setValue = function(v) {
+            let d = new Date();
+            if (v) {
+                if (isTrue(self.range)) {
+                    if (v) {
+                        if (! Array.isArray(v)) {
+                            v = v.toString().split(',');
+                        }
+                        self.rangeValues = [...v];
+
+                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
+                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
+                        }
+                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
+                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
+                        }
+
+                        v = v[0];
+                    }
+                } else if (typeof v === 'string' && v.includes(',')) {
+                    v = v.split(',')[0];
+                }
+
+                if (v) {
+                    v = isNumber(v) ? Helpers.numToDate(v) : v;
+                    d = new Date(v + '  GMT+0');
+                }
+
+                // if no date is defined
+                if (! Helpers.isValidDate(d)) {
+                    d = new Date();
+                }
+            }
+
+            // Update the internal calendar date
+            setDate(d, true);
+            // Update the view
+            reloadView();
+        }
+
+        const getDate = function() {
+            let v = [ self.cursor.y, self.cursor.m, self.cursor.d, self.hour, self.minute ];
+            let d = new Date(Date.UTC(...v));
+            // Update the headers of the calendar
+            if (self.time) {
+                return d.toISOString().substring(0, 19).replace('T', ' ');
+            } else {
+                return d.toISOString().substring(0, 10);
+            }
+        }
+
+        const setDate = function(d, update) {
+            if (Array.isArray(d)) {
+                d = new Date(Date.UTC(...d));
+            } else if (typeof(d) === 'string') {
+                d = new Date(d);
+            }
+
+            // Update the date
+            let value = d.toISOString().substring(0,10).split('-');
+            let month = Helpers.months[parseInt(value[1])-1];
+            let year = parseInt(value[0]);
+
+            if (self.month !== month) {
+                self.month = month;
+            }
+            if (self.year !== year) {
+                self.year = year;
+            }
+
+            // Update the time
+            let time = d.toISOString().substring(11,19).split(':');
+            let hour = parseInt(time[0]);
+            let minute = parseInt(time[1]);
+
+            if (self.hour !== hour) {
+                self.hour = hour;
+            }
+            if (self.minute !== minute) {
+                self.minute = minute;
+            }
+
+            // Update internal date
+            date = d;
+
+            // Update cursor information
+            if (update) {
+                updateCursor();
+            }
+        }
+
+        const updateCursor = function() {
+            self.cursor.y = date.getUTCFullYear();
+            self.cursor.m = date.getUTCMonth();
+            self.cursor.d = date.getUTCDate();
+        }
+
+        const resetCursor = function() {
+            // Remove selection from the current object
+            let current = self.cursor.current;
+            // Current item
+            if (typeof current !== 'undefined') {
+                current.selected = false;
+            }
+        }
+
+        const setCursor = function(s) {
+            // Reset current visual cursor
+            resetCursor();
+            // Update cursor based on the object position
+            if (s) {
+                // Update current
+                self.cursor.current = s;
+                // Update selected property
+                s.selected = true;
+            }
+
+            updateCursor();
+
+            // Update range
+            if (isTrue(self.range)) {
+                updateRange(s)
+            }
+
+            Dispatch.call(self, self.onupdate, 'update', {
+                instance: self,
+                value: date.toISOString(),
+            });
+        }
+
+        const select = function(e, s) {
+            // Get new date content
+            let d = updateDate(s.value, getPosition());
+            // New date
+            setDate(new Date(Date.UTC(...d)))
+            // Based where was the click
+            if (self.view !== 'days') {
+                // Back to the days
+                self.view = 'days';
+            } else if (! s.disabled) {
+                setCursor(s);
+
+                if (isTrue(self.range)) {
+                    // Start a new range
+                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
+                        destroyRange();
+                    }
+                    // Range
+                    s.range = true;
+                    // Update range
+                    if (! self.rangeValues) {
+                        s.start = true;
+                        self.rangeValues = [s.number, null];
+                    } else {
+                        s.end = true;
+                        self.rangeValues[1] = s.number;
+                    }
+                } else {
+                    update();
+                }
+            }
+        }
+
+        // Update Calendar
+        const update = function(e) {
+            self.setValue(getValue());
+            self.close({ origin: 'button' });
+        }
+
+        const reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        const updateDate = function(v, position) {
+            // Current internal date
+            let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
+            // Update internal date
+            value[position] = v;
+            // Return new value
+            return value;
+        }
+
+        const move = function(direction) {
+            // Reset visual cursor
+            resetCursor();
+
+            // Value
+            let value;
+
+            // Update the new internal date
+            if (self.view === 'days') {
+                // Select the new internal date
+                value = updateDate(date.getUTCMonth()+direction, 1);
+            } else if (self.view === 'months') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+direction, 0);
+            } else if (self.view === 'years') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
+            }
+
+            // Update view
+            setDate(value);
+
+            // Reload content of the view
+            reloadView();
+        }
+
+        const getJump = function(e) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                return self.view === 'days' ? 7 : 4;
+            }
+
+            return 1;
+        }
+
+        const prev = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) - getJump(e);
+                if (position < 0) {
+                    // Next month
+                    move(-1);
+                    // New position
+                    position = total + position;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(-1);
+            }
+        }
+
+        const next = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) + getJump(e);
+                if (position >= total) {
+                    // Next month
+                    move(1);
+                    // New position
+                    position = position - total;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(1);
+            }
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const updateRange = function(s) {
+            if (self.range && self.view === 'days' && self.rangeValues) {
+                // Creating a range
+                if (self.rangeValues[0] && ! self.rangeValues[1]) {
+                    let number = s.number;
+                    if (number) {
+                        // Update range properties
+                        for (let i = 0; i < self.options.length; i++) {
+                            let v = self.options[i].number;
+                            // Update property condition
+                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
+                            self.options[i].last = (v === number);
+                        }
+                    }
+                }
+            }
+        }
+
+        const destroyRange = function() {
+            if (self.range) {
+                for (let i = 0; i < self.options.length; i++) {
+                    if (self.options[i].range !== false) {
+                        self.options[i].range = false;
+                    }
+                    if (self.options[i].start !== false) {
+                        self.options[i].start = false;
+                    }
+                    if (self.options[i].end !== false) {
+                        self.options[i].end = false;
+                    }
+                    if (self.options[i].last !== false) {
+                        self.options[i].last = false;
+                    }
+                }
+                self.rangeValues = null;
+            }
+        }
+
+        const render = function(v) {
+            if (v) {
+                if (! Array.isArray(v)) {
+                    v = v.toString().split(',');
+                }
+
+                v = v.map(entry => {
+                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
+                }).join(',');
+            }
+            return v;
+        }
+
+        const normalize = function(v) {
+            if (! Array.isArray(v)) {
+                v = v.toString().split(',');
+            }
+
+            return v.map(item => {
+                if (Number(item) == item) {
+                    return Helpers.numToDate(item);
+                } else {
+                    if (Helpers.isValidDateFormat(item)) {
+                        return item;
+                    } else if (self.format) {
+                        let tmp = Mask.extractDateFromString(item, self.format);
+                        if (tmp) {
+                            return tmp;
+                        }
+                    }
+                }
+            })
+        }
+
+        const extractValueFromInput = function() {
+            let input = getInput();
+            if (input) {
+                let v;
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    v = input.value;
+                } else if (input.isContentEditable) {
+                    v = input.textContent;
+                }
+                if (v) {
+                    return normalize(v).join(',');
+                }
+                return v;
+            }
+        }
+
+        const onopen = function() {
+            let isEditable = false;
+            let value = self.value;
+
+            let input = getInput();
+            if (input) {
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
+                } else if (input.isContentEditable) {
+                    isEditable = true;
+                }
+
+                let ret = extractValueFromInput();
+                if (ret && ret !== value) {
+                    value = ret;
+                }
+            }
+
+            if (! isEditable) {
+                self.content.focus();
+            }
+
+            // Update the internal date values
+            setValue(value);
+
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Cancel range events
+            destroyRange();
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const dispatchOnChangeEvent = function() {
+            // Destroy range
+            destroyRange();
+            // Update the internal controllers
+            setValue(self.value);
+            // Events
+            Dispatch.call(self, change, 'change', {
+                instance: self,
+                value: self.value,
+            });
+            // Update input
+            let input = getInput();
+            if (input) {
+                // Update input value
+                input.value = render(self.value);
+                // Dispatch event
+                Dispatch.call(input, null, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+        }
+
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-calendar-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (! self.isClosed()) {
+                            self.content.focus();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            },
+            input: (e) => {
+                let input = e.target;
+                if (input.classList.contains('lm-calendar-input')) {
+                    if (! isTrue(self.range)) {
+                        // TODO: process with range
+                        // Apply mask
+                        if (self.format) {
+                            Mask.oninput(e, self.format);
+                        }
+                        let value = null;
+                        // Content
+                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
+                        // Check if that is a valid date
+                        if (Helpers.isValidDateFormat(content)) {
+                            value = content;
+                        } else if (self.format) {
+                            let tmp = Mask.extractDateFromString(content, self.format);
+                            if (tmp) {
+                                value = tmp;
+                            }
+                        }
+                        // Change the calendar view
+                        if (value) {
+                            setValue(value);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Onload
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    width: 300,
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            let ret;
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-calendar-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('input', events.input);
+                    input.addEventListener('keydown', events.keydown);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = render(self.value);
+                    } else {
+                        let value = extractValueFromInput();
+                        if (value && value !== self.value) {
+                            ret = value;
+                        }
+                    }
+                }
+            }
+
+            // Update the internal date values
+            if (ret) {
+                self.setValue(ret);
+            } else {
+                setValue(self.value);
+            }
+
+            // Reload view
+            reloadView(true);
+
+            /**
+             * Handler keyboard
+             * @param {object} e - event
+             */
+            self.el.addEventListener('keydown', function(e) {
+                let prevent = false;
+                if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    prev(e);
+                    prevent = true;
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    next(e);
+                    prevent = true;
+                } else if (e.key === 'Enter') {
+                    if (e.target === self.content) {
+                        // Item
+                        if (self.cursor.current) {
+                            // Select
+                            select(e, self.cursor.current);
+                            prevent = true;
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    if (! self.isClosed()) {
+                        self.close({ origin: 'escape' });
+                        prevent = true;
+                    }
+                }
+
+                if (prevent) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            });
+
+            /**
+             * Mouse wheel handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('wheel', function(e){
+                if (self.wheel !== false) {
+                    if (e.deltaY < 0) {
+                        prev(e);
+                    } else {
+                        next(e);
+                    }
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            /**
+             * Range handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('mouseover', function(e){
+                let parent = e.target.parentNode
+                if (parent === self.content) {
+                    let index = Array.prototype.indexOf.call(parent.children, e.target);
+                    updateRange(self.options[index]);
+                }
+            });
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        onchange((prop) => {
+            if (prop === 'view') {
+                reloadView(true);
+            } else if (prop === 'startingDay') {
+                self.weekdays = getWeekdays(self.startingDay ?? 0);
+            } else if (prop === 'value') {
+                dispatchOnChangeEvent();
+            }
+        })
+
+        // Tracking variables
+        track('value');
+
+        // Public methods
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (self.type === 'auto') {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                self.modal.open();
+            }
+        }
+
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            // Update value
+            if (v) {
+                let ret = normalize(v);
+                if (isTrue(self.numeric)) {
+                    ret = ret.map(entry => {
+                        return Helpers.dateToNum(entry);
+                    })
+                }
+
+                if (! Array.isArray(v)) {
+                    ret = ret.join(',');
+                }
+
+                if (ret == Number(ret)) {
+                    ret = Number(ret);
+                }
+
+                v = ret;
+            }
+
+            // Events
+            if (v !== self.value) {
+                self.value = v;
+            }
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        self.update = update;
+        self.next = next;
+        self.prev = prev;
+        self.reset = reset;
+        self.setView = setView;
+        self.helpers = Helpers;
+        self.helpers.getDate = Mask.getDate;
+
+        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
+            <div class="lm-calendar-options">
+                <button type="button" onclick="${reset}">${T('Reset')}</button>
+                <button type="button" onclick="${update}">${T('Done')}</button>
+            </div>
+            <div class="lm-calendar-container" data-view="{{self.view}}">
+                <div class="lm-calendar-header">
+                    <div>
+                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
+                        <div class="lm-calendar-navigation">
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
+                        </div>
+                    </div>
+                    <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
+                </div>
+                <div class="lm-calendar-content" :loop="self.options" tabindex="0" :ref="self.content">
+                    <div data-start="{{self.start}}" data-end="{{self.end}}" data-last="{{self.last}}" data-range="{{self.range}}" data-event="{{self.data}}" data-grey="{{self.grey}}" data-bold="{{self.bold}}" data-selected="{{self.selected}}" data-disabled="{{self.disabled}}" onclick="${select}">{{self.title}}</div>
+                </div>
+                <div class="lm-calendar-footer" data-visible="{{self.footer}}">
+                    <div class="lm-calendar-time" data-visible="{{self.time}}"><select :loop="${hours}" :bind="self.hour" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select>:<select :loop="${minutes}" :bind="self.minute" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select></div>
+                    <div class="lm-calendar-update"><input type="button" value="${T('Update')}" onclick="${update}" class="lm-ripple lm-input"></div>
+                </div>
+            </div>
+        </div>`
+    }
+
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Calendar: Calendar });
+    // Register the web component
+    lemonade.createWebComponent('calendar', Calendar);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Calendar, root, options)
+            return options;
+        } else {
+            return Calendar.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 541:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! Tabs && "function" === 'function') {
+    var Tabs = __webpack_require__(560);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            method(...a);
+        } else if (this.tagName) {
+            // Fallback: dispatch a custom event
+            const event = new CustomEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                detail: options,
+            });
+            this.dispatchEvent(event);
+        }
+    }
+
+    const defaultPalette =  [
+        ["#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1"],
+        ["#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc"],
+        ["#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5"],
+        ["#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae"],
+        ["#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c"],
+        ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b"],
+        ["#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a"],
+        ["#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64"],
+        ["#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f"],
+        ["#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238"],
+    ]
+
+    const Grid = function(children, { onchange }) {
+        const self = this;
+
+        if (! self.palette) {
+            self.palette = defaultPalette;
+        }
+
+        const select = (event) => {
+            if (event.target.tagName === 'TD') {
+                let color = event.target.getAttribute('data-value')
+
+                // Remove current selected mark
+                let selected = self.el.querySelector('.lm-color-selected');
+                if (selected) {
+                    selected.classList.remove('lm-color-selected');
+                }
+
+                // Mark cell as selected
+                if (color) {
+                    event.target.classList.add('lm-color-selected');
+                    self.set(color);
+                }
+            }
+        }
+
+        self.constructRows = function (e) {
+            let tbody = [];
+            e.textContent = '';
+            for (let j = 0; j < self.palette.length; j++) {
+                let tr = document.createElement('tr');
+                e.appendChild(tr);
+
+                for (let i = 0; i < self.palette[j].length; i++) {
+                    let color = self.palette[j][i];
+                    let td = document.createElement('td');
+                    td.setAttribute('data-value', color);
+                    td.style.backgroundColor = color;
+                    tr.appendChild(td);
+                }
+            }
+        }
+
+        onchange(property => {
+            if (property === 'palette') {
+                self.constructRows()
+            }
+        });
+
+        return render => render`<div class="lm-color-grid" :palette="self.palette">
+            <table cellpadding="7" cellspacing="0" onclick="${select}" :ref="self.table" :ready="self.constructRows"></table>
+        </div>`
+    }
+
+    const Spectrum = function(children, { onload }) {
+        let self = this;
+        let context = null;
+
+        let decToHex = function(num) {
+            let hex = num.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        }
+        let rgbToHex = function(r, g, b) {
+            return "#" + decToHex(r) + decToHex(g) + decToHex(b);
+        }
+
+        onload(() => {
+            context = self.canvas.getContext("2d", { willReadFrequently: true });
+            draw();
+        })
+
+        // Drsaw
+        const draw = function() {
+            let g = context.createLinearGradient(0, 0, self.canvas.width, 0);
+            // Create color gradient
+            g.addColorStop(0,    "rgb(255,0,0)");
+            g.addColorStop(0.15, "rgb(255,0,255)");
+            g.addColorStop(0.33, "rgb(0,0,255)");
+            g.addColorStop(0.49, "rgb(0,255,255)");
+            g.addColorStop(0.67, "rgb(0,255,0)");
+            g.addColorStop(0.84, "rgb(255,255,0)");
+            g.addColorStop(1,    "rgb(255,0,0)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+            g = context.createLinearGradient(0, 0, 0, self.canvas.height);
+            g.addColorStop(0,   "rgba(255,255,255,1)");
+            g.addColorStop(0.5, "rgba(255,255,255,0)");
+            g.addColorStop(0.5, "rgba(0,0,0,0)");
+            g.addColorStop(1,   "rgba(0,0,0,1)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+        }
+
+        // Moves the marquee point to the specified position
+        const update = (e) => {
+            let x;
+            let y;
+            let buttons = 1;
+            if (e.type === 'touchmove') {
+                x = e.changedTouches[0].clientX;
+                y = e.changedTouches[0].clientY;
+            } else {
+                buttons = e.buttons;
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            if (buttons === 1) {
+                let rect = self.el.getBoundingClientRect();
+                let left = x - rect.left;
+                let top = y - rect.top;
+                // Get the color in this pixel
+                let pixel = context.getImageData(left, top, 1, 1).data;
+                // Position pointer
+                self.point.style.left = left + 'px';
+                self.point.style.top = top + 'px';
+                // Return color
+                self.set(rgbToHex(pixel[0], pixel[1], pixel[2]));
+            }
+        }
+
+        return render => render`<div class="lm-color-hsl">
+            <canvas width="240" height="140" :ref="self.canvas" onmousedown="${update}" onmousemove="${update}" ontouchmove="${update}"></canvas>
+            <div class="lm-color-point" :ref="self.point"></div>
+        </div>`;
+    }
+
+    const Color = function(children, { onchange, onload }) {
+        let self = this;
+        let value = null;
+
+        const change = self.onchange;
+        self.onchange = null;
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        const applyValue = function(v) {
+            if (self.value !== v) {
+                self.value = v;
+            }
+        }
+
+        const onopen = function(e) {
+            self.open();
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const update = function() {
+            applyValue(value);
+            self.close({ origin: 'button' });
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-color-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (self.isClosed()) {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            }
+        }
+
+        const set = function(v) {
+            value = v;
+            // Close
+            if (self.closeOnChange === true) {
+                // Update value
+                self.setValue(v);
+                // Close modal
+                self.close({ origin: 'select' });
+            }
+        }
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (autoType) {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                value = self.value;
+                // Table
+                let table = self.grid.table;
+                // Remove any selection
+                let o = table.querySelector('.lm-color-selected');
+                if (o) {
+                    o.classList.remove('lm-color-selected');
+                }
+                // Selected
+                o = table.querySelector('[data-value="'+self.value+'"]');
+                if (o) {
+                    o.classList.add('lm-color-selected');
+                }
+                // Open modal
+                self.modal.open();
+            }
+        }
+
+        /**
+         * Close the modal
+         */
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        self.setValue = function(v) {
+            self.value = value = v;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        onchange(prop => {
+            if (prop === 'value') {
+                let input = getInput();
+                if (input) {
+                    input.value = self.value;
+                    if (self.value) {
+                        input.style.color = self.value;
+                    } else {
+                        input.style.color = '';
+                    }
+                }
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+        });
+
+        // Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    onopen: onopen,
+                    onclose: onclose,
+                    focus: false,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-color-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = self.value;
+                    } else if (input.value && input.value !== self.value) {
+                        self.value = input.value;
+                    }
+                }
+            }
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        return render => render`<div class="lm-color" :value="self.value">
+            <div class="lm-color-options">
+                <button type="button" onclick="${self.reset}">Reset</button>
+                <button type="button" onclick="${update}">Done</button>
+            </div>
+            <lm-tabs selected="0" position="center" :ref="self.tabs">
+                <div title="Grid"><${Grid} :palette="self.palette" :ref="self.grid" :set="${set}" /></div>
+                <div title="Spectrum"><${Spectrum} :ref="self.spectrum" :set="${set}" /></div>
+            </lm-tabs>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Color: Color });
+    // Register the web component
+    lemonade.createWebComponent('color', Color);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Color, root, options)
+            return options;
+        } else {
+            return Color.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 238:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Get the coordinates of the action
+    const getCoords = function(e) {
+        let x;
+        let y;
+
+        if (e.changedTouches && e.changedTouches[0]) {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        return [x,y];
+    }
+
+    const Item = function() {
+        let self = this;
+
+        self.onload = function() {
+            if (typeof(self.render) === 'function') {
+                self.render.call(self, self.el);
+            }
+        }
+
+        // Initialize expanded state
+        self.expanded = false;
+
+        if (self.type === 'line') {
+            return `<hr role="separator" />`;
+        } else if (self.type === 'inline') {
+            return `<div></div>`;
+        } else {
+            return `<div class="lm-menu-item" role="menuitem" data-disabled="{{self.disabled}}" data-cursor="{{self.cursor}}" data-icon="{{self.icon}}" title="{{self.tooltip}}" data-submenu="${!!self.submenu}" aria-haspopup="${!!self.submenu}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" tabindex="-1" onmouseup="self.parent.mouseUp" onmouseenter="self.parent.mouseEnter" onmouseleave="self.parent.mouseLeave">
+                <span>{{self.title}}</span> <div>{{self.shortcut}}</div>
+            </div>`;
+        }
+    }
+
+    const Create = function() {
+        let self = this;
+
+        // Delay on open
+        let delayTimer;
+        // Save the position of this modal
+        let index = self.parent.modals.length;
+
+        // Blank options
+        self.options = [];
+
+        // Close handler
+        self.onclose = function() {
+            // Reset any cursor
+            resetCursor.call(self);
+            // Parent
+            if (typeof(self.parent.onclose) === 'function') {
+                self.parent.onclose(self.parent, self);
+            }
+        }
+
+        self.onopen = function() {
+            // Parent
+            if (typeof(self.parent.onopen) === 'function') {
+                self.parent.onopen(self.parent, self);
+            }
+        }
+
+        /**
+         * Close the modal
+         */
+        self.close = function() {
+            // Close modals with higher level
+            self.parent.close(index);
+        }
+
+        /**
+         * Open submenu handler
+         * @param {object} s
+         * @param {boolean} cursor - Activate the first item
+         */
+        self.open = function(s, cursor) {
+            if (s.submenu) {
+                // Get the modal in the container of modals
+                let current = self.parent.modals[index+1];
+                // Do not exist yet, create it.
+                if (! current) {
+                    // Modal needs to be created
+                    current = self.parent.create();
+                }
+                // Get the parent from this one
+                let parent = self.parent.modals[index];
+                // Update modal content
+                if (current.options !== s.submenu) {
+                    // Close modals with higher level
+                    current.options = s.submenu;
+                    // Close other modals
+                    self.parent.close(index+1);
+                }
+                // Update the selected modal
+                self.parent.modalIndex = index+1;
+                let rect = parent.modal.el.getBoundingClientRect();
+                // Update modal
+                current.modal.open();
+                // Aria indication
+                current.modal.top = rect.y + s.el.offsetTop + 2;
+                current.modal.left = rect.x + 248;
+                // Keep current item for each modal
+                current.item = s;
+                s.expanded = true;
+
+                // Activate the cursor
+                if (cursor === true) {
+                    // Place cursor in the first position
+                    current.options[0].cursor = true;
+                    // Position cursor
+                    current.cursor = 0;
+                }
+
+                onopen(current, s.submenu)
+            } else {
+                // Close modals with higher level
+                self.parent.close(index+1);
+            }
+        }
+
+        // Mouse open
+        self.mouseUp = function(e, s) {
+            if (typeof(s.onclick) === 'function') {
+                s.onclick.call(s, e, s.el);
+            }
+            if (! s.submenu) {
+                self.close();
+            }
+        }
+
+        self.mouseEnter = function(e, s) {
+            if (delayTimer) {
+                clearTimeout(delayTimer);
+            }
+            delayTimer = setTimeout(function() {
+                self.open(s);
+            }, 200);
+        }
+
+        self.mouseLeave = function(e, s) {
+            if (delayTimer) {
+                clearTimeout(delayTimer);
+            }
+        }
+
+        let template = `<lm-modal :overflow="true" :closed="true" :ref="self.modal" :responsive="false" :auto-adjust="true" :focus="false" :layers="false" :onopen="self.onopen" :onclose="self.onclose">
+            <div class="lm-menu-submenu" role="menu" aria-orientation="vertical">
+                <Item :loop="self.options" />
+            </div>
+        </lm-modal>`;
+
+        return lemonade.element(template, self, { Item: Item });
+    }
+
+    const findNextEnabledCursor = function(startIndex, direction) {
+        if (!this.options || this.options.length === 0) {
+            return null;
+        }
+        
+        let cursor = startIndex;
+        let attempts = 0;
+        const maxAttempts = this.options.length;
+        
+        while (attempts < maxAttempts) {
+            if (direction) {
+                // Down
+                if (cursor >= this.options.length) {
+                    cursor = 0;
+                }
+            } else {
+                // Up
+                if (cursor < 0) {
+                    cursor = this.options.length - 1;
+                }
+            }
+            
+            let item = this.options[cursor];
+            if (item && !item.disabled && item.type !== 'line') {
+                return cursor;
+            }
+            
+            cursor = direction ? cursor + 1 : cursor - 1;
+            attempts++;
+        }
+        return null;
+    };
+
+    const setCursor = function(direction) {
+        let cursor = null;
+
+        if (typeof(this.cursor) !== 'undefined') {
+            if (! direction) {
+                // Up
+                cursor = findNextEnabledCursor.call(this, this.cursor - 1, false);
+            } else {
+                // Down
+                cursor = findNextEnabledCursor.call(this, this.cursor + 1, true);
+            }
+        }
+
+        // Remove the cursor
+        if (cursor === null) {
+            if (direction) {
+                cursor = findNextEnabledCursor.call(this, 0, true);
+            } else {
+                cursor = findNextEnabledCursor.call(this, this.options.length - 1, false);
+            }
+        } else if (typeof(this.cursor) !== 'undefined') {
+            this.options[this.cursor].cursor = false;
+        }
+
+        // Add the cursor if found
+        if (cursor !== null) {
+            this.options[cursor].cursor = true;
+            this.cursor = cursor;
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Reset the cursor for a contextmenu
+     */
+    const resetCursor = function() {
+        // Contextmenu modal
+        let item = this.options[this.cursor];
+        // Cursor is found so reset it
+        if (typeof(item) !== 'undefined') {
+            // Remove the cursor style
+            item.cursor = false;
+            // Delete reference index
+            delete this.cursor;
+        }
+    }
+
+    /**
+     * Go through all items of a menu
+     * @param s
+     * @param options
+     */
+    const onopen = function(s, options) {
+        // Onopen
+        for (let i = 0; i < options.length; i++) {
+            if (typeof(options[i].onopen) === 'function') {
+                options[i].onopen(s);
+            }
+        }
+    }
+
+    const Contextmenu = function(children, { onload }) {
+        let self = this;
+
+        // Container for all modals
+        self.modals = [];
+        self.modalIndex = 0;
+
+        self.create = function() {
+            // Create a new self for each modal
+            let s = {
+                parent: self,
+            };
+            // Render the modal inside the main container
+            lemonade.render(Create, self.el, s);
+            // Add the reference of the modal in a container#
+            self.modals.push(s);
+            // Return self
+            return s;
+        }
+
+        self.isClosed = function() {
+            return self.modals[0].modal.closed === true;
+        }
+
+        self.open = function(options, x, y, adjust) {
+            // Get the main modal
+            let menu = self.modals[0];
+            // Reset cursor
+            resetCursor.call(menu);
+            // Define new position
+            menu.modal.top = y;
+            menu.modal.left = x;
+            // Open
+            menu.modal.open();
+            // If the modal is open and the content is different from what is shown. Close modals with higher level
+            self.close(1);
+            // Update the data
+            if (options && menu.options !== options) {
+                // Refresh content
+                menu.options = options;
+            }
+            onopen(self, options);
+
+            // Adjust position to respect mouse cursor after auto-adjust
+            // Use queueMicrotask to ensure it runs after the modal's auto-adjust
+            if (adjust === true) {
+                queueMicrotask(() => {
+                    let modalEl = menu.modal.el;
+                    let rect = modalEl.getBoundingClientRect();
+                    let marginLeft = parseFloat(modalEl.style.marginLeft) || 0;
+                    let marginTop = parseFloat(modalEl.style.marginTop) || 0;
+
+                    // Check if horizontal adjustment was applied (margin is non-zero)
+                    if (marginLeft !== 0) {
+                        // Position modal so its right edge is at x - 1 (cursor 1px to the right of modal)
+                        // Formula: left + margin + width = x - 1, where left = x
+                        // Therefore: margin = -width - 1
+                        let newMarginLeft = -rect.width - 1;
+                        // Check if this would push modal off the left edge
+                        let newLeft = x + newMarginLeft;
+                        if (newLeft < 10) {
+                            // Keep a 10px margin from the left edge
+                            newMarginLeft = 10 - x;
+                        }
+                        modalEl.style.marginLeft = newMarginLeft + 'px';
+                    }
+
+                    // Check if vertical adjustment was applied (margin is non-zero)
+                    if (marginTop !== 0) {
+                        // Position modal so its bottom edge is at y - 1 (cursor 1px below modal)
+                        // Formula: top + margin + height = y - 1, where top = y
+                        // Therefore: margin = -height - 1
+                        let newMarginTop = -rect.height - 1;
+                        // Check if this would push modal off the top edge
+                        let newTop = y + newMarginTop;
+                        if (newTop < 10) {
+                            // Keep a 10px margin from the top edge
+                            newMarginTop = 10 - y;
+                        }
+                        modalEl.style.marginTop = newMarginTop + 'px';
+                    }
+                });
+            }
+            // Focus
+            self.el.classList.add('lm-menu-focus');
+            // Focus on the contextmenu
+            self.el.focus();
+        }
+
+        self.close = function(level) {
+            // Close all modals from the level specified
+            self.modals.forEach(function(menu, k) {
+                if (k >= level) {
+                    if (menu.item) {
+                        menu.item.expanded = false;
+                        menu.item = null;
+                    }
+                    menu.modal.close();
+                }
+            });
+            // Keep the index of the modal that is opened
+            self.modalIndex = level ? level - 1 : 0;
+
+            // Close event
+            if (level === 0) {
+                self.el.classList.remove('lm-menu-focus');
+
+                Dispatch.call(self, self.onclose, 'close', {
+                    instance: self,
+                });
+            }
+        }
+
+        onload(() => {
+            // Create first menu
+            self.create();
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                if (! (e.relatedTarget && (self.el.contains(e.relatedTarget) || self.root?.contains(e.relatedTarget)))) {
+                    self.close(0);
+                }
+            });
+
+            // Keyboard event
+            self.el.addEventListener("keydown", function(e) {
+                // Menu object
+                let menu = self.modals[self.modalIndex];
+                // Modal must be opened
+                if (! menu.modal.closed) {
+                    // Something happens
+                    let ret = false;
+                    // Control
+                    if (e.key === 'ArrowLeft') {
+                        if (self.modalIndex > 0) {
+                            // Close modal
+                            menu.close();
+                            // Action happened
+                            ret = true;
+                        }
+                    } else if (e.key === 'ArrowRight') {
+                        // Get the selected cursor
+                        let item = menu.options[menu.cursor];
+                        // Open submenu
+                        if (typeof (item) !== 'undefined') {
+                            // Open submenu in case that exists
+                            if (item.submenu && !item.disabled) {
+                                // Open modal
+                                menu.open(item, true);
+                                // Action happened
+                                ret = true;
+                            }
+                        }
+                    } else if (e.key === 'ArrowUp') {
+                        ret = setCursor.call(menu, 0);
+                    } else if (e.key === 'ArrowDown') {
+                        ret = setCursor.call(menu, 1);
+                    } else if (e.key === 'Enter') {
+                        // Contextmenu modal
+                        let item = menu.options[menu.cursor];
+                        // Cursor is found so reset it
+                        if (typeof(item) !== 'undefined') {
+                            // Execute action
+                            if (typeof (item.onclick) === 'function') {
+                                item.onclick.call(item, e, item.el);
+                            }
+                            // Open sub menu in case exists
+                            if (item.submenu) {
+                                // Open menu
+                                menu.open(item, true);
+                                // Action happened
+                                ret = true;
+                            } else {
+                                // Close all menu
+                                self.close(0);
+                                // Action happened
+                                ret = true;
+                            }
+                        }
+                    } else if (e.key === 'Escape') {
+                        self.close(0);
+                    }
+
+                    // Something important happen so block any progression
+                    if (ret === true) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            });
+
+            if (! self.root) {
+                if (self.tagName) {
+                    self.root = self.el.parentNode.parentNode;
+                } else {
+                    self.root = self.el.parentNode;
+                }
+            }
+
+            // Parent
+            self.root.addEventListener("contextmenu", function(e) {
+                if (Array.isArray(self.options) && self.options.length) {
+                    let [x, y] = getCoords(e);
+                    self.open(self.options, x, y, true);
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            });
+        });
+
+        return `<div class="lm-menu" role="menu" aria-orientation="vertical" tabindex="0"></div>`;
+    }
+
+    lemonade.setComponents({ Contextmenu: Contextmenu });
+
+    lemonade.createWebComponent('contextmenu', Contextmenu);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Contextmenu, root, options)
+            return options;
+        } else {
+            return Contextmenu.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 692:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * Implement page up and down navigation
+ * Implement color attribute for items
+ */
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (!Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            return this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Default row height
+    let defaultRowHeight = 24;
+
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const isEmpty = function(v) {
+        return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+    }
+
+    /**
+     * Compare two values (arrays, strings, numbers, etc.)
+     * Returns true if both are equal or empty
+     * @param {*} a1
+     * @param {*} a2
+     */
+    const compareValues = function(a1, a2) {
+        if (a1 === a2 || (isEmpty(a1) && isEmpty(a2))) {
+            return true;
+        }
+
+        if (!a1 || !a2) {
+            return false;
+        }
+
+        if (Array.isArray(a1) && Array.isArray(a2)) {
+            if (a1.length !== a2.length) {
+                return false;
+            }
+            for (let i = 0; i < a1.length; i++) {
+                if (a1[i] !== a2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return a1 === a2;
+    }
+
+    const lazyLoading = function (self) {
+        /**
+         * Get the position from top of a row by its index
+         * @param item
+         * @returns {number}
+         */
+        const getRowPosition = function (item) {
+            // Position from top
+            let top = 0;
+            if (item) {
+                let items = self.rows;
+                if (items && items.length) {
+                    let index = self.rows.indexOf(item);
+                    // Go through the items
+                    for (let j = 0; j < index; j++) {
+                        top += items[j].height || defaultRowHeight;
+                    }
+                }
+            }
+            return top;
+        }
+
+        const updateScroll = function () {
+            let items = self.rows;
+            if (items) {
+                // Before control
+                let before = true;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Position from top
+                let height = 0;
+                // Size of the adjustment
+                let size = 0;
+                // Go through the items
+                for (let j = 0; j < numOfItems; j++) {
+                    let h = items[j].height || defaultRowHeight;
+                    // Height
+                    height += h;
+                    // Start tracking all items as before
+                    if (items[j] === self.result[0]) {
+                        before = false;
+                    }
+                    // Adjustment
+                    if (before) {
+                        size += h;
+                    }
+                }
+                // Update height
+                scroll.style.height = height + 'px';
+                // Adjust scroll position
+                return size;
+            }
+            return false;
+        }
+
+        const getVisibleRows = function (reset) {
+            let items = self.rows;
+            if (items) {
+                let adjust;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Get the position from top
+                let y = el.scrollTop;
+                // Get the height
+                let h = null;
+                if (self.type === 'searchbar' || self.type === 'picker') {
+                    // Priority should be the size used on the viewport
+                    h = y + (el.offsetHeight || self.height);
+                } else {
+                    // Priority is the height define during initialization
+                    h = y + (self.height || el.offsetHeight);
+                }
+                // Go through the items
+                let rows = [];
+                // Height
+                let height = 0;
+                // Go through all items
+                for (let j = 0; j < numOfItems; j++) {
+                    if (items[j].visible !== false) {
+                        // Height
+                        let rowHeight = items[j].height || defaultRowHeight;
+                        // Return on partial width
+                        if (height + rowHeight > y && height < h) {
+                            rows.push(items[j]);
+                        }
+                        height += rowHeight;
+                    }
+                }
+
+                // Update visible rows
+                if (reset || !compareValues(rows, self.result)) {
+                    // Render the items
+                    self.result = rows;
+                    // Adjust scroll height
+                    let adjustScroll = reset;
+                    // Adjust scrolling
+                    for (let i = 0; i < rows.length; i++) {
+                        // Item
+                        let item = rows[i];
+                        // Item height
+                        let h = item.el.offsetHeight;
+                        // Update row height
+                        if (!item.height || h !== item.height) {
+                            // Keep item height
+                            item.height = h;
+                            // Adjust total height
+                            adjustScroll = true;
+                        }
+                    }
+
+                    // Update scroll if the height of one element has been changed
+                    if (adjustScroll) {
+                        // Adjust the scroll height
+                        adjust = updateScroll();
+                    }
+                }
+
+                // Adjust position of the first element
+                let position = getRowPosition(self.result[0]);
+                let diff = position - el.scrollTop;
+                if (diff > 0) {
+                    diff = 0;
+                }
+                self.container.style.top = diff + 'px';
+
+                return adjust;
+            }
+        }
+
+        /**
+         * Move the position to the top and re-render based on the scroll
+         * @param reset
+         */
+        const render = function (reset) {
+            // Move scroll to the top
+            el.scrollTop = 0;
+            // Reset scroll
+            updateScroll();
+            // Append first batch
+            getVisibleRows(reset);
+        }
+
+        /**
+         * Will adjust the items based on the scroll position offset
+         */
+        self.adjustPosition = function (item) {
+            if (item.el) {
+                let h = item.el.offsetHeight;
+                let calc = item.el.offsetTop + h;
+                if (calc > el.offsetHeight) {
+                    let size = calc - el.offsetHeight;
+                    if (size < h) {
+                        size = h;
+                    }
+                    el.scrollTop -= -1 * size;
+                }
+            }
+        }
+
+        // Controls
+        const scrollControls = function () {
+            getVisibleRows(false);
+        }
+
+        // Element for scrolling
+        let el = self.container.parentNode;
+        el.classList.add('lm-lazy');
+        // Div to represent the height of the content
+        const scroll = document.createElement('div');
+        scroll.classList.add('lm-lazy-scroll');
+        // Force the height and add scrolling
+        el.appendChild(scroll);
+        el.addEventListener('scroll', scrollControls, { passive: true });
+        el.addEventListener('wheel', scrollControls, { passive: true });
+        self.container.classList.add('lm-lazy-items');
+
+        self.goto = function (item) {
+            el.scrollTop = getRowPosition(item);
+            let adjust = getVisibleRows(false);
+            if (adjust) {
+                el.scrollTop = adjust;
+                // Last adjust on the visible rows
+                getVisibleRows(false);
+            }
+        }
+
+        return (prop) => {
+            if (prop === 'rows') {
+                render(true);
+            }
+        }
+    }
+
+    const getAttributeName = function(prop) {
+        if (prop.substring(0,1) === ':') {
+            prop = prop.substring(1);
+        } else if (prop.substring(0,3) === 'lm-') {
+            prop = prop.substring(3);
+        }
+        return prop.toLowerCase();
+    }
+
+    const extractFromHtml =  function(element) {
+        let data = [];
+        // Content
+        for (let i = 0; i < element.children.length; i++) {
+            let e = element.children[i];
+            let item = {
+                text: e.textContent || e.getAttribute('title'),
+                value: e.getAttribute('value'),
+            }
+            if (item.value == null) {
+                item.value = item.text;
+            }
+            data.push(item);
+        }
+
+        return data;
+    }
+
+    const extract = function(children) {
+        let data = [];
+
+        if (this.tagName) {
+            data = extractFromHtml(this);
+            // Remove all elements
+            this.textContent = '';
+        } else {
+            // Get data
+            if (typeof(children) === 'string') {
+                // Version 4
+                let d = document.createElement('div');
+                d.innerHTML = children;
+                data = extractFromHtml(d);
+            } else if (children && children.length) {
+                // Version 5
+                children.forEach((v) => {
+                    let item = {}
+                    v.props.forEach((prop) => {
+                        item[getAttributeName(prop.name)] = prop.value;
+                    });
+                    if (! item.text) {
+                        item.text = v.children[0]?.props[0]?.value || '';
+                    }
+                    data.push(item);
+                });
+                // Block children
+                children.length = 0;
+            }
+        }
+
+        return data;
+    }
+
+    const isDOM = function(o) {
+        return (o instanceof Element || o instanceof HTMLDocument || o instanceof DocumentFragment);
+    }
+
+    const Dropdown = function (children, { onchange, onload }) {
+        let self = this;
+        // Data
+        let data = [];
+        // Internal value controllers
+        let value = [];
+        // Cursor
+        let cursor = null;
+        // Control events
+        let ignoreEvents = false;
+        // Lazy loading global instance
+        let lazyloading = null;
+        // Tracking changes
+        let changesDetected = false;
+        // Debounce timer for search
+        let searchTimeout = null;
+
+        // Data
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        let d = extract.call(this, children);
+        if (d) {
+            d.forEach((v) => {
+                self.data.push(v)
+            })
+        }
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        // Custom events defined by the user
+        let load = self.onload;
+        self.onload = null;
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Compatibility
+        if (typeof self.newOptions !== 'undefined') {
+            self.insert = self.newOptions;
+        }
+
+        // Cursor controllers
+        const setCursor = function (index, force) {
+            let item = self.rows[index];
+            if (typeof (item) !== 'undefined') {
+                // Set the cursor number
+                cursor = index;
+                // Set visual indication
+                item.cursor = true;
+                // Go to the item on the scroll in case the item is not on the viewport
+                if (!(item.el && item.el.parentNode) || force === true) {
+                    // Goto method
+                    self.goto(item);
+                }
+                // Adjust cursor position
+                setTimeout(function () {
+                    self.adjustPosition(item);
+                });
+            }
+        }
+
+        const removeCursor = function (reset) {
+            if (cursor !== null) {
+                if (typeof (self.rows[cursor]) !== 'undefined') {
+                    self.rows[cursor].cursor = false;
+                }
+                if (reset) {
+                    // Cursor is null
+                    cursor = null;
+                }
+            }
+        }
+
+        const moveCursor = function (direction, jump) {
+            // Remove cursor
+            removeCursor();
+            // Last item
+            let last = self.rows.length - 1;
+            if (jump) {
+                if (direction < 0) {
+                    cursor = 0;
+                } else {
+                    cursor = last;
+                }
+            } else {
+                // Position
+                if (cursor === null) {
+                    cursor = 0;
+                } else {
+                    // Move previous
+                    cursor = cursor + direction;
+                }
+                // Reach the boundaries
+                if (direction < 0) {
+                    // Back to the last one
+                    if (cursor < 0) {
+                        cursor = last;
+                    }
+                } else {
+                    // Back to the first one
+                    if (cursor > last) {
+                        cursor = 0;
+                    }
+                }
+            }
+            // Add cursor
+            setCursor(cursor);
+        }
+
+        const adjustDimensions = function(data) {
+            // Estimate width
+            let width = self.width ?? 0;
+            // Adjust the width
+            let w = getInput().offsetWidth;
+            if (width < w) {
+                width = w;
+            }
+            // Width && values
+            data.map(function (s) {
+                // Estimated width of the element
+                if (s.text) {
+                    let w = Math.max(width, s.text.length * 7.5);
+                    if (width < w) {
+                        width = w;
+                    }
+                }
+            });
+            // Min width for the container
+            self.container.parentNode.style.width = (width - 2) + 'px';
+        }
+
+        const setData = function () {
+            // Data
+            data = JSON.parse(JSON.stringify(self.data));
+            // Re-order to make sure groups are in sequence
+            if (data && data.length) {
+                // Adjust width and height
+                adjustDimensions(data);
+                // Groups
+                data.sort((a, b) => {
+                    // Compare groups
+                    if (a.group && b.group) {
+                        return a.group.localeCompare(b.group);
+                    }
+                    return 0;
+                });
+                let group = '';
+                // Define group headers
+                data.map((v) => {
+                    // Compare groups
+                    if (v && v.group && v.group !== group) {
+                        v.header = v.group;
+                        group = v.group;
+                    }
+                });
+            }
+            // Data to be listed
+            self.rows = data;
+        }
+
+        const updateLabel = function () {
+            if (value && value.length) {
+                getInput().textContent = value.filter(v => v.selected).map(i => i.text).join('; ');
+            } else {
+                getInput().textContent = '';
+            }
+        }
+
+        const setValue = function (v, ignoreEvent) {
+            // Values
+            let newValue;
+            if (! Array.isArray(v)) {
+                if (typeof(v) === 'string') {
+                    newValue = v.split(self.divisor ?? ';');
+                } else {
+                    newValue = [v];
+                }
+            } else {
+                newValue = v;
+            }
+
+            // Width && values
+            value = [];
+
+            if (Array.isArray(data)) {
+                data.map(function (s) {
+                    s.selected = newValue.some(v => v == s.value);
+                    if (s.selected) {
+                        value.push(s);
+                    }
+                });
+            }
+
+            // Update label
+            if (self.isClosed()) {
+                updateLabel();
+            }
+
+            // Component onchange
+            if (! ignoreEvent) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: getValue(),
+                });
+            }
+        }
+
+        const getValue = function () {
+            if (self.multiple) {
+                if (value && value.length) {
+                    return value.filter(v => v.selected).map(i => i.value);
+                }
+            } else {
+                if (value && value.length) {
+                    return value[0].value;
+                }
+            }
+
+            return null;
+        }
+
+        const onopen = function () {
+            self.state = true;
+            // Value
+            let v = value[value.length - 1];
+            // Make sure goes back to the top of the scroll
+            if (self.container.parentNode.scrollTop > 0) {
+                self.container.parentNode.scrollTop = 0;
+            }
+            // Move to the correct position
+            if (v) {
+                // Mark the position of the cursor to the same element
+                setCursor(self.rows.indexOf(v), true);
+            }
+            // Prepare search field
+            if (self.autocomplete) {
+                // Get the input
+                let input = getInput();
+                // Editable
+                input.setAttribute('contenteditable', true);
+                // Clear input
+                input.textContent = '';
+                // Focus on the item
+                input.focus();
+            }
+            // Adjust width and height
+            adjustDimensions(self.data);
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function (options, origin) {
+            // Cursor
+            removeCursor(true);
+            // Reset search
+            if (self.autocomplete) {
+                // Go to begin of the data
+                self.rows = data;
+                // Get the input
+                let input = getInput();
+                if (input) {
+                    // Remove editable attribute
+                    input.removeAttribute('contenteditable');
+                    // Clear input
+                    input.textContent = '';
+                }
+            }
+
+            if (origin === 'escape') {
+                // Cancel operation and keep the same previous value
+                setValue(self.value, true);
+            } else {
+                // Current value
+                let newValue = getValue();
+
+                // If that is different from the component value
+                if (changesDetected === true && ! compareValues(newValue, self.value)) {
+                    self.value = newValue;
+                } else {
+                    // Update label
+                    updateLabel();
+                }
+            }
+
+            // Identify the new state of the dropdown
+            self.state = false;
+
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                ...options
+            });
+        }
+
+        const normalizeData = function(result) {
+            if (result && result.length) {
+                return result.map((v) => {
+                    if (typeof v === 'string' || typeof v === 'number') {
+                        return { value: v, text: v };
+                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
+                        return { value: v.id, text: v.name };
+                    } else {
+                        return v;
+                    }
+                });
+            }
+        }
+
+        const loadData = function(result) {
+            result = normalizeData(result);
+            // Loading controls
+            lazyloading = lazyLoading(self);
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    self.data.push(v);
+                });
+            }
+            // Process the data
+            setData();
+            // Set value
+            if (typeof(self.value) !== 'undefined') {
+                setValue(self.value, true);
+            }
+            // Onload method
+            Dispatch.call(self, load, 'load', {
+                instance: self
+            });
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+        }
+
+        const resetData = function(result) {
+            result = normalizeData(result);
+            // Reset cursor
+            removeCursor(true);
+            let r = data.filter(item => {
+                return item.selected === true;
+            });
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    r.push(v);
+                });
+            }
+            self.rows = r;
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+
+            // Event
+            Dispatch.call(self, self.onsearch, 'search', {
+                instance: self,
+                result: result,
+            });
+        }
+
+        const getInput = function() {
+            return self.input;
+        }
+
+        const search = function(query) {
+            if (! self.isClosed() && self.autocomplete) {
+
+                // Remote or normal search
+                if (self.remote === true) {
+                    // Clear existing timeout
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                    }
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Headers
+                    let http = {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }
+                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
+                        instance: self,
+                        http: http,
+                        query: query,
+                    });
+
+                    if (ret === false) {
+                        return;
+                    }
+
+                    // Debounce the search with 300ms delay
+                    searchTimeout = setTimeout(() => {
+                        fetch(`${self.url}?q=${query}`, http).then(r => r.json()).then(resetData).catch((error) => {
+                            resetData([]);
+                        });
+                    }, 300);
+                } else {
+                    // Filter options
+                    let temp;
+
+                    const find = (prop) => {
+                        if (prop) {
+                            if (Array.isArray(prop)) {
+                                // match if ANY element contains the query (case-insensitive)
+                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
+                            }
+                            // handle strings/numbers/others
+                            return prop.toString().toLowerCase().includes(query);
+                        }
+                        return false;
+                    };
+
+                    if (! query) {
+                        temp = data;
+                    } else {
+                        temp = data.filter(item => {
+                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
+                        });
+                    }
+
+                    // Cursor
+                    removeCursor(true);
+                    // Update the data from the dropdown
+                    self.rows = temp;
+                }
+            }
+        }
+
+        const events = {
+            focusout: (e) => {
+                if (self.modal) {
+                    if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                        if (! self.isClosed()) {
+                            self.close({ origin: 'focusout '});
+                        }
+                    }
+                }
+            },
+            keydown: (e) => {
+                if (! self.isClosed()) {
+                    let prevent = false;
+                    if (e.code === 'ArrowUp') {
+                        moveCursor(-1);
+                        prevent = true;
+                    } else if (e.code === 'ArrowDown') {
+                        moveCursor(1);
+                        prevent = true;
+                    } else if (e.code === 'Home') {
+                        moveCursor(-1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'End') {
+                        moveCursor(1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (e.target.tagName === 'BUTTON') {
+                            e.target.click();
+                            let input = getInput();
+                            input.focus();
+                        } else {
+                            select(e, self.rows[cursor]);
+                        }
+                        prevent = true;
+                    } else if (e.code === 'Escape') {
+                        self.close({ origin: 'escape'});
+                        prevent = true;
+                    } else {
+                        if (e.keyCode === 32 && !self.autocomplete) {
+                            select(e, self.rows[cursor]);
+                        }
+                    }
+
+                    if (prevent) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Enter') {
+                        self.open();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            },
+            mousedown: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    if (self.autocomplete) {
+                        let x;
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            x = e.changedTouches[0].clientX;
+                        } else {
+                            x = e.clientX;
+                        }
+                        if (e.target.offsetWidth - (x - e.target.offsetLeft) < 20) {
+                            toggle();
+                        } else {
+                            self.open();
+                        }
+                    } else {
+                        toggle();
+                    }
+                }
+            },
+            paste: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    let text;
+                    if (e.clipboardData || e.originalEvent.clipboardData) {
+                        text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                    } else if (window.clipboardData) {
+                        text = window.clipboardData.getData('Text');
+                    }
+                    text = text.replace(/(\r\n|\n|\r)/gm, "");
+                    document.execCommand('insertText', false, text)
+                    e.preventDefault();
+                }
+            },
+            input: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    search(e.target.textContent.toLowerCase());
+                }
+            },
+        }
+
+        const selectItem = function(s) {
+            if (self.remote === true) {
+                if (data.indexOf(s) === -1) {
+                    self.data.push(s);
+                    data.push(s);
+                }
+            }
+
+            if (self.multiple === true) {
+                let position = value.indexOf(s);
+                if (position === -1) {
+                    value.push(s);
+                    s.selected = true;
+                } else {
+                    value.splice(position, 1);
+                    s.selected = false;
+                }
+            } else {
+                if (value[0] === s) {
+                    if (self.allowEmpty === false) {
+                        s.selected = true;
+                    } else {
+                        s.selected = !s.selected;
+                    }
+                } else {
+                    if (value[0]) {
+                        value[0].selected = false;
+                    }
+                    s.selected = true;
+                }
+                if (s.selected) {
+                    value = [s];
+                } else {
+                    value = [];
+                }
+            }
+
+            changesDetected = true;
+        }
+
+        const add = async function (e) {
+            let input = getInput();
+            let text = input.textContent;
+            if (! text) {
+                return false;
+            }
+
+            // New item
+            let s = {
+                text: text,
+                value: text,
+            }
+
+            self.add(s);
+
+            e.preventDefault();
+        }
+
+        const select = function (e, s) {
+            if (s && s.disabled !== true) {
+                selectItem(s);
+                // Close the modal
+                if (self.multiple !== true) {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        const toggle = function () {
+            if (self.modal) {
+                if (self.isClosed()) {
+                    self.open();
+                } else {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        self.add = async function (newItem) {
+            // Event
+            if (typeof(self.onbeforeinsert) === 'function') {
+                self.input.classList.add('lm-dropdown-loading');
+                let ret = await self.onbeforeinsert(self, newItem);
+                self.input.classList.remove('lm-dropdown-loading');
+                if (ret === false) {
+                    return;
+                } else if (ret) {
+                    newItem = ret;
+                }
+            }
+            // Process the data
+            data.push(newItem);
+            self.data.push(newItem);
+            // Refresh screen
+            self.result.unshift(newItem);
+            self.rows.unshift(newItem);
+            self.refresh('result');
+
+            Dispatch.call(self, self.oninsert, 'insert', {
+                instance: self,
+                item: newItem,
+            });
+        }
+
+        self.open = function () {
+            if (self.modal && ! self.disabled) {
+                if (self.isClosed()) {
+                    if (autoType) {
+                        self.type = window.innerWidth > 640 ? self.type = 'default' : (self.autocomplete ? 'searchbar' : 'picker');
+                    }
+                    // Track
+                    changesDetected = false;
+                    // Open the modal
+                    self.modal.open();
+                }
+            }
+        }
+
+        self.close = function (options) {
+            if (self.modal) {
+                if (options?.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.setData = function(data) {
+            self.data = data;
+        }
+
+        self.getData = function() {
+            return self.data;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            self.value = v;
+        }
+
+        self.reset = function() {
+            self.value = null;
+            self.close({ origin: 'button' });
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        // Init with a
+        let input = self.input;
+
+        onload(() => {
+            if (self.type === "inline") {
+                // For inline dropdown
+                self.el.setAttribute('tabindex', 0);
+                // Remove search
+                self.input.remove();
+            } else {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-adjust': true,
+                    'auto-close': false,
+                };
+                // Generate modal
+                Modal(self.el.children[1], self.modal);
+            }
+
+            if (self.remote === 'true') {
+                self.remote = true;
+            }
+
+            if (self.autocomplete === 'true') {
+                self.autocomplete = true;
+            }
+
+            if (self.multiple === 'true') {
+                self.multiple = true;
+            }
+
+            if (self.insert === 'true') {
+                self.insert = true;
+            }
+
+            // Autocomplete will be forced to be true when insert action is active
+            if ((self.insert === true || self.type === 'searchbar' || self.remote === true) && ! self.autocomplete) {
+                self.autocomplete = true;
+            }
+
+            if (typeof(input) !== 'undefined') {
+                // Remove the native element
+                if (isDOM(input)) {
+                    input.classList.add('lm-dropdown-input');
+                }
+                // Remove search
+                self.input.remove();
+                // New input
+                self.input = input;
+            } else {
+                self.el.children[0].style.position = 'relative';
+            }
+
+            // Default width
+            if (self.width) {
+                // Dropdown
+                self.el.style.width = self.width + 'px';
+            }
+
+            // Height
+            self.height = 400;
+
+            // Animation for mobile
+            if (document.documentElement.clientWidth < 800) {
+                self.animation = true;
+            }
+
+            // Events
+            self.el.addEventListener('focusout', events.focusout);
+            self.el.addEventListener('keydown', events.keydown);
+            self.el.addEventListener('mousedown', events.mousedown);
+            self.el.addEventListener('paste', events.paste);
+            self.el.addEventListener('input', events.input);
+
+            // Load remote data
+            if (self.url) {
+                if (self.remote === true) {
+                    loadData();
+                } else {
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Load remote data
+                    fetch(self.url, {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }).then(r => r.json()).then(loadData).catch(() => {
+                        loadData();
+                    });
+                }
+            } else {
+                loadData();
+            }
+        });
+
+        onchange(prop => {
+            if (prop === 'value') {
+                setValue(self.value);
+            } else if (prop === 'data') {
+                setData();
+                self.value = null;
+            }
+
+            if (typeof (lazyloading) === 'function') {
+                lazyloading(prop);
+            }
+        });
+
+        return render => render`<div class="lm-dropdown" data-state="{{self.state}}" data-insert="{{self.insert}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" :value="self.value" :data="self.data">
+            <div class="lm-dropdown-header">
+                <div class="lm-dropdown-input" placeholder="{{self.placeholder}}" :ref="self.input" tabindex="0"></div>
+                <button class="lm-dropdown-add" onclick="${add}" tabindex="0"></button>
+                <div class="lm-dropdown-header-controls">
+                    <button onclick="self.reset" class="lm-dropdown-done">${T('Reset')}</button>
+                    <button onclick="self.close" class="lm-dropdown-done">${T('Done')}</button>
+                </div>
+            </div>
+            <div class="lm-dropdown-content">
+                <div>
+                    <div :loop="self.result" :ref="self.container" :rows="self.rows">
+                        <div class="lm-dropdown-item" onclick="${select}" data-cursor="{{self.cursor}}" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" data-group="{{self.header}}">
+                            <div><img :src="self.image" /> <div>{{self.text}}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Dropdown: Dropdown });
+
+    lemonade.createWebComponent('dropdown', Dropdown);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Dropdown, root, options)
+            return options;
+        } else {
+            return Dropdown.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 72:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * pin the modal to the left panel
+ */
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // References
+    const modals = [];
+    // State of the resize and move modal
+    let state = {};
+    // Internal controls of the action of resize and move
+    let controls = {};
+    // Width of the border
+    let cornerSize = 10;
+    // Container with minimized modals
+    const minimizedModals = [];
+    // Default z-index for the modals
+    const defaultZIndex = 20;
+
+    /**
+     * Send the modal to the front
+     * @param container
+     */
+    const sendToFront = function(container) {
+        let highestXIndex = defaultZIndex;
+        for (let i = 0; i < modals.length; i++) {
+            const zIndex = parseInt(modals[i].el.style.zIndex);
+            if (zIndex > highestXIndex) {
+                highestXIndex = zIndex;
+            }
+        }
+        container.style.zIndex = highestXIndex + 1;
+    }
+
+    /**
+     * Send modal to the back
+     * @param container
+     */
+    const sendToBack = function(container) {
+        container.style.zIndex = defaultZIndex;
+    }
+
+    // Get the coordinates of the action
+    const getCoords = function(e) {
+        let x;
+        let y;
+
+        if (e.changedTouches && e.changedTouches[0]) {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        return [x,y];
+    }
+
+    // Get the button status
+    const getButton = function(e) {
+        e = e || window.event;
+        if (e.buttons) {
+            return e.buttons;
+        } else if (e.button) {
+            return e.button;
+        } else {
+            return e.which;
+        }
+    }
+
+    // Finalize any potential action
+    const mouseUp = function(e) {
+        // Finalize all actions
+        if (typeof(controls.action) === 'function') {
+            controls.action();
+        }
+        setTimeout(function() {
+            // Remove cursor
+            if (controls.e) {
+                controls.e.style.cursor = '';
+            }
+            // Reset controls
+            controls = {};
+            // Reset state controls
+            state = {
+                x: null,
+                y: null,
+            }
+        }, 0)
+    }
+
+    const mouseMove = function(e) {
+        if (! getButton(e)) {
+            return false;
+        }
+        // Get mouse coordinates
+        let [x,y] = getCoords(e);
+
+        // Move modal
+        if (controls.type === 'move') {
+            if (state && state.x == null && state.y == null) {
+                state.x = x;
+                state.y = y;
+            }
+
+            let dx = x - state.x;
+            let dy = y - state.y;
+            let top = controls.e.offsetTop + dy;
+            let left = controls.e.offsetLeft + dx;
+
+            // Update position
+            controls.top = top;
+            controls.left = left;
+            controls.e.style.top = top + 'px';
+            controls.e.style.left = left + 'px';
+
+            state.x = x;
+            state.y = y;
+            state.top = top;
+            state.left = left;
+        } else if (controls.type === 'resize') {
+            let top = null;
+            let left = null;
+            let width = null;
+            let height = null;
+
+            if (controls.d === 'e-resize' || controls.d === 'ne-resize' || controls.d === 'se-resize') {
+                width = controls.w + (x - controls.x);
+
+                if (e.shiftKey) {
+                    height = controls.h + (x - controls.x) * (controls.h / controls.w);
+                }
+            } else if (controls.d === 'w-resize' || controls.d === 'nw-resize'|| controls.d === 'sw-resize') {
+                left = controls.l + (x - controls.x);
+                // Do not move further
+                if (left >= controls.l) {
+                    left = controls.l;
+                }
+                // Update width
+                width = controls.l + controls.w - left;
+                // Consider shift to update height
+                if (e.shiftKey) {
+                    height = controls.h - (x - controls.x) * (controls.h / controls.w);
+                }
+            }
+
+            if (controls.d === 's-resize' || controls.d === 'se-resize' || controls.d === 'sw-resize') {
+                if (! height) {
+                    height = controls.h + (y - controls.y);
+                }
+            } else if (controls.d === 'n-resize' || controls.d === 'ne-resize' || controls.d === 'nw-resize') {
+                top = controls.t + (y - controls.y);
+                // Do not move further
+                if (top >= controls.t) {
+                    top = controls.t;
+                }
+                // Update height
+                height = controls.t + controls.h - top;
+            }
+
+            if (top) {
+                controls.e.style.top = top + 'px';
+            }
+            if (left) {
+                controls.e.style.left = left + 'px';
+            }
+            if (width) {
+                controls.e.style.width = width + 'px';
+            }
+            if (height) {
+                controls.e.style.height = height + 'px';
+            }
+        }
+    }
+
+    if (typeof(document) !== "undefined") {
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener('mousemove', mouseMove);
+    }
+
+    const isTrue = function(e) {
+        return e === true || e === 1 || e === 'true';
+    }
+
+    const refreshMinimized = function() {
+        let items = minimizedModals;
+        let numOfItems = items.length;
+        let width = 10;
+        let height = 55;
+        let offsetWidth = window.innerWidth;
+        let offsetHeight = window.innerHeight;
+        for (let i = 0; i < numOfItems; i++) {
+            let item = items[i];
+            item.el.style.left = width + 'px';
+            item.el.style.top = offsetHeight - height + 'px';
+            width += 205;
+
+            if (offsetWidth - width < 205) {
+                width = 10;
+                height += 50;
+            }
+        }
+    }
+
+    const delayAction = function(self, action) {
+        // Make sure to remove the transformation before minimize to preserve the animation
+        if (self.el.style.marginLeft || self.el.style.marginTop) {
+            // Make sure no animation during this process
+            self.el.classList.add('action');
+            // Remove adjustment
+            removeMargin(self);
+            // Make sure to continue with minimize
+            setTimeout(function() {
+                // Remove class
+                self.el.classList.remove('action');
+                // Call action
+                action(self);
+            },0)
+
+            return true;
+        }
+    }
+
+    const setMini = function(self) {
+        if (delayAction(self, setMini)) {
+            return;
+        }
+
+        // Minimize modals
+        minimizedModals.push(self);
+
+        self.el.top = self.el.offsetTop;
+        self.el.left = self.el.offsetLeft;
+
+        if (! self.el.style.top) {
+            self.el.style.top = self.el.top + 'px';
+        }
+        if (! self.el.style.left) {
+            self.el.style.left = self.el.left + 'px';
+        }
+
+        self.el.translateY = 0;
+        self.el.translateX = 0;
+
+        // Refresh positions
+        setTimeout(function() {
+            refreshMinimized();
+            self.minimized = true;
+        },10)
+    }
+
+    const removeMini = function(self) {
+        minimizedModals.splice(minimizedModals.indexOf(self), 1);
+        self.minimized = false;
+        self.el.style.top = self.el.top + 'px';
+        self.el.style.left = self.el.left + 'px';
+        // Refresh positions
+        setTimeout(() => {
+            refreshMinimized();
+        }, 10);
+        // Refresh positions
+        setTimeout(() => {
+            if (self.top === '') {
+                self.el.style.top = '';
+            }
+            if (self.left === '') {
+                self.el.style.left = '';
+            }
+        }, 400);
+    }
+
+    const removeMargin = function(self) {
+        if (self.el.style.marginLeft) {
+            let y = self.el.offsetLeft;
+            self.el.style.marginLeft = '';
+            self.left = y;
+        }
+
+        if (self.el.style.marginTop) {
+            let x = self.el.offsetTop;
+            self.el.style.marginTop = '';
+            self.top = x;
+        }
+    }
+
+    const adjustHorizontal = function(self) {
+        if (! isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginLeft = '';
+        let viewportWidth = window.innerWidth;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let w = document.documentElement.offsetWidth;
+                if (w > viewportWidth) {
+                    //viewportWidth = w;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let rightEdgeDistance = viewportWidth - (el.left + el.width);
+        let transformX = 0;
+
+        if (self.position === 'absolute') {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin - 10; // 10 is the scroll width
+            }
+        } else {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin;
+            }
+        }
+
+        if (el.left < 0) {
+            transformX = margin - el.left;
+        }
+        if (transformX !== 0) {
+            self.el.style.marginLeft = transformX + 'px';
+        }
+    }
+
+    const adjustVertical = function(self) {
+        if (! isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginTop = '';
+        let viewportHeight = window.innerHeight;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let h = document.documentElement.offsetHeight;
+                if (h > viewportHeight) {
+                    //viewportHeight = h;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let bottomEdgeDistance = viewportHeight - (el.top + el.height);
+        let transformY = 0;
+
+        if (self.position === 'absolute') {
+            if (bottomEdgeDistance < 5) {
+                transformY = (-1 * el.height) - margin - 12;
+                if (el.top + transformY < 0) {
+                    transformY = -el.top + 10;
+                }
+            }
+        } else {
+            if (bottomEdgeDistance < 0) {
+                transformY = bottomEdgeDistance - margin;
+            }
+        }
+
+        if (el.top < 0) {
+            transformY = margin - el.top;
+        }
+        if (transformY !== 0) {
+            self.el.style.marginTop = transformY + 'px';
+        }
+    }
+
+    const removeElements = function(root) {
+        // Keep the DOM elements
+        let elements = [];
+        if (root) {
+            while (root.firstChild) {
+                elements.push(root.firstChild);
+                root.firstChild.remove();
+            }
+        }
+        return elements;
+    }
+
+    const appendElements = function(root, elements) {
+        if (elements && elements.length) {
+            while (elements[0]) {
+                root.appendChild(elements.shift());
+            }
+        }
+    }
+
+    const Modal = function (template, { onchange, onload }) {
+        let self = this;
+        let backdrop = null;
+        let elements = null;
+
+        if (this.tagName) {
+            // Remove elements from the DOM
+            elements = removeElements(this);
+
+            this.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+            });
+        }
+
+        // Make sure keep the state as boolean
+        self.closed = !! self.closed;
+
+        // Keep all modals references
+        modals.push(self);
+
+        // External onload remove from the lifecycle
+        let change = self.onchange;
+        self.onchange = null;
+
+        let load = self.onload;
+        self.onload = null;
+
+        let ignoreEvents = false;
+
+        const click = function(e) {
+            if (e.target.classList.contains('lm-modal-close')) {
+                self.close({ origin: 'button' });
+            }
+
+            if (e.target.classList.contains('lm-modal-minimize')) {
+                // Handles minimized modal positioning
+                if (self.minimized === true) {
+                    removeMini(self);
+                } else {
+                    setMini(self);
+                }
+            }
+        }
+
+        const mousemove = function(e) {
+            if (getButton(e)) {
+                return;
+            }
+
+            // Get mouse coordinates
+            let [x,y] = getCoords(e);
+            // Root element of the component
+            let item = self.el;
+            // Get the position and dimensions
+            let rect = item.getBoundingClientRect();
+
+            controls.type = null;
+            controls.d = null;
+            controls.e = item;
+            controls.w = rect.width;
+            controls.h = rect.height;
+            controls.t = rect.top;
+            controls.l = rect.left;
+
+            // When resizable
+            if (isTrue(self.resizable)) {
+                if (e.clientY - rect.top < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'ne-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'nw-resize';
+                    } else {
+                        item.style.cursor = 'n-resize';
+                    }
+                } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'se-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'sw-resize';
+                    } else {
+                        item.style.cursor = 's-resize';
+                    }
+                } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                    item.style.cursor = 'e-resize';
+                } else if (e.clientX - rect.left < cornerSize) {
+                    item.style.cursor = 'w-resize';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'resize';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+
+            if (controls.type == null && isTrue(self.draggable)) {
+                if (y - rect.top < 40) {
+                    item.style.cursor = 'move';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'move';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+        }
+
+        const mousedown = function(e) {
+            if (! self.minimized) {
+                // Get mouse coordinates
+                let [x,y] = getCoords(e);
+                controls.x = x;
+                controls.y = y;
+                // Root element of the component
+                let item = self.el;
+                // Get the position and dimensions
+                let rect = item.getBoundingClientRect();
+                controls.e = item;
+                controls.w = rect.width;
+                controls.h = rect.height;
+                controls.t = rect.top;
+                controls.l = rect.left;
+                // If is not minimized
+                if (controls.type === 'resize') {
+                    // Make sure the width and height is defined for the modal
+                    if (! item.style.width) {
+                        item.style.width = controls.w + 'px';
+                    }
+                    if (! item.style.height) {
+                        item.style.height = controls.h + 'px';
+                    }
+                    // This will be the callback when finalize the resize
+                    controls.action = function () {
+                        self.width = parseInt(item.style.width);
+                        self.height = parseInt(item.style.height);
+                        controls.e.classList.remove('action');
+                        // Event
+                        Dispatch.call(self, self.onresize, 'resize', {
+                            instance: self,
+                            width: self.width,
+                            height: self.height,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                } else if (isTrue(self.draggable) && y - rect.top < 40) {
+                    // Callback
+                    controls.action = function () {
+                        self.top = parseInt(item.style.top);
+                        self.left = parseInt(item.style.left);
+                        controls.e.classList.remove('action');
+                        // Open event
+                        Dispatch.call(self, self.onmove, 'move', {
+                            instance: self,
+                            top: self.top,
+                            left: self.left,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                    // Remove transform
+                    removeMargin(self);
+                }
+            }
+        }
+
+        self.back = function() {
+            sendToBack(self.el);
+        }
+
+        self.front = function() {
+            sendToFront(self.el);
+        }
+
+        self.open = function() {
+            if (self.closed === true) {
+                self.closed = false;
+                // Close event
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self
+                });
+            }
+        }
+
+        self.close = function(options) {
+            if (self.closed === false) {
+                self.closed = true;
+                // Close event
+                Dispatch.call(self, self.onclose, 'close', {
+                    instance: self,
+                    ...options
+                });
+            }
+        }
+
+        self.isClosed = function() {
+            return self.closed;
+        }
+
+        if (! template || typeof(template) !== 'string') {
+            template = '';
+        }
+
+        // Custom Root Configuration
+        self.settings = {
+            getRoot: function() {
+                return self.root;
+            }
+        }
+
+        // Native lemonade
+        onload(() => {
+            // Dimensions
+            if (self.width) {
+                self.el.style.width = self.width + 'px';
+            }
+            if (self.height) {
+                self.el.style.height = self.height + 'px';
+            }
+            // Position
+            if (self.top) {
+                self.el.style.top = self.top + 'px';
+            }
+            if (self.left) {
+                self.el.style.left = self.left + 'px';
+            }
+
+            if (self.position === 'absolute' || self.position === 'right' || self.position === 'bottom' || self.position === 'left') {
+
+            } else {
+                if (!self.width && self.el.offsetWidth) {
+                    self.width = self.el.offsetWidth;
+                }
+                if (!self.height && self.el.offsetHeight) {
+                    self.height = self.el.offsetHeight;
+                }
+
+                // Initial centralize
+                if (self.position === 'center' || !self.top) {
+                    self.top = (window.innerHeight - self.height) / 2;
+                }
+                if (self.position === 'center' || !self.left) {
+                    self.left = (window.innerWidth - self.width) / 2;
+                }
+
+                // Responsive
+                if (document.documentElement.clientWidth < 800) {
+                    // Full screen
+                    if (self.height > 300) {
+                        self.el.classList.add('fullscreen');
+                    }
+                }
+            }
+
+            // Auto adjust
+            adjustHorizontal(self);
+            adjustVertical(self);
+
+            // Backdrop
+            if (self.backdrop === true) {
+                backdrop = document.createElement('div');
+                backdrop.classList.add('lm-modal-backdrop');
+                backdrop.addEventListener('click', () => {
+                    self.close({ origin: 'backdrop' });
+                });
+
+                if (self.closed === false) {
+                    self.el.parentNode.insertBefore(backdrop, self.el);
+                }
+            }
+
+            // Import content from DOM
+            if (self.content) {
+                if (typeof(self.content) === 'string') {
+                    template = self.content;
+                } else if (typeof(self.content) === 'object' && self.content.tagName) {
+                    self.root.appendChild(self.content);
+                }
+            }
+
+            // Focus out of the component
+            self.el.addEventListener('focusout', function(e) {
+                if (! self.el.contains(e.relatedTarget)) {
+                    if (isTrue(self['auto-close'])) {
+                        self.close({ origin: 'focusout' });
+                    }
+                    // Remove focus
+                    self.el.classList.remove('lm-modal-focus');
+                }
+            });
+
+            // Focus out of the component
+            self.el.addEventListener('focusin', function(e) {
+                self.el.classList.add('lm-modal-focus');
+            });
+
+            // Close and stop propagation
+            self.el.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (self.closed === false) {
+                        self.close({ origin: 'escape' });
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else if (e.key === 'Enter') {
+                    click(e);
+                }
+            });
+
+            // Append elements to the container
+            appendElements(self.el.children[1], elements);
+
+            if (self.url) {
+                fetch(self.url)
+                    .then(response => response.clone().body)
+                    .then(body => {
+                        let reader = body.getReader();
+                        reader.read().then(({ done, value }) => {
+                            // Add HTML to the modal
+                            self.root.innerHTML = new TextDecoder().decode(value.buffer);
+                            // Call onload event
+                            Dispatch.call(self, load, 'load', {
+                                instance: self
+                            });
+                        });
+                    });
+            } else {
+                // Call onload event
+                Dispatch.call(self, load, 'load', {
+                    instance: self
+                });
+            }
+        });
+
+        onchange((property) => {
+            if (ignoreEvents) {
+                return false;
+            }
+
+            if (property === 'closed') {
+                if (self.closed === false) {
+                    // Focus on the modal
+                    if (self.focus !== false) {
+                        self.el.focus();
+                    }
+                    // Show backdrop
+                    if (backdrop) {
+                        self.el.parentNode.insertBefore(backdrop, self.el);
+                    }
+
+                    // Auto adjust
+                    queueMicrotask(() => {
+                        adjustHorizontal(self);
+                        adjustVertical(self);
+                    });
+                } else {
+                    // Hide backdrop
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            } else if (property === 'top' || property === 'left' || property === 'width' || property === 'height') {
+                if (self[property] !== '') {
+                    self.el.style[property] = self[property] + 'px';
+                } else {
+                    self.el.style[property] = '';
+                }
+
+                if (self.closed === false) {
+                    queueMicrotask(() => {
+                        if (property === 'top') {
+                            adjustVertical(self);
+                        }
+                        if (property === 'left') {
+                            adjustHorizontal(self);
+                        }
+                    });
+                }
+            } else if (property === 'position') {
+                if (self.position) {
+                    if (self.position === 'center') {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    } else {
+                        self.top = '';
+                        self.left = '';
+                    }
+                } else {
+                    if (! self.top) {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                    }
+                    if (! self.left) {
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    }
+                }
+            }
+        });
+
+        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" :top="self.top" :left="self.left" :width="self.width" :height="self.height" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
+            <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
+            <div :ref="self.root">${template}</div>
+        </div>`
+    }
+
+    const Component = function (root, options) {
+        if (typeof(root) === 'object') {
+            // Remove elements from the DOM
+            let elements = removeElements(root);
+            // Create the modal
+            let e = lemonade.render(Modal, root, options);
+            // Add elements to the container
+            appendElements(e.children[1], elements);
+
+            return options;
+        } else {
+            return Modal.call(this);
+        }
+    }
+
+    // Create LemonadeJS Component
+    lemonade.setComponents({ Modal: Modal });
+    // Create Web Component
+    lemonade.createWebComponent('modal', Modal)
+
+    return Component;
+})));
+
+/***/ }),
+
+/***/ 867:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Rating = function(children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        if (! self.number) {
+            self.number = 5;
+        }
+
+        self.stars = [];
+
+        // Current self star
+        let current = null;
+
+        /**
+         * Update the number of stars
+         */
+        const len = function () {
+            // Remove stars
+            if (self.number < self.stars.length) {
+                self.stars.splice(self.number, self.stars.length);
+                if (self.value > self.number) {
+                    self.value = self.number;
+                }
+            }
+            // Add missing stars
+            for (let i = 0; i < self.number; i++) {
+                if (! self.stars[i]) {
+                    self.stars[i] = {
+                        icon: 'star',
+                    };
+                    if (self.tooltip[i]) {
+                        self.stars[i].title = self.tooltip[i];
+                    }
+                }
+            }
+            // Refresh
+            self.refresh('stars');
+        }
+
+        const val = function (index, events) {
+            if (typeof(index) === 'string') {
+                index = Number(index);
+            }
+            // Apply value to the selected property in each star
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].selected = i <= index - 1 ? 1 : 0;
+            }
+            // Keep current value
+            current = index;
+            // Dispatch method
+            if (events !== false) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: index,
+                });
+            }
+        }
+
+        const getElementPosition = function(child) {
+            if (child.tagName === 'I') {
+                let root = self.el;
+                for (let i = 0; i < root.children.length; i++) {
+                    let c = root.children[i];
+                    if (c === child) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        const click = function(e, s) {
+            let ret = getElementPosition(e.target);
+            if (ret !== -1) {
+                let index = ret + 1;
+                if (index === current) {
+                    index = 0;
+                }
+                self.value = index;
+            }
+        }
+
+        const mouseover = function(e, s) {
+            let index = getElementPosition(e.target);
+            if (index !== -1) {
+                for (let i = 0; i < self.number; i++) {
+                    if (i <= index) {
+                        self.stars[i].hover = 1;
+                    } else {
+                        self.stars[i].hover = 0;
+                    }
+                }
+            }
+        }
+
+        const mouseout = function(e, s) {
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].hover = 0;
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'number') {
+                len();
+            } else if (prop === 'value') {
+                val(self.value);
+            } else if (prop === 'tooltip') {
+                if (typeof(self.tooltip) === 'string') {
+                    self.tooltip = self.tooltip.split(',')
+                }
+                len();
+            }
+        })
+
+        onload(() => {
+            // Bind global method to be compatible with LemonadeJS forms
+            self.el.val = function (v) {
+                if (typeof (v) === 'undefined') {
+                    return self.value;
+                } else {
+                    self.value = v;
+                }
+            }
+
+            if (self.tooltip && typeof(self.tooltip) === 'string') {
+                self.tooltip = self.tooltip.split(',')
+            } else {
+                self.tooltip = '';
+            }
+            len();
+            // Ignore events
+            val(self.value, false);
+
+            self.el.addEventListener('click', click);
+            self.el.addEventListener('mouseout', mouseout);
+            self.el.addEventListener('mouseover', mouseover);
+        });
+
+        self.getValue = function () {
+            return Number(self.value);
+        }
+
+        self.setValue = function (index) {
+            self.value = index;
+        }
+
+        return `<div class="lm-rating" value="{{self.value}}" number="{{self.number}}" name="{{self.name}}" data-size="{{self.size}}" :loop="self.stars">
+            <i class="material-symbols-outlined material-icons" data-selected="{{self.selected}}" data-hover="{{self.hover}}" title="{{self.title}}">star</i>
+        </div>`;
+    }
+
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Rating: Rating });
+    // Register the web component
+    lemonade.createWebComponent('rating', Rating);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Rating, root, options)
+            return options;
+        } else {
+            return Rating.call(this, root)
+        }
+    }
+
+})));
+
+/***/ }),
+
+/***/ 539:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Switch = function (children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        const state = () => {
+            let s = self.el.firstChild.checked;
+            if (s !== self.checked) {
+                self.checked = s;
+            }
+        }
+
+        onchange((prop, a, b, c, d) => {
+            if (a !== b) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+
+            state();
+        })
+
+        onload(state);
+
+        return render => render`<label class="lm-switch" position="{{self.position}}" data-color="{{self.color}}">
+            <input type="checkbox" name="{{self.name}}" disabled="{{self.disabled}}" checked="{{self.checked}}" :bind="self.value" /> <span>{{self.text}}</span>
+        </label>`
+    }
+
+    // Create LemonadeJS references
+    lemonade.setComponents({ Switch: Switch });
+    // Create web-component
+    lemonade.createWebComponent('switch', Switch);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Switch, root, options)
+            return options;
+        } else {
+            return Switch.call(this, root);
+        }
+    }
+
+})));
+
+/***/ }),
+
+/***/ 560:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const extract = function(root, self) {
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        if (root.tagName) {
+            for (let i = 0; i < root.children.length; i++) {
+                self.data.push({
+                    el: root.children[i],
+                })
+            }
+        } else {
+            root.forEach((child) => {
+                self.data.push({
+                    el: child.element,
+                })
+            });
+        }
+    }
+
+    const sorting = function(el, options) {
+        const obj = {};
+
+        let dragElement = null;
+
+        el.addEventListener('dragstart', function(e) {
+            let target = e.target;
+            if (target.nodeType === 3) {
+                if (target.parentNode.getAttribute('draggable') === 'true') {
+                    target = target.parentNode;
+                } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+
+            if (target.getAttribute('draggable') === 'true') {
+                let position = Array.prototype.indexOf.call(target.parentNode.children, target);
+                dragElement = {
+                    element: target,
+                    o: position,
+                    d: position
+                }
+                target.style.opacity = '0.25';
+                e.dataTransfer.setDragImage(target,0,0);
+            }
+        });
+
+        el.addEventListener('dragover', function(e) {
+            e.preventDefault();
+
+            if (dragElement && getElement(e.target) && e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
+                let element = e.target.clientWidth / 2 > e.offsetX ? e.target : e.target.nextSibling;
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
+            }
+        });
+
+        el.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+        });
+
+        el.addEventListener('dragend', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                let element = dragElement.o < dragElement.d ? e.target.parentNode.children[dragElement.o] : e.target.parentNode.children[dragElement.o].nextSibling
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        el.addEventListener('drop', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                if (dragElement.o !== dragElement.d) {
+                    if (typeof(options.ondrop) == 'function') {
+                        options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
+                    }
+                }
+
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        const getElement = function(element) {
+            var sorting = false;
+
+            function path (element) {
+                if (element === el) {
+                    sorting = true;
+                }
+
+                if (! sorting) {
+                    path(element.parentNode);
+                }
+            }
+
+            path(element);
+
+            return sorting;
+        }
+
+        for (let i = 0; i < el.children.length; i++) {
+            if (! el.children[i].hasAttribute('draggable')) {
+                el.children[i].setAttribute('draggable', 'true');
+            }
+        }
+
+        return el;
+    }
+
+    const Tabs = function(children, { onchange, onload }) {
+        let self = this
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Add new tab
+        let createButton;
+
+        // Get the references from the root web component
+        let root;
+        let template = '';
+        if (this.tagName) {
+            root = this;
+        } else {
+            // References from LemonadeJS
+            if (typeof(children) === 'string') {
+                // Version 4
+                template = children;
+            } else if (children && children.length) {
+                // Version 5
+                root = children;
+            }
+        }
+
+        if (root) {
+            extract(root, self);
+        }
+
+        // Process the data
+        if (self.data) {
+            for (let i = 0; i < self.data.length; i++) {
+                if (! self.data[i].el) {
+                    // Create element
+                    self.data[i].el = document.createElement('div');
+                    // Create from content
+                    if (self.data[i].content) {
+                        self.data[i].el.innerHTML = self.data[i].content;
+                    }
+                }
+            }
+        }
+
+        let props = ['title', 'selected', 'data-icon'];
+
+        const select = function(index) {
+            // Make sure the index is a number
+            index = parseInt(index);
+            // Do not select tabs that does not exist
+            if (index >= 0 && index < self.data.length) {
+                for (let i = 0; i < self.root.children.length; i++) {
+                    self.headers.children[i].classList.remove('selected');
+                    self.root.children[i].classList.remove('selected');
+                }
+                self.headers.children[index].classList.add('selected');
+                self.root.children[index].classList.add('selected');
+            }
+        }
+
+        const init = function(selected) {
+            let tabs = [];
+
+            for (let i = 0; i < self.data.length; i++) {
+                // Extract meta information from the DOM
+                if (props) {
+                    props.forEach((prop) => {
+                        let short = prop.replace('data-', '');
+                        if (! self.data[i][short]) {
+                            let ret = self.data[i].el.getAttribute(prop);
+                            if (ret != null) {
+                                self.data[i][short] = ret;
+                            }
+                        }
+                    });
+                }
+                // Create tabs object
+                tabs[i] = {
+                    title: self.data[i].title,
+                }
+                // Which one is selected by default
+                if (self.data[i].selected) {
+                    selected = i;
+                }
+                if (self.data[i].icon) {
+                    tabs[i].icon = self.data[i].icon;
+                }
+
+                self.root.appendChild(self.data[i].el);
+            }
+
+            // Create headers
+            self.tabs = tabs;
+
+            // Default selected
+            if (typeof(selected) !== 'undefined') {
+                self.selected = selected;
+            }
+
+            if (props) {
+                // Add create new tab button
+                if (createButton) {
+                    self.headers.appendChild(createButton);
+                }
+                // Add sorting
+                sorting(self.el.firstChild.firstChild, {
+                    ondrop: (el, fromIndex, toIndex) => {
+                        // Remove the item from its original position
+                        const [movedItem] = self.data.splice(fromIndex, 1);
+                        // Insert it into the new position
+                        self.data.splice(toIndex, 0, movedItem);
+                        // Make sure correct order
+                        for (let i = 0; i < self.data.length; i++) {
+                            self.root.appendChild(self.data[i].el);
+                        }
+                        // Select new position
+                        self.selected = toIndex;
+                        // Dispatch event
+                        Dispatch.call(self, self.onchangeposition, 'changeposition', {
+                            instance: self,
+                            fromIndex: fromIndex,
+                            toIndex: toIndex,
+                        });
+                    }
+                })
+            }
+
+            props = null;
+        }
+
+        const create = function() {
+            // Create a new item
+            self.create({ title: 'Untitled' }, null, true);
+        }
+
+        const open = function(e) {
+            if (e.target.tagName === 'LI') {
+                // Avoid select something already selected
+                let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+                if (index !== self.selected) {
+                    self.selected = index;
+                }
+            }
+        }
+
+        const keydown = function(e, s) {
+            let index = null;
+            if (e.key === 'Enter') {
+                self.click(e, s);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                index = self.selected - 1;
+                if (index < 0) {
+                    index = 0;
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                index = self.selected + 1;
+                if (index > self.tabs.length-1) {
+                    index = self.tabs.length-1;
+                }
+            }
+
+            // Make selection
+            if (index !== null) {
+                self.tabs[index].el.focus();
+            }
+        }
+
+        onload(() => {
+            if (template) {
+                extract(self.root, self);
+            }
+
+            init(self.selected || 0);
+        })
+
+        onchange((property) => {
+            if (property === 'selected') {
+                select(self.selected);
+
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self,
+                    selected: self.selected,
+                });
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.selected,
+                });
+            }
+        })
+
+        self.open = function (index) {
+            self.selected = index;
+        }
+
+        self.create = function(item, position, select) {
+            // Create element
+            if (typeof(item) !== 'object') {
+                console.error('Item must be an object');
+            } else {
+
+                let ret = Dispatch.call(self, self.onbeforecreate, 'beforecreate', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+
+                if (ret === false) {
+                    return false;
+                }
+
+                // Create DOM
+                item.el = document.createElement('div');
+                // Create from content
+                if (item.content) {
+                    item.el.innerHTML = item.content;
+                }
+
+                // Add the new item in the end
+                if (typeof(position) === 'undefined' || position === null) {
+                    // Mew item
+                    position = self.data.length;
+                    // Add in the end
+                    self.data.push(item);
+                } else {
+                    self.data.splice(position, 0, item);
+                }
+                // New position
+                if (select) {
+                    // Refresh
+                    init(self.data.indexOf(item));
+                } else {
+                    init(self.selected);
+                }
+
+                self.tabs.forEach(item => {
+                    item.el.setAttribute('draggable', 'true');
+                })
+
+                Dispatch.call(self, self.oncreate, 'create', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+            }
+        }
+
+        self.allowCreate = !! self.allowCreate;
+
+        return render => render`<div class="lm-tabs" data-position="{{self.position}}" data-round="{{self.round}}">
+            <div role="tabs" class="lm-tabs-headers">
+                <ul :ref="self.headers" :loop="self.tabs" :selected="self.selected" onclick="${open}" onkeydown="${keydown}" onfocusin="${open}"><li class="lm-tab" tabindex="0" role="tab" data-icon="{{self.icon}}">{{self.title}}</li></ul>
+                <div data-visible="{{self.allowCreate}}" class="lm-tabs-insert-button" role="insert-tab" onclick="${create}">add</div>
+            </div>
+            <div :ref="self.root" class="lm-tabs-content">${template}</div>
+        </div>`
+    }
+
+    lemonade.setComponents({ Tabs: Tabs });
+
+    lemonade.createWebComponent('tabs', Tabs);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            if (typeof(options) !== 'object') {
+                options = {};
+            }
+            // Extract DOM references
+            extract(root, options);
+            // Create the modal
+            lemonade.render(Tabs, root, options);
+            // Return self
+            return options;
+        } else {
+            return Tabs.call(this);
+        }
+    };
+})));
+
+/***/ }),
+
+/***/ 330:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Contextmenu && "function" === 'function') {
+    var Contextmenu = __webpack_require__(238);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    const Topmenu = function(children, { onload, onchange }) {
+        let self = this;
+
+        // Current selection
+        let currentIndex = null;
+
+        const getElementPosition = function(child) {
+            let root = self.el.children[0];
+            for (let i = 0; i < root.children.length; i++) {
+                let c = root.children[i];
+                if (c === child) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        const select = function(e, s) {
+            if (! self.menu.isClosed()) {
+                let index = self.options.indexOf(s);
+                if (index !== currentIndex) {
+                    open(index);
+                }
+            }
+        }
+
+        const deselect = function() {
+            if (self.options) {
+                self.options.forEach(v => v.selected = false);
+            }
+        }
+
+        const selectIndex = function(newIndex) {
+            if (self.options) {
+                let s = self.options[newIndex];
+                if (s && ! s.disabled) {
+                    deselect();
+                    // Make it selected
+                    s.selected = true;
+                    // New index
+                    currentIndex = newIndex;
+                    // Focus
+                    s.el.focus();
+                }
+            }
+        }
+
+        const open = function(index) {
+            // Update cursor position
+            selectIndex(index);
+            let s = self.options[currentIndex];
+            if (s && s.submenu) {
+                let x = s.el.offsetLeft;
+                let y = s.el.offsetTop + s.el.offsetHeight + 2;
+                self.menu.open(s.submenu, x, y);
+                s.expanded = true;
+            }
+        }
+
+        const close = function() {
+            self.menu.close(0);
+            let s = self.options[currentIndex];
+            if (s) {
+                s.el.focus();
+                s.expanded = false;
+            }
+        }
+
+        const toggle = function(e, s) {
+            if (s.submenu && ! s.disabled) {
+                let index = self.options.indexOf(s);
+                if (index === currentIndex && ! self.menu.isClosed()) {
+                    close();
+                } else {
+                    open(index);
+                }
+                cancel(e);
+            }
+        }
+
+        const findNextEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+            
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+            
+            while (attempts < maxAttempts) {
+                if (index >= self.options.length) {
+                    index = 0;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index++;
+                attempts++;
+            }
+            return null;
+        };
+
+        const findPreviousEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+            
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+            
+            while (attempts < maxAttempts) {
+                if (index < 0) {
+                    index = self.options.length - 1;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index--;
+                attempts++;
+            }
+            return null;
+        };
+
+        const adjustOptionProperties = function() {
+            if (self.options) {
+                self.options.forEach(v => {
+                    v.haspopup = !!v.submenu;
+                    v.expanded = false;
+
+                    if (v.disabled) {
+                        v.el.removeAttribute('tabindex');
+                    } else {
+                        v.el.setAttribute('tabindex', '0');
+                    }
+                })
+            }
+        };
+
+        /**
+         * Open a submenu programaticaly. Default 0
+         * @param {number} index
+         */
+        self.open = function(index) {
+            if (typeof index === 'undefined') {
+                index = currentIndex;
+            }
+            if (! index) {
+                index = 0;
+            }
+
+            let s = self.options[index];
+            if (s) {
+                open(index);
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'options') {
+                adjustOptionProperties();
+            }
+        });
+
+        // Keyboard event
+        onload(() => {
+            self.el.addEventListener("focusin", function(e) {
+                let index = getElementPosition(e.target);
+                if (index !== -1) {
+                    if (e.relatedTarget === self.menu.el) {
+                        close();
+                    } else {
+                        selectIndex(index);
+                    }
+                }
+            });
+
+            self.el.addEventListener("focusout", function(e) {
+                if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                    if (self.options[currentIndex]) {
+                        self.options[currentIndex].selected = false;
+                    }
+                }
+            });
+
+            self.el.addEventListener("keydown", function(e) {
+                let o = self.options;
+                // Select top menu
+                let select = null;
+
+                if (e.key === 'Enter') {
+                    toggle(e, o[currentIndex])
+                } else if (e.key === 'ArrowLeft') {
+                    select = findPreviousEnabledIndex(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    select = findNextEnabledIndex(currentIndex + 1);
+                }
+
+                if (select !== null) {
+                    if (self.menu.isClosed()) {
+                        selectIndex(select);
+                    } else {
+                        open(select);
+                    }
+                }
+            });
+
+            adjustOptionProperties();
+        });
+
+        const cancel = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+
+        return render => render`<div class="lm-topmenu" role="menubar" aria-orientation="horizontal" oncontextmenu="${cancel}">
+            <div class="lm-topmenu-options" :loop="self.options">
+                <div class="lm-topmenu-title" role="menuitem" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" tabindex="0" aria-haspopup="{{self.haspopup}}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" onmousedown="${toggle}" onmouseenter="${select}">{{self.title}}</div>
+            </div>
+            <Contextmenu :ref="self.menu" :root="self.el" />
+        </div>`
+    }
+
+    lemonade.setComponents({ Topmenu: Topmenu });
+
+    // Register the web component
+    lemonade.createWebComponent('topmenu', Topmenu);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Topmenu, root, options)
+            return options;
+        } else {
+            return Topmenu.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 966:
+/***/ (function(module) {
+
+/**
+ * LemonadeJS v5
+ *
+ * Website: https://lemonadejs.com
+ * Description: Create amazing web based reusable components.
+ *
+ * This software is distributed under MIT License
+ * @Roadmap
+ * Accept interpolated values on properties `<div test="test: ${state}"></div>
+ */
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    'use strict';
+
+    /**
+     * Global control element
+     */
+    let R = {
+        queue: [],
+        container: {},
+        tracking: new Map,
+        components: {},
+        version: 5,
+    };
+
+    // Global LemonadeJS controllers
+    if (typeof(document) !== "undefined") {
+        if (! document.lemonadejs) {
+            document.lemonadejs = R;
+        } else {
+            R = document.lemonadejs;
+        }
+    }
+
+    // Get any conflict of versions
+    if (! R.version) {
+        console.error('This project seems to be using version 4 and version 5 causing a conflict of versions.');
+    }
+
+    // Script expression inside LemonadeJS templates
+    let isScript = /{{(.*?)}}/g;
+
+    /**
+     * Apply value in a object based on the address
+     */
+    const Path = function(str, val, remove) {
+        str = str.split('.');
+        if (str.length) {
+            let o = this;
+            let p = null;
+            while (str.length > 1) {
+                // Get the property
+                p = str.shift();
+                // Check if the property exists
+                if (o.hasOwnProperty(p)) {
+                    o = o[p];
+                } else {
+                    // Property does not exist
+                    if (typeof(val) === 'undefined') {
+                        return undefined;
+                    } else {
+                        // Create the property
+                        o[p] = {};
+                        // Next property
+                        o = o[p];
+                    }
+                }
+            }
+            // Get the property
+            p = str.shift();
+            // Set or get the value
+            if (typeof(val) !== 'undefined') {
+                if (remove === true) {
+                    delete o[p];
+                } else {
+                    o[p] = val;
+                }
+                // Success
+                return true;
+            } else {
+                // Return the value
+                if (o) {
+                    return o[p];
+                }
+            }
+        }
+        // Something went wrong
+        return false;
+    }
+
+    /**
+     * Show a better error developers
+     */
+    const createError = function() {
+        throw new Error('LemonadeJS ' + Array.from(arguments).join(' '));
+    }
+
+    /**
+     * Reference token is a string that define a token and not an expression
+     * @param {string} token
+     * @param {boolean?} topLevelOnly
+     * @returns {boolean}
+     */
+    function isReferenceToken(token, topLevelOnly) {
+        if (topLevelOnly) {
+            return /^(this|self)(\.\w+)$/gm.test(token);
+        } else {
+            return /^(this|self)(\.\w+|\[\d+])*$/gm.test(token);
+        }
+    }
+
+    /**
+     * Extract all valid tokens from a string
+     * @param {string} content
+     * @returns {string[]}
+     */
+    function extractTokens(content) {
+        // Input validation
+        if (typeof content !== 'string') {
+            throw new TypeError('Content must be a string');
+        }
+        // Single regex pattern to match both 'self.' and 'this.' prefixed identifiers Negative lookahead (?!\.\w) prevents matching nested properties
+        //const pattern =  /(?:self|this)\.\w+\b(?!\.\w)/g;
+        const pattern = /(?<=(?:this|self)\.)[a-zA-Z_]\w*/gm
+
+        // If no matches found, return empty array early
+        const matches = content.match(pattern);
+        if (!matches) {
+            return [];
+        }
+        // Create Set directly from matches array with map transform This is more efficient than adding items one by one
+        return [...new Set(matches.map(match => match.slice(match.indexOf('.') + 1)))];
+    }
+
+    /**
+     * Bind a property to one action and start tracking
+     * @param {object} lemon
+     * @param {string} prop
+     */
+    const trackProperty = function(lemon, prop) {
+        // Lemon handler
+        let s = lemon.self;
+        if (typeof(s) === 'object') {
+            // Change
+            let change = lemon.change;
+            // Events
+            let events = lemon.events[prop];
+            // Current value
+            let value = s[prop];
+            // Do not allow undefined
+            if (typeof(value) === 'undefined') {
+                value = '';
+            }
+            // Create the observer
+            Object.defineProperty(s, prop, {
+                set: function(v) {
+                    // Old value
+                    let oldValue = value;
+                    // New value
+                    value = v;
+                    // Dispatch reactions
+                    if (events) {
+                        events.forEach((action) => {
+                            action();
+                        });
+                    }
+                    // Refresh bound elements
+                    if (change && change.length) {
+                        change.forEach((action) => {
+                            if (typeof (action) === 'function') {
+                                action.call(s, prop, oldValue, v);
+                            }
+                        })
+                    }
+                },
+                get: function () {
+                    // Get value
+                    return value;
+                },
+                configurable: true,
+                enumerable: true,
+            });
+        }
+    }
+
+    /**
+     * Check if an element is appended to the DOM or a shadowRoot
+     * @param {HTMLElement} node
+     * @return {boolean}
+     */
+    const isAppended = function(node) {
+        while (node) {
+            if (node === document.body) {
+                return true; // Node is in main document
+            }
+
+            if (node.parentNode === null) {
+                if (node.host) {
+                    node = node.host; // Traverse up through ShadowRoot
+                } else {
+                    return false; // Detached node
+                }
+            } else {
+                node = node.parentNode; // Traverse up through parentNode
+            }
+        }
+        return false;
+    }
+
+    const elementNotReady = new Set;
+
+    /**
+     * Execute all pending events from onload
+     * @param lemon
+     */
+    const executeOnload = function(lemon) {
+        let s = lemon.self;
+        // Ready event
+        while (lemon.ready.length) {
+            lemon.ready.shift()();
+        }
+        // Native onload
+        if (typeof(s.onload) === 'function') {
+            s.onload.call(s, s.el);
+        }
+        // Current self
+        if (typeof(lemon.load) === 'function') {
+            lemon.load.call(s, s.el);
+        }
+    }
+
+    /**
+     * Process the onload methods
+     */
+    const processOnload = function(lemon) {
+        let root = lemon.tree.element;
+        if (root.tagName === 'ROOT' && lemon.elements) {
+            root = lemon.elements[0];
+        }
+        // Add to the queue
+        elementNotReady.add(lemon);
+        // Check if the element is appended to the DOM
+        if (isAppended(root)) {
+            elementNotReady.forEach((item) => {
+                // Remove from the list
+                elementNotReady.delete(item);
+                // Run onload and ready events
+                executeOnload(item);
+            })
+        }
+    }
+
+    /**
+     * Return the element based on the type
+     * @param item
+     * @returns {*}
+     */
+    const getElement = function(item) {
+        return typeof(item.type) === 'function' ? item.self : item.element;
+    }
+
+    const HTMLParser = function(html, values) {
+        /**
+         * process the scape chars
+         * @param char
+         * @returns {*|string}
+         */
+        function escape(char) {
+            const escapeMap = {
+                'n': String.fromCharCode(0x0A),
+                'r': String.fromCharCode(0x0D),
+                't': String.fromCharCode(0x09),
+                'b': String.fromCharCode(0x08),
+                'f': String.fromCharCode(0x0C),
+                'v': String.fromCharCode(0x0B),
+                '0': String.fromCharCode(0x00)
+            };
+
+            return escapeMap[char] || char;
+        }
+
+        /**
+         * Check if is a self-closing tag
+         * @param {string|function} type - Tag name or component function
+         * @returns {boolean}
+         */
+        function isSelfClosing(type) {
+            if (! type) {
+                return false;
+            } else {
+                // List of self-closing or void HTML elements
+                const selfClosingTags = [
+                    'area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'
+                ];
+                // Convert tagName to lowercase to ensure case-insensitive comparison
+                return typeof(type) === 'function' || selfClosingTags.includes(type.toLowerCase());
+            }
+        }
+
+        /**
+         * Create a text node and add it to current node's children
+         * @param {Object} tag - Text node properties
+         */
+        const createTextNode = function(tag) {
+            if (! this.current.children) {
+                this.current.children = [];
+            }
+
+            this.current.children.push({
+                type: '#text',
+                parent: this.current,
+                props: [tag],
+            });
+        }
+
+        /**
+         * Find the parent node by tag name
+         * @param {Object} node - Current node
+         * @param {string} type - Tag name to find
+         * @returns {Object|undefined}
+         */
+        const findParentByTagName = function(node, type) {
+            if (node && type) {
+                if (node.type === type) {
+                    return node;
+                } else {
+                    return findParentByTagName(node.parent, type);
+                }
+            }
+
+            return undefined;
+        }
+
+        /**
+         * Get expression value and update tag metadata
+         * @param {Object} tag - Tag to update
+         * @returns {*} Expression value
+         */
+        const getExpression = function(tag) {
+            // Get value
+            const v = values && values[this.index] !== undefined ? values[this.index] : '';
+            if (tag) {
+                // Keep the reference
+                tag.expression = this.reference;
+                // Keep the index
+                tag.index = this.index;
+            }
+            // Move the value index
+            this.index++;
+            // Delete reference
+            delete this.reference;
+            // Return value
+            return v;
+        }
+
+        /**
+         * Handle the text node creation
+         */
+        const commitText = function() {
+            if (typeof(this.text) !== 'undefined') {
+                const text = this.text.replace(/\r?\n\s+/g, '');
+                if (text) {
+                    createTextNode.call(this, { name: 'textContent', value: text });
+                }
+                delete this.text;
+            }
+        }
+
+        const commitComments = function() {
+            if (typeof(this.comments) !== 'undefined') {
+                let comments = this.comments;
+                if (comments) {
+                    comments = comments
+                        .replace('<!--', '')
+                        .replace('-->', '')
+
+                    if (! this.current.children) {
+                        this.current.children = [];
+                    }
+
+                    this.current.children.push({
+                        type: '#comments',
+                        parent: this.current,
+                        props: [{ name: 'text', value: comments }],
+                    });
+                }
+                delete this.comments;
+            }
+        }
+
+        /**
+         * Save the attribute to the tag
+         */
+        const commitAttribute = function() {
+            if (this.tag.attributeName) {
+                // Commit any current attribute
+                if (! this.tag.props) {
+                    this.tag.props = [];
+                }
+
+                let k = this.tag.attributeName;
+                let v = this.tag.attributeValue;
+
+                if (typeof(v) === 'undefined') {
+                    v = k;
+                }
+
+                let tag = {
+                    name: k,
+                    value: v,
+                };
+
+                if (typeof(this.tag.expression) !== 'undefined') {
+                    tag.index = this.tag.index;
+                    tag.expression = this.tag.expression;
+                }
+
+                this.tag.props.push(tag);
+
+                // Clean up temporary properties
+                delete this.tag.attributeName;
+                delete this.tag.attributeValue;
+                delete this.tag.index;
+                delete this.tag.expression;
+
+                if (this.tag.attributeIsReadyToClose) {
+                    delete this.tag.attributeIsReadyToClose;
+                }
+            }
+        }
+
+        /**
+         * Actions controller
+         * @param {Object} control - Parser control object
+         * @param {string} char - Current character
+         */
+        const actions = function(control, char) {
+            const method = control.action || 'text';
+            if (typeof actions[method] === 'function') {
+                actions[method].call(control, char);
+            }
+        }
+
+        /**
+         * Extract content between expression markers, handling quoted content
+         * @param {string} html - Full HTML string
+         * @param {number} startIndex - Starting index (position after ${})
+         * @returns {Object} Expression content and ending position
+         */
+        function extractExpressionContent(html, startIndex) {
+            let text = '';
+            let i = startIndex;
+            let insideQuotes = null;
+
+            while (i < html.length) {
+                const char = html[i];
+
+                // Handle quotes
+                if ((char === '"' || char === "'" || char === '`')) {
+                    if (!insideQuotes) {
+                        insideQuotes = char;
+                    } else if (char === insideQuotes) {
+                        insideQuotes = null;
+                    }
+                }
+
+                // Found closing brace outside quotes
+                if (char === '}' && !insideQuotes) {
+                    return {
+                        content: text,
+                        position: i
+                    };
+                }
+
+                text += char;
+                i++;
+            }
+
+            return {
+                content: text,
+                position: i
+            };
+        }
+
+        /**
+         * Process a new tag
+         * @param char
+         */
+        actions.processTag = function(char) {
+            // Just to check if there are any text to commit
+            commitText.call(this);
+
+            // Process the tag
+            if (char === '<') {
+                // Create new tag
+                this.tag = {
+                    type: '',
+                    parent: this.current
+                };
+            } else if (char.match(/[a-zA-Z0-9-]/)) {
+                // Tag name
+                this.tag.type += char;
+            } else {
+                if (char === '$' && this.reference) {
+                    // Custom tags
+                    this.tag.type = getExpression.call(this);
+                }
+                // Finished with tag name, move to attribute handling
+                this.action = 'attributeName';
+            }
+        }
+
+        /**
+         * Handle tag closing
+         * @param char
+         */
+        actions.closeTag = function(char) {
+            // Make sure to commit attribute
+            commitAttribute.call(this);
+            // Close the tag
+            if (char === '>') {
+                // Get the new parent
+                if (isSelfClosing(this.tag.type)) {
+                    // Push new tag to the parent
+                    if (! this.tag.parent.children) {
+                        this.tag.parent.children = [];
+                    }
+                    this.tag.parent.children.push(this.tag);
+                } else if (this.tag.closingTag) {
+                    // Need to find the parent on the chain
+                    const parentNode = findParentByTagName(this.tag.parent, this.tag.type);
+                    if (parentNode) {
+                        this.current = parentNode.parent;
+                    }
+                } else {
+                    if (this.tag.closing) {
+                        // Current is the parent
+                        this.current = this.tag.parent;
+                    } else {
+                        this.current = this.tag;
+                    }
+
+                    // Push new tag to the parent
+                    if (! this.tag.parent.children) {
+                        this.tag.parent.children = [];
+                    }
+                    this.tag.parent.children.push(this.tag);
+                }
+
+                // Remote temporary properties
+                delete this.tag.insideQuote;
+                delete this.tag.closingTag;
+                delete this.tag.closing;
+                // Finalize tag
+                this.tag = null;
+                // New action
+                this.action = 'text';
+            } else if (! this.tag.locked) {
+                if (char === '/') {
+                    if (! this.tag.type) {
+                        // This is a closing tag
+                        this.tag.closingTag = true;
+                    }
+                    // Closing character is found
+                    this.tag.closing = true;
+                } else if (char.match(/[a-zA-Z0-9-]/)) {
+                    // If is a closing tag, get the tag name
+                    if (this.tag.closingTag) {
+                        this.tag.type += char;
+                    }
+                } else {
+                    // Wait to the closing sign
+                    if (this.tag.type) {
+                        this.locked = true;
+                    }
+                }
+            }
+        }
+
+        actions.attributeName = function(char) {
+            // There is another attribute to commit
+            if (this.tag.attributeIsReadyToClose) {
+                commitAttribute.call(this);
+            }
+
+            // Build attribute name
+            if (char.match(/[a-zA-Z0-9-:]/)) {
+                if (! this.tag.attributeName) {
+                    this.tag.attributeName = '';
+                }
+                this.tag.attributeName += char;
+            } else if (char === '=') {
+                // Move to attribute value
+                if (this.tag.attributeName) {
+                    this.action = 'attributeValue';
+                    delete this.tag.attributeIsReadyToClose;
+                }
+            } else if (char.match(/\s/)) {
+                if (this.tag.attributeName) {
+                    this.tag.attributeIsReadyToClose = true;
+                }
+            }
+        };
+
+        actions.attributeValue = function(char) {
+            if (! this.tag.attributeValue) {
+                this.tag.attributeValue = '';
+            }
+
+            if (char === '"' || char === "'") {
+                if (this.tag.insideQuote) {
+                    if (this.tag.insideQuote === char) {
+                        this.tag.insideQuote = false;
+                    } else {
+                        this.tag.attributeValue += char;
+                    }
+                } else {
+                    this.tag.insideQuote = char;
+                }
+            } else {
+                if (char === '$' && this.reference) {
+                    // Custom tags
+                    char = getExpression.call(this, this.tag);
+                }
+                // Inside quotes, keep appending to the attribute value
+                if (this.tag.insideQuote) {
+                    if (this.tag.attributeValue) {
+                        this.tag.attributeValue += char;
+                    } else {
+                        this.tag.attributeValue = char;
+                    }
+                } else if (typeof(char) === 'string' && char.match(/\s/)) {
+                    if (this.tag.attributeValue) {
+                        this.action = 'attributeName';
+                    }
+                    this.tag.attributeIsReadyToClose = true;
+                } else {
+                    if (this.tag.attributeIsReadyToClose) {
+                        this.action = 'attributeName';
+                        actions.attributeName.call(this, char);
+                    } else {
+                        if (this.tag.attributeValue) {
+                            this.tag.attributeValue += char;
+                        } else {
+                            this.tag.attributeValue = char;
+                        }
+                    }
+                }
+            }
+        }
+
+        actions.text = function(char) {
+            if (char === '$' && this.reference) {
+                // Just to check if there are any text to commit
+                commitText.call(this);
+                // Custom tags
+                let tag = { name: 'textContent' }
+                tag.value = getExpression.call(this, tag);
+                // Add node tag
+                createTextNode.call(this, tag);
+            } else {
+                if (referenceControl === 1) {
+                    // Just to check if there are any text to commit
+                    commitText.call(this);
+                }
+
+                // Normal text processing
+                if (! this.text) {
+                    this.text = '';
+                }
+                this.text += char; // Keep appending to text content
+
+                if (referenceControl === 2) {
+                    // Just to check if there are any text to commit
+                    commitText.call(this);
+                }
+            }
+        }
+
+        actions.comments = function(char) {
+            if (! this.comments) {
+                this.comments = '';
+            }
+            this.comments += char;
+
+            if (this.comments.endsWith('-->')) {
+                commitComments.call(this);
+                this.action = 'text';
+            }
+        }
+
+        // Control the LemonadeJS native references
+        let referenceControl = null;
+
+        const result = { type: 'template' };
+        const control = {
+            current: result,
+            action: 'text',
+            index: 0,
+        };
+
+        // Input validation
+        if (typeof html !== 'string') {
+            throw new TypeError('HTML input must be a string');
+        }
+
+        // Main loop to process the HTML string
+        for (let i = 0; i < html.length; i++) {
+            // Current char
+            let char = html[i];
+
+            if (control.action === 'text' && char === '<' && html[i+1] === '!' && html[i+2] === '-' && html[i+3] === '-') {
+                control.action = 'comments';
+            }
+
+            if (control.action !== 'comments') {
+                let escaped = false;
+
+                if (values !== null) {
+                    // Handle scape
+                    if (char === '\\') {
+                        // This is a escaped char
+                        escaped = true;
+                        // Parse escape char
+                        char = escape(html[i+1]);
+                        // Move to the next char
+                        i++;
+                    }
+                }
+
+                // Global control logic
+                if (control.tag) {
+                    if (char === '>' || char === '/') {
+                        // End of tag, commit any attributes and go back to text parsing
+                        if (!control.tag.insideQuote) {
+                            control.action = 'closeTag';
+                        }
+                    }
+                } else {
+                    if (char === '<') {
+                        control.action = 'processTag';
+                    }
+                }
+
+                // Register references for a dynamic template
+                if (!escaped && char === '$' && html[i + 1] === '{') {
+                    const result = extractExpressionContent(html, i + 2);
+                    control.reference = result.content;
+                    i = result.position;
+                }
+
+                // Control node references
+                if (char === '{' && html[i + 1] === '{') {
+                    referenceControl = 1;
+                } else if (char === '}' && html[i - 1] === '}') {
+                    referenceControl = 2;
+                }
+            }
+
+            // Execute action
+            actions(control, char);
+
+            // Reference control
+            referenceControl = null;
+        }
+
+        // Handle any remaining text
+        commitText.call(control);
+
+        return result.children && result.children[0];
+    }
+
+    const generateHTML = function(lemon) {
+
+        const appendEvent = function(token, event, exec) {
+            if (! lemon.events[token]) {
+                lemon.events[token] = []
+            }
+            // Push the event
+            lemon.events[token].push(event);
+            // Execute
+            if (exec) {
+                event();
+            }
+        }
+
+        const createEventsFromExpression = function(expression, event, exec) {
+            // Get the tokens should be updated to populate this attribute
+            let tokens = extractTokens(expression);
+            if (tokens.length) {
+                // Process all the tokens
+                for (let i = 0; i < tokens.length; i++) {
+                    appendEvent(tokens[i], event);
+                }
+            }
+            // Execute method
+            if (exec) {
+                event();
+            }
+        }
+
+        const setDynamicValue = function(item, prop, attributeName) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            if (isReferenceToken(property)) {
+                // Event
+                let event = function() {
+                    // Reference
+                    let value = extractFromPath.call(lemon.self, property);
+                    // Update reference
+                    setAttribute(getElement(item), attributeName, value);
+                }
+                // Append event only for the top level properties in the self
+                if (isReferenceToken(property, true)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        // Append event to the token change
+                        let token = p[1]
+                        // Append event
+                        appendEvent(token, event);
+                    }
+                }
+                // Execute the event in the first time
+                event();
+            } else {
+                setAttribute(getElement(item), attributeName, castProperty(prop.value));
+            }
+        }
+
+        const dynamicContent = function(text) {
+            try {
+                // Cast value
+                let cast = null;
+                // Replace the text
+                text = text.replace(isScript, function (a, b) {
+                    let s = lemon.self;
+                    // Try to find the property
+                    let result = extractFromPath.call(s, b);
+                    // Evaluation for legacy purposes
+                    if (typeof(result) === 'undefined') {
+                        // This is deprecated and will be dropped on LemonadeJS 6
+                        result = run.call(s, b);
+                        if (typeof (result) === 'undefined') {
+                            result = '';
+                        }
+                    } else if (result === null) {
+                        result = '';
+                    }
+                    // Parse correct type
+                    if (typeof(result) !== 'string' && a === text) {
+                        cast = result;
+                    }
+                    // Return
+                    return result;
+                });
+
+                if (cast !== null) {
+                    return cast;
+                }
+
+                return text;
+            } catch (e) {
+            }
+        }
+
+        const isHTML = function(str) {
+            return /<[^>]*>/.test(str);
+        }
+
+        const appendHTMLBeforeNode = function(item, value) {
+            // Remove previous elements
+            if (item.current) {
+                item.current.forEach(e => e?.remove());
+            }
+            item.current = [];
+            // Node container
+            let node = getElement(item);
+            // Append content
+            if (! isHTML(value)) {
+                node.textContent = value;
+            } else {
+                // TODO: improve that
+                queueMicrotask(() => {
+                    // Create a temporary container
+                    const t = document.createElement('div');
+                    t.innerHTML = value;
+                    // Insert elements and store references
+                    while (t.firstChild) {
+                        item.current.push(t.firstChild);
+                        node.parentNode.insertBefore(t.firstChild, node);
+                    }
+                });
+            }
+        }
+
+        const applyElementAttribute = function(item, prop) {
+            if (typeof(prop.expression) !== 'undefined') {
+                // Event to update the designed position
+                let event = function() {
+                    // Extra value from the template
+                    let value = lemon.view(parseTemplate)[prop.index];
+                    // Process the NODE
+                    if (item.type === '#text') {
+                        appendHTMLBeforeNode(item, value);
+                    } else {
+                        // Set attribute
+                        setAttribute(getElement(item), prop.name, value);
+                    }
+                }
+                // Bind event to any tokens change
+                createEventsFromExpression(prop.expression, event, true);
+                // Register event for state changes
+                lemon.events[prop.index] = event;
+            } else {
+                // Get the tokens should be updated to populate this attribute
+                let tokens = extractTokens(prop.value);
+                if (tokens.length) {
+                    // Dynamic
+                    createEventsFromExpression(prop.value, function() {
+                        // Dynamic text
+                        let value = dynamicContent(prop.value);
+                        // Get the dynamic value
+                        setAttribute(getElement(item), prop.name, value);
+                    }, true)
+                } else {
+                    let value = prop.value;
+                    if (value.match(isScript)) {
+                        value = dynamicContent(value);
+                    }
+
+                    setAttribute(getElement(item), prop.name, value, true);
+                }
+            }
+        }
+
+        /**
+         * Create a LemonadeJS self bind
+         * @param item
+         * @param prop
+         */
+        const applyBindHandler = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            if (isReferenceToken(property, true)) {
+                let prop = property.split('.')[1];
+
+                // Event from component to the property
+                let event = function () {
+                    let value = getAttribute(getElement(item), 'value');
+                    if (lemon.self[prop] !== value) {
+                        lemon.self[prop] = value;
+                    }
+                }
+
+                if (typeof (item.type) === 'function') {
+                    item.bind = event;
+                } else {
+                    item.element.addEventListener('input', event);
+                }
+
+                // Event property to the element
+                event = () => {
+                    let value = getAttribute(getElement(item), 'value');
+                    if (lemon.self[prop] !== value) {
+                        setAttribute(getElement(item), 'value', lemon.self[prop]);
+                    }
+                }
+                // Append event
+                appendEvent(prop, event, true);
+            }
+        }
+
+        /**
+         * Create a LemonadeJS self render
+         * @param item
+         * @param prop
+         */
+        const applyRenderHandler = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+            let getValue = null;
+            let token = null;
+
+            if (isReferenceToken(property, true)) {
+                token = property.split('.')[1];
+                // Get value
+                getValue = () => {
+                    return lemon.self[token];
+                }
+            } else {
+                if (typeof(prop.expression) !== 'undefined') {
+                    getValue = () => {
+                        // Extra value from the template
+                        let data = lemon.view(parseTemplate)[prop.index];
+                        if (data instanceof state) {
+                            data = data.value;
+                        }
+                        return data;
+                    }
+                }
+            }
+
+            if (getValue) {
+                // Create container to keep the elements
+                item.container = [];
+
+                // Event property to the element
+                let event = () => {
+                    // Root element
+                    let root = typeof(item.type) === 'function' ? item.self.el : item.element;
+                    // Curren value
+                    let value = getValue();
+                    if (value) {
+                        item.container.forEach(e => {
+                            root.appendChild(e);
+                        });
+                    } else {
+                        while (root.firstChild) {
+                            item.container.push(root.firstChild);
+                            root.firstChild.remove();
+                        }
+                    }
+                }
+
+                if (token) {
+                    // Append event
+                    appendEvent(token, event);
+                } else {
+                    if (typeof(prop.expression) !== 'undefined') {
+                        lemon.events[prop.index] = event;
+                        createEventsFromExpression(prop.expression, event);
+                    }
+                }
+
+                // Execute event
+                let root = typeof(item.type) === 'function' ? item.self.el : item.element;
+                if (root) {
+                    event();
+                } else {
+                    lemon.ready.push(event);
+                }
+            }
+        }
+
+        /**
+         * Create a dynamic reference
+         * @param item
+         * @param prop
+         */
+        const createReference = function(item, prop) {
+            let ref = getElement(item);
+            if (typeof(prop.value) === 'function') {
+                prop.value(ref);
+            } else {
+                // Create a reference to the DOM element
+                let property = prop.expression || prop.value;
+                // Reference
+                if (isReferenceToken(property)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        lemon.self[p[1]] = ref;
+                    }
+                }
+            }
+        }
+
+        /**
+         * Process the :ready. Call when DOM is ready
+         * @param item
+         * @param prop
+         */
+        const whenIsReady = function(item, prop) {
+            let value = prop.value;
+            // If not a method, should be converted to a method
+            if (typeof(value) !== 'function') {
+                let t = extractFromPath.call(lemon.self, value);
+                if (t) {
+                    value = t;
+                }
+            }
+            // Must be a function
+            if (typeof(value) === 'function') {
+                lemon.ready.push(function() {
+                    value(getElement(item), lemon.self);
+                });
+            } else {
+                createError(`:ready ${value} is not a function`)
+            }
+        }
+
+        const getRoot = function(item) {
+            if (typeof(item.type) === 'function') {
+                if (item.parent.type === 'template') {
+                    return lemon.root;
+                } else {
+                    return item.parent.element;
+                }
+            }
+
+            return item.element;
+        }
+
+        const registerLoop = function(item, prop) {
+            // Create a reference to the DOM element
+            let property = prop.expression || prop.value;
+
+            // Append the template back to the correct position
+            if (lemon.self.settings?.loop) {
+                lemon.self.settings.loop(item)
+            }
+
+            // Event
+            let updateLoop = function(data) {
+                // Component
+                let method = typeof(item.type) === 'function' ? item.type : Basic;
+                // Remove all DOM
+                let root = getRoot(item);
+                if (root) {
+                    while (root.firstChild) {
+                        root.firstChild.remove();
+                    }
+                }
+                // Process the data
+                if (data && Array.isArray(data)) {
+                    // Process data
+                    data.forEach(function(self) {
+                        let el = self.el;
+                        if (el) {
+                            root.appendChild(el);
+                        } else {
+                            // Register parent
+                            register(self, 'parent', lemon.self);
+                            // Render
+                            L.render(method, root, self, item);
+                        }
+
+                        if (root?.getAttribute('unique') === 'false') {
+                            delete self.el;
+                        }
+                    })
+                }
+            }
+
+            // Event
+            let event;
+
+            // Type of property
+            if (isReferenceToken(property)) {
+                // Event
+                event = function() {
+                    // Reference
+                    let data = extractFromPath.call(lemon.self, property);
+                    // Update reference
+                    updateLoop(data);
+                }
+
+                // Append event only for the top level properties in the self
+                if (isReferenceToken(property, true)) {
+                    let p = extractFromPath.call(lemon.self, property, true);
+                    if (p) {
+                        // Append event to the token change
+                        appendEvent(p[1], event);
+                    }
+                }
+            } else {
+                if (typeof(prop.expression) !== 'undefined') {
+                    event = function() {
+                        // Extra value from the template
+                        let data = lemon.view(parseTemplate)[prop.index];
+                        if (data instanceof state) {
+                            data = data.value;
+                        }
+                        // Update the data
+                        updateLoop(data);
+                    }
+                    // Register event for state changes
+                    lemon.events[prop.index] = event;
+                }
+            }
+
+            // Defer event since the dom is not ready
+            if (event) {
+                if (getRoot(item)) {
+                    event();
+                } else {
+                    lemon.ready.push(event);
+                }
+            }
+        }
+
+        const isLoopAttribute = function(props) {
+            let test = false;
+            props.forEach(function(prop) {
+                if (prop.name === ':loop' || prop.name === 'lm-loop' || prop.name === '@loop') {
+                    test = true;
+                }
+            });
+            return test;
+        }
+
+        const registerPath = function(item, prop) {
+            if (! lemon.path.elements) {
+                lemon.path.elements = [];
+            }
+
+            let element = getElement(item);
+
+            lemon.path.elements.push({
+                element: element,
+                path: prop.value
+            });
+
+            // Event from component to the property
+            let event = function () {
+                // Get the current value of my HTML form element or component
+                let value = getAttribute(element, 'value');
+                // Apply the new value on the path on the object
+                if (lemon.path.value) {
+                    Path.call(lemon.path.value, prop.value, value);
+                    // Call the callback when exist
+                    if (typeof(lemon.path.change) === 'function') {
+                        lemon.path.change(value, prop.value, element);
+                    }
+                } else {
+                    console.log('Use setPath to define the form container before using lm-path');
+                }
+            }
+
+            if (typeof(item.type) === 'function') {
+                item.path = event;
+            } else {
+                item.element.addEventListener('input', event);
+            }
+        }
+
+        const appendChildren = function(container, children) {
+            if (container && children) {
+                for (let i = 0; i < children.length; i++) {
+                    let child = children[i];
+                    if (typeof(child) === 'string') {
+                        container.appendChild(document.createTextNode(child));
+                    } else if (child.element) {
+                        if (child.element.tagName === 'ROOT') {
+                            while (child.element.firstChild) {
+                                container.appendChild(child.element.firstChild);
+                            }
+                        } else {
+                            container.appendChild(child.element);
+                        }
+                    }
+                }
+            }
+        }
+
+        const getAttributeName = function(prop) {
+            return prop[0] === ':' || prop[0] === '@' ? prop.substring(1) : prop.substring(3);
+        }
+
+        const getAttributeEvent = function(event) {
+            event = event.toLowerCase();
+            if (event.startsWith('on')) {
+                return event.toLowerCase();
+            } else if (event.startsWith(':on')) {
+                return getAttributeName(event);
+            }
+        }
+
+        /**
+         * CHeck if the event name is a valid DOM event name
+         * @param element
+         * @param eventName
+         * @returns {boolean}
+         */
+        const isValidEventName = function(element, eventName) {
+            const validEventPattern = /^on[a-z]+$/;
+            return validEventPattern.test(eventName);
+        }
+
+        /**
+         * Create element from the string tagname
+         * @param tagName
+         * @returns {*}
+         */
+        const createElementFromString = function(tagName) {
+            // List of SVG tags (you can expand this list if needed)
+            const svgTags = [
+                "svg", "path", "circle", "rect", "line", "polygon", "polyline", "text"
+            ];
+
+            if (svgTags.includes(tagName)) {
+                // For SVG elements, use createElementNS with the correct namespace
+                return document.createElementNS("http://www.w3.org/2000/svg", tagName);
+            } else {
+                // For regular HTML elements, use createElement
+                return document.createElement(tagName);
+            }
+        }
+
+        const reorderProps = function(arr) {
+            // Define the desired order of names
+            const orderPriority = ['ref', 'bind', 'loop', 'ready'];
+
+            // Separate items into prioritized and non-prioritized
+            const prioritized = [];
+            const others = [];
+
+            // Sort items into respective arrays
+            arr.forEach(item => {
+                if (orderPriority.includes(item.name.substring(1)) || orderPriority.includes(item.name.substring(3))) {
+                    prioritized.push(item);
+                } else {
+                    others.push(item);
+                }
+            });
+
+            // Return combined array with prioritized items at the end
+            return [...others, ...prioritized];
+        }
+
+
+        const createElements = function(item) {
+            if (typeof(item) === 'object') {
+                // Create an element
+                if (item.type === '#comments') {
+                    item.element = document.createComment(item.props[0].value);
+                } else if (item.type === '#text') {
+                    // Text node
+                    item.element = document.createTextNode('');
+                    // Check for dynamic content
+                    applyElementAttribute(item, item.props[0]);
+                } else {
+                    // Apply attributes if they exist
+                    if (item.props && ! Array.isArray(item.props)) {
+                        let props = [];
+                        let keys = Object.keys(item.props);
+                        for (let i = 0; i < keys.length; i++) {
+                            props.push({ name: keys[i], value: item.props[keys[i]] });
+                        }
+                        item.props = props;
+                    } else if (! item.props) {
+                        item.props = [];
+                    }
+
+                    // This item is a parent for a loop
+                    if (isLoopAttribute(item.props)) {
+                        // Mark this item as a loop
+                        item.loop = true;
+                    }
+
+                    if (! item.type) {
+                        item.type = 'root';
+                    }
+
+                    if (typeof(item.type) === 'string') {
+                        if (item.type.match(/^[A-Z][a-zA-Z0-9\-]*$/g)) {
+                            let controller = item.type.toUpperCase();
+                            if (typeof(R.components[controller]) === 'function') {
+                                item.type = R.components[controller];
+                            } else if (typeof (lemon.components[controller]) === 'function') {
+                                item.type = lemon.components[controller];
+                            } else {
+                            }
+                        }
+                    }
+
+                    if (typeof(item.type) === 'string') {
+                        item.element = createElementFromString(item.type);
+                    } else if (typeof(item.type) === 'function') {
+                        // Create instance without calling constructor
+                        if (isClass(item.type)) {
+                            item.self = new item.type;
+                        } else {
+                            item.self = {};
+                        }
+                    }
+
+                    // Create all children
+                    if (! item.loop) {
+                        if (item.children && Array.isArray(item.children)) {
+                            item.children.forEach(child => {
+                                createElements(child);
+                            });
+                        }
+                        if (item.element) {
+                            appendChildren(item.element, item.children);
+                        }
+                    }
+
+                    // Process attributes
+                    if (item.props.length) {
+                        // Reorder props
+                        item.props = reorderProps(item.props);
+                        // Order by priority
+                        item.props.forEach(function(prop) {
+                            // If the property is an event
+                            let event = getAttributeEvent(prop.name);
+                            // When event for a DOM
+                            if (event) {
+                                // Element
+                                let element = item.element;
+                                // Value
+                                let value = prop.value;
+                                if (value) {
+                                    let handler = null; // Reset handler for each iteration
+                                    if (typeof (value) === 'function') {
+                                        handler = value;
+                                    } else {
+                                        let t = extractFromPath.call(lemon.self, value);
+                                        if (t) {
+                                            if (typeof (t) === 'function') {
+                                                prop.value = handler = t;
+                                            }
+                                        }
+                                    }
+                                    // When the element is a DOM
+                                    if (isDOM(element)) {
+                                        // Create the event handler
+                                        let eventHandler;
+                                        // Bind event
+                                        if (typeof(handler) === 'function') {
+                                            eventHandler = function(e, a, b) {
+                                                return handler.call(element, e, lemon.self, a, b);
+                                            }
+                                        } else {
+                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
+                                            eventHandler = function (e) {
+                                                return Function('e', 'self', value).call(element, e, lemon.self); // TODO, quebra tudo se mudar
+                                            }
+                                        }
+
+                                        if (isValidEventName(element, prop.name)) {
+                                            element.addEventListener(event.substring(2), eventHandler);
+                                        } else {
+                                            if (element.tagName?.includes('-')) {
+                                                element[event] = handler;
+                                            } else {
+                                                element[event] = eventHandler;
+                                            }
+                                        }
+                                    } else {
+                                        item.self[event] = handler || value;
+                                    }
+                                }
+                            } else if (prop.name.startsWith(':') || prop.name.startsWith('@') || prop.name.startsWith('lm-')) {
+                                // Special lemonade attribute name
+                                let attrName = getAttributeName(prop.name);
+                                // Special properties bound to the self
+                                if (attrName === 'ready') {
+                                    whenIsReady(item, prop);
+                                } else if (attrName === 'ref') {
+                                    createReference(item, prop);
+                                } else if (attrName === 'loop') {
+                                    registerLoop(item, prop);
+                                } else if (attrName === 'bind') {
+                                    applyBindHandler(item, prop);
+                                } else if (attrName === 'path') {
+                                    registerPath(item, prop);
+                                } else if (attrName === 'render') {
+                                    applyRenderHandler(item, prop);
+                                } else {
+                                    setDynamicValue(item, prop, attrName);
+                                }
+                            } else {
+                                applyElementAttribute(item, prop);
+                            }
+                        })
+                    }
+
+                    // Do not create elements at this state if this is a loop
+                    if (! item.loop) {
+                        if (typeof(item.type) === 'function') {
+                            // Execute component
+                            item.element = L.render(item.type, null, item.self, item);
+
+                            // Create all children
+                            if (item.children) {
+                                let root = item.element;
+                                if (typeof(item.self?.settings?.getRoot) === 'function') {
+                                    root = item.self.settings.getRoot();
+                                }
+                                appendChildren(root, item.children);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Create DOM elements
+        createElements(lemon.tree);
+
+        return lemon.tree.element;
+    }
+
+    /**
+     * Extract a property from a nested object using a string address
+     * @param {string} str address inside the nested object
+     * @param {boolean} config get the configuration obj => property
+     */
+    const extractFromPath = function(str, config) {
+        try {
+            let t = str.toString().replace(/[\[\]]/g, '.').split('.');
+            if (t[0] === 'self' || t[0] === 'this') {
+                t.shift();
+            }
+            // Remove blanks
+            t = t.filter(item => item !== '');
+            // Object
+            let o = this;
+            let lastObject;
+            while (t.length) {
+                // Get the property
+                let p = t.shift();
+                // Process config
+                if (config) {
+                    if (typeof(o) === 'object' && ! Array.isArray(o)) {
+                        lastObject = [o,p];
+                    }
+                    if (t.length === 0) {
+                        return lastObject;
+                    }
+                }
+                // Check if the property exists
+                if (o.hasOwnProperty(p) || typeof(o[p]) !== 'undefined') {
+                    o = o[p];
+                } else {
+                    return undefined;
+                }
+            }
+
+            if (typeof(o) !== 'undefined') {
+                return o;
+            }
+        } catch (e) {}
+
+        // Something went wrong
+        return undefined;
+    }
+
+    /**
+     * Cast the value of an attribute
+     */
+    const castProperty = function(attr) {
+        // Parse type
+        try {
+            if (typeof(attr) === 'string' && attr) {
+                // Remove any white spaces
+                attr = attr.trim();
+                if (attr === 'true') {
+                    return true;
+                } else if (attr === 'false') {
+                    return false;
+                } else if (! isNaN(attr)) {
+                    return Number(attr);
+                } else {
+                    let firstChar = attr[0];
+                    if (firstChar === '{' || firstChar === '[') {
+                        if (attr.slice(-1) === '}' || attr.slice(-1) === ']') {
+                            return JSON.parse(attr);
+                        }
+                    } else if (attr.startsWith('self.') || attr.startsWith('this.')) {
+                        let v = extractFromPath.call(this, attr);
+                        if (typeof(v) !== 'undefined') {
+                            return v;
+                        }
+                    }
+                }
+            }
+        } catch (e) {}
+
+        return attr;
+    }
+
+    /**
+     * This allows to run inline script on LEGACY system. Inline script can lead to security issues so use carefully.
+     * @param {string} s string to function
+     */
+    const run = function(s) {
+        return Function('self', '"use strict";return (' + s + ')')(this);
+    }
+
+    /**
+     * Check if the content {o} is a valid DOM Element
+     * @param {HTMLElement|DocumentFragment|object} o - is this a valid dom?
+     * @return {boolean}
+     */
+    const isDOM = function(o) {
+        return (o instanceof HTMLElement || o instanceof Element || o instanceof DocumentFragment);
+    }
+
+    /**
+     * Check if the method is a method or a class
+     * @param {function} f
+     * @return {boolean}
+     */
+    const isClass = function(f) {
+        return typeof f === 'function' && /^class\s/.test(Function.prototype.toString.call(f));
+    }
+
+    /**
+     * Basic handler
+     * @param {string|object} t - HTML template
+     * @return {string|object}
+     */
+    const Basic = function(t) {
+        return t;
+    }
+
+    /**
+     * Get the attribute helper
+     * @param {object} e Element
+     * @param {string} attribute
+     */
+    const getAttribute = function(e, attribute) {
+        let value;
+        if (attribute === 'value') {
+            if (typeof(e.val) === 'function') {
+                value = e.val();
+            } else {
+                if (e.getAttribute) {
+                    if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
+                        value = [];
+                        for (let i = 0; i < e.options.length; i++) {
+                            if (e.options[i].selected) {
+                                value.push(e.options[i].value);
+                            }
+                        }
+                    } else if (e.type === 'checkbox') {
+                        value = e.checked && e.getAttribute('value') ? e.value : e.checked;
+                    } else if (e.getAttribute('contenteditable')) {
+                        value = e.innerHTML;
+                    } else {
+                        value = e.value;
+                    }
+                } else {
+                    value = e.value;
+                }
+            }
+        }
+        return value;
+    }
+
+    /**
+     * Set attribute value helper
+     * @param {object} e Element
+     * @param {string} attribute
+     * @param {any} value
+     * @param {boolean?} propertyValue
+     */
+    const setAttribute = function(e, attribute, value, propertyValue) {
+        // Handle state
+        if (value instanceof state) {
+            value = value.value;
+        } else if (typeof(value) === 'undefined') {
+            value = '';
+        }
+
+        if (attribute === 'value' && ! propertyValue) {
+            // Update HTML form element
+            if (typeof (e.val) === 'function') {
+                if (e.val() != value) {
+                    e.val(value);
+                }
+            } else if (e.tagName === 'SELECT' && e.getAttribute('multiple') !== null) {
+                for (let j = 0; j < e.children.length; j++) {
+                    e.children[j].selected = value.indexOf(e.children[j].value) >= 0;
+                }
+            } else if (e.type === 'checkbox') {
+                e.checked = !(!value || value === '0' || value === 'false');
+            } else if (e.type === 'radio') {
+                e.checked = e.value == value;
+            } else if (e.getAttribute && e.getAttribute('contenteditable')) {
+                if (e.innerHTML != value) {
+                    e.innerHTML = value;
+                }
+            } else {
+                // Make sure apply that to the value
+                e.value = value;
+                // Update attribute if exists
+                if (e.getAttribute && e.getAttribute('value') !== null) {
+                    e.setAttribute('value', value);
+                }
+            }
+        } else if (typeof(value) === 'object' || typeof(value) === 'function') {
+            e[attribute] = value;
+        } else {
+            if (isDOM(e)) {
+                if (typeof (e[attribute]) !== 'undefined' && !(e.namespaceURI && e.namespaceURI.includes('svg'))) {
+                    e[attribute] = value;
+                } else {
+                    if (value === '') {
+                        e.removeAttribute(attribute);
+                    } else {
+                        e.setAttribute(attribute, value);
+                    }
+                }
+            } else {
+                e[attribute] = value;
+            }
+        }
+    }
+
+    /**
+     * Get attributes as an object
+     * @param {boolean} props - all attributes that are not undefined
+     * @return {object}
+     */
+    const getAttributes = function(props) {
+        let o = {};
+        let k = null;
+        let a = this.attributes;
+        if (a && a.length) {
+            for (let i = 0; i < a.length; i++) {
+                k = a[i].name;
+                if (props && typeof(this[k]) !== 'undefined') {
+                    o[k] = this[k];
+                } else {
+                    o[k] = a[i].value;
+                }
+            }
+        }
+        return o;
+    }
+
+    /**
+     * Register a getter without setter for a self object
+     * @param {object} s - self object
+     * @param {string} p - self property
+     * @param {string|object|number} v - value
+     */
+    const register = function(s, p, v) {
+        if (typeof(s) === 'object') {
+            Object.defineProperty(s, p, {
+                enumerable: false,
+                configurable: true,
+                get: function () {
+                    return v;
+                }
+            });
+        }
+    }
+
+    /**
+     * Extract variables from the dynamic and append to the self
+     * @return {[string, array]} grab the literal injection
+     */
+    const parseTemplate = function() {
+        let args = Array.from(arguments);
+        // Remove first
+        args.shift()
+        // Return the final template
+        return args;
+    }
+
+    function cloneChildren(element) {
+        // Base case: if an element is null/undefined or not an object, return as is
+        if (!element || typeof element !== 'object') {
+            return element;
+        }
+
+        // Handle arrays
+        if (Array.isArray(element)) {
+            return element.map(item => cloneChildren(item));
+        }
+
+        // Create a new object
+        const cloned = {};
+
+        // Clone each property
+        for (const key in element) {
+            if (key === 'children') {
+                // Handle children especially as before
+                cloned.children = element.children ? cloneChildren(element.children) : undefined;
+            } else if (key === 'props') {
+                // Deep clone props array
+                cloned.props = element.props.map(prop => ({
+                    ...prop,
+                    value: prop.value // If value is a function, it will maintain the reference which is what we want
+                }));
+            } else {
+                // Clone other properties
+                cloned[key] = element[key];
+            }
+        }
+
+        return cloned;
+    }
+
+    // LemonadeJS object
+    const L = {};
+
+    /**
+     * Render a lemonade DOM element, method or class into a root DOM element
+     * @param {function} component - LemonadeJS component or DOM created
+     * @param {HTMLElement} root - root DOM element to receive the new HTML
+     * @param {object?} self - self to be used
+     * @param {object?} item - item
+     * @return {HTMLElement|boolean} o
+     */
+    L.render = function(component, root, self, item) {
+        if (typeof(component) !== 'function') {
+            console.error('Component is not a function');
+            return false;
+        }
+
+        // In case the self has not initial definition by the developer
+        if (typeof(self) === 'undefined') {
+            self = {};
+        }
+
+        // Web component
+        if (self.tagName && self.tagName.includes('-')) {
+            let props = getAttributes.call(self, true);
+            // Copy all values to the object
+            L.setProperties.call(self, props, true);
+        }
+
+        // Arguments
+        let args = Array.from(arguments);
+
+        // Lemonade component object
+        let lemon = {
+            self: self,
+            ready: [],
+            change: [],
+            events: [],
+            components: {},
+            elements: [],
+            root: root,
+            path: {},
+        }
+
+        // Current onchange
+        let externalOnchange = self.onchange;
+        let externalOnload = self.onload;
+
+        if (! item) {
+            item = {};
+        } else if (typeof(item) === 'string') {
+            item = {
+                children: item,
+            }
+        }
+
+        let view;
+        let result;
+
+        // New self
+        if (component === Basic) {
+            view = cloneChildren(item.children[0]);
+        } else {
+            R.currentLemon = lemon;
+
+            const tools = {
+                onload: (...args) => setOnload(lemon, ...args),
+                onchange: (...args) => setOnchange(lemon, ...args),
+                track: (...args) => setTrack(lemon, ...args),
+                state: (...args) => setState(lemon, ...args),
+                setPath: (...args) => setPath(lemon, ...args),
+            };
+
+            if (isClass(component)) {
+                if (! (self instanceof component)) {
+                    lemon.self = self = new component(self);
+                }
+                view = self.render(item.children, tools);
+            } else {
+                // Execute component
+                view = component.call(self, item.children, tools);
+            }
+
+            // Resolve onchange scope conflict
+            if (typeof(self.onchange) === 'function' && externalOnchange !== self.onchange) {
+                // Keep onchange event in the new onchange format
+                lemon.change.push(self.onchange);
+                // Keep the external onchange
+                self.onchange = externalOnchange;
+            }
+
+            R.currentLemon = null;
+        }
+
+        // Values
+        let values = null;
+        // Process return
+        if (typeof(view) === 'function') {
+            values = view(parseTemplate);
+            // Curren values
+            lemon.values = values;
+            // A render template to be executed
+            lemon.view = view;
+            // Template from the method
+            result = view.toString().split('`');
+            // Get the original template
+            if (result) {
+                // Remove the last element
+                result.shift();
+                result.pop();
+                // Join everything else
+                result = result.join('`').trim();
+            }
+        } else {
+            result = view;
+        }
+
+        // Virtual DOM tree
+        if (typeof(result) === 'string') {
+            result = HTMLParser(result.trim(), values);
+        }
+
+        let element;
+
+        // Process the result
+        if (result) {
+            // Get the HTML virtual DOM representation
+            lemon.tree = result;
+
+            // Create real DOM and append to the root
+            element = generateHTML(lemon);
+
+            if (element) {
+                // Parents
+                lemon.elements = [];
+                // Append parents
+                if (element.tagName === 'ROOT') {
+                    element.childNodes.forEach((e) => {
+                        lemon.elements.push(e);
+                    });
+                } else {
+                    lemon.elements.push(element);
+                }
+
+                // Register element when is not registered inside the component
+                register(lemon.self, 'el', element);
+
+                const destroy = () => {
+                    // Do not add in the same root
+                    let div = document.createElement('div');
+                    // Append temporary DIV to the same position
+                    lemon.elements[0].parentNode.insertBefore(div, lemon.elements[0]);
+                    // Remove the old elements
+                    lemon.elements.forEach((e) => {
+                        e.remove();
+                    });
+                    // Root element
+                    args[1] = div;
+                    // Create a new component
+                    L.render(...args);
+                    // Append elements in the same position in the DOM tree
+                    while (div.firstChild) {
+                        div.parentNode.insertBefore(div.firstChild, div);
+                    }
+                    // Remove DIV
+                    div.remove();
+                    // Object not in use
+                    lemon = null;
+                }
+
+                // Refresh
+                register(lemon.self, 'refresh', (prop) => {
+                    if (prop) {
+                        if (prop === true) {
+                            destroy();
+                        } else {
+                            lemon.self[prop] = lemon.self[prop];
+                        }
+                    } else {
+                        if (lemon.view) {
+                            runViewValues(lemon);
+                        } else {
+                            destroy();
+                        }
+                    }
+                });
+
+                // Append element to the DOM
+                if (root) {
+                    lemon.elements.forEach((e) => {
+                        root.appendChild(e);
+                    });
+                }
+            } else {
+                // Refresh
+                register(lemon.self, 'refresh', (prop) => {
+                    if (prop) {
+                        if (prop === true) {
+                            runViewValues(lemon);
+                        } else {
+                            lemon.self[prop] = lemon.self[prop];
+                        }
+                    }
+                });
+            }
+        }
+
+        // Bind to custom component
+        if (item.bind || item.path) {
+            let token = 'value';
+            if (! lemon.events[token]) {
+                lemon.events[token] = []
+            }
+            // Push the event
+            if (item.bind) {
+                lemon.events[token].push(item.bind);
+            }
+            if (item.path) {
+                lemon.events[token].push(item.path);
+            }
+        }
+
+        // In case initial exists
+        if (typeof(lemon.path.initial) === 'object') {
+            // Get the value of the draft
+            let newValue = lemon.path.initial;
+            // Delete draft
+            delete lemon.path.initial;
+            // Apply new values
+            lemon.path.setValue(newValue);
+
+        }
+
+        // Apply events
+        if (lemon.events) {
+            let props = Object.keys(lemon.events);
+            if (props.length) {
+                for (let i = 0; i <props.length; i++) {
+                    trackProperty(lemon, props[i]);
+                }
+            }
+        }
+
+        // Process the onload
+        if (element) {
+            processOnload(lemon);
+        }
+
+        return element;
+    }
+
+    const registerComponents = function(components) {
+        if (components && R.currentLemon) {
+            for (const key in components) {
+                R.currentLemon.components[key.toUpperCase()] = components[key];
+            }
+        }
+    }
+
+    /**
+     * Deprecated
+     * @param {string} template
+     * @param {object?} s (self)
+     * @param {object?} components
+     */
+    L.element = function(template, s, components) {
+        if (R.currentLemon && s && typeof(s) === 'object') {
+            if (s !== R.currentLemon.self) {
+                R.currentLemon.self = s;
+            }
+        }
+        registerComponents(components);
+        return template;
+    }
+
+    /**
+     * Apply self to an existing appended DOM element
+     * @param {HTMLElement} el - element root
+     * @param {object} s - self to associate to the template
+     * @param {object?} components - object with component declarations
+     */
+    L.apply = function(el, s, components) {
+        let template = el.innerHTML;
+        el.textContent = '';
+        let Component = function() {
+            registerComponents(components);
+            return `<>${template}</>`;
+        }
+        return L.render(Component,el,s);
+    }
+
+    /**
+     * Get all properties existing in {o} and create a new object with the values from {this};
+     * @param {object} o - reference object with the properties relevant to the new object
+     * @return {object} n - the new object with all new values
+     */
+    L.getProperties = function(o) {
+        // The new object with all properties found in {o} with values from {this}
+        let n = {};
+        for (let p in o) {
+            n[p] = this[p];
+        }
+        return n;
+    }
+
+    /**
+     * Set the values from {o} to {this}
+     * @param {object} o set the values of {this} when the `this[property]` is found in {o}, or when flag force is true
+     * @param {boolean} f create a new property when that does not exist yet, but is found in {o}
+     * @return {object} this is redundant since object {this} is a reference and is already available in the caller
+     */
+    L.setProperties = function(o, f) {
+        for (let p in o) {
+            if (this.hasOwnProperty(p) || f) {
+                this[p] = o[p];
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Reset the values of any common property name between this and a given object
+     * @param {object} o - all properties names in the object {o} found in {this} will be reset.
+     */
+    L.resetProperties = function(o) {
+        for (let p in o) {
+            this[p] = '';
+        }
+    }
+
+    /**
+     * Lemonade CC (common container) helps you share a self or function through the whole application
+     * @param {string} name alias for your declared object(self) or function
+     * @returns {Object | Function} - registered element
+     */
+    L.get = function(name) {
+        return R.container[name];
+    }
+
+    /**
+     * Register something to the Lemonade CC (common container)
+     * @param {string} name - alias for your declared object(self) or function
+     * @param {object|function} e - the element to be added to the common container. Can be an object(self) or function.
+     * @param {boolean} persistence - optional the persistence flag. Only applicable for functions.
+     */
+    L.set = function(name, e, persistence) {
+        // Applicable only when the o is a function
+        if (typeof(e) === 'function' && persistence === true) {
+            // Keep the flag
+            e.storage = true;
+            // Any existing values
+            let t = window.localStorage.getItem(name);
+            if (t) {
+                // Parse JSON
+                t = JSON.parse(t);
+                // Execute method with the existing values
+                e(t);
+            }
+        }
+        // Save to the sugar container
+        R.container[name] = e;
+    }
+
+    /**
+     * Dispatch the new values to the function
+     * @param {string} name - alias to the element saved on the Lemonade CC (common container)
+     * @param {object?} data - data to be dispatched
+     */
+    L.dispatch = function(name, data) {
+        // Get from the container
+        let e = R.container[name];
+        // Confirm that the alias is a function
+        if (typeof(e) === 'function') {
+            // Save the data to the local storage
+            if (e.storage === true) {
+                window.localStorage.setItem(name, JSON.stringify(data));
+            }
+            // Dispatch the data to the function
+            return e(data);
+        }
+    }
+
+    /**
+     * Register components
+     * @param {object} components - register components
+     */
+    L.setComponents = function(components) {
+        if (typeof(components) === 'object') {
+            // Component names
+            let k = Object.keys(components);
+            // Make sure they follow the standard
+            for (let i = 0; i < k.length; i++) {
+                R.components[k[i].toUpperCase()] = components[k[i]];
+            }
+        }
+    }
+
+    L.component = class {}
+
+    /**
+     * Create a Web Component
+     * @param {string} name - web component name
+     * @param {function} handler - lemonadejs component
+     * @param {object} options - options to create the web components
+     */
+    L.createWebComponent = function(name, handler, options) {
+        if (typeof(window) === 'undefined') {
+            return;
+        }
+
+        if (typeof(handler) !== 'function') {
+            return 'Handler should be an function';
+        }
+        // Prefix
+        let prefix = options && options.prefix ? options.prefix : 'lm';
+
+        // Component name
+        const componentName = prefix + '-' + name;
+
+        // Check if the component is already defined
+        if (! window.customElements.get(componentName)) {
+            class Component extends HTMLElement {
+                constructor() {
+                    super();
+                }
+
+                connectedCallback() {
+                    // LemonadeJS self
+                    let self = this;
+                    // First call
+                    let state = typeof(this.el) === 'undefined';
+                    // LemonadeJS is already rendered
+                    if (state === true) {
+                        // Render
+                        if (options && options.applyOnly === true) {
+                            // Merge component
+                            handler.call(this);
+                            // Apply
+                            L.apply(this, self);
+                        } else {
+                            let root = this;
+                            if (options && options.shadowRoot === true) {
+                                this.attachShadow({ mode: 'open' });
+                                root = document.createElement('div');
+                                this.shadowRoot.appendChild(root);
+                            }
+                            // Give the browser time to calculate all width and heights
+                            L.render(handler, root, self);
+                        }
+                    }
+
+                    queueMicrotask(() => {
+                        // Event
+                        if (typeof(self.onconnect) === 'function') {
+                            self.onconnect(self, state);
+                        }
+                    });
+                }
+
+                disconnectedCallback() {
+                    if (typeof(this.ondisconnect) === 'function') {
+                        this.ondisconnect(this);
+                    }
+                }
+            }
+
+            if (! window.customElements.get(componentName)) {
+                window.customElements.define(componentName, Component);
+            }
+        }
+    }
+
+    L.h = function(type, props, ...children) {
+        return { type, props: props || {}, children };
+    }
+
+    L.Fragment = function(props) {
+        return props.children;
+    }
+
+    const wrongLevel = 'Hooks must be called at the top level of your component';
+
+    const setOnload = function(lemon, event) {
+        lemon.load = event;
+    }
+
+    const setOnchange = function(lemon, event) {
+        lemon.change.push(event);
+    }
+
+    const setTrack = function(lemon, prop) {
+        if (! lemon.events[prop]) {
+            lemon.events[prop] = [];
+        }
+    }
+
+    const setPath = function(lemon, initialValues, change) {
+        // My value object
+        let value = {};
+        // Create a method to update the state
+        const setValue = (newValue) => {
+            if (typeof(lemon.path.initial) === 'undefined') {
+                if (typeof (newValue) === 'object') {
+                    // If my has been declared
+                    let elements = lemon.path.elements;
+                    if (elements) {
+                        for (let i = 0; i < elements.length; i++) {
+                            let v = Path.call(newValue, elements[i].path)
+                            setAttribute(elements[i].element, 'value', v);
+                        }
+                    }
+                }
+            } else {
+                lemon.path.initial = newValue;
+            }
+        }
+
+        const getValue = () => {
+            let ret = {};
+            // If my has been declared
+            let elements = lemon.path.elements;
+            if (elements) {
+                for (let i = 0; i < elements.length; i++) {
+                    let v = getAttribute(elements[i].element, 'value');
+                    Path.call(ret, elements[i].path, v);
+                }
+            }
+            return ret;
+        }
+
+        lemon.path = {
+            setValue: setValue,
+            value: value,
+            change: change,
+            initial: initialValues || {}
+        };
+
+        return [value, setValue, getValue];
+    }
+
+    const setState = function(lemon, value, callback) {
+        // Create a state container
+        const s = new state();
+        // Create a method to update the state
+        const setValue = (newValue) => {
+            let oldValue = value;
+            // Update original value
+            value = typeof newValue === 'function' ? newValue(value) : newValue;
+            // Values from the view
+            runViewValues(lemon, s);
+            // Call back
+            callback?.(value, oldValue);
+        }
+        // Make the value attribute dynamic
+        Object.defineProperty(s, 'value', {
+            set: setValue,
+            get: () => value
+        });
+
+        return s;
+    }
+
+    L.onload = function(event) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setOnload(R.currentLemon, event);
+    }
+
+    L.onchange = function(event) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setOnchange(R.currentLemon, event);
+    }
+
+    L.track = function(prop) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setTrack(R.currentLemon, prop);
+    }
+
+    L.setPath = function(initialValues, change) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+        return setPath(R.currentLemon, initialValues, change);
+    }
+
+    /**
+     * Run view values
+     * @param lemon
+     * @param s - refresh from state
+     */
+    const runViewValues = function(lemon, s) {
+        let values = lemon.view(parseTemplate);
+        if (values && values.length) {
+            values.forEach((v, k) => {
+                let current = lemon.values[k];
+                // Compare if the previous value
+                if (s && s === v || v !== current) {
+                    // Update current value
+                    lemon.values[k] = v;
+                    // Trigger state events
+                    if (typeof(lemon.events[k]) === 'function') {
+                        lemon.events[k]();
+                    }
+                }
+            });
+        }
+    }
+
+    const state = function() {}
+
+    state.prototype.toString = function() {
+        return this.value.toString();
+    }
+
+    state.prototype.valueOf = function() {
+        return this.value;
+    }
+
+    state.prototype[Symbol.toPrimitive] = function(hint) {
+        if (hint === 'string') {
+            return this.value.toString();
+        }
+        return this.value;
+    }
+
+    // TODO: Proxy for Objects and Arrays
+    L.state = function(value, callback) {
+        if (! R.currentLemon) {
+            createError(wrongLevel);
+        }
+
+        return setState(R.currentLemon, value, callback);
+    }
+
+    L.helpers = {
+        path: extractFromPath,
+        properties: {
+            get: L.getProperties,
+            set: L.setProperties,
+            reset: L.resetProperties,
+        }
+    }
+
+    L.events = (function() {
+        class CustomEvents extends Event {
+            constructor(type, props, options) {
+                super(type, {
+                    bubbles: true,
+                    composed: true,
+                    ...options,
+                });
+
+                if (props) {
+                    for (const key in props) {
+                        // Avoid assigning if property already exists anywhere on `this`
+                        if (! (key in this)) {
+                            this[key] = props[key];
+                        }
+                    }
+                }
+            }
+        }
+
+        const create = function(type, props, options) {
+            return new CustomEvents(type, props, options);
+        };
+
+        return {
+            create: create,
+            dispatch(element, event, options) {
+                if (typeof event === 'string') {
+                    event = create(event, options);
+                }
+                element.dispatchEvent(event);
+            }
+        };
+    })();
+
+    return L;
+})));
+
+/***/ }),
+
+/***/ 195:
+/***/ (function(module) {
+
+/**
+ * (c) jSuites Javascript Plugins and Web Components (v4)
+ *
+ * Website: https://jsuites.net
+ * Description: Create amazing web based applications.
+ * Plugin: Organogram
+ *
+ * MIT License
+ */
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    return (function(str) {
+        function int64(msint_32, lsint_32) {
+            this.highOrder = msint_32;
+            this.lowOrder = lsint_32;
+        }
+
+        var H = [new int64(0x6a09e667, 0xf3bcc908), new int64(0xbb67ae85, 0x84caa73b),
+            new int64(0x3c6ef372, 0xfe94f82b), new int64(0xa54ff53a, 0x5f1d36f1),
+            new int64(0x510e527f, 0xade682d1), new int64(0x9b05688c, 0x2b3e6c1f),
+            new int64(0x1f83d9ab, 0xfb41bd6b), new int64(0x5be0cd19, 0x137e2179)];
+
+        var K = [new int64(0x428a2f98, 0xd728ae22), new int64(0x71374491, 0x23ef65cd),
+            new int64(0xb5c0fbcf, 0xec4d3b2f), new int64(0xe9b5dba5, 0x8189dbbc),
+            new int64(0x3956c25b, 0xf348b538), new int64(0x59f111f1, 0xb605d019),
+            new int64(0x923f82a4, 0xaf194f9b), new int64(0xab1c5ed5, 0xda6d8118),
+            new int64(0xd807aa98, 0xa3030242), new int64(0x12835b01, 0x45706fbe),
+            new int64(0x243185be, 0x4ee4b28c), new int64(0x550c7dc3, 0xd5ffb4e2),
+            new int64(0x72be5d74, 0xf27b896f), new int64(0x80deb1fe, 0x3b1696b1),
+            new int64(0x9bdc06a7, 0x25c71235), new int64(0xc19bf174, 0xcf692694),
+            new int64(0xe49b69c1, 0x9ef14ad2), new int64(0xefbe4786, 0x384f25e3),
+            new int64(0x0fc19dc6, 0x8b8cd5b5), new int64(0x240ca1cc, 0x77ac9c65),
+            new int64(0x2de92c6f, 0x592b0275), new int64(0x4a7484aa, 0x6ea6e483),
+            new int64(0x5cb0a9dc, 0xbd41fbd4), new int64(0x76f988da, 0x831153b5),
+            new int64(0x983e5152, 0xee66dfab), new int64(0xa831c66d, 0x2db43210),
+            new int64(0xb00327c8, 0x98fb213f), new int64(0xbf597fc7, 0xbeef0ee4),
+            new int64(0xc6e00bf3, 0x3da88fc2), new int64(0xd5a79147, 0x930aa725),
+            new int64(0x06ca6351, 0xe003826f), new int64(0x14292967, 0x0a0e6e70),
+            new int64(0x27b70a85, 0x46d22ffc), new int64(0x2e1b2138, 0x5c26c926),
+            new int64(0x4d2c6dfc, 0x5ac42aed), new int64(0x53380d13, 0x9d95b3df),
+            new int64(0x650a7354, 0x8baf63de), new int64(0x766a0abb, 0x3c77b2a8),
+            new int64(0x81c2c92e, 0x47edaee6), new int64(0x92722c85, 0x1482353b),
+            new int64(0xa2bfe8a1, 0x4cf10364), new int64(0xa81a664b, 0xbc423001),
+            new int64(0xc24b8b70, 0xd0f89791), new int64(0xc76c51a3, 0x0654be30),
+            new int64(0xd192e819, 0xd6ef5218), new int64(0xd6990624, 0x5565a910),
+            new int64(0xf40e3585, 0x5771202a), new int64(0x106aa070, 0x32bbd1b8),
+            new int64(0x19a4c116, 0xb8d2d0c8), new int64(0x1e376c08, 0x5141ab53),
+            new int64(0x2748774c, 0xdf8eeb99), new int64(0x34b0bcb5, 0xe19b48a8),
+            new int64(0x391c0cb3, 0xc5c95a63), new int64(0x4ed8aa4a, 0xe3418acb),
+            new int64(0x5b9cca4f, 0x7763e373), new int64(0x682e6ff3, 0xd6b2b8a3),
+            new int64(0x748f82ee, 0x5defb2fc), new int64(0x78a5636f, 0x43172f60),
+            new int64(0x84c87814, 0xa1f0ab72), new int64(0x8cc70208, 0x1a6439ec),
+            new int64(0x90befffa, 0x23631e28), new int64(0xa4506ceb, 0xde82bde9),
+            new int64(0xbef9a3f7, 0xb2c67915), new int64(0xc67178f2, 0xe372532b),
+            new int64(0xca273ece, 0xea26619c), new int64(0xd186b8c7, 0x21c0c207),
+            new int64(0xeada7dd6, 0xcde0eb1e), new int64(0xf57d4f7f, 0xee6ed178),
+            new int64(0x06f067aa, 0x72176fba), new int64(0x0a637dc5, 0xa2c898a6),
+            new int64(0x113f9804, 0xbef90dae), new int64(0x1b710b35, 0x131c471b),
+            new int64(0x28db77f5, 0x23047d84), new int64(0x32caab7b, 0x40c72493),
+            new int64(0x3c9ebe0a, 0x15c9bebc), new int64(0x431d67c4, 0x9c100d4c),
+            new int64(0x4cc5d4be, 0xcb3e42b6), new int64(0x597f299c, 0xfc657e2a),
+            new int64(0x5fcb6fab, 0x3ad6faec), new int64(0x6c44198c, 0x4a475817)];
+
+        var W = new Array(64);
+        var a, b, c, d, e, f, g, h, i, j;
+        var T1, T2;
+        var charsize = 8;
+
+        function utf8_encode(str) {
+            return unescape(encodeURIComponent(str));
+        }
+
+        function str2binb(str) {
+            var bin = [];
+            var mask = (1 << charsize) - 1;
+            var len = str.length * charsize;
+
+            for (var i = 0; i < len; i += charsize) {
+                bin[i >> 5] |= (str.charCodeAt(i / charsize) & mask) << (32 - charsize - (i % 32));
+            }
+
+            return bin;
+        }
+
+        function binb2hex(binarray) {
+            var hex_tab = "0123456789abcdef";
+            var str = "";
+            var length = binarray.length * 4;
+            var srcByte;
+
+            for (var i = 0; i < length; i += 1) {
+                srcByte = binarray[i >> 2] >> ((3 - (i % 4)) * 8);
+                str += hex_tab.charAt((srcByte >> 4) & 0xF) + hex_tab.charAt(srcByte & 0xF);
+            }
+
+            return str;
+        }
+
+        function safe_add_2(x, y) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (x.lowOrder & 0xFFFF) + (y.lowOrder & 0xFFFF);
+            msw = (x.lowOrder >>> 16) + (y.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (x.highOrder & 0xFFFF) + (y.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (x.highOrder >>> 16) + (y.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function safe_add_4(a, b, c, d) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF);
+            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function safe_add_5(a, b, c, d, e) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF) + (e.lowOrder & 0xFFFF);
+            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (e.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (e.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (e.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function maj(x, y, z) {
+            return new int64(
+                (x.highOrder & y.highOrder) ^ (x.highOrder & z.highOrder) ^ (y.highOrder & z.highOrder),
+                (x.lowOrder & y.lowOrder) ^ (x.lowOrder & z.lowOrder) ^ (y.lowOrder & z.lowOrder)
+            );
+        }
+
+        function ch(x, y, z) {
+            return new int64(
+                (x.highOrder & y.highOrder) ^ (~x.highOrder & z.highOrder),
+                (x.lowOrder & y.lowOrder) ^ (~x.lowOrder & z.lowOrder)
+            );
+        }
+
+        function rotr(x, n) {
+            if (n <= 32) {
+                return new int64(
+                    (x.highOrder >>> n) | (x.lowOrder << (32 - n)),
+                    (x.lowOrder >>> n) | (x.highOrder << (32 - n))
+                );
+            } else {
+                return new int64(
+                    (x.lowOrder >>> n) | (x.highOrder << (32 - n)),
+                    (x.highOrder >>> n) | (x.lowOrder << (32 - n))
+                );
+            }
+        }
+
+        function sigma0(x) {
+            var rotr28 = rotr(x, 28);
+            var rotr34 = rotr(x, 34);
+            var rotr39 = rotr(x, 39);
+
+            return new int64(
+                rotr28.highOrder ^ rotr34.highOrder ^ rotr39.highOrder,
+                rotr28.lowOrder ^ rotr34.lowOrder ^ rotr39.lowOrder
+            );
+        }
+
+        function sigma1(x) {
+            var rotr14 = rotr(x, 14);
+            var rotr18 = rotr(x, 18);
+            var rotr41 = rotr(x, 41);
+
+            return new int64(
+                rotr14.highOrder ^ rotr18.highOrder ^ rotr41.highOrder,
+                rotr14.lowOrder ^ rotr18.lowOrder ^ rotr41.lowOrder
+            );
+        }
+
+        function gamma0(x) {
+            var rotr1 = rotr(x, 1), rotr8 = rotr(x, 8), shr7 = shr(x, 7);
+
+            return new int64(
+                rotr1.highOrder ^ rotr8.highOrder ^ shr7.highOrder,
+                rotr1.lowOrder ^ rotr8.lowOrder ^ shr7.lowOrder
+            );
+        }
+
+        function gamma1(x) {
+            var rotr19 = rotr(x, 19);
+            var rotr61 = rotr(x, 61);
+            var shr6 = shr(x, 6);
+
+            return new int64(
+                rotr19.highOrder ^ rotr61.highOrder ^ shr6.highOrder,
+                rotr19.lowOrder ^ rotr61.lowOrder ^ shr6.lowOrder
+            );
+        }
+
+        function shr(x, n) {
+            if (n <= 32) {
+                return new int64(
+                    x.highOrder >>> n,
+                    x.lowOrder >>> n | (x.highOrder << (32 - n))
+                );
+            } else {
+                return new int64(
+                    0,
+                    x.highOrder << (32 - n)
+                );
+            }
+        }
+
+        var str = utf8_encode(str);
+        var strlen = str.length*charsize;
+        str = str2binb(str);
+
+        str[strlen >> 5] |= 0x80 << (24 - strlen % 32);
+        str[(((strlen + 128) >> 10) << 5) + 31] = strlen;
+
+        for (var i = 0; i < str.length; i += 32) {
+            a = H[0];
+            b = H[1];
+            c = H[2];
+            d = H[3];
+            e = H[4];
+            f = H[5];
+            g = H[6];
+            h = H[7];
+
+            for (var j = 0; j < 80; j++) {
+                if (j < 16) {
+                    W[j] = new int64(str[j*2 + i], str[j*2 + i + 1]);
+                } else {
+                    W[j] = safe_add_4(gamma1(W[j - 2]), W[j - 7], gamma0(W[j - 15]), W[j - 16]);
+                }
+
+                T1 = safe_add_5(h, sigma1(e), ch(e, f, g), K[j], W[j]);
+                T2 = safe_add_2(sigma0(a), maj(a, b, c));
+                h = g;
+                g = f;
+                f = e;
+                e = safe_add_2(d, T1);
+                d = c;
+                c = b;
+                b = a;
+                a = safe_add_2(T1, T2);
+            }
+
+            H[0] = safe_add_2(a, H[0]);
+            H[1] = safe_add_2(b, H[1]);
+            H[2] = safe_add_2(c, H[2]);
+            H[3] = safe_add_2(d, H[3]);
+            H[4] = safe_add_2(e, H[4]);
+            H[5] = safe_add_2(f, H[5]);
+            H[6] = safe_add_2(g, H[6]);
+            H[7] = safe_add_2(h, H[7]);
+        }
+
+        var binarray = [];
+        for (var i = 0; i < H.length; i++) {
+            binarray.push(H[i].highOrder);
+            binarray.push(H[i].lowOrder);
+        }
+
+        return binb2hex(binarray);
+    });
+
+})));
+
+
 /***/ })
 
 /******/ 	});
 /************************************************************************/
 /******/ 	// The module cache
 /******/ 	var __webpack_module_cache__ = {};
-/******/
+/******/ 	
 /******/ 	// The require function
 /******/ 	function __webpack_require__(moduleId) {
 /******/ 		// Check if module is in cache
@@ -12031,14 +12031,14 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 			// no module.loaded needed
 /******/ 			exports: {}
 /******/ 		};
-/******/
+/******/ 	
 /******/ 		// Execute the module function
 /******/ 		__webpack_modules__[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
+/******/ 	
 /******/ 		// Return the exports of the module
 /******/ 		return module.exports;
 /******/ 	}
-/******/
+/******/ 	
 /************************************************************************/
 /******/ 	/* webpack/runtime/compat get default export */
 /******/ 	!function() {
@@ -12051,7 +12051,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 			return getter;
 /******/ 		};
 /******/ 	}();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	!function() {
 /******/ 		// define getter functions for harmony exports
@@ -12063,12 +12063,12 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 			}
 /******/ 		};
 /******/ 	}();
-/******/
+/******/ 	
 /******/ 	/* webpack/runtime/hasOwnProperty shorthand */
 /******/ 	!function() {
 /******/ 		__webpack_require__.o = function(obj, prop) { return Object.prototype.hasOwnProperty.call(obj, prop); }
 /******/ 	}();
-/******/
+/******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
 // This entry need to be wrapped in an IIFE because it need to be in strict mode.
@@ -12926,14 +12926,14 @@ function Animation() {
     const Component = {
         loading: {}
     }
-
+    
     Component.loading.show = function(timeout) {
         if (! Component.loading.element) {
             Component.loading.element = document.createElement('div');
             Component.loading.element.className = 'jloading';
         }
         document.body.appendChild(Component.loading.element);
-
+    
         // Max timeout in seconds
         if (timeout > 0) {
             setTimeout(function() {
@@ -12941,13 +12941,13 @@ function Animation() {
             }, timeout * 1000)
         }
     }
-
+    
     Component.loading.hide = function() {
         if (Component.loading.element && Component.loading.element.parentNode) {
             document.body.removeChild(Component.loading.element);
         }
     }
-
+    
     Component.slideLeft = function (element, direction, done) {
         if (direction == true) {
             element.classList.add('jslide-left-in');
@@ -12967,7 +12967,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideRight = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-right-in');
@@ -12987,7 +12987,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideTop = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-top-in');
@@ -13007,7 +13007,7 @@ function Animation() {
             }, 400);
         }
     }
-
+    
     Component.slideBottom = function (element, direction, done) {
         if (direction === true) {
             element.classList.add('jslide-bottom-in');
@@ -13027,7 +13027,7 @@ function Animation() {
             }, 100);
         }
     }
-
+    
     Component.fadeIn = function (element, done) {
         element.style.display = '';
         element.classList.add('jfade-in');
@@ -13038,7 +13038,7 @@ function Animation() {
             }
         }, 2000);
     }
-
+    
     Component.fadeOut = function (element, done) {
         element.classList.add('jfade-out');
         setTimeout(function () {
@@ -13054,8 +13054,8 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
-// EXTERNAL MODULE: ./packages/utils/dist/index.js
-var dist = __webpack_require__(559);
+// EXTERNAL MODULE: ./node_modules/@jsuites/utils/dist/index.js
+var dist = __webpack_require__(791);
 var dist_default = /*#__PURE__*/__webpack_require__.n(dist);
 ;// CONCATENATED MODULE: ./src/plugins/calendar.js
 
@@ -14552,7 +14552,7 @@ function Tabs(el, options) {
             h.setAttribute('role', 'tab');
             h.setAttribute('aria-controls', contentId);
 
-            h.innerHTML = title;
+            h.textContent = title;
             h.content = div;
 
             if (typeof(position) === 'undefined') {
@@ -14654,7 +14654,7 @@ function Tabs(el, options) {
     obj.setBorder = setBorder;
 
     obj.init = function() {
-        el.innerHTML = '';
+        el.textContent = '';
 
         // Make sure the component is blank
         obj.headers = document.createElement('div');
@@ -14736,7 +14736,7 @@ function Tabs(el, options) {
                 var iconContainer = document.createElement('div');
                 var icon = document.createElement('i');
                 icon.classList.add('material-icons');
-                icon.innerHTML = obj.options.data[i].icon;
+                icon.textContent = obj.options.data[i].icon;
                 iconContainer.appendChild(icon);
                 headerItem.appendChild(iconContainer);
             }
@@ -15780,6 +15780,60 @@ function Contextmenu() {
                     }
 
                     itemContainer.appendChild(el_submenu);
+
+                    // Submenu positioning logic:
+                    // Case 1: Default (enough space to the right) - submenu opens to the right of the parent menu item.
+                    // Case 2: Not enough space to the right, but enough to the left - submenu opens to the left of the parent menu item.
+                    // Case 3: Not enough space on either side (e.g., very narrow viewport) - submenu opens below the parent menu item.
+                    itemContainer.addEventListener('mouseenter', function () {
+                        // Reset to default
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = itemContainer.offsetWidth + 'px';
+
+                        // Temporarily show submenu to measure
+                        el_submenu.style.display = 'block';
+                        el_submenu.style.opacity = '0';
+                        el_submenu.style.pointerEvents = 'none';
+
+                        // Use getBoundingClientRect to determine position
+                        var parentRect = itemContainer.getBoundingClientRect();
+                        var submenuRect = el_submenu.getBoundingClientRect();
+                        var viewportWidth = window.innerWidth || document.documentElement.clientWidth;
+
+                        // Calculate the right edge if rendered to the right
+                        var rightEdge = parentRect.right + submenuRect.width;
+                        var leftEdge = parentRect.left - submenuRect.width;
+
+                        // If rendering to the right would overflow, render to the left
+                        if (rightEdge > viewportWidth && leftEdge >= 0) {
+                            el_submenu.style.left = 'auto';
+                            el_submenu.style.right = '99%';
+                        } 
+                        // If both right and left would overflow, render to the right of the left border (worst case)
+                        else if (rightEdge > viewportWidth && leftEdge < 0) {
+                            el_submenu.style.left = '32px';
+                            el_submenu.style.right = 'auto';
+                            el_submenu.style.top = '100%';
+                        }
+                        // Default: render to the right
+                        else {
+                            el_submenu.style.left = '99%';
+                            el_submenu.style.right = 'auto';
+                        }
+
+                        // Restore visibility
+                        el_submenu.style.opacity = '';
+                        el_submenu.style.pointerEvents = '';
+                        el_submenu.style.display = '';
+                    });
+
+                    // Also reset submenu position on mouseleave to avoid stale styles
+                    itemContainer.addEventListener('mouseleave', function () {
+                        el_submenu.style.left = '';
+                        el_submenu.style.right = '';
+                        el_submenu.style.minWidth = '';
+                    });
                 } else if (item.shortcut) {
                     var itemShortCut = document.createElement('span');
                     itemShortCut.innerHTML = item.shortcut;
@@ -17812,13 +17866,16 @@ function Picker(el, options) {
         var item;
 
         if (obj.options.content) {
-            item = '<i class="material-icons">' + obj.options.content + '</i>';
+            item = document.createElement('i');
+            item.textContent = obj.options.content;
+            item.classList.add('material-icons');
         } else {
             item = obj.getLabel(v, null);
         }
+
         // Label
         if (isDOM(item)) {
-            dropdownHeader.innerHTML = '';
+            dropdownHeader.textContent = '';
             dropdownHeader.appendChild(item);
         } else {
             dropdownHeader.innerHTML = item;
@@ -18066,7 +18123,7 @@ function Toolbar(el, options) {
             toolbarItem.classList.add('jtoolbar-item');
 
             if (items[i].width) {
-                toolbarItem.style.width = parseInt(items[i].width) + 'px';
+                toolbarItem.style.width = parseInt(items[i].width) + 'px'; 
             }
 
             if (items[i].k) {
@@ -18271,7 +18328,223 @@ function Toolbar(el, options) {
 
     return obj;
 }
+;// CONCATENATED MODULE: ./src/utils/filter.js
+
+// Valid tags (removed iframe for security)
+const validTags = [
+    'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
+    'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
+    'figure', 'picture', 'figcaption', 'table', 'thead', 'tbody', 'tfoot', 'tr',
+    'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
+    'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
+    'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
+    'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
+];
+
+// Dangerous tags that should be completely removed
+const dangerousTags = ['script', 'object', 'embed', 'applet', 'meta', 'base', 'link', 'iframe'];
+
+// Valid properties (added id, class, title, alt for better editor support)
+const validProperty = ['width', 'height', 'align', 'border', 'src', 'href', 'tabindex', 'id', 'class', 'title', 'alt'];
+
+// Tags that are allowed to have src attribute
+const tagsAllowedSrc = ['img', 'audio', 'video', 'source'];
+
+// Tags that are allowed to have href attribute
+const tagsAllowedHref = ['a'];
+
+// Valid CSS attributes
+const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin', 'padding', 'text-align', 'text-decoration'];
+
+// Function to decode HTML entities (prevents bypassing with &#106;avascript:)
+function decodeHTMLEntities(text) {
+    if (!text) return '';
+    const textArea = document.createElement('textarea');
+    textArea.innerHTML = text;
+    return textArea.value;
+}
+
+// Function to check if a URL scheme is dangerous
+function isDangerousURL(url) {
+    if (!url) return false;
+    const decoded = decodeHTMLEntities(url).toLowerCase().trim();
+    // Remove whitespace and null bytes that can be used to bypass filters
+    const cleaned = decoded.replace(/[\s\0]/g, '');
+
+    return cleaned.startsWith('javascript:') ||
+           cleaned.startsWith('data:text/') ||
+           cleaned.startsWith('data:application/') ||
+           cleaned.startsWith('vbscript:') ||
+           cleaned.includes('<script');
+}
+
+// Function to sanitize CSS value
+function sanitizeStyleValue(value) {
+    if (!value) return '';
+    const decoded = decodeHTMLEntities(value).toLowerCase();
+
+    // Block dangerous CSS content
+    if (decoded.includes('javascript:') ||
+        decoded.includes('expression(') ||
+        decoded.includes('behavior:') ||
+        decoded.includes('-moz-binding') ||
+        decoded.includes('binding:') ||
+        decoded.includes('@import') ||
+        decoded.includes('url(') && (decoded.includes('javascript:') || decoded.includes('data:'))) {
+        return '';
+    }
+
+    return value;
+}
+
+const parse = function(element, img) {
+    if (!element || !element.tagName) {
+        return;
+    }
+
+    const tagName = element.tagName.toLowerCase();
+
+    // Remove dangerous tags completely
+    if (dangerousTags.indexOf(tagName) !== -1) {
+        if (element.parentNode) {
+            element.parentNode.removeChild(element);
+        }
+        return;
+    }
+
+    // Remove elements that are not white-listed
+    if (validTags.indexOf(tagName) === -1) {
+        if (element.innerText) {
+            element.innerHTML = element.innerText;
+        }
+    }
+
+    // Remove attributes
+    if (element.attributes && element.attributes.length) {
+        let style = null;
+        // Process style attribute
+        let elementStyle = element.getAttribute('style');
+        if (elementStyle) {
+            style = [];
+            let t = elementStyle.split(';');
+            for (let j = 0; j < t.length; j++) {
+                let v = t[j].trim().split(':');
+                const property = v[0].trim();
+                if (validStyle.indexOf(property) >= 0) {
+                    let k = v.shift();
+                    v = v.join(':');
+                    // Sanitize the CSS value
+                    const sanitizedValue = sanitizeStyleValue(v);
+                    if (sanitizedValue) {
+                        style.push(k + ':' + sanitizedValue);
+                    }
+                }
+            }
+        }
+
+        // Process image
+        if (tagName === 'img') {
+            const src = element.getAttribute('src');
+            if (!src || isDangerousURL(src)) {
+                if (element.parentNode) {
+                    element.parentNode.removeChild(element);
+                }
+                return;
+            } else {
+                element.setAttribute('tabindex', '900');
+                // Check attributes for persistence
+                img.push(src);
+            }
+        }
+
+        // Collect all attribute names first
+        let attr = [];
+        for (let i = 0; i < element.attributes.length; i++) {
+            attr.push(element.attributes[i].name);
+        }
+
+        // Process attributes
+        if (attr.length) {
+            attr.forEach(function (v) {
+                const attrName = v.toLowerCase();
+
+                // Remove all event handlers (onclick, onerror, onload, etc.)
+                if (attrName.startsWith('on')) {
+                    element.removeAttribute(v);
+                    return;
+                }
+
+                // Check if attribute is in whitelist
+                if (validProperty.indexOf(attrName) === -1) {
+                    element.removeAttribute(v);
+                } else {
+                    // Validate whitelisted attributes
+                    let attrValue = element.getAttribute(v);
+
+                    // Special handling for src attribute
+                    if (attrName === 'src') {
+                        if (tagsAllowedSrc.indexOf(tagName) === -1) {
+                            // src not allowed on this tag
+                            element.removeAttribute(v);
+                            return;
+                        }
+                        if (isDangerousURL(attrValue)) {
+                            element.removeAttribute(v);
+                            return;
+                        }
+                    }
+
+                    // Special handling for href attribute
+                    if (attrName === 'href') {
+                        if (tagsAllowedHref.indexOf(tagName) === -1) {
+                            // href not allowed on this tag
+                            element.removeAttribute(v);
+                            return;
+                        }
+                        if (isDangerousURL(attrValue)) {
+                            element.removeAttribute(v);
+                            return;
+                        }
+                    }
+
+                    // Protection XSS - check for dangerous characters
+                    if (attrValue && attrValue.indexOf('<') !== -1) {
+                        element.setAttribute(v, attrValue.replace(/</g, '&#60;'));
+                    }
+                }
+            });
+        }
+
+        element.style = '';
+        // Add valid style
+        if (style && style.length) {
+            element.setAttribute('style', style.join(';'));
+        }
+    }
+
+    // Parse children recursively
+    if (element.children.length) {
+        for (let i = element.children.length; i > 0; i--) {
+            parse(element.children[i - 1], img);
+        }
+    }
+}
+
+const filter = function(data, img) {
+    if (data) {
+        data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
+    }
+    let parser = new DOMParser();
+    let d = parser.parseFromString(data, "text/html");
+    parse(d.body, img);
+    let div = document.createElement('div');
+    div.innerHTML = d.body.innerHTML;
+    return div;
+}
+
+/* harmony default export */ var utils_filter = (filter);
 ;// CONCATENATED MODULE: ./src/plugins/editor.js
+
 
 
 
@@ -18433,16 +18706,13 @@ function Editor() {
          * Extract images from a HTML string
          */
         var extractImageFromHtml = function(html) {
+            let img = [];
             // Create temp element
             var div = document.createElement('div');
-            div.innerHTML = html;
-
-            // Extract images
-            var img = div.querySelectorAll('img');
-
+            utils_filter(html, img);
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addImage(img[i].src);
+                    obj.addImage(img[i]);
                 }
             }
         }
@@ -18805,104 +19075,11 @@ function Editor() {
             helpers.click(obj.file);
         }
 
-        // Valid tags
-        const validTags = [
-            'html','body','address','span', 'div', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'p', 'b', 'i', 'blockquote',
-            'strong', 'em', 'ul', 'ol', 'li', 'a', 'code', 'pre', 'hr', 'br', 'img',
-            'figure', 'picture', 'figcaption', 'iframe', 'table', 'thead', 'tbody', 'tfoot', 'tr',
-            'th', 'td', 'caption', 'u', 'del', 'ins', 'sub', 'sup', 'small', 'mark',
-            'input', 'textarea', 'select', 'option', 'button', 'label', 'fieldset',
-            'legend', 'audio', 'video', 'abbr', 'cite', 'kbd', 'section', 'article',
-            'nav', 'aside', 'header', 'footer', 'main', 'details', 'summary', 'svg', 'line', 'source'
-        ];
-        // Valid properties
-        const validProperty = ['width', 'height', 'align', 'border', 'src', 'tabindex'];
-        // Valid CSS attributes
-        const validStyle = ['color', 'font-weight', 'font-size', 'background', 'background-color', 'margin'];
-
-        const parse = function(element) {
-            // Remove elements that are not white-listed
-            if (element.tagName && validTags.indexOf(element.tagName.toLowerCase()) === -1) {
-                if (element.innerText) {
-                    element.innerHTML = element.innerText;
-                }
-            }
-            // Remove attributes
-            if (element.attributes && element.attributes.length) {
-                let style = null;
-                // Process style attribute
-                let elementStyle = element.getAttribute('style');
-                if (elementStyle) {
-                    style = [];
-                    let t = elementStyle.split(';');
-                    for (let j = 0; j < t.length; j++) {
-                        let v = t[j].trim().split(':');
-                        if (validStyle.indexOf(v[0].trim()) >= 0) {
-                            let k = v.shift();
-                            v = v.join(':');
-                            style.push(k + ':' + v);
-                        }
-                    }
-                }
-                // Process image
-                if (element.tagName.toUpperCase() === 'IMG') {
-                    if (! obj.options.acceptImages || !element.src) {
-                        element.parentNode.removeChild(element);
-                    } else {
-                        // Check if is data
-                        element.setAttribute('tabindex', '900');
-                        // Check attributes for persistence
-                        obj.addImage(element.src);
-                    }
-                }
-                // Remove attributes
-                let attr = [];
-                for (let i = 0; i < element.attributes.length; i++) {
-                    attr.push(element.attributes[i].name);
-                }
-                if (attr.length) {
-                    attr.forEach(function (v) {
-                        if (validProperty.indexOf(v) === -1) {
-                            element.removeAttribute(v);
-                        } else {
-                            // Protection XSS
-                            if (element.attributes && element.attributes[i] && element.attributes[i].value.indexOf('<') !== -1) {
-                                element.attributes[i].value.replace('<', '&#60;');
-                            }
-                        }
-                    });
-                }
-                element.style = '';
-                // Add valid style
-                if (style && style.length) {
-                    element.setAttribute('style', style.join(';'));
-                }
-            }
-            // Parse children
-            if (element.children.length) {
-                for (let i = element.children.length; i > 0; i--) {
-                    parse(element.children[i - 1]);
-                }
-            }
-        }
-
         var select = function(e) {
             var s = window.getSelection()
             var r = document.createRange();
             r.selectNode(e);
             s.addRange(r)
-        }
-
-        var filter = function(data) {
-            if (data) {
-                data = data.replace(new RegExp('<!--(.*?)-->', 'gsi'), '');
-            }
-            var parser = new DOMParser();
-            var d = parser.parseFromString(data, "text/html");
-            parse(d);
-            var div = document.createElement('div');
-            div.innerHTML = d.firstChild.innerHTML;
-            return div;
         }
 
         var editorPaste = function(e) {
@@ -18936,7 +19113,13 @@ function Editor() {
                             document.execCommand('insertText', false, html.join(''));
                         }
                     } else {
-                        var d = filter(html);
+                        let img = [];
+                        var d = utils_filter(html, img);
+                        if (img.length) {
+                            for (var i = 0; i < img.length; i++) {
+                                obj.addImage(img[i]);
+                            }
+                        }
                         // Paste to the editor
                         //insertNodeAtCaret(d);
                         document.execCommand('insertHtml', false, d.innerHTML);
@@ -18978,25 +19161,25 @@ function Editor() {
         }
 
         var editorDrop = function(e) {
-            if (editorAction || obj.options.dropZone == false) {
+            if (editorAction || obj.options.dropZone === false) {
                 // Do nothing
             } else {
                 // Position caret on the drop
-                var range = null;
+                let range = null;
                 if (document.caretRangeFromPoint) {
                     range=document.caretRangeFromPoint(e.clientX, e.clientY);
                 } else if (e.rangeParent) {
                     range=document.createRange();
                     range.setStart(e.rangeParent,e.rangeOffset);
                 }
-                var sel = window.getSelection();
+                let sel = window.getSelection();
                 sel.removeAllRanges();
                 sel.addRange(range);
                 sel.anchorNode.parentNode.focus();
 
-                var html = (e.originalEvent || e).dataTransfer.getData('text/html');
-                var text = (e.originalEvent || e).dataTransfer.getData('text/plain');
-                var file = (e.originalEvent || e).dataTransfer.files;
+                let html = (e.originalEvent || e).dataTransfer.getData('text/html');
+                let text = (e.originalEvent || e).dataTransfer.getData('text/plain');
+                let file = (e.originalEvent || e).dataTransfer.files;
 
                 if (file.length) {
                     obj.addFile(file);
@@ -19508,13 +19691,13 @@ function Editor() {
 
         items.push({
             content: 'format_indent_decrease',
-            onclick: function() {
+            onclick: function(a,b,c) {
                 document.execCommand('outdent');
 
                 if (document.queryCommandState("outdent")) {
-                    this.classList.add('selected');
+                    c.classList.add('selected');
                 } else {
-                    this.classList.remove('selected');
+                    c.classList.remove('selected');
                 }
             }
         });
@@ -19867,7 +20050,7 @@ function Validations() {
         }
         return null;
     }
-
+    
     component.url = function(data) {
         var pattern = new RegExp(/(((https?:\/\/)|(www\.))[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|]+)/ig);
         return pattern.test(data) ? true : false;
@@ -19877,7 +20060,7 @@ function Validations() {
         var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
         return data && pattern.test(data) ? true : false;
     }
-
+    
     component.required = function(data) {
         return data && data.trim() ? true : false;
     }
@@ -21535,7 +21718,7 @@ function Slider(el, options) {
             // Keep children items
             for (var i = 0; i < el.children.length; i++) {
                 obj.options.items.push(el.children[i]);
-
+                
                 // counter click event
                 var item = document.createElement('div');
                 item.onclick = function() {
@@ -21554,7 +21737,7 @@ function Slider(el, options) {
         var close = document.createElement('div');
         close.className = 'jslider-close';
         close.innerHTML = '';
-
+        
         close.onclick = function() {
             obj.close();
         }
@@ -21660,7 +21843,7 @@ function Slider(el, options) {
             obj.show(obj.currentImage.nextElementSibling);
         }
     }
-
+    
     obj.prev = function() {
         if (obj.currentImage.previousElementSibling) {
             obj.show(obj.currentImage.previousElementSibling);
@@ -21825,7 +22008,7 @@ function Tags(el, options) {
             var ret = obj.options.onbeforechange(el, obj, obj.options.value, value);
             if (ret === false) {
                 return false;
-            } else {
+            } else { 
                 if (ret != null) {
                     value = ret;
                 }
@@ -22018,7 +22201,7 @@ function Tags(el, options) {
     /**
      * Add one element from the suggestions to the element
      * @param {object} item - Node element in the suggestions container
-     */
+     */ 
     obj.selectIndex = function(text, value) {
         var node = helpers.getNode();
         if (node) {
@@ -22416,6 +22599,7 @@ function Tags(el, options) {
 
 
 
+
 function Upload(el, options) {
     var obj = {};
     obj.options = {};
@@ -22651,15 +22835,11 @@ function Upload(el, options) {
             }
 
             // Create temp element
-            var div = document.createElement('div');
-            div.innerHTML = html;
-
-            // Extract images
-            var img = div.querySelectorAll('img');
-
+            let img = [];
+            utils_filter(html, img);
             if (img.length) {
                 for (var i = 0; i < img.length; i++) {
-                    obj.addFromUrl(img[i].src);
+                    obj.addFromUrl(img[i]);
                 }
             }
         }
@@ -22800,7 +22980,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.0-beta.24',
+    version: '6.0.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
