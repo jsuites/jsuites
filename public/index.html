@@ -15,14 +15,15 @@
 </head>
 <body>
 
-<input id="test-input" type="text">
+
+<input id="test-input" type="text" data-mask="DDDD/MMMM">
 
 <script type="text/javascript" src="/jsuites.js"></script>
 
 <script>
-    document.getElementById('test-input').mask = {
-        locale: 'en-IN',
-        options: { style:'currency', currency: 'INR' }
+    document.dictionary = {
+        'December': 'Dezembro',
+        'Monday': 'Segunda',
     }
 </script>
 

@@ -32,16 +32,16 @@
     "docs": "https://jsuites.net",
     "download": "https://github.com/jsuites/jsuites/archive/master.zip",
     "dependencies": {
-        "@jsuites/utils": "^6.0.2",
+        "@jsuites/utils": "^6.0.3",
         "@lemonadejs/calendar": "^5.8.0",
         "@lemonadejs/color": "^5.8.0",
         "@lemonadejs/contextmenu": "^5.8.0",
         "@lemonadejs/dropdown": "^5.8.0",
         "@lemonadejs/modal": "^5.8.0",
+        "@lemonadejs/rating": "^5.8.1",
         "@lemonadejs/switch": "^5.8.0",
         "@lemonadejs/tabs": "^5.8.0",
-        "@lemonadejs/topmenu": "^5.8.0",
-        "@lemonadejs/rating": "^5.8.1"
+        "@lemonadejs/topmenu": "^5.8.0"
     },
     "devDependencies": {
         "@babel/preset-env": "^7.28.5",
