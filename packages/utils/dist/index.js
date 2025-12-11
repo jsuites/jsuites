@@ -994,14 +994,8 @@
         const hiddenCaret = "\u200B";
         // Locale for date parsing
         const userLocale = (typeof navigator !== 'undefined' && navigator.language) || 'en-US';
-        // Labels
-        const weekDaysFull = Helpers.weekdays;
-        const weekDays = Helpers.weekdaysShort;
-        const monthsFull = Helpers.months;
-        const months = Helpers.monthsShort;
 
         // Helpers
-
         const focus = function(el) {
             if (el.textContent.length) {
                 // Handle contenteditable elements
@@ -1373,9 +1367,9 @@
                     this.values[this.index] = '';
                 }
                 let value = (this.values[this.index] + v).toLowerCase();
-                for (var i = 0; i < monthsFull.length; i++) {
-                    if (monthsFull[i][0].toLowerCase().indexOf(value) === 0) {
-                        this.values[this.index] = monthsFull[i][0];
+                for (var i = 0; i < Helpers.months.length; i++) {
+                    if (Helpers.months[i][0].toLowerCase().indexOf(value) === 0) {
+                        this.values[this.index] = Helpers.months[i][0];
                         this.date[1] = i + 1;
                         this.index++;
                         break;
@@ -1383,13 +1377,13 @@
                 }
             },
             'MMMM': function(v) {
-                let ret = parseMethods.FIND.call(this, v, monthsFull);
+                let ret = parseMethods.FIND.call(this, v, Helpers.months);
                 if (typeof(ret) !== 'undefined') {
                     this.date[1] = ret + 1;
                 }
             },
             'MMM': function(v) {
-                let ret = parseMethods.FIND.call(this, v, months);
+                let ret = parseMethods.FIND.call(this, v, Helpers.monthsShort);
                 if (typeof(ret) !== 'undefined') {
                     this.date[1] = ret + 1;
                 }
@@ -1442,10 +1436,10 @@
                 return parseMethods['MMM'].call(this, v);
             },
             'DDDD': function(v) {
-                return parseMethods.FIND.call(this, v, weekDaysFull);
+                return parseMethods.FIND.call(this, v, Helpers.weekdays);
             },
             'DDD': function(v) {
-                return parseMethods.FIND.call(this, v, weekDays);
+                return parseMethods.FIND.call(this, v, Helpers.weekdaysShort);
             },
             'DD': function(v, single) {
                 const commit = () => {
