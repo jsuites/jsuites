@@ -150,8 +150,11 @@
                     y = e.clientY;
                 }
 
-                if (rect.width - (x - rect.left) < 45 && (y - rect.top) < 45) {
-                    obj.hide();
+                const computedStyle = window.getComputedStyle(e.target);
+                if (computedStyle.position === 'fixed') {
+                    if (rect.width - (x - rect.left) < 45 && (y - rect.top) < 45) {
+                        obj.hide();
+                    }
                 }
             }
         }

@@ -18,6 +18,7 @@
     height: 24px;
     cursor: pointer;
     text-shadow: 0 0 5px #fff;
+    display: none;
 }
 
 .jmenu:not(:empty) {
@@ -28,24 +29,16 @@
     display: none;
 }
 
-.jmenu .close {
-    position: absolute;
-    top: 20px;
-    right: 20px;
-    display: none;
-    cursor: pointer;
-}
-
 .jmenu-logo {
     display: none;
 }
 
 .jmenu nav {
-    margin-bottom: 2px;
+    margin-bottom: 8px;
 }
 
 .jmenu nav > div {
-    padding: 10px;
+    padding: 15px;
 }
 
 .jmenu nav h2 {
@@ -58,7 +51,6 @@
     line-height: 24px;
     border-radius: 4px;
     margin: 0;
-    letter-spacing: 1.1px;
 }
 
 .jmenu nav h2.selected {
@@ -75,7 +67,7 @@
     height: 24px;
     font-size: 24px;
     line-height: 24px;
-    font-family: 'Material icons';
+    font-family: "Material Symbols Outlined", "Material Icons", "FontAwesome";
     margin-right: 6px;
     font-weight: normal;
 }
@@ -206,7 +198,7 @@
         max-width: 120px;
     }
 
-    .jmenu .close {
+    .jmenu:after {
         display: block;
     }
 
