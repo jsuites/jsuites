@@ -6024,13 +6024,12 @@ function Contextmenu() {
                 if (item.disabled) {
                     itemContainer.className = 'jcontextmenu-disabled';
                 } else if (item.onclick) {
-                    itemContainer.method = item.onclick;
+                    let method = item.onclick;
                     itemContainer.addEventListener("mousedown", function (e) {
                         e.preventDefault();
                     });
                     itemContainer.addEventListener("mouseup", function (e) {
-                        // Execute method
-                        this.method(this, e);
+                        method(this, e);
                     });
                 }
                 itemContainer.appendChild(itemText);
@@ -13072,7 +13071,7 @@ var jsuites_jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '5.13.1',
+    version: '5.13.3',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
