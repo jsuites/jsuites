@@ -15744,13 +15744,12 @@ function Contextmenu() {
                 if (item.disabled) {
                     itemContainer.className = 'jcontextmenu-disabled';
                 } else if (item.onclick) {
-                    itemContainer.method = item.onclick;
+                    let method = item.onclick;
                     itemContainer.addEventListener("mousedown", function (e) {
                         e.preventDefault();
                     });
                     itemContainer.addEventListener("mouseup", function (e) {
-                        // Execute method
-                        this.method(this, e);
+                        method(this, e);
                     });
                 }
                 itemContainer.appendChild(itemText);
