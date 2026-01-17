@@ -131,6 +131,12 @@
                 if (e.target.classList.contains('selected')) {
                     e.target.classList.remove('selected');
                 } else {
+                    if (options.toggle === true) {
+                        let items = el.querySelectorAll('.folder');
+                        items.forEach(item => {
+                            item.classList.remove('selected');
+                        })
+                    }
                     e.target.classList.add('selected');
                 }
             } else if (e.target.tagName === 'A') {
