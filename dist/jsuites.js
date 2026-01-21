@@ -4579,8 +4579,6 @@ const Mask = utils.Mask;
                 // Back to the days
                 self.view = 'days';
             } else if (! s.disabled) {
-                setCursor(s);
-
                 if (isTrue(self.range)) {
                     // Start a new range
                     if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
@@ -4596,7 +4594,10 @@ const Mask = utils.Mask;
                         s.end = true;
                         self.rangeValues[1] = s.number;
                     }
+                    setCursor(s);
                 } else {
+                    setCursor(s);
+
                     update();
                 }
             }
@@ -6712,7 +6713,13 @@ if (!Modal && "function" === 'function') {
 
             if (Array.isArray(data)) {
                 data.map(function (s) {
-                    s.selected = newValue.some(v => v == s.value);
+                    s.selected = newValue.some(v => {
+                        // Use strict equality when either value is empty string to avoid '' == 0 being true
+                        if (v === '' || s.value === '') {
+                            return v === s.value;
+                        }
+                        return v == s.value;
+                    });
                     if (s.selected) {
                         value.push(s);
                     }
@@ -6741,6 +6748,20 @@ if (!Modal && "function" === 'function') {
             } else {
                 if (value && value.length) {
                     return value[0].value;
+                }
+            }
+
+            return null;
+        }
+
+        const getText = function () {
+            if (self.multiple) {
+                if (value && value.length) {
+                    return value.filter(v => v.selected).map(i => i.text);
+                }
+            } else {
+                if (value && value.length) {
+                    return value[0].text;
                 }
             }
 
@@ -6917,7 +6938,11 @@ if (!Modal && "function" === 'function') {
 
                     // Debounce the search with 300ms delay
                     searchTimeout = setTimeout(() => {
-                        fetch(`${self.url}?q=${query}`, http).then(r => r.json()).then(resetData).catch((error) => {
+                        let url = self.url;
+                        url += url.indexOf('?') === -1 ? '?' : '&';
+                        url += `q=${query}`;
+
+                        fetch(url, http).then(r => r.json()).then(resetData).catch((error) => {
                             resetData([]);
                         });
                     }, 300);
@@ -7195,6 +7220,10 @@ if (!Modal && "function" === 'function') {
 
         self.getValue = function() {
             return self.value;
+        }
+
+        self.getText = function() {
+            return getText();
         }
 
         self.setValue = function(v) {
@@ -10202,13 +10231,12 @@ if (! Contextmenu && "function" === 'function') {
 
                 // Event property to the element
                 event = () => {
-                    let value = getAttribute(getElement(item), 'value');
-                    if (lemon.self[prop] !== value) {
-                        setAttribute(getElement(item), 'value', lemon.self[prop]);
-                    }
+                    setAttribute(getElement(item), 'value', lemon.self[prop]);
                 }
                 // Append event
                 appendEvent(prop, event, true);
+            } else if (prop.value instanceof state) {
+                // TODO: implement :bind states
             }
         }
 
@@ -10372,6 +10400,8 @@ if (! Contextmenu && "function" === 'function') {
                         } else {
                             // Register parent
                             register(self, 'parent', lemon.self);
+                            // Pass parent view for expressions in loop templates
+                            item.parentView = lemon.view;
                             // Render
                             L.render(method, root, self, item);
                         }
@@ -10634,76 +10664,81 @@ if (! Contextmenu && "function" === 'function') {
                         item.props = reorderProps(item.props);
                         // Order by priority
                         item.props.forEach(function(prop) {
-                            // If the property is an event
-                            let event = getAttributeEvent(prop.name);
-                            // When event for a DOM
-                            if (event) {
-                                // Element
-                                let element = item.element;
-                                // Value
-                                let value = prop.value;
-                                if (value) {
-                                    let handler = null; // Reset handler for each iteration
-                                    if (typeof (value) === 'function') {
-                                        handler = value;
-                                    } else {
-                                        let t = extractFromPath.call(lemon.self, value);
-                                        if (t) {
-                                            if (typeof (t) === 'function') {
-                                                prop.value = handler = t;
+                            try {
+                                // If the property is an event
+                                let event = getAttributeEvent(prop.name);
+                                // When event for a DOM
+                                if (event) {
+                                    // Element
+                                    let element = item.element;
+                                    // Value
+                                    let value = prop.value;
+                                    if (value) {
+                                        let handler = null; // Reset handler for each iteration
+                                        if (typeof (value) === 'function') {
+                                            handler = value;
+                                        } else {
+                                            let t = extractFromPath.call(lemon.self, value);
+                                            if (t) {
+                                                if (typeof (t) === 'function') {
+                                                    prop.value = handler = t;
+                                                }
                                             }
                                         }
-                                    }
-                                    // When the element is a DOM
-                                    if (isDOM(element)) {
-                                        // Create the event handler
-                                        let eventHandler;
-                                        // Bind event
-                                        if (typeof(handler) === 'function') {
-                                            eventHandler = function(e, a, b) {
-                                                return handler.call(element, e, lemon.self, a, b);
-                                            }
-                                        } else {
-                                            // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
-                                            eventHandler = function (e) {
-                                                return Function('e', 'self', value).call(element, e, lemon.self); // TODO, quebra tudo se mudar
-                                            }
-                                        }
-
-                                        if (isValidEventName(element, prop.name)) {
-                                            element.addEventListener(event.substring(2), eventHandler);
-                                        } else {
-                                            if (element.tagName?.includes('-')) {
-                                                element[event] = handler;
+                                        // When the element is a DOM
+                                        if (isDOM(element)) {
+                                            // Create the event handler
+                                            let eventHandler;
+                                            // Bind event
+                                            if (typeof(handler) === 'function') {
+                                                eventHandler = function(e, a, b) {
+                                                    return handler.call(element, e, lemon.self, a, b);
+                                                }
                                             } else {
-                                                element[event] = eventHandler;
+                                                // Legacy compatibility. Inline scripting is non-Compliance with Content Security Policy (CSP).
+                                                eventHandler = function (e) {
+                                                    return Function('e', 'self', value).call(element, e, lemon.self); // TODO, quebra tudo se mudar
+                                                }
                                             }
+
+                                            if (isValidEventName(element, prop.name)) {
+                                                element.addEventListener(event.substring(2), eventHandler);
+                                            } else {
+                                                if (element.tagName?.includes('-')) {
+                                                    element[event] = handler;
+                                                } else {
+                                                    element[event] = eventHandler;
+                                                }
+                                            }
+                                        } else {
+                                            item.self[event] = handler || value;
                                         }
-                                    } else {
-                                        item.self[event] = handler || value;
                                     }
-                                }
-                            } else if (prop.name.startsWith(':') || prop.name.startsWith('@') || prop.name.startsWith('lm-')) {
-                                // Special lemonade attribute name
-                                let attrName = getAttributeName(prop.name);
-                                // Special properties bound to the self
-                                if (attrName === 'ready') {
-                                    whenIsReady(item, prop);
-                                } else if (attrName === 'ref') {
-                                    createReference(item, prop);
-                                } else if (attrName === 'loop') {
-                                    registerLoop(item, prop);
-                                } else if (attrName === 'bind') {
-                                    applyBindHandler(item, prop);
-                                } else if (attrName === 'path') {
-                                    registerPath(item, prop);
-                                } else if (attrName === 'render') {
-                                    applyRenderHandler(item, prop);
+                                } else if (prop.name.startsWith(':') || prop.name.startsWith('@') || prop.name.startsWith('lm-')) {
+                                    // Special lemonade attribute name
+                                    let attrName = getAttributeName(prop.name);
+                                    // Special properties bound to the self
+                                    if (attrName === 'ready') {
+                                        whenIsReady(item, prop);
+                                    } else if (attrName === 'ref') {
+                                        createReference(item, prop);
+                                    } else if (attrName === 'loop') {
+                                        registerLoop(item, prop);
+                                    } else if (attrName === 'bind') {
+                                        applyBindHandler(item, prop);
+                                    } else if (attrName === 'path') {
+                                        registerPath(item, prop);
+                                    } else if (attrName === 'render') {
+                                        applyRenderHandler(item, prop);
+                                    } else {
+                                        setDynamicValue(item, prop, attrName);
+                                    }
                                 } else {
-                                    setDynamicValue(item, prop, attrName);
+                                    applyElementAttribute(item, prop);
                                 }
-                            } else {
-                                applyElementAttribute(item, prop);
+                            } catch (e) {
+                                let propValue = prop.expression || prop.value;
+                                console.error(`${prop.name}="${propValue}" - ${e.message}`, item);
                             }
                         })
                     }
@@ -11065,7 +11100,7 @@ if (! Contextmenu && "function" === 'function') {
             self: self,
             ready: [],
             change: [],
-            events: [],
+            events: {},
             components: {},
             elements: [],
             root: root,
@@ -11090,6 +11125,10 @@ if (! Contextmenu && "function" === 'function') {
         // New self
         if (component === Basic) {
             view = cloneChildren(item.children[0]);
+
+            if (item.parentView) {
+                lemon.view = item.parentView;
+            }
         } else {
             R.currentLemon = lemon;
 
@@ -11266,7 +11305,10 @@ if (! Contextmenu && "function" === 'function') {
             let props = Object.keys(lemon.events);
             if (props.length) {
                 for (let i = 0; i <props.length; i++) {
-                    trackProperty(lemon, props[i]);
+                    let prop = props[i];
+                    if (prop != Number(prop)) {
+                        trackProperty(lemon, prop);
+                    }
                 }
             }
         }
@@ -11537,6 +11579,8 @@ if (! Contextmenu && "function" === 'function') {
                         for (let i = 0; i < elements.length; i++) {
                             let v = Path.call(newValue, elements[i].path)
                             setAttribute(elements[i].element, 'value', v);
+                            // Also sync value to the data object (use '' for undefined to match form behavior)
+                            Path.call(lemon.path.value, elements[i].path, v !== undefined ? v : '');
                         }
                     }
                 }
