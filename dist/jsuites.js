@@ -7824,7 +7824,7 @@ if (!lemonade && "function" === 'function') {
         }
     }
 
-    const Modal = function (template, { onchange, onload }) {
+    const Modal = function (template, { onchange, onload, track }) {
         let self = this;
         let backdrop = null;
         let elements = null;
@@ -8229,7 +8229,12 @@ if (!lemonade && "function" === 'function') {
             }
         });
 
-        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" :top="self.top" :left="self.left" :width="self.width" :height="self.height" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
+        track('top');
+        track('left');
+        track('width');
+        track('height');
+
+        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
             <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
             <div :ref="self.root">${template}</div>
         </div>`
@@ -23017,7 +23022,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.0.4',
+    version: '6.1.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
