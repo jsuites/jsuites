@@ -501,7 +501,9 @@ export default function Tabs(el, options) {
         }
 
         // Update controls
-        updateControls(0);
+        setTimeout(() => {
+            updateControls(0);
+        })
 
         if (obj.options.allowChangePosition == true) {
             Sorting(obj.headers, {

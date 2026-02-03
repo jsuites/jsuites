@@ -5965,6 +5965,20 @@ if (! Modal && "function" === 'function') {
             return self.modals[0].modal.closed === true;
         }
 
+        self.openAt = function(a, b) {
+            let x, y;
+            if (a instanceof Event || (a && a.clientX !== undefined)) {
+                // openAt(event)
+                x = a.clientX;
+                y = a.clientY;
+            } else {
+                // openAt(x, y)
+                x = a;
+                y = b;
+            }
+            self.open(self.options, x, y, true);
+        };
+
         self.open = function(options, x, y, adjust) {
             // Get the main modal
             let menu = self.modals[0];
@@ -6913,7 +6927,7 @@ if (!Modal && "function" === 'function') {
             if (! self.isClosed() && self.autocomplete) {
 
                 // Remote or normal search
-                if (self.remote === true) {
+                if (self.remote === true && self.url) {
                     // Clear existing timeout
                     if (searchTimeout) {
                         clearTimeout(searchTimeout);
@@ -7345,8 +7359,35 @@ if (!Modal && "function" === 'function') {
             if (prop === 'value') {
                 setValue(self.value);
             } else if (prop === 'data') {
+                // Store current value before resetting data
+                let currentValue = self.value;
                 setData();
-                self.value = null;
+
+                // Only reset value if it's not in the new data
+                if (currentValue !== null && currentValue !== undefined && currentValue !== '') {
+                    let valuesToCheck = Array.isArray(currentValue) ? currentValue : [currentValue];
+
+                    // Filter to keep only values that exist in the new data
+                    let validValues = valuesToCheck.filter(v => {
+                        return self.data.some(item => {
+                            if (v === '' || item.value === '') {
+                                return v === item.value;
+                            }
+                            return v == item.value;
+                        });
+                    });
+
+                    if (validValues.length === 0) {
+                        // No valid values remain, reset to null
+                        self.value = null;
+                    } else if (self.multiple) {
+                        // Multi-select: keep only valid values
+                        self.value = validValues;
+                    } else {
+                        // Single select: re-apply the value
+                        self.value = validValues[0];
+                    }
+                }
             }
 
             if (typeof (lazyloading) === 'function') {
@@ -14841,7 +14882,9 @@ function Tabs(el, options) {
         }
 
         // Update controls
-        updateControls(0);
+        setTimeout(() => {
+            updateControls(0);
+        })
 
         if (obj.options.allowChangePosition == true) {
             Sorting(obj.headers, {
@@ -23022,7 +23065,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.1.1',
+    version: '6.1.2',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
