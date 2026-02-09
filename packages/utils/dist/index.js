@@ -285,7 +285,7 @@
             // Number
             fraction: [ '#{0,1}.*?\\?+\\/[0-9?]+' ],
             // Currency tokens
-            currency: [ '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?' ],
+            currency: [ '#(.{1})##0?(.{1}[0#]+)?( ?;(.*)?)?' ],
             // Scientific
             scientific: [ '[0#]+([.,]{1}0*#*)?E{1}\\+0+' ],
             // Percentage
@@ -1736,7 +1736,7 @@
                     this.values[this.index] = '';
                 }
             },
-            '#(.{1})##0?(.{1}0+)?( ?;(.*)?)?': function(v) {
+            '#(.{1})##0?(.{1}[0#]+)?( ?;(.*)?)?': function(v) {
                 // Process first the number
                 parseMethods['[0#]+([.,]{1}0*#*)?'].call(this, v, true);
                 // Create the separators
@@ -2369,77 +2369,89 @@
         const adjustNumberOfDecimalPlaces = function(config, value) {
             let temp = value;
             let mask = config.mask;
-            let expo;
 
             if (config.type === 'scientific') {
+                // Scientific notation handling
                 mask = config.mask.toUpperCase().split('E')[0];
 
                 let numOfDecimalPlaces = mask.split(config.decimal);
-                numOfDecimalPlaces = numOfDecimalPlaces[1].match(/[0#]+/g);
-                numOfDecimalPlaces = numOfDecimalPlaces[0]?.length ?? 0;
+                // Handle masks without decimal (e.g., '0E+00')
+                if (numOfDecimalPlaces[1]) {
+                    numOfDecimalPlaces = numOfDecimalPlaces[1].match(/[0#]+/g);
+                    numOfDecimalPlaces = numOfDecimalPlaces[0]?.length ?? 0;
+                } else {
+                    numOfDecimalPlaces = 0;
+                }
                 temp = temp.toExponential(numOfDecimalPlaces);
-                expo = temp.toString().split('e+');
-                temp = Number(expo[0]);
-            }
+                // Split by 'e' to handle both positive (e+) and negative (e-) exponents
+                let expo = temp.toString().split('e');
+                // Keep coefficient as string to preserve decimal places (e.g., '1.00' not 1)
+                temp = expo[0];
 
-            if (mask.indexOf(config.decimal) === -1) {
-                // No decimal places
-                if (! Number.isInteger(temp)) {
-                    temp = temp.toFixed(0);
-                }
-            } else {
-                // Length of the decimal
-                let mandatoryDecimalPlaces = mask.split(config.decimal);
-                mandatoryDecimalPlaces = mandatoryDecimalPlaces[1].match(/0+/g);
-                if (mandatoryDecimalPlaces) {
-                    mandatoryDecimalPlaces = mandatoryDecimalPlaces[0].length;
-                } else {
-                    mandatoryDecimalPlaces = 0;
-                }
-                // Amount of decimal
-                let numOfDecimalPlaces = temp.toString().split(config.decimal)
-                numOfDecimalPlaces = numOfDecimalPlaces[1]?.length ?? 0;
-                // Necessary adjustment
-                let necessaryAdjustment = 0;
-                if (numOfDecimalPlaces < mandatoryDecimalPlaces) {
-                    necessaryAdjustment = mandatoryDecimalPlaces;
-                } else {
-                    // Optional
-                    let optionalDecimalPlaces = mask.split(config.decimal);
-                    optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g);
-                    if (optionalDecimalPlaces) {
-                        optionalDecimalPlaces = optionalDecimalPlaces[0].length;
-                        if (numOfDecimalPlaces > optionalDecimalPlaces) {
-                            necessaryAdjustment = optionalDecimalPlaces;
-                        }
-                    }
-                }
-                // Adjust decimal numbers if applicable
-                if (necessaryAdjustment) {
-                    let t = temp.toFixed(necessaryAdjustment);
-                    let n = temp.toString().split('.');
-                    let fraction = n[1];
-                    if (fraction && fraction.length > necessaryAdjustment && fraction[fraction.length - 1] === '5') {
-                        t = parseFloat(n[0] + '.' + fraction + '1').toFixed(necessaryAdjustment);
-                    }
-                    temp = t;
-                }
-            }
-
-            if (config.type === 'scientific') {
+                // Process padding zeros for coefficient
                 let ret = processPaddingZeros(mask, temp, config.decimal);
                 if (ret) {
                     temp = ret;
                 }
                 expo[0] = temp;
 
-                mask = config.mask.toUpperCase().split('E+')[1];
-                ret = processPaddingZeros(mask, expo[1], config.decimal);
+                // Handle both E+ and E- in mask for exponent
+                mask = config.mask.toUpperCase().split(/E[+-]?/)[1];
+                ret = processPaddingZeros(mask, expo[1]?.replace(/^[+-]/, ''), config.decimal);
                 if (ret) {
-                    expo[1] = ret;
+                    // Preserve the sign from the original exponent
+                    let sign = expo[1]?.charAt(0);
+                    expo[1] = (sign === '-' ? '-' : '+') + ret;
                 }
 
-                temp = expo.join('e+');
+                temp = expo.join('e');
+            } else {
+                // Non-scientific decimal adjustment
+                if (mask.indexOf(config.decimal) === -1) {
+                    // No decimal places
+                    if (! Number.isInteger(temp)) {
+                        temp = temp.toFixed(0);
+                    }
+                } else {
+                    // Length of the decimal
+                    let mandatoryDecimalPlaces = mask.split(config.decimal);
+                    mandatoryDecimalPlaces = mandatoryDecimalPlaces[1].match(/0+/g);
+                    if (mandatoryDecimalPlaces) {
+                        mandatoryDecimalPlaces = mandatoryDecimalPlaces[0].length;
+                    } else {
+                        mandatoryDecimalPlaces = 0;
+                    }
+
+                    // Amount of decimal (use original value to check decimal separator)
+                    let valueStr = value.toString();
+                    let numOfDecimalPlaces = valueStr.split(valueStr.includes('.') ? '.' : (config.decimal || '.'))
+                    numOfDecimalPlaces = numOfDecimalPlaces[1]?.length ?? 0;
+                    // Necessary adjustment
+                    let necessaryAdjustment = 0;
+                    if (numOfDecimalPlaces < mandatoryDecimalPlaces) {
+                        necessaryAdjustment = mandatoryDecimalPlaces;
+                    } else {
+                        // Optional
+                        let optionalDecimalPlaces = mask.split(config.decimal);
+                        optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g);
+                        if (optionalDecimalPlaces) {
+                            optionalDecimalPlaces = optionalDecimalPlaces[0].length;
+                            if (numOfDecimalPlaces > optionalDecimalPlaces) {
+                                necessaryAdjustment = optionalDecimalPlaces;
+                            }
+                        }
+                    }
+                    // Adjust decimal numbers if applicable
+                    if (necessaryAdjustment) {
+                        let t = temp.toFixed(necessaryAdjustment);
+                        let n = temp.toString().split('.');
+                        let fraction = n[1];
+                        if (fraction && fraction.length > necessaryAdjustment && fraction[fraction.length - 1] === '5') {
+                            t = parseFloat(n[0] + '.' + fraction + '1').toFixed(necessaryAdjustment);
+                        }
+                        temp = t;
+                    }
+                }
             }
 
             return temp;
@@ -3585,11 +3597,14 @@
             return value;
         };
 
-        Component.render = function(value, options, fullMask) {
+        Component.render = function(value, options, fullMask, strict) {
             // Nothing to render
             if (value === '' || value === undefined || value === null) {
                 return '';
             }
+
+            // Store original value for strict mode
+            const originalValue = value;
 
             // Config
             const config = getConfig(options, value);
@@ -3611,6 +3626,11 @@
                         value = value.toString();
                     }
                 } else {
+                    // Strict mode: for numeric masks, if string input is not a valid number,
+                    // return original value unchanged (Excel-like behavior)
+                    if (strict && typeof(originalValue) === 'string' && !isNumber(originalValue)) {
+                        return originalValue;
+                    }
                     if (config.type === 'percentage') {
                         if (typeof (value) === 'string' && value.indexOf('%') !== -1) {
                             value = value.replace('%', '');

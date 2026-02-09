@@ -267,6 +267,54 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(0.128899, { mask: '$ #.##0,00' }, true)).toBe('$ 0,13');
             expect(jSuites.mask.render(123.4, { mask: '#,##0.0000' }, true)).toBe('123.4000');
             expect(jSuites.mask.render(79998007920000000000000, { mask: '#,##0' }, true)).toBe('79,998,007,920,000,000,000,000');
+            // Optional decimal places with # after mandatory 0
+            expect(jSuites.mask.render(10023.134, { mask: '#.##0,0##' }, true)).toBe('10.023,134');
+            // Optional decimal places with only # (no mandatory 0)
+            expect(jSuites.mask.render(10023, { mask: '#.##0,##' }, true)).toBe('10.023');
+            expect(jSuites.mask.render(10023.5, { mask: '#.##0,##' }, true)).toBe('10.023,5');
+            // String input with comma decimal separator
+            expect(jSuites.mask.render('10023,134', { mask: '#.##0,0##' }, true)).toBe('10.023,134');
+        });
+
+        test('optional decimal places edge cases', () => {
+            // Number has more decimals than mask allows (10 decimals, mask has 3)
+            expect(jSuites.mask.render(1234.1234567890, { mask: '#.##0,000' }, true)).toBe('1.234,123');
+            expect(jSuites.mask.render(1234.1234567890, { mask: '#.##0,0##' }, true)).toBe('1.234,123');
+            expect(jSuites.mask.render(1234.1234567890, { mask: '#.##0,###' }, true)).toBe('1.234,123');
+
+            // Number has fewer decimals than mask allows (1 decimal, mask has up to 5)
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,00000' }, true)).toBe('1.234,50000');
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,00###' }, true)).toBe('1.234,50');
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,0####' }, true)).toBe('1.234,5');
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,#####' }, true)).toBe('1.234,5');
+
+            // Number has exact decimals as mask (3 decimals, mask has 3)
+            expect(jSuites.mask.render(1234.567, { mask: '#.##0,000' }, true)).toBe('1.234,567');
+            expect(jSuites.mask.render(1234.567, { mask: '#.##0,0##' }, true)).toBe('1.234,567');
+            expect(jSuites.mask.render(1234.567, { mask: '#.##0,###' }, true)).toBe('1.234,567');
+
+            // No decimals in number, mask has optional decimals only
+            expect(jSuites.mask.render(1234, { mask: '#.##0,###' }, true)).toBe('1.234');
+            expect(jSuites.mask.render(1234, { mask: '#.##0,##' }, true)).toBe('1.234');
+            expect(jSuites.mask.render(1234, { mask: '#.##0,#' }, true)).toBe('1.234');
+
+            // No decimals in number, mask has mandatory decimals
+            expect(jSuites.mask.render(1234, { mask: '#.##0,00' }, true)).toBe('1.234,00');
+            expect(jSuites.mask.render(1234, { mask: '#.##0,000' }, true)).toBe('1.234,000');
+
+            // Mixed mandatory and optional: 2 mandatory + 3 optional = up to 5
+            expect(jSuites.mask.render(1234.1, { mask: '#.##0,00###' }, true)).toBe('1.234,10');
+            expect(jSuites.mask.render(1234.12345, { mask: '#.##0,00###' }, true)).toBe('1.234,12345');
+            expect(jSuites.mask.render(1234.123456789, { mask: '#.##0,00###' }, true)).toBe('1.234,12346');
+
+            // String input with European decimal (strings are formatted as-is, not truncated)
+            expect(jSuites.mask.render('1234,5678', { mask: '#.##0,00##' }, true)).toBe('1.234,5678');
+            expect(jSuites.mask.render('1234,56789012', { mask: '#.##0,00##' }, true)).toBe('1.234,56789012');
+
+            // US format (dot decimal, comma thousands)
+            expect(jSuites.mask.render(1234.5678, { mask: '#,##0.00##' }, true)).toBe('1,234.5678');
+            expect(jSuites.mask.render(1234.5, { mask: '#,##0.0###' }, true)).toBe('1,234.5');
+            expect(jSuites.mask.render(1234, { mask: '#,##0.####' }, true)).toBe('1,234');
         });
 
         test('number rendering', () => {
@@ -280,6 +328,42 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(12345678900, { mask: '0.00E+00' }, true)).toBe('1.23e+10');
             expect(jSuites.mask.render(79998007920000000000000, { mask: '0.0000E+00' }, true)).toBe('7.9998e+22');
             expect(jSuites.mask.render(-79998007920000000000000, { mask: '0.0000E+00' }, true)).toBe('-7.9998e+22');
+
+            // Various decimal places (1 to 6 decimals)
+            expect(jSuites.mask.render(1234567, { mask: '0.0E+00' }, true)).toBe('1.2e+06');
+            expect(jSuites.mask.render(1234567, { mask: '0.00E+00' }, true)).toBe('1.23e+06');
+            expect(jSuites.mask.render(1234567, { mask: '0.000E+00' }, true)).toBe('1.235e+06');
+            expect(jSuites.mask.render(1234567, { mask: '0.0000E+00' }, true)).toBe('1.2346e+06');
+            expect(jSuites.mask.render(1234567, { mask: '0.00000E+00' }, true)).toBe('1.23457e+06');
+            expect(jSuites.mask.render(1234567, { mask: '0.000000E+00' }, true)).toBe('1.234567e+06');
+
+            // Negative large numbers
+            expect(jSuites.mask.render(-1234567, { mask: '0.00E+00' }, true)).toBe('-1.23e+06');
+            expect(jSuites.mask.render(-1234567890, { mask: '0.0000E+00' }, true)).toBe('-1.2346e+09');
+
+            // Small numbers (negative exponents)
+            expect(jSuites.mask.render(0.00012345, { mask: '0.00E+00' }, true)).toBe('1.23e-04');
+            expect(jSuites.mask.render(0.00012345, { mask: '0.0000E+00' }, true)).toBe('1.2345e-04');
+            expect(jSuites.mask.render(-0.00012345, { mask: '0.00E+00' }, true)).toBe('-1.23e-04');
+            expect(jSuites.mask.render(0.000000001, { mask: '0.00E+00' }, true)).toBe('1.00e-09');
+            expect(jSuites.mask.render(1e-15, { mask: '0.00E+00' }, true)).toBe('1.00e-15');
+
+            // Numbers around 1
+            expect(jSuites.mask.render(1, { mask: '0.00E+00' }, true)).toBe('1.00e+00');
+            expect(jSuites.mask.render(10, { mask: '0.00E+00' }, true)).toBe('1.00e+01');
+            expect(jSuites.mask.render(0.1, { mask: '0.00E+00' }, true)).toBe('1.00e-01');
+            expect(jSuites.mask.render(0.01, { mask: '0.00E+00' }, true)).toBe('1.00e-02');
+
+            // Large exponents (positive and negative)
+            expect(jSuites.mask.render(1e15, { mask: '0.00E+00' }, true)).toBe('1.00e+15');
+            expect(jSuites.mask.render(1e20, { mask: '0.00E+00' }, true)).toBe('1.00e+20');
+            expect(jSuites.mask.render(1e-20, { mask: '0.00E+00' }, true)).toBe('1.00e-20');
+
+            // Rounding behavior
+            expect(jSuites.mask.render(1.999e10, { mask: '0.00E+00' }, true)).toBe('2.00e+10');
+            expect(jSuites.mask.render(1.234e10, { mask: '0.00E+00' }, true)).toBe('1.23e+10');
+            expect(jSuites.mask.render(1.235e10, { mask: '0.00E+00' }, true)).toBe('1.24e+10');
+            expect(jSuites.mask.render(9.999e-5, { mask: '0.00E+00' }, true)).toBe('1.00e-04');
         });
 
         test('percentage rendering', () => {
@@ -1026,6 +1110,483 @@ describe('jSuites mask', () => {
         test('should not affect text or date masks', () => {
             // Text masks should still show literals even without numeric input
             expect(jSuites.mask.render('abc', { mask: 'dd/mm/yyyy' }, true)).toBe('');
+        });
+    });
+
+    describe('Strict mode - Excel-like behavior (4th argument)', () => {
+        test('should return original value for invalid numeric strings with strict=true', () => {
+            // Mixed text and numbers - not a valid number
+            expect(jSuites.mask.render('test 123', { mask: '0.00' }, true, true)).toBe('test 123');
+            expect(jSuites.mask.render('abc123def', { mask: '#,##0.00' }, true, true)).toBe('abc123def');
+            expect(jSuites.mask.render('$100', { mask: '0.00' }, true, true)).toBe('$100');
+
+            // Pure text - not a valid number
+            expect(jSuites.mask.render('hello', { mask: '0.00' }, true, true)).toBe('hello');
+            expect(jSuites.mask.render('test', { mask: '#,##0' }, true, true)).toBe('test');
+        });
+
+        test('should still format valid numeric strings with strict=true', () => {
+            // Valid number strings should be formatted normally
+            expect(jSuites.mask.render('123', { mask: '0.00' }, true, true)).toBe('123.00');
+            expect(jSuites.mask.render('1234.56', { mask: '#,##0.00' }, true, true)).toBe('1,234.56');
+            expect(jSuites.mask.render('-100', { mask: '0.00' }, true, true)).toBe('-100.00');
+            expect(jSuites.mask.render('0.5', { mask: '0.00' }, true, true)).toBe('0.50');
+        });
+
+        test('should format number types normally with strict=true', () => {
+            // Number types are always valid
+            expect(jSuites.mask.render(123, { mask: '0.00' }, true, true)).toBe('123.00');
+            expect(jSuites.mask.render(1234.56, { mask: '#,##0.00' }, true, true)).toBe('1,234.56');
+            expect(jSuites.mask.render(-100, { mask: '0.00' }, true, true)).toBe('-100.00');
+        });
+
+        test('without strict (4th arg false/omitted) should extract digits (original behavior)', () => {
+            // Without strict, digits are extracted (decimal padding depends on input type)
+            expect(jSuites.mask.render('test 123', { mask: '0.00' }, true)).toBe('123');
+            expect(jSuites.mask.render('test 123', { mask: '0.00' }, true, false)).toBe('123');
+            expect(jSuites.mask.render('abc123def', { mask: '#,##0.00' }, true)).toBe('123');
+            // Number types get proper decimal padding
+            expect(jSuites.mask.render(123, { mask: '0.00' }, true)).toBe('123.00');
+        });
+
+        test('strict mode with percentage masks', () => {
+            expect(jSuites.mask.render('test 50', { mask: '0%' }, true, true)).toBe('test 50');
+            expect(jSuites.mask.render('0.5', { mask: '0%' }, true, true)).toBe('50%');
+            expect(jSuites.mask.render(0.5, { mask: '0%' }, true, true)).toBe('50%');
+        });
+
+        test('strict mode with currency masks', () => {
+            expect(jSuites.mask.render('hello world', { mask: '$#,##0.00' }, true, true)).toBe('hello world');
+            expect(jSuites.mask.render('1234.56', { mask: '$#,##0.00' }, true, true)).toBe('$1,234.56');
+        });
+    });
+
+    describe('Edge cases and boundary conditions', () => {
+        describe('Zero and special number handling', () => {
+            test('zero with various masks', () => {
+                expect(jSuites.mask.render(0, { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render(0, { mask: '#.##0,00' }, true)).toBe('0,00');
+                expect(jSuites.mask.render(0, { mask: '0.00E+00' }, true)).toBe('0.00e+00');
+                expect(jSuites.mask.render(0, { mask: '0%' }, true)).toBe('0%');
+                expect(jSuites.mask.render(0, { mask: '$#,##0.00' }, true)).toBe('$0.00');
+            });
+
+            test('negative zero', () => {
+                expect(jSuites.mask.render(-0, { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render(-0, { mask: '0.00E+00' }, true)).toBe('0.00e+00');
+            });
+
+            test('very small numbers close to zero', () => {
+                expect(jSuites.mask.render(0.001, { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render(0.005, { mask: '#,##0.00' }, true)).toBe('0.01');
+                expect(jSuites.mask.render(0.0049, { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render(0.0001, { mask: '#,##0.0000' }, true)).toBe('0.0001');
+            });
+
+            test('NaN handling', () => {
+                // NaN returns 'NaN' or empty depending on mask type
+                const nanResult = jSuites.mask.render(NaN, { mask: '#,##0.00' }, true);
+                expect(['NaN', '']).toContain(nanResult);
+            });
+
+            test('Infinity handling', () => {
+                // Infinity returns the string representation or empty
+                const infResult = jSuites.mask.render(Infinity, { mask: '#,##0.00' }, true);
+                expect(['∞', 'Infinity', '']).toContain(infResult);
+                const negInfResult = jSuites.mask.render(-Infinity, { mask: '#,##0.00' }, true);
+                expect(['-∞', '-Infinity', '']).toContain(negInfResult);
+            });
+        });
+
+        describe('Rounding edge cases', () => {
+            test('rounding at 0.5 boundary', () => {
+                // JavaScript uses banker's rounding (round half to even) in some cases
+                expect(jSuites.mask.render(1.5, { mask: '0' }, true)).toBe('2');
+                expect(jSuites.mask.render(2.5, { mask: '0' }, true)).toBe('3');
+                expect(jSuites.mask.render(1.25, { mask: '0.0' }, true)).toBe('1.3');
+                expect(jSuites.mask.render(1.35, { mask: '0.0' }, true)).toBe('1.4');
+            });
+
+            test('rounding with .995 edge case', () => {
+                // Classic floating point issue
+                expect(jSuites.mask.render(1.995, { mask: '0.00' }, true)).toBe('2.00');
+                expect(jSuites.mask.render(2.995, { mask: '0.00' }, true)).toBe('3.00');
+                expect(jSuites.mask.render(0.995, { mask: '0.00' }, true)).toBe('1.00');
+            });
+
+            test('rounding with many decimal places', () => {
+                expect(jSuites.mask.render(1.123456789, { mask: '0.0' }, true)).toBe('1.1');
+                expect(jSuites.mask.render(1.123456789, { mask: '0.00' }, true)).toBe('1.12');
+                expect(jSuites.mask.render(1.123456789, { mask: '0.000' }, true)).toBe('1.123');
+                expect(jSuites.mask.render(1.123456789, { mask: '0.0000' }, true)).toBe('1.1235');
+            });
+        });
+
+        describe('Very large numbers', () => {
+            test('numbers near JavaScript precision limits', () => {
+                expect(jSuites.mask.render(9007199254740991, { mask: '#,##0' }, true)).toBe('9,007,199,254,740,991');
+                expect(jSuites.mask.render(1e20, { mask: '#,##0' }, true)).toBe('100,000,000,000,000,000,000');
+            });
+
+            test('large numbers in scientific notation', () => {
+                expect(jSuites.mask.render(1e50, { mask: '0.00E+00' }, true)).toBe('1.00e+50');
+                expect(jSuites.mask.render(9.99e99, { mask: '0.00E+00' }, true)).toBe('9.99e+99');
+            });
+        });
+
+        describe('Very small numbers', () => {
+            test('very small positive numbers', () => {
+                expect(jSuites.mask.render(1e-10, { mask: '0.00E+00' }, true)).toBe('1.00e-10');
+                expect(jSuites.mask.render(1e-50, { mask: '0.00E+00' }, true)).toBe('1.00e-50');
+                expect(jSuites.mask.render(1e-100, { mask: '0.00E+00' }, true)).toBe('1.00e-100');
+            });
+
+            test('very small negative numbers', () => {
+                expect(jSuites.mask.render(-1e-10, { mask: '0.00E+00' }, true)).toBe('-1.00e-10');
+                expect(jSuites.mask.render(-1e-50, { mask: '0.00E+00' }, true)).toBe('-1.00e-50');
+            });
+        });
+
+        describe('Decimal separator handling', () => {
+            test('number input with JS decimal for European mask', () => {
+                // When value is a JS number, it always uses . internally
+                expect(jSuites.mask.render(1234.56, { mask: '#.##0,00' }, true)).toBe('1.234,56');
+                expect(jSuites.mask.render(0.5, { mask: '#.##0,00' }, true)).toBe('0,50');
+            });
+
+            test('string input with European decimal', () => {
+                expect(jSuites.mask.render('1234,56', { mask: '#.##0,00' }, true)).toBe('1.234,56');
+                // European string inputs preserve their decimal places (not parseable by JS)
+                expect(jSuites.mask.render('0,5', { mask: '#.##0,00' }, true)).toBe('0,5');
+            });
+
+            test('string input with US decimal', () => {
+                expect(jSuites.mask.render('1234.56', { mask: '#,##0.00' }, true)).toBe('1,234.56');
+                // US string inputs are parsed as numbers and padded to mandatory decimals
+                expect(jSuites.mask.render('0.5', { mask: '#,##0.00' }, true)).toBe('0.50');
+            });
+        });
+
+        describe('Scientific notation edge cases', () => {
+            test('number exactly 1 in scientific notation', () => {
+                expect(jSuites.mask.render(1, { mask: '0.00E+00' }, true)).toBe('1.00e+00');
+                expect(jSuites.mask.render(1, { mask: '0.000E+00' }, true)).toBe('1.000e+00');
+            });
+
+            test('numbers between 0 and 1', () => {
+                expect(jSuites.mask.render(0.5, { mask: '0.00E+00' }, true)).toBe('5.00e-01');
+                expect(jSuites.mask.render(0.123, { mask: '0.00E+00' }, true)).toBe('1.23e-01');
+                expect(jSuites.mask.render(0.00999, { mask: '0.00E+00' }, true)).toBe('9.99e-03');
+            });
+
+            test('negative numbers in scientific notation', () => {
+                expect(jSuites.mask.render(-123, { mask: '0.00E+00' }, true)).toBe('-1.23e+02');
+                expect(jSuites.mask.render(-0.00123, { mask: '0.00E+00' }, true)).toBe('-1.23e-03');
+            });
+
+            test('rounding in scientific notation', () => {
+                expect(jSuites.mask.render(1.999e10, { mask: '0.00E+00' }, true)).toBe('2.00e+10');
+                expect(jSuites.mask.render(9.995e-5, { mask: '0.00E+00' }, true)).toBe('1.00e-04');
+            });
+
+            test('varying decimal places in scientific notation', () => {
+                expect(jSuites.mask.render(12345, { mask: '0E+00' }, true)).toBe('1e+04');
+                expect(jSuites.mask.render(12345, { mask: '0.0E+00' }, true)).toBe('1.2e+04');
+                expect(jSuites.mask.render(12345, { mask: '0.0000E+00' }, true)).toBe('1.2345e+04');
+            });
+        });
+
+        describe('Percentage edge cases', () => {
+            test('small percentages', () => {
+                expect(jSuites.mask.render(0.001, { mask: '0.00%' }, true)).toBe('0.10%');
+                expect(jSuites.mask.render(0.0001, { mask: '0.00%' }, true)).toBe('0.01%');
+                expect(jSuites.mask.render(0.00001, { mask: '0.00%' }, true)).toBe('0.00%');
+            });
+
+            test('large percentages', () => {
+                expect(jSuites.mask.render(10, { mask: '0%' }, true)).toBe('1000%');
+                expect(jSuites.mask.render(100, { mask: '0%' }, true)).toBe('10000%');
+            });
+
+            test('negative percentages', () => {
+                expect(jSuites.mask.render(-0.25, { mask: '0.00%' }, true)).toBe('-25.00%');
+                expect(jSuites.mask.render(-0.001, { mask: '0.00%' }, true)).toBe('-0.10%');
+            });
+        });
+
+        describe('Currency mask edge cases', () => {
+            test('currency with no thousands separator needed', () => {
+                expect(jSuites.mask.render(1, { mask: '#,##0.00' }, true)).toBe('1.00');
+                expect(jSuites.mask.render(12, { mask: '#,##0.00' }, true)).toBe('12.00');
+                expect(jSuites.mask.render(123, { mask: '#,##0.00' }, true)).toBe('123.00');
+                expect(jSuites.mask.render(999, { mask: '#,##0.00' }, true)).toBe('999.00');
+            });
+
+            test('currency at separator boundary', () => {
+                expect(jSuites.mask.render(1000, { mask: '#,##0.00' }, true)).toBe('1,000.00');
+                expect(jSuites.mask.render(999999, { mask: '#,##0.00' }, true)).toBe('999,999.00');
+                expect(jSuites.mask.render(1000000, { mask: '#,##0.00' }, true)).toBe('1,000,000.00');
+            });
+
+            test('currency with negative values', () => {
+                expect(jSuites.mask.render(-1, { mask: '#,##0.00' }, true)).toBe('-1.00');
+                expect(jSuites.mask.render(-1000, { mask: '#,##0.00' }, true)).toBe('-1,000.00');
+                expect(jSuites.mask.render(-0.01, { mask: '#,##0.00' }, true)).toBe('-0.01');
+            });
+
+            test('European currency at separator boundary', () => {
+                expect(jSuites.mask.render(1000, { mask: '#.##0,00' }, true)).toBe('1.000,00');
+                expect(jSuites.mask.render(999999, { mask: '#.##0,00' }, true)).toBe('999.999,00');
+                expect(jSuites.mask.render(1000000, { mask: '#.##0,00' }, true)).toBe('1.000.000,00');
+            });
+        });
+
+        describe('Mixed optional and mandatory decimals', () => {
+            test('all optional decimals with integer input', () => {
+                expect(jSuites.mask.render(123, { mask: '#,##0.###' }, true)).toBe('123');
+                expect(jSuites.mask.render(123, { mask: '#.##0,###' }, true)).toBe('123');
+            });
+
+            test('all optional decimals with decimal input', () => {
+                expect(jSuites.mask.render(123.1, { mask: '#,##0.###' }, true)).toBe('123.1');
+                expect(jSuites.mask.render(123.12, { mask: '#,##0.###' }, true)).toBe('123.12');
+                expect(jSuites.mask.render(123.123, { mask: '#,##0.###' }, true)).toBe('123.123');
+                expect(jSuites.mask.render(123.1234, { mask: '#,##0.###' }, true)).toBe('123.123');
+            });
+
+            test('one mandatory + many optional', () => {
+                expect(jSuites.mask.render(123, { mask: '#,##0.0####' }, true)).toBe('123.0');
+                expect(jSuites.mask.render(123.1, { mask: '#,##0.0####' }, true)).toBe('123.1');
+                expect(jSuites.mask.render(123.12345, { mask: '#,##0.0####' }, true)).toBe('123.12345');
+                expect(jSuites.mask.render(123.123456, { mask: '#,##0.0####' }, true)).toBe('123.12346');
+            });
+        });
+
+        describe('String input edge cases', () => {
+            test('string with leading/trailing spaces', () => {
+                expect(jSuites.mask.render(' 123 ', { mask: '#,##0' }, true)).toBe('123');
+                expect(jSuites.mask.render('  1234.56  ', { mask: '#,##0.00' }, true)).toBe('1,234.56');
+            });
+
+            test('string with only zeros', () => {
+                expect(jSuites.mask.render('0', { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render('00', { mask: '#,##0.00' }, true)).toBe('0.00');
+                expect(jSuites.mask.render('000', { mask: '#,##0.00' }, true)).toBe('0.00');
+            });
+
+            test('empty string input', () => {
+                expect(jSuites.mask.render('', { mask: '#,##0.00' }, true)).toBe('');
+            });
+
+            test('string with only decimal point', () => {
+                // Single decimal point is treated as "0."
+                const dotResult = jSuites.mask.render('.', { mask: '#,##0.00' }, true);
+                expect(['', '0.']).toContain(dotResult);
+                const commaResult = jSuites.mask.render(',', { mask: '#.##0,00' }, true);
+                expect(['', '0,']).toContain(commaResult);
+            });
+
+            test('string starting with decimal', () => {
+                // US decimal strings are parsed and padded
+                expect(jSuites.mask.render('.5', { mask: '#,##0.00' }, true)).toBe('0.50');
+                // European decimal strings preserve their format
+                expect(jSuites.mask.render(',5', { mask: '#.##0,00' }, true)).toBe('0,5');
+            });
+        });
+
+        describe('Integer masks (no decimal)', () => {
+            test('integer mask with integer input', () => {
+                expect(jSuites.mask.render(123, { mask: '#,##0' }, true)).toBe('123');
+                expect(jSuites.mask.render(1234, { mask: '#,##0' }, true)).toBe('1,234');
+            });
+
+            test('integer mask with decimal input (should round)', () => {
+                expect(jSuites.mask.render(123.4, { mask: '#,##0' }, true)).toBe('123');
+                expect(jSuites.mask.render(123.5, { mask: '#,##0' }, true)).toBe('124');
+                expect(jSuites.mask.render(123.9, { mask: '#,##0' }, true)).toBe('124');
+            });
+
+            test('European integer mask', () => {
+                expect(jSuites.mask.render(1234, { mask: '#.##0' }, true)).toBe('1.234');
+                expect(jSuites.mask.render(1234.5, { mask: '#.##0' }, true)).toBe('1.235');
+            });
+        });
+
+        describe('Padded zero masks', () => {
+            test('padded zeros with smaller number', () => {
+                expect(jSuites.mask.render(1, { mask: '00000' }, true)).toBe('00001');
+                expect(jSuites.mask.render(12, { mask: '00000' }, true)).toBe('00012');
+                expect(jSuites.mask.render(123, { mask: '00000' }, true)).toBe('00123');
+            });
+
+            test('padded zeros with larger number', () => {
+                expect(jSuites.mask.render(12345, { mask: '00000' }, true)).toBe('12345');
+                expect(jSuites.mask.render(123456, { mask: '00000' }, true)).toBe('123456');
+            });
+
+            test('padded zeros with zero', () => {
+                expect(jSuites.mask.render(0, { mask: '00000' }, true)).toBe('00000');
+            });
+        });
+
+        describe('Rounding that changes order of magnitude', () => {
+            test('rounding 9.99 to 10', () => {
+                expect(jSuites.mask.render(9.999, { mask: '0.00' }, true)).toBe('10.00');
+                expect(jSuites.mask.render(99.999, { mask: '0.00' }, true)).toBe('100.00');
+                expect(jSuites.mask.render(999.999, { mask: '#,##0.00' }, true)).toBe('1,000.00');
+            });
+
+            test('rounding in scientific notation that changes exponent', () => {
+                expect(jSuites.mask.render(9.999e9, { mask: '0.00E+00' }, true)).toBe('1.00e+10');
+                expect(jSuites.mask.render(9.999e-9, { mask: '0.00E+00' }, true)).toBe('1.00e-08');
+            });
+        });
+
+        describe('Negative numbers with various masks', () => {
+            test('negative with currency symbols', () => {
+                // US format: negative sign before currency symbol
+                expect(jSuites.mask.render(-123.45, { mask: '$#,##0.00' }, true)).toBe('-$123.45');
+                // European format: negative sign after currency symbol
+                expect(jSuites.mask.render(-123.45, { mask: '€#.##0,00' }, true)).toBe('€-123,45');
+            });
+
+            test('negative with percentage', () => {
+                expect(jSuites.mask.render(-0.5, { mask: '0%' }, true)).toBe('-50%');
+                expect(jSuites.mask.render(-0.123, { mask: '0.00%' }, true)).toBe('-12.30%');
+            });
+
+            test('negative with text', () => {
+                expect(jSuites.mask.render(-100, { mask: '0 units' }, true)).toBe('-100 units');
+            });
+        });
+
+        describe('Numbers with many decimal places in mask', () => {
+            test('up to 10 decimal places', () => {
+                expect(jSuites.mask.render(1.123456789, { mask: '0.0000000000' }, true)).toBe('1.1234567890');
+                expect(jSuites.mask.render(Math.PI, { mask: '0.0000000000' }, true)).toBe('3.1415926536');
+            });
+
+            test('scientific with many decimals', () => {
+                expect(jSuites.mask.render(123456789, { mask: '0.00000000E+00' }, true)).toBe('1.23456789e+08');
+            });
+        });
+
+        describe('Edge cases in fraction formatting', () => {
+            test('improper fractions', () => {
+                expect(jSuites.mask.render(2.5, { mask: '?/?' }, true)).toBe('5/2');
+                expect(jSuites.mask.render(5.25, { mask: '?/?' }, true)).toBe('21/4');
+            });
+
+            test('fractions that simplify to whole numbers', () => {
+                expect(jSuites.mask.render(1.0, { mask: '# ?/?' }, true)).toBe('1');
+                expect(jSuites.mask.render(2.0, { mask: '# ?/8' }, true)).toBe('2');
+            });
+        });
+
+        describe('Scientific notation exponent edge cases', () => {
+            test('single digit exponents', () => {
+                expect(jSuites.mask.render(1e1, { mask: '0.00E+00' }, true)).toBe('1.00e+01');
+                expect(jSuites.mask.render(1e9, { mask: '0.00E+00' }, true)).toBe('1.00e+09');
+            });
+
+            test('zero exponent', () => {
+                expect(jSuites.mask.render(5, { mask: '0.00E+00' }, true)).toBe('5.00e+00');
+                expect(jSuites.mask.render(9.99, { mask: '0.00E+00' }, true)).toBe('9.99e+00');
+            });
+
+            test('transition from positive to negative exponent', () => {
+                expect(jSuites.mask.render(0.1, { mask: '0.00E+00' }, true)).toBe('1.00e-01');
+                expect(jSuites.mask.render(0.01, { mask: '0.00E+00' }, true)).toBe('1.00e-02');
+                expect(jSuites.mask.render(0.99, { mask: '0.00E+00' }, true)).toBe('9.90e-01');
+            });
+        });
+
+        describe('Scientific notation additional edge cases', () => {
+            test('mask without decimal places (0E+00)', () => {
+                expect(jSuites.mask.render(12345, { mask: '0E+00' }, true)).toBe('1e+04');
+                expect(jSuites.mask.render(99999, { mask: '0E+00' }, true)).toBe('1e+05');
+                expect(jSuites.mask.render(0.00123, { mask: '0E+00' }, true)).toBe('1e-03');
+                expect(jSuites.mask.render(-5678, { mask: '0E+00' }, true)).toBe('-6e+03');
+            });
+
+            // Note: European decimal in scientific notation currently outputs with dot decimal
+            // This documents current behavior - could be enhanced in future
+            test('European decimal in scientific notation (0,00E+00) - current behavior', () => {
+                expect(jSuites.mask.render(12345, { mask: '0,00E+00' }, true)).toBe('1.23e+04');
+                expect(jSuites.mask.render(0.00456, { mask: '0,00E+00' }, true)).toBe('4.56e-03');
+            });
+
+            // Note: E- format (without +) is not currently recognized as scientific notation
+            // This documents current behavior - the mask is treated as numeric, not scientific
+            test('E- format behavior - currently not scientific', () => {
+                // Currently treated as numeric mask, not scientific notation
+                const result = jSuites.mask.render(12345, { mask: '0.00E-00' }, true);
+                expect(result).toBe('12345.00E-');
+            });
+
+            test('string input that looks like scientific notation', () => {
+                // String inputs that are valid numbers
+                expect(jSuites.mask.render('12345', { mask: '0.00E+00' }, true)).toBe('1.23e+04');
+                expect(jSuites.mask.render('0.00123', { mask: '0.00E+00' }, true)).toBe('1.23e-03');
+                expect(jSuites.mask.render('-999', { mask: '0.00E+00' }, true)).toBe('-9.99e+02');
+
+                // String input already in scientific notation format (needs rounding)
+                expect(jSuites.mask.render('1.999e+05', { mask: '0.00E+00' }, true)).toBe('2.00e+05');
+                expect(jSuites.mask.render('9.999e+05', { mask: '0.00E+00' }, true)).toBe('1.00e+06');
+                expect(jSuites.mask.render('1.234e-10', { mask: '0.00E+00' }, true)).toBe('1.23e-10');
+            });
+
+            test('strict mode with scientific masks', () => {
+                // Valid numbers should format
+                expect(jSuites.mask.render('12345', { mask: '0.00E+00' }, true, true)).toBe('1.23e+04');
+                expect(jSuites.mask.render(12345, { mask: '0.00E+00' }, true, true)).toBe('1.23e+04');
+
+                // Invalid strings should return original with strict mode
+                expect(jSuites.mask.render('test 123', { mask: '0.00E+00' }, true, true)).toBe('test 123');
+                expect(jSuites.mask.render('abc', { mask: '0.00E+00' }, true, true)).toBe('abc');
+            });
+
+            test('scientific notation with very precise decimals', () => {
+                expect(jSuites.mask.render(1.23456789012345, { mask: '0.0000000000E+00' }, true)).toBe('1.2345678901e+00');
+                expect(jSuites.mask.render(9.87654321e-10, { mask: '0.00000000E+00' }, true)).toBe('9.87654321e-10');
+            });
+
+            test('input with more decimals than mask allows (rounding)', () => {
+                // Input has 8 decimals, mask only allows 2 - should round
+                expect(jSuites.mask.render(1.23456789, { mask: '0.00E+00' }, true)).toBe('1.23e+00');
+                expect(jSuites.mask.render(9.87654321, { mask: '0.00E+00' }, true)).toBe('9.88e+00');
+                expect(jSuites.mask.render(1.99999999, { mask: '0.00E+00' }, true)).toBe('2.00e+00');
+
+                // Same with larger/smaller numbers
+                expect(jSuites.mask.render(123456.789012, { mask: '0.00E+00' }, true)).toBe('1.23e+05');
+                expect(jSuites.mask.render(0.000123456789, { mask: '0.00E+00' }, true)).toBe('1.23e-04');
+
+                // Edge case: rounding causes exponent change
+                expect(jSuites.mask.render(9.99999999, { mask: '0.00E+00' }, true)).toBe('1.00e+01');
+                expect(jSuites.mask.render(0.0999999999, { mask: '0.00E+00' }, true)).toBe('1.00e-01');
+            });
+
+            test('boundary values for exponent padding', () => {
+                // Single digit exponent with 2-digit padding
+                expect(jSuites.mask.render(1e5, { mask: '0.00E+00' }, true)).toBe('1.00e+05');
+                expect(jSuites.mask.render(1e-5, { mask: '0.00E+00' }, true)).toBe('1.00e-05');
+
+                // Three digit exponents
+                expect(jSuites.mask.render(1e100, { mask: '0.00E+00' }, true)).toBe('1.00e+100');
+                expect(jSuites.mask.render(1e-100, { mask: '0.00E+00' }, true)).toBe('1.00e-100');
+            });
+        });
+
+        describe('Combining multiple format features', () => {
+            test('currency with thousands and decimals', () => {
+                expect(jSuites.mask.render(1234567.89, { mask: '$ #,##0.00' }, true)).toBe('$ 1,234,567.89');
+                expect(jSuites.mask.render(1234567.89, { mask: 'R$ #.##0,00' }, true)).toBe('R$ 1.234.567,89');
+            });
+
+            test('negative currency with thousands', () => {
+                // Negative sign appears before currency symbol and space
+                expect(jSuites.mask.render(-1234567.89, { mask: '$ #,##0.00' }, true)).toBe('-$ 1,234,567.89');
+            });
         });
     });
 
