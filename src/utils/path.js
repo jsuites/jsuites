@@ -26,7 +26,7 @@ export default function Path(pathString, value, remove) {
             if (
                 currentObject != null &&
                 isValidPathObj(currentObject) &&
-                Object.prototype.hasOwnProperty.call(currentObject, key)
+                key in currentObject
             ) {
                 currentObject = currentObject[key];
             } else {
@@ -51,11 +51,11 @@ export default function Path(pathString, value, remove) {
 
         // If the key exists but is null/undefined or a non-object, replace it with an empty object
         if (
-            Object.prototype.hasOwnProperty.call(currentObject, key) &&
+            key in currentObject &&
             (currentObject[key] == null || ! isValidPathObj(currentObject[key]))
         ) {
             currentObject[key] = {};
-        } else if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
+        } else if (!(key in currentObject)) {
             // If the key doesn't exist, create an empty object
             currentObject[key] = {};
         }
@@ -74,7 +74,7 @@ export default function Path(pathString, value, remove) {
 
     // Delete the property if remove is true
     if (remove === true) {
-        if (Object.prototype.hasOwnProperty.call(currentObject, finalKey)) {
+        if (finalKey in currentObject) {
             delete currentObject[finalKey];
             return true;
         }

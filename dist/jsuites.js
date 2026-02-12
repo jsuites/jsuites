@@ -5734,7 +5734,7 @@ if (! Modal && "function" === 'function') {
         // Initialize expanded state
         self.expanded = false;
 
-        if (self.type === 'line') {
+        if (self.type === 'line' || self.type === 'divisor') {
             return `<hr role="separator" />`;
         } else if (self.type === 'inline') {
             return `<div></div>`;
@@ -5809,9 +5809,69 @@ if (! Modal && "function" === 'function') {
                 let rect = parent.modal.el.getBoundingClientRect();
                 // Update modal
                 current.modal.open();
-                // Aria indication
-                current.modal.top = rect.y + s.el.offsetTop + 2;
-                current.modal.left = rect.x + 248;
+
+                // Calculate initial position using item's actual screen position (accounts for scroll)
+                let itemRect = s.el.getBoundingClientRect();
+                let submenuWidth = 250;
+                let submenuTop = itemRect.y;
+                let submenuLeft = rect.x + rect.width - 2; // Position to the right of parent
+
+                // Check if parent was positioned to the left (has negative margin or is on left side)
+                let parentOpenedLeft = parent.openedLeft || false;
+
+                // Check horizontal space
+                let spaceOnRight = window.innerWidth - (rect.x + rect.width);
+                let spaceOnLeft = rect.x;
+
+                // Determine which side to open the submenu
+                let openLeft = parentOpenedLeft; // Follow parent's direction by default
+
+                // If parent opened to right, check if we still have space
+                if (!parentOpenedLeft && spaceOnRight < submenuWidth + 10) {
+                    // Not enough space on right, switch to left
+                    openLeft = true;
+                }
+                // If parent opened to left, check if we still have space on left
+                if (parentOpenedLeft && spaceOnLeft < submenuWidth + 10) {
+                    // Not enough space on left, switch to right if possible
+                    if (spaceOnRight >= submenuWidth + 10) {
+                        openLeft = false;
+                    }
+                }
+
+                if (openLeft) {
+                    // Position to the left of parent menu
+                    submenuLeft = rect.x - submenuWidth + 2;
+                    // Ensure it doesn't go off the left edge
+                    if (submenuLeft < 10) {
+                        submenuLeft = 10;
+                    }
+                    current.openedLeft = true;
+                } else {
+                    current.openedLeft = false;
+                }
+
+                // Set position
+                current.modal.top = submenuTop;
+                current.modal.left = submenuLeft;
+
+                // Adjust vertical position after render
+                queueMicrotask(() => {
+                    let submenuEl = current.modal.el;
+                    let submenuRect = submenuEl.getBoundingClientRect();
+
+                    // Check if submenu goes off the bottom
+                    if (submenuRect.bottom > window.innerHeight - 10) {
+                        let overflow = submenuRect.bottom - (window.innerHeight - 10);
+                        let newTop = submenuTop - overflow;
+                        // Don't go above the top of the screen
+                        if (newTop < 10) {
+                            newTop = 10;
+                        }
+                        current.modal.top = newTop;
+                    }
+                });
+
                 // Keep current item for each modal
                 current.item = s;
                 s.expanded = true;
@@ -6072,6 +6132,7 @@ if (! Modal && "function" === 'function') {
                         menu.item.expanded = false;
                         menu.item = null;
                     }
+                    menu.openedLeft = false;
                     menu.modal.close();
                 }
             });
@@ -12429,7 +12490,7 @@ function Path(pathString, value, remove) {
             if (
                 currentObject != null &&
                 isValidPathObj(currentObject) &&
-                Object.prototype.hasOwnProperty.call(currentObject, key)
+                key in currentObject
             ) {
                 currentObject = currentObject[key];
             } else {
@@ -12454,11 +12515,11 @@ function Path(pathString, value, remove) {
 
         // If the key exists but is null/undefined or a non-object, replace it with an empty object
         if (
-            Object.prototype.hasOwnProperty.call(currentObject, key) &&
+            key in currentObject &&
             (currentObject[key] == null || ! isValidPathObj(currentObject[key]))
         ) {
             currentObject[key] = {};
-        } else if (!Object.prototype.hasOwnProperty.call(currentObject, key)) {
+        } else if (!(key in currentObject)) {
             // If the key doesn't exist, create an empty object
             currentObject[key] = {};
         }
@@ -12477,7 +12538,7 @@ function Path(pathString, value, remove) {
 
     // Delete the property if remove is true
     if (remove === true) {
-        if (Object.prototype.hasOwnProperty.call(currentObject, finalKey)) {
+        if (finalKey in currentObject) {
             delete currentObject[finalKey];
             return true;
         }
@@ -23085,7 +23146,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.1.2',
+    version: '6.2.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

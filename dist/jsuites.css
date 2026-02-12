@@ -3977,7 +3977,8 @@ body.lm-dark-mode {
 }
 
 .lm-menu-submenu > div.lm-menu-item:hover,
-.lm-menu-submenu > div.lm-menu-item[data-cursor="true"] {
+.lm-menu-submenu > div.lm-menu-item[data-cursor="true"],
+.lm-menu-submenu > div.lm-menu-item[aria-expanded="true"] {
     background-color: var(--lm-background-color-highlight, #ebebeb);
 }
 
@@ -4007,7 +4008,8 @@ body.lm-dark-mode {
 }
 
 .lm-dark-mode .lm-menu-submenu > div.lm-menu-item:hover,
-.lm-dark-mode .lm-menu-submenu > div.lm-menu-item[data-cursor="true"] {
+.lm-dark-mode .lm-menu-submenu > div.lm-menu-item[data-cursor="true"],
+.lm-dark-mode .lm-menu-submenu > div.lm-menu-item[aria-expanded="true"] {
     background-color: var(--lm-background-color-highlight, #2d2d2d);
 }
 
