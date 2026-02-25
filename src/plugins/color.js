@@ -192,11 +192,13 @@ export default function Color(el, options) {
      * Close color pallete
      */
     obj.close = function(ignoreEvents) {
-        if (container.classList.contains('jcolor-focus')) {
+        if (container && container.classList.contains('jcolor-focus')) {
             // Remove focus
             container.classList.remove('jcolor-focus');
             // Make sure backdrop is hidden
-            backdrop.style.display = '';
+            if (backdrop) {
+                backdrop.style.display = '';
+            }
             // Call related events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el, obj);
@@ -205,7 +207,7 @@ export default function Color(el, options) {
             Tracking(obj, false);
         }
 
-        return obj.options.value;
+        return obj.options.value ? obj.options.value : null;
     }
 
     /**
@@ -616,7 +618,7 @@ export default function Color(el, options) {
             el.appendChild(container);
         }
 
-        container.addEventListener("click", function(e) {
+        containerClickHandler = function(e) {
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {
@@ -635,21 +637,24 @@ export default function Color(el, options) {
             } else {
                 obj.open();
             }
-        });
+        };
+        container.addEventListener("click", containerClickHandler);
 
         /**
          * If element is focus open the picker
          */
-        el.addEventListener("mouseup", function(e) {
+        elMouseupHandler = function(e) {
             obj.open();
-        });
+        };
+        el.addEventListener("mouseup", elMouseupHandler);
 
         // If the picker is open on the spectrum tab, it changes the canvas size when the window size is changed
-        window.addEventListener('resize', function() {
+        windowResizeHandler = function() {
             if (container.classList.contains('jcolor-focus') && jsuitesTabs.getActive() == 1) {
                 resizeCanvas();
             }
-        });
+        };
+        window.addEventListener('resize', windowResizeHandler);
 
         // Default opened
         if (obj.options.opened == true) {
@@ -691,6 +696,73 @@ export default function Color(el, options) {
                 }
             }
         }
+    }
+
+    // Store event handler references for cleanup
+    var containerClickHandler = null;
+    var elMouseupHandler = null;
+    var windowResizeHandler = null;
+
+    /**
+     * Destroy the color picker instance and release all resources
+     */
+    obj.destroy = function() {
+        // Close if open (removes from tracking)
+        obj.close(true);
+
+        // Remove event listeners
+        if (container && containerClickHandler) {
+            container.removeEventListener('click', containerClickHandler);
+        }
+        if (el && elMouseupHandler) {
+            el.removeEventListener('mouseup', elMouseupHandler);
+        }
+        if (windowResizeHandler) {
+            window.removeEventListener('resize', windowResizeHandler);
+        }
+
+        // Destroy the tabs component if it has destroy method
+        if (jsuitesTabs && typeof jsuitesTabs.destroy === 'function') {
+            jsuitesTabs.destroy();
+        }
+
+        // Clear rgbInputs references
+        rgbInputs = [];
+
+        // Remove container from DOM
+        if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
+        }
+
+        // Clean up element
+        if (el.tagName === 'INPUT') {
+            el.classList.remove('jcolor-input');
+            el.readOnly = false;
+            el.style.color = '';
+            el.style.backgroundColor = '';
+        }
+
+        // Remove instance properties from el
+        delete el.color;
+        delete el.change;
+        delete el.val;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onchange = null;
+            obj.options.onclose = null;
+            obj.options.onopen = null;
+            obj.options.onload = null;
+        }
+
+        // Clear references
+        container = null;
+        backdrop = null;
+        content = null;
+        resetButton = null;
+        closeButton = null;
+        tabs = null;
+        jsuitesTabs = null;
     }
 
     init();

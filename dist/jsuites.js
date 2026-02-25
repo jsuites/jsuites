@@ -14506,11 +14506,22 @@ function Tabs(el, options) {
     var prev = null;
     var next = null;
     var border = null;
+    var header = null;
+    var controls = null;
+    var add = null;
+
+    // Event handler references for cleanup
+    var headersClickHandler = null;
+    var headersContextMenuHandler = null;
 
     // Helpers
     const setBorder = function(index) {
         if (obj.options.animation) {
             setTimeout(function() {
+                // Guard against destroyed state
+                if (!obj.headers || !obj.headers.children[index]) {
+                    return;
+                }
                 let rect = obj.headers.children[index].getBoundingClientRect();
 
                 if (obj.options.palette === 'modern') {
@@ -14531,6 +14542,10 @@ function Tabs(el, options) {
     }
 
     var updateControls = function(x) {
+        // Guard against destroyed state
+        if (!obj.headers) {
+            return;
+        }
         if (typeof(obj.headers.scrollTo) == 'function') {
             obj.headers.scrollTo({
                 left: x,
@@ -14845,7 +14860,7 @@ function Tabs(el, options) {
         }
 
         // Header
-        var header = document.createElement('div');
+        header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
         if (obj.options.maxWidth) {
@@ -14853,7 +14868,7 @@ function Tabs(el, options) {
         }
 
         // Controls
-        var controls = document.createElement('div');
+        controls = document.createElement('div');
         controls.className = 'jtabs-controls';
         controls.setAttribute('draggable', 'false');
         header.appendChild(controls);
@@ -14869,7 +14884,7 @@ function Tabs(el, options) {
 
         // New button
         if (obj.options.allowCreate == true) {
-            var add = document.createElement('div');
+            add = document.createElement('div');
             add.className = 'jtabs-add';
             add.onclick = function() {
                 obj.create();
@@ -14938,7 +14953,7 @@ function Tabs(el, options) {
         }
 
         // Events
-        obj.headers.addEventListener("click", function(e) {
+        headersClickHandler = function(e) {
             if (e.target.parentNode.classList.contains('jtabs-headers')) {
                 var target = e.target;
             } else {
@@ -14954,11 +14969,13 @@ function Tabs(el, options) {
             if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
             }
-        });
+        };
+        obj.headers.addEventListener("click", headersClickHandler);
 
-        obj.headers.addEventListener("contextmenu", function(e) {
+        headersContextMenuHandler = function(e) {
             obj.selectIndex(e.target);
-        });
+        };
+        obj.headers.addEventListener("contextmenu", headersContextMenuHandler);
 
         if (obj.headers.children.length) {
             // Open first tab
@@ -15030,6 +15047,71 @@ function Tabs(el, options) {
 
     if (! loadingRemoteData) {
         obj.init();
+    }
+
+    /**
+     * Destroy the tabs instance and release all resources
+     */
+    obj.destroy = function() {
+        // Remove event listeners from headers
+        if (obj.headers) {
+            if (headersClickHandler) {
+                obj.headers.removeEventListener('click', headersClickHandler);
+            }
+            if (headersContextMenuHandler) {
+                obj.headers.removeEventListener('contextmenu', headersContextMenuHandler);
+            }
+        }
+
+        // Clear onclick handlers
+        if (prev) {
+            prev.onclick = null;
+        }
+        if (next) {
+            next.onclick = null;
+        }
+        if (add) {
+            add.onclick = null;
+        }
+
+        // Remove DOM elements
+        if (header && header.parentNode) {
+            header.parentNode.removeChild(header);
+        }
+        if (obj.content && obj.content.parentNode) {
+            obj.content.parentNode.removeChild(obj.content);
+        }
+
+        // Remove class from element
+        el.classList.remove('jtabs');
+        el.classList.remove('jtabs-animation');
+        el.classList.remove('jtabs-modern');
+
+        // Remove instance reference
+        delete el.tabs;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onclick = null;
+            obj.options.onload = null;
+            obj.options.onchange = null;
+            obj.options.oncreate = null;
+            obj.options.ondelete = null;
+            obj.options.onbeforecreate = null;
+            obj.options.onchangeposition = null;
+        }
+
+        // Clear references
+        obj.headers = null;
+        obj.content = null;
+        header = null;
+        controls = null;
+        prev = null;
+        next = null;
+        border = null;
+        add = null;
+        headersClickHandler = null;
+        headersContextMenuHandler = null;
     }
 
     el.tabs = obj;
@@ -15231,11 +15313,13 @@ function Color(el, options) {
      * Close color pallete
      */
     obj.close = function(ignoreEvents) {
-        if (container.classList.contains('jcolor-focus')) {
+        if (container && container.classList.contains('jcolor-focus')) {
             // Remove focus
             container.classList.remove('jcolor-focus');
             // Make sure backdrop is hidden
-            backdrop.style.display = '';
+            if (backdrop) {
+                backdrop.style.display = '';
+            }
             // Call related events
             if (! ignoreEvents && typeof(obj.options.onclose) == 'function') {
                 obj.options.onclose(el, obj);
@@ -15244,7 +15328,7 @@ function Color(el, options) {
             tracking(obj, false);
         }
 
-        return obj.options.value;
+        return obj.options.value ? obj.options.value : null;
     }
 
     /**
@@ -15655,7 +15739,7 @@ function Color(el, options) {
             el.appendChild(container);
         }
 
-        container.addEventListener("click", function(e) {
+        containerClickHandler = function(e) {
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {
@@ -15674,21 +15758,24 @@ function Color(el, options) {
             } else {
                 obj.open();
             }
-        });
+        };
+        container.addEventListener("click", containerClickHandler);
 
         /**
          * If element is focus open the picker
          */
-        el.addEventListener("mouseup", function(e) {
+        elMouseupHandler = function(e) {
             obj.open();
-        });
+        };
+        el.addEventListener("mouseup", elMouseupHandler);
 
         // If the picker is open on the spectrum tab, it changes the canvas size when the window size is changed
-        window.addEventListener('resize', function() {
+        windowResizeHandler = function() {
             if (container.classList.contains('jcolor-focus') && jsuitesTabs.getActive() == 1) {
                 resizeCanvas();
             }
-        });
+        };
+        window.addEventListener('resize', windowResizeHandler);
 
         // Default opened
         if (obj.options.opened == true) {
@@ -15730,6 +15817,73 @@ function Color(el, options) {
                 }
             }
         }
+    }
+
+    // Store event handler references for cleanup
+    var containerClickHandler = null;
+    var elMouseupHandler = null;
+    var windowResizeHandler = null;
+
+    /**
+     * Destroy the color picker instance and release all resources
+     */
+    obj.destroy = function() {
+        // Close if open (removes from tracking)
+        obj.close(true);
+
+        // Remove event listeners
+        if (container && containerClickHandler) {
+            container.removeEventListener('click', containerClickHandler);
+        }
+        if (el && elMouseupHandler) {
+            el.removeEventListener('mouseup', elMouseupHandler);
+        }
+        if (windowResizeHandler) {
+            window.removeEventListener('resize', windowResizeHandler);
+        }
+
+        // Destroy the tabs component if it has destroy method
+        if (jsuitesTabs && typeof jsuitesTabs.destroy === 'function') {
+            jsuitesTabs.destroy();
+        }
+
+        // Clear rgbInputs references
+        rgbInputs = [];
+
+        // Remove container from DOM
+        if (container && container.parentNode) {
+            container.parentNode.removeChild(container);
+        }
+
+        // Clean up element
+        if (el.tagName === 'INPUT') {
+            el.classList.remove('jcolor-input');
+            el.readOnly = false;
+            el.style.color = '';
+            el.style.backgroundColor = '';
+        }
+
+        // Remove instance properties from el
+        delete el.color;
+        delete el.change;
+        delete el.val;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onchange = null;
+            obj.options.onclose = null;
+            obj.options.onopen = null;
+            obj.options.onload = null;
+        }
+
+        // Clear references
+        container = null;
+        backdrop = null;
+        content = null;
+        resetButton = null;
+        closeButton = null;
+        tabs = null;
+        jsuitesTabs = null;
     }
 
     init();
@@ -18109,6 +18263,58 @@ function Picker(el, options) {
     }
 
     /**
+     * Destroy the picker instance and release all resources
+     */
+    obj.destroy = function() {
+        // Close if open (removes from tracking)
+        obj.close();
+
+        // Remove event listeners
+        el.onmousedown = null;
+        if (dropdownContent) {
+            dropdownContent.onclick = null;
+        }
+
+        // Remove created DOM elements
+        if (dropdownHeader && dropdownHeader.parentNode) {
+            dropdownHeader.parentNode.removeChild(dropdownHeader);
+        }
+        if (dropdownContent && dropdownContent.parentNode) {
+            dropdownContent.parentNode.removeChild(dropdownContent);
+        }
+
+        // Remove classes and attributes from el
+        el.classList.remove('jpicker');
+        el.classList.remove('jpicker-focus');
+        el.removeAttribute('role');
+        el.removeAttribute('aria-haspopup');
+        el.removeAttribute('aria-expanded');
+        el.removeAttribute('aria-controls');
+        el.removeAttribute('tabindex');
+
+        // Remove instance properties from el
+        delete el.picker;
+        delete el.value;
+        delete el.change;
+        delete el.val;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onchange = null;
+            obj.options.onclose = null;
+            obj.options.onopen = null;
+            obj.options.onload = null;
+            obj.options.onselect = null;
+            obj.options.onmouseover = null;
+            obj.options.render = null;
+        }
+
+        // Clear references
+        dropdownHeader = null;
+        dropdownContent = null;
+    }
+
+    /**
      * Create floating picker
      */
     var init = function() {
@@ -18190,6 +18396,13 @@ function Toolbar(el, options) {
     var obj = { type:'toolbar' };
     obj.options = {};
 
+    // Track internal components for cleanup
+    var internalComponents = [];
+
+    // Event handler references for cleanup
+    var elClickHandler = null;
+    var windowResizeHandler = null;
+
     // Default configuration
     var defaults = {
         app: null,
@@ -18260,8 +18473,88 @@ function Toolbar(el, options) {
     }
 
     obj.destroy = function() {
-        toolbar.remove();
+        // Close if open (removes from tracking)
+        obj.close();
+
+        // Destroy all internal components (pickers, etc.)
+        for (var i = 0; i < internalComponents.length; i++) {
+            var comp = internalComponents[i];
+            if (comp) {
+                // First destroy any nested components created in onload (stored on the picker instance)
+                if (comp.components && comp.components.length) {
+                    for (var j = 0; j < comp.components.length; j++) {
+                        if (comp.components[j] && typeof comp.components[j].destroy === 'function') {
+                            comp.components[j].destroy();
+                        }
+                    }
+                    comp.components = null;
+                }
+                // Then destroy the picker/component itself
+                if (typeof comp.destroy === 'function') {
+                    comp.destroy();
+                }
+            }
+        }
+        internalComponents = [];
+
+        // Clear onclick handlers from DOM elements (releases bound function references)
+        if (toolbarContent) {
+            var items = toolbarContent.querySelectorAll('.jtoolbar-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].onclick = null;
+                items[i].updateState = null;
+            }
+        }
+        if (toolbarFloating) {
+            var items = toolbarFloating.querySelectorAll('.jtoolbar-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].onclick = null;
+                items[i].updateState = null;
+            }
+        }
+
+        // Clear options items callbacks to release closures
+        if (obj.options && obj.options.items) {
+            for (var i = 0; i < obj.options.items.length; i++) {
+                var item = obj.options.items[i];
+                // Clear all callback references
+                item.onclick = null;
+                item.onchange = null;
+                item.onload = null;
+                item.render = null;
+                item.updateState = null;
+                item.onopen = null;
+                item.onclose = null;
+            }
+            obj.options.items = null;
+        }
+
+        // Remove event listeners
+        if (elClickHandler) {
+            el.removeEventListener('click', elClickHandler);
+            elClickHandler = null;
+        }
+        if (windowResizeHandler) {
+            window.removeEventListener('resize', windowResizeHandler);
+            windowResizeHandler = null;
+        }
+
+        // Clear DOM
         el.innerHTML = '';
+
+        // Clear references
+        toolbarContent = null;
+        toolbarFloating = null;
+        toolbarArrow = null;
+
+        // Remove classes
+        el.classList.remove('jtoolbar');
+        el.classList.remove('jtoolbar-container');
+        el.classList.remove('jtoolbar-mobile');
+        el.classList.remove('jtoolbar-disabled');
+
+        // Remove instance reference
+        delete el.toolbar;
     }
 
     obj.update = function(a, b) {
@@ -18323,7 +18616,8 @@ function Toolbar(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                Picker(toolbarItem, items[i]);
+                var picker = Picker(toolbarItem, items[i]);
+                internalComponents.push(picker);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             } else if (items[i].type == 'label') {
@@ -18417,7 +18711,9 @@ function Toolbar(el, options) {
     }
 
     obj.close = function() {
-        toolbarArrow.classList.remove('jtoolbar-arrow-selected')
+        if (toolbarArrow) {
+            toolbarArrow.classList.remove('jtoolbar-arrow-selected')
+        }
         // End tracking
         tracking(obj, false);
     }
@@ -18460,7 +18756,7 @@ function Toolbar(el, options) {
         el.classList[state]('jtoolbar-disabled');
     }
 
-    el.onclick = function(e) {
+    elClickHandler = function(e) {
         var element = helpers.findElement(e.target, 'jtoolbar-item');
         if (element) {
             obj.selectItem(element);
@@ -18469,11 +18765,13 @@ function Toolbar(el, options) {
         if (e.target.classList.contains('jtoolbar-arrow') || e.target.parentNode.classList.contains('jtoolbar-arrow')) {
             obj.open();
         }
-    }
+    };
+    el.addEventListener('click', elClickHandler);
 
-    window.addEventListener('resize', function() {
+    windowResizeHandler = function() {
         obj.refresh();
-    });
+    };
+    window.addEventListener('resize', windowResizeHandler);
 
     // Toolbar
     el.classList.add('jtoolbar');
@@ -23149,7 +23447,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.2.1',
+    version: '6.3.0',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

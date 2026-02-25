@@ -1,6 +1,10 @@
 const jSuites = require('../dist/jsuites');
 
 describe('tabs', () => {
+    beforeEach(() => {
+        document.body.innerHTML = '';
+    });
+
     test('tabs methods', () => {
         document.body.innerHTML = '<div id="myDiv"></div>';
         let div = document.getElementById('myDiv')
@@ -49,5 +53,77 @@ describe('tabs', () => {
     expect(document.body.innerHTML).toContain("Tab one")
 
 });
+
+    test('tabs destroy removes classes and references', () => {
+        document.body.innerHTML = '<div id="myDiv"></div>';
+        let div = document.getElementById('myDiv');
+        let tabs = jSuites.tabs(div, {
+            animation: true,
+            data: [
+                { title: 'Tab 1', content: 'Content 1' },
+                { title: 'Tab 2', content: 'Content 2' },
+            ],
+        });
+
+        // Verify tabs was created
+        expect(div.classList.contains('jtabs')).toBe(true);
+        expect(div.tabs).toBe(tabs);
+        expect(document.querySelector('.jtabs-headers')).not.toBeNull();
+        expect(document.querySelector('.jtabs-content')).not.toBeNull();
+
+        // Destroy
+        tabs.destroy();
+
+        // Verify cleanup
+        expect(div.classList.contains('jtabs')).toBe(false);
+        expect(div.classList.contains('jtabs-animation')).toBe(false);
+        expect(div.tabs).toBeUndefined();
+        expect(document.querySelector('.jtabs-headers')).toBeNull();
+        expect(document.querySelector('.jtabs-content')).toBeNull();
+    });
+
+    test('tabs destroy after navigation works correctly', () => {
+        document.body.innerHTML = '<div id="myDiv"></div>';
+        let div = document.getElementById('myDiv');
+        let tabs = jSuites.tabs(div, {
+            data: [
+                { title: 'Tab 1', content: 'Content 1' },
+                { title: 'Tab 2', content: 'Content 2' },
+                { title: 'Tab 3', content: 'Content 3' },
+            ],
+        });
+
+        // Navigate tabs
+        tabs.open(1);
+        expect(tabs.getActive()).toBe(1);
+        tabs.open(2);
+        expect(tabs.getActive()).toBe(2);
+
+        // Destroy should work without errors
+        expect(() => tabs.destroy()).not.toThrow();
+        expect(div.tabs).toBeUndefined();
+    });
+
+    test('tabs multiple create/destroy cycles', () => {
+        document.body.innerHTML = '<div id="myDiv"></div>';
+        let div = document.getElementById('myDiv');
+
+        for (let i = 0; i < 10; i++) {
+            let tabs = jSuites.tabs(div, {
+                data: [
+                    { title: 'Tab 1', content: 'Content 1' },
+                    { title: 'Tab 2', content: 'Content 2' },
+                ],
+            });
+
+            expect(div.classList.contains('jtabs')).toBe(true);
+            expect(div.tabs).toBeDefined();
+
+            tabs.destroy();
+
+            expect(div.classList.contains('jtabs')).toBe(false);
+            expect(div.tabs).toBeUndefined();
+        }
+    });
 
 });

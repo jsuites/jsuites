@@ -41,11 +41,22 @@ export default function Tabs(el, options) {
     var prev = null;
     var next = null;
     var border = null;
+    var header = null;
+    var controls = null;
+    var add = null;
+
+    // Event handler references for cleanup
+    var headersClickHandler = null;
+    var headersContextMenuHandler = null;
 
     // Helpers
     const setBorder = function(index) {
         if (obj.options.animation) {
             setTimeout(function() {
+                // Guard against destroyed state
+                if (!obj.headers || !obj.headers.children[index]) {
+                    return;
+                }
                 let rect = obj.headers.children[index].getBoundingClientRect();
 
                 if (obj.options.palette === 'modern') {
@@ -66,6 +77,10 @@ export default function Tabs(el, options) {
     }
 
     var updateControls = function(x) {
+        // Guard against destroyed state
+        if (!obj.headers) {
+            return;
+        }
         if (typeof(obj.headers.scrollTo) == 'function') {
             obj.headers.scrollTo({
                 left: x,
@@ -380,7 +395,7 @@ export default function Tabs(el, options) {
         }
 
         // Header
-        var header = document.createElement('div');
+        header = document.createElement('div');
         header.className = 'jtabs-headers-container';
         header.appendChild(obj.headers);
         if (obj.options.maxWidth) {
@@ -388,7 +403,7 @@ export default function Tabs(el, options) {
         }
 
         // Controls
-        var controls = document.createElement('div');
+        controls = document.createElement('div');
         controls.className = 'jtabs-controls';
         controls.setAttribute('draggable', 'false');
         header.appendChild(controls);
@@ -404,7 +419,7 @@ export default function Tabs(el, options) {
 
         // New button
         if (obj.options.allowCreate == true) {
-            var add = document.createElement('div');
+            add = document.createElement('div');
             add.className = 'jtabs-add';
             add.onclick = function() {
                 obj.create();
@@ -473,7 +488,7 @@ export default function Tabs(el, options) {
         }
 
         // Events
-        obj.headers.addEventListener("click", function(e) {
+        headersClickHandler = function(e) {
             if (e.target.parentNode.classList.contains('jtabs-headers')) {
                 var target = e.target;
             } else {
@@ -489,11 +504,13 @@ export default function Tabs(el, options) {
             if (typeof(obj.options.onclick) == 'function') {
                 obj.options.onclick(el, obj, index, obj.headers.children[index], obj.content.children[index]);
             }
-        });
+        };
+        obj.headers.addEventListener("click", headersClickHandler);
 
-        obj.headers.addEventListener("contextmenu", function(e) {
+        headersContextMenuHandler = function(e) {
             obj.selectIndex(e.target);
-        });
+        };
+        obj.headers.addEventListener("contextmenu", headersContextMenuHandler);
 
         if (obj.headers.children.length) {
             // Open first tab
@@ -565,6 +582,71 @@ export default function Tabs(el, options) {
 
     if (! loadingRemoteData) {
         obj.init();
+    }
+
+    /**
+     * Destroy the tabs instance and release all resources
+     */
+    obj.destroy = function() {
+        // Remove event listeners from headers
+        if (obj.headers) {
+            if (headersClickHandler) {
+                obj.headers.removeEventListener('click', headersClickHandler);
+            }
+            if (headersContextMenuHandler) {
+                obj.headers.removeEventListener('contextmenu', headersContextMenuHandler);
+            }
+        }
+
+        // Clear onclick handlers
+        if (prev) {
+            prev.onclick = null;
+        }
+        if (next) {
+            next.onclick = null;
+        }
+        if (add) {
+            add.onclick = null;
+        }
+
+        // Remove DOM elements
+        if (header && header.parentNode) {
+            header.parentNode.removeChild(header);
+        }
+        if (obj.content && obj.content.parentNode) {
+            obj.content.parentNode.removeChild(obj.content);
+        }
+
+        // Remove class from element
+        el.classList.remove('jtabs');
+        el.classList.remove('jtabs-animation');
+        el.classList.remove('jtabs-modern');
+
+        // Remove instance reference
+        delete el.tabs;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onclick = null;
+            obj.options.onload = null;
+            obj.options.onchange = null;
+            obj.options.oncreate = null;
+            obj.options.ondelete = null;
+            obj.options.onbeforecreate = null;
+            obj.options.onchangeposition = null;
+        }
+
+        // Clear references
+        obj.headers = null;
+        obj.content = null;
+        header = null;
+        controls = null;
+        prev = null;
+        next = null;
+        border = null;
+        add = null;
+        headersClickHandler = null;
+        headersContextMenuHandler = null;
     }
 
     el.tabs = obj;

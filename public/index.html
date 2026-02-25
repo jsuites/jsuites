@@ -8,19 +8,444 @@
     <meta name="theme-color" content="#2196f3">
     <meta name="format-detection" content="telephone=no">
     <meta name="msapplication-tap-highlight" content="no">
-    <title>Topmenu</title>
+    <title>Memory Leak Test</title>
     <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Material+Icons" />
-
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ccc; }
+        button { margin: 5px; padding: 10px 20px; cursor: pointer; }
+        #log { background: #f5f5f5; padding: 10px; max-height: 300px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+        .log-entry { margin: 2px 0; }
+        .log-info { color: #333; }
+        .log-success { color: green; }
+        .log-warn { color: orange; }
+    </style>
 </head>
 <body>
 
-<div id='container' style='border:1px solid grey;width:400px;height:300px;'></div>
-<i class="small">right click inside the square to open the contextmenu</i>
+<h1>Memory Leak Test - jSuites Components</h1>
 
-<div id="root"></div>
+<div class="test-section">
+    <h2>Picker Test</h2>
+    <div id="picker-container"></div>
+    <br>
+    <button onclick="testPicker(1)">Create/Destroy 1x</button>
+    <button onclick="testPicker(10)">Create/Destroy 10x</button>
+    <button onclick="testPicker(100)">Create/Destroy 100x</button>
+    <button onclick="testPicker(1000)">Create/Destroy 1000x</button>
+</div>
+
+<div class="test-section">
+    <h2>Color Test</h2>
+    <div id="color-container"></div>
+    <br>
+    <button onclick="testColor(1)">Create/Destroy 1x</button>
+    <button onclick="testColor(10)">Create/Destroy 10x</button>
+    <button onclick="testColor(100)">Create/Destroy 100x</button>
+    <button onclick="testColor(1000)">Create/Destroy 1000x</button>
+</div>
+
+<div class="test-section">
+    <h2>Tabs Test</h2>
+    <div id="tabs-container"></div>
+    <br>
+    <button onclick="testTabs(1)">Create/Destroy 1x</button>
+    <button onclick="testTabs(10)">Create/Destroy 10x</button>
+    <button onclick="testTabs(100)">Create/Destroy 100x</button>
+    <button onclick="testTabs(1000)">Create/Destroy 1000x</button>
+</div>
+
+<div class="test-section">
+    <h2>Toolbar Test</h2>
+    <div id="toolbar-container"></div>
+    <br>
+    <button onclick="testToolbar(1)">Create/Destroy 1x</button>
+    <button onclick="testToolbar(10)">Create/Destroy 10x</button>
+    <button onclick="testToolbar(100)">Create/Destroy 100x</button>
+    <button onclick="testToolbar(1000)">Create/Destroy 1000x</button>
+</div>
+
+<div class="test-section">
+    <h2>Memory Info</h2>
+    <button onclick="logMemory()">Log Memory</button>
+    <button onclick="forceGC()">Force GC (if available)</button>
+    <button onclick="clearLog()">Clear Log</button>
+</div>
+
+<div class="test-section">
+    <h2>Log</h2>
+    <div id="log"></div>
+</div>
 
 <script type="text/javascript" src="/jsuites.js"></script>
+<script>
+    var jSuites = j;
+
+    const logEl = document.getElementById('log');
+
+    function log(msg, type = 'info') {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry log-' + type;
+        entry.textContent = '[' + new Date().toLocaleTimeString() + '] ' + msg;
+        logEl.appendChild(entry);
+        logEl.scrollTop = logEl.scrollHeight;
+        console.log(msg);
+    }
+
+    function clearLog() {
+        logEl.innerHTML = '';
+    }
+
+    function getMemory() {
+        if (performance.memory) {
+            return {
+                used: (performance.memory.usedJSHeapSize / 1024 / 1024).toFixed(2),
+                total: (performance.memory.totalJSHeapSize / 1024 / 1024).toFixed(2)
+            };
+        }
+        return null;
+    }
+
+    function logMemory() {
+        const mem = getMemory();
+        if (mem) {
+            log('Memory: ' + mem.used + ' MB used / ' + mem.total + ' MB total', 'info');
+        } else {
+            log('Memory API not available (use Chrome with --enable-precise-memory-info)', 'warn');
+        }
+    }
+
+    function forceGC() {
+        if (window.gc) {
+            window.gc();
+            log('GC triggered', 'success');
+            logMemory();
+        } else {
+            log('GC not exposed. Run Chrome with: --js-flags="--expose-gc"', 'warn');
+        }
+    }
+
+    function testPicker(iterations) {
+        const container = document.getElementById('picker-container');
+        const memBefore = getMemory();
+
+        log('--- Starting Picker test: ' + iterations + ' iterations ---');
+        if (memBefore) {
+            log('Memory before: ' + memBefore.used + ' MB');
+        }
+
+        const startTime = performance.now();
+
+        for (let i = 0; i < iterations; i++) {
+            // Create element
+            const el = document.createElement('div');
+            container.appendChild(el);
+
+            // Create picker
+            const picker = jSuites.picker(el, {
+                data: {
+                    0: 'Option 1',
+                    1: 'Option 2',
+                    2: 'Option 3',
+                    3: 'Option 4',
+                    4: 'Option 5'
+                },
+                value: 0
+            });
+
+            // Destroy picker
+            picker.destroy();
+
+            // Remove element from DOM
+            container.removeChild(el);
+        }
+
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        log('Completed ' + iterations + ' iterations in ' + elapsed + ' ms', 'success');
+
+        // Check memory after (give a moment for potential cleanup)
+        setTimeout(function() {
+            const memAfter = getMemory();
+            if (memAfter) {
+                log('Memory after: ' + memAfter.used + ' MB');
+                if (memBefore) {
+                    const diff = (memAfter.used - memBefore.used).toFixed(2);
+                    const msg = 'Memory diff: ' + diff + ' MB';
+                    log(msg, parseFloat(diff) > 1 ? 'warn' : 'success');
+                }
+            }
+        }, 100);
+    }
+
+    function testColor(iterations) {
+        const container = document.getElementById('color-container');
+        const memBefore = getMemory();
+
+        log('--- Starting Color test: ' + iterations + ' iterations ---');
+        if (memBefore) {
+            log('Memory before: ' + memBefore.used + ' MB');
+        }
+
+        const startTime = performance.now();
+
+        for (let i = 0; i < iterations; i++) {
+            // Create element
+            const el = document.createElement('input');
+            container.appendChild(el);
+
+            // Create an external object that the closure will reference
+            // This mimics jspreadsheet's pattern where onchange references toolbar item
+            var itemState = {
+                color: '#FF0000',
+                someData: new Array(100).fill('test'), // Extra data to make leak more visible
+            };
+
+            // Create color picker with onchange closure (like jspreadsheet does)
+            const color = jSuites.color(el, {
+                value: '#FF0000',
+                onchange: function(o, v) {
+                    // This closure captures itemState, preventing GC if not cleaned
+                    itemState.color = v;
+                    if (o.parentNode) {
+                        o.style.backgroundColor = v;
+                    }
+                }
+            });
+
+            // Destroy color picker
+            color.destroy();
+
+            // Remove element from DOM
+            if (el.parentNode) {
+                el.parentNode.removeChild(el);
+            }
+        }
+
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        log('Completed ' + iterations + ' iterations in ' + elapsed + ' ms', 'success');
+
+        // Check memory after (give a moment for potential cleanup)
+        setTimeout(function() {
+            const memAfter = getMemory();
+            if (memAfter) {
+                log('Memory after: ' + memAfter.used + ' MB');
+                if (memBefore) {
+                    const diff = (memAfter.used - memBefore.used).toFixed(2);
+                    const msg = 'Memory diff: ' + diff + ' MB';
+                    log(msg, parseFloat(diff) > 1 ? 'warn' : 'success');
+                }
+            }
+        }, 100);
+    }
+
+    function testTabs(iterations) {
+        const container = document.getElementById('tabs-container');
+        const memBefore = getMemory();
+
+        log('--- Starting Tabs test: ' + iterations + ' iterations ---');
+        if (memBefore) {
+            log('Memory before: ' + memBefore.used + ' MB');
+        }
+
+        const startTime = performance.now();
+
+        for (let i = 0; i < iterations; i++) {
+            // Create element
+            const el = document.createElement('div');
+            container.appendChild(el);
+
+            // Create tabs
+            const tabs = jSuites.tabs(el, {
+                animation: true,
+                data: [
+                    { title: 'Tab 1', content: 'Content 1' },
+                    { title: 'Tab 2', content: 'Content 2' },
+                    { title: 'Tab 3', content: 'Content 3' }
+                ]
+            });
+
+            // Destroy tabs
+            tabs.destroy();
+
+            // Remove element from DOM
+            container.removeChild(el);
+        }
+
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        log('Completed ' + iterations + ' iterations in ' + elapsed + ' ms', 'success');
+
+        // Check memory after (give a moment for potential cleanup)
+        setTimeout(function() {
+            const memAfter = getMemory();
+            if (memAfter) {
+                log('Memory after: ' + memAfter.used + ' MB');
+                if (memBefore) {
+                    const diff = (memAfter.used - memBefore.used).toFixed(2);
+                    const msg = 'Memory diff: ' + diff + ' MB';
+                    log(msg, parseFloat(diff) > 1 ? 'warn' : 'success');
+                }
+            }
+        }, 100);
+    }
+
+    function testToolbar(iterations) {
+        const container = document.getElementById('toolbar-container');
+        const memBefore = getMemory();
+
+        log('--- Starting Toolbar test: ' + iterations + ' iterations ---');
+        if (memBefore) {
+            log('Memory before: ' + memBefore.used + ' MB');
+        }
+
+        const startTime = performance.now();
+
+        for (let i = 0; i < iterations; i++) {
+            // Create element
+            const el = document.createElement('div');
+            container.appendChild(el);
+
+            // Create toolbar with complex nested components pattern (like jspreadsheet border picker)
+            const toolbar = jSuites.toolbar(el, {
+                items: [
+                    {
+                        type: 'icon',
+                        content: 'save',
+                        tooltip: 'Save',
+                        onclick: function(element, instance, item) {
+                            console.log('save clicked');
+                        }
+                    },
+                    { type: 'divisor' },
+                    {
+                        // Complex border-style picker pattern from jspreadsheet
+                        type: 'select',
+                        data: ['border_all', 'border_outer', 'border_inner', 'border_horizontal', 'border_vertical'],
+                        tooltip: 'Border Style',
+                        columns: 5,
+                        render: function(e) {
+                            let d = document.createElement('div');
+                            d.classList.add('material-icons');
+                            d.textContent = e;
+                            return d;
+                        },
+                        right: true,
+                        onchange: function(a, b, c, d) {
+                            // This closure references 'b' (the item instance) with b.color, b.thickness, b.style
+                            let thickness = b.thickness || 1;
+                            let color = b.color || 'black';
+                            let borderStyle = b.style || 'solid';
+                            console.log('Border:', d, thickness, color, borderStyle);
+                        },
+                        onload: function(a, b) {
+                            // Initialize components array for cleanup (like jspreadsheet does)
+                            b.components = [];
+
+                            // Border color picker - creates closure referencing 'b'
+                            let colorContainer = document.createElement('div');
+                            let colorDiv = document.createElement('div');
+                            colorContainer.appendChild(colorDiv);
+
+                            let colorPicker = jSuites.color(colorDiv, {
+                                closeOnChange: false,
+                                onchange: function(o, v) {
+                                    // This closure captures 'b', preventing GC
+                                    b.color = v;
+                                },
+                            });
+                            b.components.push(colorPicker);
+
+                            let colorIcon = document.createElement('i');
+                            colorIcon.classList.add('material-icons');
+                            colorIcon.innerHTML = 'color_lens';
+                            colorIcon.onclick = function() {
+                                colorPicker.open();
+                            };
+                            colorContainer.appendChild(colorIcon);
+                            a.children[1].appendChild(colorContainer);
+
+                            // Thickness picker - creates closure referencing 'b'
+                            let thicknessDiv = document.createElement('div');
+                            let thicknessPicker = jSuites.picker(thicknessDiv, {
+                                type: 'select',
+                                data: [1, 2, 3, 4, 5],
+                                render: function(e) {
+                                    let d = document.createElement('div');
+                                    d.style.height = e + 'px';
+                                    d.style.width = '30px';
+                                    d.style.backgroundColor = 'black';
+                                    return d;
+                                },
+                                onchange: function(a, k, c, d) {
+                                    // This closure captures 'b'
+                                    b.thickness = d;
+                                },
+                                width: '50px',
+                            });
+                            b.components.push(thicknessPicker);
+                            a.children[1].appendChild(thicknessDiv);
+
+                            // Border style picker - creates closure referencing 'b'
+                            let borderStyleDiv = document.createElement('div');
+                            let borderStylePicker = jSuites.picker(borderStyleDiv, {
+                                type: 'select',
+                                data: ['solid', 'dotted', 'dashed', 'double'],
+                                render: function(e) {
+                                    let d = document.createElement('div');
+                                    d.style.width = '30px';
+                                    d.style.borderTop = '2px ' + e + ' black';
+                                    return d;
+                                },
+                                onchange: function(a, k, c, d) {
+                                    // This closure captures 'b'
+                                    b.style = d;
+                                },
+                                width: '50px',
+                            });
+                            b.components.push(borderStylePicker);
+                            a.children[1].appendChild(borderStyleDiv);
+                        }
+                    },
+                    { type: 'divisor' },
+                    {
+                        type: 'select',
+                        width: 100,
+                        data: { 0: 'Arial', 1: 'Verdana', 2: 'Georgia' },
+                        value: 0,
+                        onchange: function(element, instance, value) {
+                            console.log('Font:', value);
+                        }
+                    }
+                ]
+            });
+
+            // Destroy toolbar
+            toolbar.destroy();
+
+            // Remove element from DOM
+            container.removeChild(el);
+        }
+
+        const elapsed = (performance.now() - startTime).toFixed(2);
+        log('Completed ' + iterations + ' iterations in ' + elapsed + ' ms', 'success');
+
+        // Check memory after (give a moment for potential cleanup)
+        setTimeout(function() {
+            const memAfter = getMemory();
+            if (memAfter) {
+                log('Memory after: ' + memAfter.used + ' MB');
+                if (memBefore) {
+                    const diff = (memAfter.used - memBefore.used).toFixed(2);
+                    const msg = 'Memory diff: ' + diff + ' MB';
+                    log(msg, parseFloat(diff) > 1 ? 'warn' : 'success');
+                }
+            }
+        }, 100);
+    }
+
+    // Initial log
+    log('Page loaded. jSuites version: ' + jSuites.version);
+    logMemory();
+</script>
 
 </body>
 </html>

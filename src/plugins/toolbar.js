@@ -8,6 +8,13 @@ export default function Toolbar(el, options) {
     var obj = { type:'toolbar' };
     obj.options = {};
 
+    // Track internal components for cleanup
+    var internalComponents = [];
+
+    // Event handler references for cleanup
+    var elClickHandler = null;
+    var windowResizeHandler = null;
+
     // Default configuration
     var defaults = {
         app: null,
@@ -78,8 +85,88 @@ export default function Toolbar(el, options) {
     }
 
     obj.destroy = function() {
-        toolbar.remove();
+        // Close if open (removes from tracking)
+        obj.close();
+
+        // Destroy all internal components (pickers, etc.)
+        for (var i = 0; i < internalComponents.length; i++) {
+            var comp = internalComponents[i];
+            if (comp) {
+                // First destroy any nested components created in onload (stored on the picker instance)
+                if (comp.components && comp.components.length) {
+                    for (var j = 0; j < comp.components.length; j++) {
+                        if (comp.components[j] && typeof comp.components[j].destroy === 'function') {
+                            comp.components[j].destroy();
+                        }
+                    }
+                    comp.components = null;
+                }
+                // Then destroy the picker/component itself
+                if (typeof comp.destroy === 'function') {
+                    comp.destroy();
+                }
+            }
+        }
+        internalComponents = [];
+
+        // Clear onclick handlers from DOM elements (releases bound function references)
+        if (toolbarContent) {
+            var items = toolbarContent.querySelectorAll('.jtoolbar-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].onclick = null;
+                items[i].updateState = null;
+            }
+        }
+        if (toolbarFloating) {
+            var items = toolbarFloating.querySelectorAll('.jtoolbar-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].onclick = null;
+                items[i].updateState = null;
+            }
+        }
+
+        // Clear options items callbacks to release closures
+        if (obj.options && obj.options.items) {
+            for (var i = 0; i < obj.options.items.length; i++) {
+                var item = obj.options.items[i];
+                // Clear all callback references
+                item.onclick = null;
+                item.onchange = null;
+                item.onload = null;
+                item.render = null;
+                item.updateState = null;
+                item.onopen = null;
+                item.onclose = null;
+            }
+            obj.options.items = null;
+        }
+
+        // Remove event listeners
+        if (elClickHandler) {
+            el.removeEventListener('click', elClickHandler);
+            elClickHandler = null;
+        }
+        if (windowResizeHandler) {
+            window.removeEventListener('resize', windowResizeHandler);
+            windowResizeHandler = null;
+        }
+
+        // Clear DOM
         el.innerHTML = '';
+
+        // Clear references
+        toolbarContent = null;
+        toolbarFloating = null;
+        toolbarArrow = null;
+
+        // Remove classes
+        el.classList.remove('jtoolbar');
+        el.classList.remove('jtoolbar-container');
+        el.classList.remove('jtoolbar-mobile');
+        el.classList.remove('jtoolbar-disabled');
+
+        // Remove instance reference
+        delete el.toolbar;
     }
 
     obj.update = function(a, b) {
@@ -141,7 +228,8 @@ export default function Toolbar(el, options) {
             }
 
             if (items[i].type == 'select' || items[i].type == 'dropdown') {
-                Picker(toolbarItem, items[i]);
+                var picker = Picker(toolbarItem, items[i]);
+                internalComponents.push(picker);
             } else if (items[i].type == 'divisor') {
                 toolbarItem.classList.add('jtoolbar-divisor');
             } else if (items[i].type == 'label') {
@@ -235,7 +323,9 @@ export default function Toolbar(el, options) {
     }
 
     obj.close = function() {
-        toolbarArrow.classList.remove('jtoolbar-arrow-selected')
+        if (toolbarArrow) {
+            toolbarArrow.classList.remove('jtoolbar-arrow-selected')
+        }
         // End tracking
         Tracking(obj, false);
     }
@@ -278,7 +368,7 @@ export default function Toolbar(el, options) {
         el.classList[state]('jtoolbar-disabled');
     }
 
-    el.onclick = function(e) {
+    elClickHandler = function(e) {
         var element = Helpers.findElement(e.target, 'jtoolbar-item');
         if (element) {
             obj.selectItem(element);
@@ -287,11 +377,13 @@ export default function Toolbar(el, options) {
         if (e.target.classList.contains('jtoolbar-arrow') || e.target.parentNode.classList.contains('jtoolbar-arrow')) {
             obj.open();
         }
-    }
+    };
+    el.addEventListener('click', elClickHandler);
 
-    window.addEventListener('resize', function() {
+    windowResizeHandler = function() {
         obj.refresh();
-    });
+    };
+    window.addEventListener('resize', windowResizeHandler);
 
     // Toolbar
     el.classList.add('jtoolbar');

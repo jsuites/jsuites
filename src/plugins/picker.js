@@ -260,6 +260,58 @@ export default function Picker(el, options) {
     }
 
     /**
+     * Destroy the picker instance and release all resources
+     */
+    obj.destroy = function() {
+        // Close if open (removes from tracking)
+        obj.close();
+
+        // Remove event listeners
+        el.onmousedown = null;
+        if (dropdownContent) {
+            dropdownContent.onclick = null;
+        }
+
+        // Remove created DOM elements
+        if (dropdownHeader && dropdownHeader.parentNode) {
+            dropdownHeader.parentNode.removeChild(dropdownHeader);
+        }
+        if (dropdownContent && dropdownContent.parentNode) {
+            dropdownContent.parentNode.removeChild(dropdownContent);
+        }
+
+        // Remove classes and attributes from el
+        el.classList.remove('jpicker');
+        el.classList.remove('jpicker-focus');
+        el.removeAttribute('role');
+        el.removeAttribute('aria-haspopup');
+        el.removeAttribute('aria-expanded');
+        el.removeAttribute('aria-controls');
+        el.removeAttribute('tabindex');
+
+        // Remove instance properties from el
+        delete el.picker;
+        delete el.value;
+        delete el.change;
+        delete el.val;
+
+        // Clear options callbacks to release closures
+        if (obj.options) {
+            obj.options.onchange = null;
+            obj.options.onclose = null;
+            obj.options.onopen = null;
+            obj.options.onload = null;
+            obj.options.onselect = null;
+            obj.options.onmouseover = null;
+            obj.options.render = null;
+        }
+
+        // Clear references
+        dropdownHeader = null;
+        dropdownContent = null;
+    }
+
+    /**
      * Create floating picker
      */
     var init = function() {
