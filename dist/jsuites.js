@@ -4618,7 +4618,7 @@ const Mask = utils.Mask;
                 } else {
                     setCursor(s);
 
-                    update();
+                    update(e);
                 }
             }
         }
@@ -4626,7 +4626,10 @@ const Mask = utils.Mask;
         // Update Calendar
         const update = function(e) {
             self.setValue(getValue());
-            self.close({ origin: 'button' });
+
+            if (! (e && e.type === 'click' && e.target.tagName === 'DIV' && self.time === true)) {
+                self.close({ origin: 'button' });
+            }
         }
 
         const reset = function() {
@@ -4906,7 +4909,7 @@ const Mask = utils.Mask;
                         }
                     } else if (e.code === 'Enter') {
                         if (! self.isClosed()) {
-                            update();
+                            update(e);
                         } else {
                             self.open();
                         }
@@ -23146,7 +23149,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.2.0',
+    version: '6.2.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
