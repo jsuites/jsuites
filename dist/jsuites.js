@@ -12466,7 +12466,7 @@ Helpers.findElement = function(element, condition) {
 /* harmony default export */ var helpers = (Helpers);
 ;// CONCATENATED MODULE: ./src/utils/path.js
 const isValidPathObj = function(o) {
-    return typeof o === 'object' || typeof o === 'function';
+    return o !== null && (typeof o === 'object' || typeof o === 'function');
 }
 
 function Path(pathString, value, remove) {
@@ -12490,11 +12490,7 @@ function Path(pathString, value, remove) {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             // Check if the current object is valid and has the key
-            if (
-                currentObject != null &&
-                isValidPathObj(currentObject) &&
-                key in currentObject
-            ) {
+            if (currentObject != null && isValidPathObj(currentObject) && key in currentObject) {
                 currentObject = currentObject[key];
             } else {
                 // Return undefined if the path is invalid or currentObject is null/undefined
@@ -23447,7 +23443,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.3.0',
+    version: '6.3.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {

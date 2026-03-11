@@ -1,5 +1,5 @@
 const isValidPathObj = function(o) {
-    return typeof o === 'object' || typeof o === 'function';
+    return o !== null && (typeof o === 'object' || typeof o === 'function');
 }
 
 export default function Path(pathString, value, remove) {
@@ -23,11 +23,7 @@ export default function Path(pathString, value, remove) {
         for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
             // Check if the current object is valid and has the key
-            if (
-                currentObject != null &&
-                isValidPathObj(currentObject) &&
-                key in currentObject
-            ) {
+            if (currentObject != null && isValidPathObj(currentObject) && key in currentObject) {
                 currentObject = currentObject[key];
             } else {
                 // Return undefined if the path is invalid or currentObject is null/undefined
