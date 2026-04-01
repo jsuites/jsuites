@@ -18724,11 +18724,11 @@ function Toolbar(el, options) {
             // Available parent space
             var available = parseInt(obj.options.maxWidth);
             // Remove arrow
-            if (toolbarArrow.parentNode) {
+            if (toolbarArrow && toolbarArrow.parentNode) {
                 toolbarArrow.parentNode.removeChild(toolbarArrow);
             }
             // Move all items to the toolbar
-            while (toolbarFloating.firstChild) {
+            while (toolbarFloating && toolbarFloating.firstChild) {
                 toolbarContent.appendChild(toolbarFloating.firstChild);
             }
             // Toolbar is larger than the parent, move elements to the floating element
@@ -18741,7 +18741,7 @@ function Toolbar(el, options) {
                 }
             }
             // Show arrow
-            if (toolbarFloating.children.length > 0) {
+            if (toolbarFloating && toolbarFloating.children.length > 0) {
                 toolbarContent.appendChild(toolbarArrow);
             }
         }
@@ -23443,7 +23443,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.3.1',
+    version: '6.3.2',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
