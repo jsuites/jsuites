@@ -920,7 +920,7 @@
 
             if (!localeData) {
                 // Unknown locale - fallback: strip ALL patterns, use literal symbol (or $)
-                const fallbackSymbol = symbolChar || '$';
+                const fallbackSymbol = symbolChar || '';
                 // Replace all occurrences of the pattern with the symbol
                 return mask.replace(/\[\$(.?)-([0-9A-Z]+)\]/gi, fallbackSymbol);
             }
