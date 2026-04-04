@@ -400,6 +400,7 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render('33:20', { mask: 'H:MM' }, true)).toBe('9:20');
             expect(jSuites.mask.render('33:20', { mask: '[h]:mm' }, true)).toBe('33:20');
             expect(jSuites.mask.render('25:30:45', { mask: '[h]:mm:ss' }, true)).toBe('25:30:45');
+            expect(jSuites.mask.render('12346.50', { mask: '[$-14009]hh:mm;@' }, true)).toBe('12:00');
 
             // Excel bracket formats for minutes and seconds over normal limits
             //expect(jSuites.mask.render('150:30', { mask: '[mm]:ss' })).toBe('150:30');
