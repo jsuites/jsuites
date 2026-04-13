@@ -1115,7 +1115,7 @@ function Dropdown() {
                 Ajax(o);
             } else {
                 // Search terms
-                str = new RegExp(str, 'gi');
+                str = new RegExp(str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'gi');
 
                 // Reset search
                 var results = [];
