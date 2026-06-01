@@ -114,7 +114,7 @@
 
         component.dateToNum = function (jsDate) {
             if (typeof jsDate === 'string') {
-                jsDate = new Date(jsDate + '  GMT+0');
+                jsDate = new Date(jsDate.trim().replace(' ', 'T') + 'Z');
             }
             let jsDateInMilliseconds = jsDate.getTime();
             if (jsDateInMilliseconds >= excelLeapYearBug) {
