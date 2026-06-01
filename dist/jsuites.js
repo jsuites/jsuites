@@ -10784,7 +10784,7 @@ if (! Contextmenu && "function" === 'function') {
             if (control.caret) {
                 let index = control.caret.index;
                 let position = control.caret.position;
-                let value = control.values[index] ?? '';
+                let value = String(control.values[index] ?? '');
                 // Re-apply the caret to the original position
                 control.values[index] = value.substring(0, position) + hiddenCaret + value.substring(position);
             }
