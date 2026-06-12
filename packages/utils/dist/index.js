@@ -2669,6 +2669,14 @@
                 let index = control.caret.index;
                 let position = control.caret.position;
                 let value = String(control.values[index] ?? '');
+                // Percent masks bake '%' into the same value slot as the number.
+                // If the captured caret landed after the trailing '%', move it
+                // before so it sits right after the digit — matching how text-
+                // suffix masks like '0 liters' position the cursor.
+                if (control.methods[index] && control.methods[index].type === 'percentage'
+                    && position > 0 && value.charAt(position - 1) === '%') {
+                    position--;
+                }
                 // Re-apply the caret to the original position
                 control.values[index] = value.substring(0, position) + hiddenCaret + value.substring(position);
             }
