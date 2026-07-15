@@ -1655,5 +1655,110 @@ describe('jSuites mask', () => {
         });
     });
 
+    describe('Caching consistency', () => {
+        // The mask parser caches parsed masks, date format tokens and Intl formatters.
+        // These tests make sure results are identical no matter the order of the calls,
+        // and that per-call options are never captured by mask-level caches.
+
+        test('user decimal option is not captured by the mask cache', () => {
+            // Custom decimal first: this populates the cache for the mask '0.00'
+            expect(jSuites.mask.render('1234,5', { mask: '0.00', decimal: ',' }, true)).toBe('1234,5');
+            // Same mask without the option must fall back to the mask decimal
+            expect(jSuites.mask.render(1234.5, { mask: '0.00' }, true)).toBe('1234.50');
+            // And custom decimal again must still be honoured
+            expect(jSuites.mask.render('1234,5', { mask: '0.00', decimal: ',' }, true)).toBe('1234,5');
+        });
+
+        test('repeated renders of the same mask are stable', () => {
+            for (let i = 0; i < 3; i++) {
+                expect(jSuites.mask.render(1234.5, { mask: '#,##0.00' }, true)).toBe('1,234.50');
+                expect(jSuites.mask.render(1234.5, { mask: '#.##0,00' }, true)).toBe('1.234,50');
+                expect(jSuites.mask.render('2024-03-05 08:07:06', { mask: 'DD/MM/YYYY HH24:MI:SS' }, true)).toBe('05/03/2024 08:07:06');
+            }
+        });
+
+        test('conditional masks select the section per value after caching', () => {
+            expect(jSuites.mask.render(1234.5, { mask: '#,##0.00;(#,##0.00)' }, true)).toBe('1,234.50');
+            expect(jSuites.mask.render(-1234.5, { mask: '#,##0.00;(#,##0.00)' }, true)).toBe('(1,234.50)');
+            expect(jSuites.mask.render(0, { mask: '#,##0.00;(#,##0.00);"zero"' }, true)).toBe('zero');
+            expect(jSuites.mask.render('hello', { mask: '#,##0.00;(#,##0.00);0;"T: "@' }, true)).toBe('T: hello');
+            // Positive again, from the cached entry
+            expect(jSuites.mask.render(1234.5, { mask: '#,##0.00;(#,##0.00)' }, true)).toBe('1,234.50');
+        });
+
+        test('thousand separator grouping boundaries', () => {
+            expect(jSuites.mask.render(999, { mask: '#,##0' }, true)).toBe('999');
+            expect(jSuites.mask.render(1000, { mask: '#,##0' }, true)).toBe('1,000');
+            expect(jSuites.mask.render(999999, { mask: '#,##0' }, true)).toBe('999,999');
+            expect(jSuites.mask.render(-1234567.89, { mask: '#,##0.00' }, true)).toBe('-1,234,567.89');
+            expect(jSuites.mask.render(1234567890123, { mask: '#,##0' }, true)).toBe('1,234,567,890,123');
+        });
+
+        test('grouping with custom separators', () => {
+            expect(jSuites.mask.render(-9876543.21, { mask: '#.##0,00' }, true)).toBe('-9.876.543,21');
+            expect(jSuites.mask.render(1234567, { mask: '# ##0' }, true)).toBe('1 234 567');
+            expect(jSuites.mask.render(1234567.5, { mask: "#'##0.00" }, true)).toBe("1'234'567.50");
+        });
+
+        test('grouping while typing keeps partial values consistent', () => {
+            expect(jSuites.mask('12345.6', { mask: '#,##0.00' }, true).value).toBe('12,345.6');
+            expect(jSuites.mask('1234', { mask: '#,##0.00' }, true).value).toBe('1,234');
+            expect(jSuites.mask('-1234567', { mask: '#,##0.00' }, true).value).toBe('-1,234,567');
+        });
+
+        test('extract uses the decimal of each mask independently', () => {
+            expect(jSuites.mask.extract('1.234,50', { mask: '#.##0,00' })).toBe(1234.5);
+            expect(jSuites.mask.extract('1,234.50', { mask: '#,##0.00' })).toBe(1234.5);
+            // Repeat in reverse order
+            expect(jSuites.mask.extract('1,234.50', { mask: '#,##0.00' })).toBe(1234.5);
+            expect(jSuites.mask.extract('1.234,50', { mask: '#.##0,00' })).toBe(1234.5);
+        });
+
+        test('same locale with different options uses distinct formatters', () => {
+            expect(jSuites.mask.render(1234.56, { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(1234.56, { locale: 'en-US', options: { minimumFractionDigits: 3 } }, true)).toBe('1,234.560');
+            expect(jSuites.mask.render(1234.56, { locale: 'en-US' }, true)).toBe('1,234.56');
+            // Repeat the first to make sure it was not overwritten
+            expect(jSuites.mask.render(1234.56, { locale: 'en-US', options: { style: 'currency', currency: 'USD' } }, true)).toBe('$1,234.56');
+        });
+
+        test('date format token cache keeps the minute/month fix', () => {
+            // MM after HH must be treated as minutes, repeatedly
+            for (let i = 0; i < 3; i++) {
+                expect(jSuites.mask.getDateString('2024-03-05 08:07:06', 'HH:MM:SS')).toBe('08:07:06');
+                expect(jSuites.mask.getDateString('2024-03-05 08:07:06', 'MM/DD')).toBe('03/05');
+            }
+        });
+
+        test('zero padded masks', () => {
+            expect(jSuites.mask.render(42.5, { mask: '00000.00' }, true)).toBe('00042.50');
+            expect(jSuites.mask.render(-7, { mask: '000' }, true)).toBe('-07');
+            // Repeat with another value on the same mask
+            expect(jSuites.mask.render(9, { mask: '00000.00' }, true)).toBe('00009.00');
+        });
+
+        test('scientific masks', () => {
+            expect(jSuites.mask.render(12345.678, { mask: '0.00E+00' }, true)).toBe('1.23e+04');
+            expect(jSuites.mask.render(0.000123, { mask: '0.00E+00' }, true)).toBe('1.23e-04');
+        });
+
+        test('excel locale masks are transformed consistently on repeat', () => {
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1,234.56');
+            expect(jSuites.mask.render(1234.56, { mask: '[$€-407]#.##0,00' }, true)).toBe('€1.234,56');
+            expect(jSuites.mask.render(1234.56, { mask: '[$$-409]#,##0.00' }, true)).toBe('$1,234.56');
+        });
+
+        test('autoCasting remains correct after the cache limit is exceeded', () => {
+            const before = jSuites.mask.autoCasting('12.5');
+            // Push more than the cache limit of distinct values
+            for (let i = 0; i < 10050; i++) {
+                jSuites.mask.autoCasting('998877' + i);
+            }
+            const after = jSuites.mask.autoCasting('12.5');
+            expect(after).toEqual(before);
+            expect(jSuites.mask.autoCasting('50%')).toEqual(jSuites.mask.autoCasting('50%'));
+        });
+    });
+
 });
 

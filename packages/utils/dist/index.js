@@ -978,8 +978,23 @@
         const methodCache = {};
         // Cache for getTokens results
         const tokensCache = {};
-        // Cache for autoCasting results
-        const autoCastingCache = {};
+        // Cache for autoCasting results. Keyed by user values, so it is capped to avoid unbounded growth
+        let autoCastingCache = {};
+        let autoCastingCacheSize = 0;
+        const autoCastingCacheLimit = 10000;
+        // Cache for parsed masks (cleaned mask, tokens, methods, type), keyed by the effective mask
+        const maskConfigCache = {};
+        // Cache for Intl.NumberFormat instances, keyed by locale + options
+        const numberFormatCache = {};
+
+        const getNumberFormat = function(locale, options) {
+            const key = (locale || '') + '|' + (options ? JSON.stringify(options) : '');
+            let formatter = numberFormatCache[key];
+            if (! formatter) {
+                formatter = numberFormatCache[key] = new Intl.NumberFormat(locale, options || {});
+            }
+            return formatter;
+        }
 
         // Initialize compiled regexes
         for (const type of tokenPriority) {
@@ -1134,6 +1149,12 @@
             return num;
         }
 
+        // Constant patterns used by getDecimal (hoisted so they compile once)
+        const decimalPatternZeros = new RegExp('0*([,.])0+', 'i');
+        const decimalPatternHashes = new RegExp('#{1}(.{1})#+', 'i');
+        // Decimal separator of the system locale, resolved on first use
+        let systemDecimal = null;
+
         /**
          * Get the decimal defined in the mask configuration
          */
@@ -1143,7 +1164,7 @@
                 decimal = this.decimal;
             } else {
                 if (this.locale) {
-                    let t = Intl.NumberFormat(this.locale).format(1.1);
+                    let t = getNumberFormat(this.locale).format(1.1);
                     decimal = t[1];
                 } else {
                     if (! v) {
@@ -1151,14 +1172,12 @@
                     }
 
                     // Fixed regex: 0* means zero or more 0s before decimal separator
-                    let e = new RegExp('0*([,.])0+', 'ig');
-                    let t = e.exec(v);
+                    let t = decimalPatternZeros.exec(v);
                     if (t && t[1] && t[1].length === 1) {
                         decimal = t[1];
                     } else {
                         // Try the second pattern for # formats
-                        e = new RegExp('#{1}(.{1})#+', 'ig');
-                        t = e.exec(v);
+                        t = decimalPatternHashes.exec(v);
                         if (t && t[1] && t[1].length === 1) {
                             if (t[1] === ',') {
                                 decimal = '.';
@@ -1169,7 +1188,10 @@
                     }
 
                     if (! decimal) {
-                        decimal = '1.1'.toLocaleString().substring(1, 2);
+                        if (systemDecimal === null) {
+                            systemDecimal = '1.1'.toLocaleString().substring(1, 2);
+                        }
+                        decimal = systemDecimal;
                     }
                 }
             }
@@ -1707,7 +1729,7 @@
                     if (this.values[this.index] != '0' && this.values[this.index] != '-0') {
                         this.values[this.index] += v;
                     }
-                } else if (v > 0 && v < 10) {
+                } else if ((v >= '1' && v <= '9') || (v > 0 && v < 10)) {
                     // Verify if there's a zero to remove it, avoiding left zeros
                     if (this.values[this.index] == '0' || this.values[this.index] == '-0') {
                         this.values[this.index] = this.values[this.index].replace('0', '');
@@ -1748,20 +1770,21 @@
                 currentValue = currentValue.replaceAll(separator, '');
                 // Process separators
                 let val = currentValue.split(this.decimal);
-                if (val[0].length > 3) {
-                    let number = [];
-                    let count = 0;
-                    for (var j = val[0].length - 1; j >= 0 ; j--) {
-                        let c = val[0][j];
-                        if (c >= 0 && c <= 9) {
-                            if (count && ! (count % 3)) {
-                                number.unshift(separator);
-                            }
-                            count++;
-                        }
-                        number.unshift(c);
+                // The integer part contains only digits with an optional leading sign
+                let intPart = val[0];
+                let sign = '';
+                if (intPart[0] === '-') {
+                    sign = '-';
+                    intPart = intPart.substring(1);
+                }
+                if (intPart.length > 3) {
+                    // Insert a separator between every group of three digits, from the right
+                    let first = intPart.length % 3 || 3;
+                    let grouped = intPart.substring(0, first);
+                    for (let p = first; p < intPart.length; p += 3) {
+                        grouped += separator + intPart.substring(p, p + 3);
                     }
-                    val[0] = number.join('');
+                    val[0] = sign + grouped;
                 }
                 // Reconstruct the value
                 this.values[this.index] = val.join(this.decimal);
@@ -2145,14 +2168,21 @@
             return false;
         }
 
+        // Cache for the number of padding zeros required by a token, keyed by token + decimal
+        const paddingZerosCache = {};
+
         const processPaddingZeros = function(token, value, decimal) {
             if (! value) {
                 return value;
             }
-            let m = token.split(decimal);
-            let desiredNumOfPaddingZeros = m[0].match(/[0]+/g);
-            if (desiredNumOfPaddingZeros && desiredNumOfPaddingZeros[0]) {
-                desiredNumOfPaddingZeros = desiredNumOfPaddingZeros[0].length
+            const key = token + '|' + decimal;
+            let desiredNumOfPaddingZeros = paddingZerosCache[key];
+            if (desiredNumOfPaddingZeros === undefined) {
+                let m = token.split(decimal);
+                let t = m[0].match(/[0]+/g);
+                desiredNumOfPaddingZeros = paddingZerosCache[key] = (t && t[0]) ? t[0].length : 0;
+            }
+            if (desiredNumOfPaddingZeros) {
                 let v = value.toString().split(decimal);
                 let len = v[0].length;
                 if (desiredNumOfPaddingZeros > len) {
@@ -2200,7 +2230,7 @@
         const getValue = function(control) {
             let value = control.values.join('');
             if (isNumeric(control.type)) {
-                if (value.indexOf('--') !== false) {
+                if (value.indexOf('--') !== -1) {
                     value = value.replace('--', '-');
                 }
                 if (Number(control.raw) < 0 && value.includes('-')) {
@@ -2314,16 +2344,45 @@
                     mask = transformExcelLocaleMask(mask);
                 }
 
-                // Cleaning the mask
-                mask = cleanMask(mask, control);
+                // Parsing the mask is expensive and depends on the mask alone, so it is cached
+                let parsed = maskConfigCache[mask];
+                if (parsed === undefined) {
+                    parsed = maskConfigCache[mask] = { parenthesisForNegativeNumbers: false };
+                    // Cleaning the mask
+                    parsed.mask = cleanMask(mask, parsed);
+                    // Get tokens which are the methods for parsing
+                    parsed.tokens = getTokens(parsed.mask);
+                    // Get methods from the tokens
+                    parsed.methods = getMethodsFromTokens(parsed.tokens);
+                    // Type
+                    parsed.type = getType(parsed);
+                    // Decimal derived from the mask, resolved on first use
+                    parsed.decimal = undefined;
+                }
+
                 // Get only the first mask for now and remove
-                control.mask = mask;
-                // Get tokens which are the methods for parsing
-                let tokens = control.tokens = getTokens(mask);
-                // Get methods from the tokens
-                control.methods = getMethodsFromTokens(tokens);
-                // Type
-                control.type = getType(control);
+                control.mask = parsed.mask;
+                control.tokens = parsed.tokens;
+                control.methods = parsed.methods;
+                control.type = parsed.type;
+                if (parsed.parenthesisForNegativeNumbers === true) {
+                    control.parenthesisForNegativeNumbers = true;
+                }
+
+                // Decimal only for numbers
+                if (isNumeric(control.type) || control.locale) {
+                    if (! control.decimal && ! control.locale) {
+                        // Derived from the mask only: resolve once and reuse
+                        if (parsed.decimal === undefined) {
+                            parsed.decimal = getDecimal.call(control);
+                        }
+                        control.decimal = parsed.decimal;
+                    } else {
+                        control.decimal = getDecimal.call(control);
+                    }
+                }
+
+                return control;
             }
 
             // Decimal only for numbers
@@ -2366,22 +2425,53 @@
             }
         };
 
+        // Cache of decimal places derived from the mask, keyed by type + decimal + mask
+        const decimalPlacesCache = {};
+
+        const getDecimalPlaces = function(config) {
+            const key = config.type + '|' + config.decimal + '|' + config.mask;
+            let info = decimalPlacesCache[key];
+            if (info === undefined) {
+                info = decimalPlacesCache[key] = {};
+                if (config.type === 'scientific') {
+                    // Coefficient part of the mask (before the exponent)
+                    info.coefficientMask = config.mask.toUpperCase().split('E')[0];
+                    // Exponent part of the mask (handle both E+ and E-)
+                    info.exponentMask = config.mask.toUpperCase().split(/E[+-]?/)[1];
+                    // Number of decimal places in the coefficient (masks without decimal, e.g. '0E+00', get 0)
+                    let t = info.coefficientMask.split(config.decimal);
+                    if (t[1]) {
+                        t = t[1].match(/[0#]+/g);
+                        info.numOfDecimalPlaces = t[0]?.length ?? 0;
+                    } else {
+                        info.numOfDecimalPlaces = 0;
+                    }
+                } else {
+                    info.hasDecimal = config.mask.indexOf(config.decimal) !== -1;
+                    if (info.hasDecimal) {
+                        let m = config.mask.split(config.decimal);
+                        // Mandatory decimal places: leading zeros after the decimal separator
+                        let mandatory = m[1].match(/0+/g);
+                        info.mandatoryDecimalPlaces = mandatory ? mandatory[0].length : 0;
+                        // Optional decimal places: zeros and hashes after the decimal separator
+                        let optional = m[1].match(/[0#]+/g);
+                        info.optionalDecimalPlaces = optional ? optional[0].length : null;
+                    }
+                }
+            }
+            return info;
+        }
+
         const adjustNumberOfDecimalPlaces = function(config, value) {
             let temp = value;
             let mask = config.mask;
+            const info = getDecimalPlaces(config);
 
             if (config.type === 'scientific') {
                 // Scientific notation handling
-                mask = config.mask.toUpperCase().split('E')[0];
+                mask = info.coefficientMask;
 
-                let numOfDecimalPlaces = mask.split(config.decimal);
-                // Handle masks without decimal (e.g., '0E+00')
-                if (numOfDecimalPlaces[1]) {
-                    numOfDecimalPlaces = numOfDecimalPlaces[1].match(/[0#]+/g);
-                    numOfDecimalPlaces = numOfDecimalPlaces[0]?.length ?? 0;
-                } else {
-                    numOfDecimalPlaces = 0;
-                }
+                let numOfDecimalPlaces = info.numOfDecimalPlaces;
                 temp = temp.toExponential(numOfDecimalPlaces);
                 // Split by 'e' to handle both positive (e+) and negative (e-) exponents
                 let expo = temp.toString().split('e');
@@ -2396,7 +2486,7 @@
                 expo[0] = temp;
 
                 // Handle both E+ and E- in mask for exponent
-                mask = config.mask.toUpperCase().split(/E[+-]?/)[1];
+                mask = info.exponentMask;
                 ret = processPaddingZeros(mask, expo[1]?.replace(/^[+-]/, ''), config.decimal);
                 if (ret) {
                     // Preserve the sign from the original exponent
@@ -2407,20 +2497,14 @@
                 temp = expo.join('e');
             } else {
                 // Non-scientific decimal adjustment
-                if (mask.indexOf(config.decimal) === -1) {
+                if (! info.hasDecimal) {
                     // No decimal places
                     if (! Number.isInteger(temp)) {
                         temp = temp.toFixed(0);
                     }
                 } else {
                     // Length of the decimal
-                    let mandatoryDecimalPlaces = mask.split(config.decimal);
-                    mandatoryDecimalPlaces = mandatoryDecimalPlaces[1].match(/0+/g);
-                    if (mandatoryDecimalPlaces) {
-                        mandatoryDecimalPlaces = mandatoryDecimalPlaces[0].length;
-                    } else {
-                        mandatoryDecimalPlaces = 0;
-                    }
+                    let mandatoryDecimalPlaces = info.mandatoryDecimalPlaces;
 
                     // Amount of decimal (use original value to check decimal separator)
                     let valueStr = value.toString();
@@ -2432,10 +2516,8 @@
                         necessaryAdjustment = mandatoryDecimalPlaces;
                     } else {
                         // Optional
-                        let optionalDecimalPlaces = mask.split(config.decimal);
-                        optionalDecimalPlaces = optionalDecimalPlaces[1].match(/[0#]+/g);
-                        if (optionalDecimalPlaces) {
-                            optionalDecimalPlaces = optionalDecimalPlaces[0].length;
+                        let optionalDecimalPlaces = info.optionalDecimalPlaces;
+                        if (optionalDecimalPlaces !== null) {
                             if (numOfDecimalPlaces > optionalDecimalPlaces) {
                                 necessaryAdjustment = optionalDecimalPlaces;
                             }
@@ -2615,7 +2697,7 @@
             // Convert to number
             numericValue = v[0] || v[1] ? parseFloat(v.join('.')) : 0;
 
-            let ret = new Intl.NumberFormat(config.locale, config.options || {}).format(numericValue);
+            let ret = getNumberFormat(config.locale, config.options).format(numericValue);
 
             config.values.push(ret);
         }
@@ -3485,6 +3567,10 @@
             }
 
             // Cache the result (even if null)
+            if (++autoCastingCacheSize > autoCastingCacheLimit) {
+                autoCastingCache = {};
+                autoCastingCacheSize = 1;
+            }
             autoCastingCache[cacheKey] = result;
             return result;
         }
@@ -3751,6 +3837,10 @@
         const dateTokens = ['DAY', 'WD', 'DDDD', 'DDD', 'DD', 'D', 'Q', 'HH24', 'HH12', 'HH', '\\[H\\]', 'H', 'AM/PM', 'MI', 'SS', 'MS', 'YYYY', 'YYY', 'YY', 'Y', 'MONTH', 'MON', 'MMMMM', 'MMMM', 'MMM', 'MM', 'M', '.'];
         // All date tokens
         const allDateTokens = dateTokens.join('|')
+        // Expression to extract all tokens from the string, compiled once
+        const allDateTokensRegex = new RegExp(allDateTokens, 'gi');
+        // Cache of extracted tokens per format string
+        const dateTokensCache = {};
 
         Component.getDateString = function(value, options) {
             if (! options) {
@@ -3784,13 +3874,15 @@
             }
 
 
-            // Expression to extract all tokens from the string
-            let e = new RegExp(allDateTokens, 'gi');
-            // Extract
-            let t = format.match(e);
-
-            // Compatibility with Excel
-            fixMinuteToken(t);
+            // Tokenizing the format is expensive and depends on the format alone, so it is cached
+            let t = dateTokensCache[format];
+            if (t === undefined) {
+                // Extract
+                t = format.match(allDateTokensRegex);
+                // Compatibility with Excel
+                fixMinuteToken(t);
+                dateTokensCache[format] = t;
+            }
 
             // Object
             const o = {
