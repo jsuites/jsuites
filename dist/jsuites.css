@@ -4074,8 +4074,6 @@ body.lm-dark-mode {
     border-radius: var(--lm-border-radius, 2px);
     position: relative;
     line-height: normal;
-    display: flex;
-    align-items: center;
     font: inherit;
 }
 
@@ -4212,11 +4210,11 @@ body.lm-dark-mode {
 }
 
 .lm-dropdown-item[data-cursor="true"] > div {
-    background-color: var(--lm-background-color-highlight);
+    background-color: var(--lm-background-color-highlight, #eee);
 }
 
 .lm-dropdown-item[data-cursor="true"]:hover > div {
-    background-color: var(--lm-background-color-active);
+    background-color: #1d86ed;
 }
 
 .lm-dropdown-item[data-cursor="true"].lm-dropdown-item[data-selected="true"] > div {

@@ -89,6 +89,15 @@ describe('Validations', () => {
     expect(jSuites.validations.exist(undefined)).toBe(false);
   });
 
+  test('should be case insensitive in text validations', () => {
+    expect(jSuites.validations.text('Hello World', { criteria: 'contains', value: ['hello'] })).toBe(true);
+    expect(jSuites.validations.text('Hello World', { criteria: 'not contains', value: ['HELLO'] })).toBe(false);
+    expect(jSuites.validations.text('Hello World', { criteria: 'begins with', value: ['hELLO'] })).toBe(true);
+    expect(jSuites.validations.text('Hello World', { criteria: 'ends with', value: ['WORLD'] })).toBe(true);
+    expect(jSuites.validations.text('Hello World', { criteria: '=', value: ['hello world'] })).toBe(true);
+    expect(jSuites.validations.text('Hello World', { criteria: '!=', value: ['HELLO WORLD'] })).toBe(false);
+  });
+
   test('text length tests', () => {
     expect(jSuites.validations.textLength(undefined, { criteria: '=', value: [0] })).toBe(true);
     expect(jSuites.validations.textLength(null, { criteria: '=', value: [0] })).toBe(true);

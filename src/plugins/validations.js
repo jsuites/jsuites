@@ -71,24 +71,28 @@ function Validations() {
         },
     }
 
+    const toLowerCase = function(value) {
+        return typeof value === 'string' ? value.toLowerCase() : value;
+    }
+
     const textCriterias = {
         'contains': function(value, range) {
-            return value.includes(range[0]);
+            return toLowerCase(value).includes(toLowerCase(range[0]));
         },
         'not contains': function(value, range) {
-            return !value.includes(range[0]);
+            return !toLowerCase(value).includes(toLowerCase(range[0]));
         },
         'begins with': function(value, range) {
-            return value.startsWith(range[0]);
+            return toLowerCase(value).startsWith(toLowerCase(range[0]));
         },
         'ends with': function(value, range) {
-            return value.endsWith(range[0]);
+            return toLowerCase(value).endsWith(toLowerCase(range[0]));
         },
         '=': function(value, range) {
-            return value === range[0];
+            return toLowerCase(value) === toLowerCase(range[0]);
         },
         '!=': function(value, range) {
-            return value !== range[0];
+            return toLowerCase(value) !== toLowerCase(range[0]);
         },
         'valid email': function(value) {
             var pattern = new RegExp(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
