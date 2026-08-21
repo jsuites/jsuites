@@ -2294,10 +2294,23 @@
                     // Mask
                     mask = d[0];
 
-                    if (typeof (value) === 'number' || isNumber(value)) {
-                        if (Number(value) < 0 && d[1]) {
+                    // A string can still be a localized number (e.g. 1.234,50) that isNumber does not recognize
+                    let num = value;
+                    if (typeof(num) === 'string' && ! isNumber(num)) {
+                        let t = num.trim();
+                        if (getDecimal.call({}, d[0]) === ',') {
+                            if (/^-?(\d+|\d{1,3}(\.\d{3})+)(,\d+)?$/.test(t)) {
+                                num = t.replace(/\./g, '').replace(',', '.');
+                            }
+                        } else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) {
+                            num = t.replace(/,/g, '');
+                        }
+                    }
+
+                    if (typeof (num) === 'number' || isNumber(num)) {
+                        if (Number(num) < 0 && d[1]) {
                             mask = d[1];
-                        } else if (Number(value) === 0 && d[2]) {
+                        } else if (Number(num) === 0 && d[2]) {
                             mask = d[2];
                         } else {
                             mask = d[0];

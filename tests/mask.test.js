@@ -164,6 +164,21 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render(-50.25, { mask: '$#,##0.00;($#,##0.00);$0.00' }, true)).toBe('($50.25)');
         });
 
+        test('accounting formats with comma as decimal separator', () => {
+            // Four-section accounting masks must pick the section by the value sign
+            // regardless of the separators used on the numeric sections
+            expect(jSuites.mask.render(1234.5, { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' $  1.234,50 ');
+            expect(jSuites.mask.render(-1234.5, { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe('-$  1.234,50 ');
+            expect(jSuites.mask.render(0, { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' $  -');
+
+            // Comma style (no currency symbol)
+            expect(jSuites.mask.render(1234.5, { mask: '_-* #.##0,00_-;-* #.##0,00_-;_-* "-"??_-;_-@_-' }, true)).toBe('  1.234,50 ');
+            expect(jSuites.mask.render(-1234.5, { mask: '_-* #.##0,00_-;-* #.##0,00_-;_-* "-"??_-;_-@_-' }, true)).toBe('- 1.234,50 ');
+
+            // Text still falls into the fourth section
+            expect(jSuites.mask.render('hello', { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' hello');
+        });
+
         test('fraction rendering', () => {
             // Basic fractions with flexible denominators
             expect(jSuites.mask.render(0.5, { mask: '# ?/?' }, true)).toBe('1/2');
