@@ -177,6 +177,9 @@ describe('jSuites mask', () => {
 
             // Text still falls into the fourth section
             expect(jSuites.mask.render('hello', { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' hello');
+
+            // A string is never re-parsed as a number: a localized numeric string is text
+            expect(jSuites.mask.render('1.234,50', { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' 1.234,50');
         });
 
         test('fraction rendering', () => {
@@ -1052,8 +1055,8 @@ describe('jSuites mask', () => {
         });
 
         test('negative numbers with locale patterns', () => {
-            // Negative formatting with German locale - locale transformation works, parentheses format is general mask limitation
-            expect(jSuites.mask.render(-1234.56, { mask: '[$$-407]#,##0.00;([$$-407]#,##0.00)' }, true)).toBe('€-1.234,56');
+            // Negative formatting with German locale: the negative section applies, as in Excel
+            expect(jSuites.mask.render(-1234.56, { mask: '[$$-407]#,##0.00;([$$-407]#,##0.00)' }, true)).toBe('(€1.234,56)');
             expect(jSuites.mask.render(1234.56, { mask: '[$$-407]#,##0.00;([$$-407]#,##0.00)' }, true)).toBe('€1.234,56');
         });
 

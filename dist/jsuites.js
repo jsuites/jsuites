@@ -9,3952 +9,7 @@ var jSuites;
 /******/ (function() { // webpackBootstrap
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 124:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-/**
- * pin the modal to the left panel
- */
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // References
-    const modals = [];
-    // State of the resize and move modal
-    let state = {};
-    // Internal controls of the action of resize and move
-    let controls = {};
-    // Width of the border
-    let cornerSize = 10;
-    // Container with minimized modals
-    const minimizedModals = [];
-    // Default z-index for the modals
-    const defaultZIndex = 20;
-
-    /**
-     * Send the modal to the front
-     * @param container
-     */
-    const sendToFront = function(container) {
-        let highestXIndex = defaultZIndex;
-        for (let i = 0; i < modals.length; i++) {
-            const zIndex = parseInt(modals[i].el.style.zIndex);
-            if (zIndex > highestXIndex) {
-                highestXIndex = zIndex;
-            }
-        }
-        container.style.zIndex = highestXIndex + 1;
-    }
-
-    /**
-     * Send modal to the back
-     * @param container
-     */
-    const sendToBack = function(container) {
-        container.style.zIndex = defaultZIndex;
-    }
-
-    // Get the coordinates of the action
-    const getCoords = function(e) {
-        let x;
-        let y;
-
-        if (e.changedTouches && e.changedTouches[0]) {
-            x = e.changedTouches[0].clientX;
-            y = e.changedTouches[0].clientY;
-        } else {
-            x = e.clientX;
-            y = e.clientY;
-        }
-
-        return [x,y];
-    }
-
-    // Get the button status
-    const getButton = function(e) {
-        e = e || window.event;
-        if (e.buttons) {
-            return e.buttons;
-        } else if (e.button) {
-            return e.button;
-        } else {
-            return e.which;
-        }
-    }
-
-    // Finalize any potential action
-    const mouseUp = function(e) {
-        // Finalize all actions
-        if (typeof(controls.action) === 'function') {
-            controls.action();
-        }
-        setTimeout(function() {
-            // Remove cursor
-            if (controls.e) {
-                controls.e.style.cursor = '';
-            }
-            // Reset controls
-            controls = {};
-            // Reset state controls
-            state = {
-                x: null,
-                y: null,
-            }
-        }, 0)
-    }
-
-    const mouseMove = function(e) {
-        if (! getButton(e)) {
-            return false;
-        }
-        // Get mouse coordinates
-        let [x,y] = getCoords(e);
-
-        // Move modal
-        if (controls.type === 'move') {
-            if (state && state.x == null && state.y == null) {
-                state.x = x;
-                state.y = y;
-            }
-
-            let dx = x - state.x;
-            let dy = y - state.y;
-            let top = controls.e.offsetTop + dy;
-            let left = controls.e.offsetLeft + dx;
-
-            // Update position
-            controls.top = top;
-            controls.left = left;
-            controls.e.style.top = top + 'px';
-            controls.e.style.left = left + 'px';
-
-            state.x = x;
-            state.y = y;
-            state.top = top;
-            state.left = left;
-        } else if (controls.type === 'resize') {
-            let top = null;
-            let left = null;
-            let width = null;
-            let height = null;
-
-            if (controls.d === 'e-resize' || controls.d === 'ne-resize' || controls.d === 'se-resize') {
-                width = controls.w + (x - controls.x);
-
-                if (e.shiftKey) {
-                    height = controls.h + (x - controls.x) * (controls.h / controls.w);
-                }
-            } else if (controls.d === 'w-resize' || controls.d === 'nw-resize'|| controls.d === 'sw-resize') {
-                left = controls.l + (x - controls.x);
-                // Do not move further
-                if (left >= controls.l) {
-                    left = controls.l;
-                }
-                // Update width
-                width = controls.l + controls.w - left;
-                // Consider shift to update height
-                if (e.shiftKey) {
-                    height = controls.h - (x - controls.x) * (controls.h / controls.w);
-                }
-            }
-
-            if (controls.d === 's-resize' || controls.d === 'se-resize' || controls.d === 'sw-resize') {
-                if (! height) {
-                    height = controls.h + (y - controls.y);
-                }
-            } else if (controls.d === 'n-resize' || controls.d === 'ne-resize' || controls.d === 'nw-resize') {
-                top = controls.t + (y - controls.y);
-                // Do not move further
-                if (top >= controls.t) {
-                    top = controls.t;
-                }
-                // Update height
-                height = controls.t + controls.h - top;
-            }
-
-            if (top) {
-                controls.e.style.top = top + 'px';
-            }
-            if (left) {
-                controls.e.style.left = left + 'px';
-            }
-            if (width) {
-                controls.e.style.width = width + 'px';
-            }
-            if (height) {
-                controls.e.style.height = height + 'px';
-            }
-        }
-    }
-
-    if (typeof(document) !== "undefined") {
-        document.addEventListener('mouseup', mouseUp);
-        document.addEventListener('mousemove', mouseMove);
-    }
-
-    const isTrue = function(e) {
-        return e === true || e === 1 || e === 'true';
-    }
-
-    const refreshMinimized = function() {
-        let items = minimizedModals;
-        let numOfItems = items.length;
-        let width = 10;
-        let height = 55;
-        let offsetWidth = window.innerWidth;
-        let offsetHeight = window.innerHeight;
-        for (let i = 0; i < numOfItems; i++) {
-            let item = items[i];
-            item.el.style.left = width + 'px';
-            item.el.style.top = offsetHeight - height + 'px';
-            width += 205;
-
-            if (offsetWidth - width < 205) {
-                width = 10;
-                height += 50;
-            }
-        }
-    }
-
-    const delayAction = function(self, action) {
-        // Make sure to remove the transformation before minimize to preserve the animation
-        if (self.el.style.marginLeft || self.el.style.marginTop) {
-            // Make sure no animation during this process
-            self.el.classList.add('action');
-            // Remove adjustment
-            removeMargin(self);
-            // Make sure to continue with minimize
-            setTimeout(function() {
-                // Remove class
-                self.el.classList.remove('action');
-                // Call action
-                action(self);
-            },0)
-
-            return true;
-        }
-    }
-
-    const setMini = function(self) {
-        if (delayAction(self, setMini)) {
-            return;
-        }
-
-        // Minimize modals
-        minimizedModals.push(self);
-
-        self.el.top = self.el.offsetTop;
-        self.el.left = self.el.offsetLeft;
-
-        if (! self.el.style.top) {
-            self.el.style.top = self.el.top + 'px';
-        }
-        if (! self.el.style.left) {
-            self.el.style.left = self.el.left + 'px';
-        }
-
-        self.el.translateY = 0;
-        self.el.translateX = 0;
-
-        // Refresh positions
-        setTimeout(function() {
-            refreshMinimized();
-            self.minimized = true;
-        },10)
-    }
-
-    const removeMini = function(self) {
-        minimizedModals.splice(minimizedModals.indexOf(self), 1);
-        self.minimized = false;
-        self.el.style.top = self.el.top + 'px';
-        self.el.style.left = self.el.left + 'px';
-        // Refresh positions
-        setTimeout(() => {
-            refreshMinimized();
-        }, 10);
-        // Refresh positions
-        setTimeout(() => {
-            if (self.top === '') {
-                self.el.style.top = '';
-            }
-            if (self.left === '') {
-                self.el.style.left = '';
-            }
-        }, 400);
-    }
-
-    const removeMargin = function(self) {
-        if (self.el.style.marginLeft) {
-            let y = self.el.offsetLeft;
-            self.el.style.marginLeft = '';
-            self.left = y;
-        }
-
-        if (self.el.style.marginTop) {
-            let x = self.el.offsetTop;
-            self.el.style.marginTop = '';
-            self.top = x;
-        }
-    }
-
-    const adjustHorizontal = function(self) {
-        if (! isTrue(self['auto-adjust'])) {
-            return false;
-        }
-
-        self.el.style.marginLeft = '';
-        let viewportWidth = window.innerWidth;
-        let margin = 10;
-
-        if (self.position) {
-            if (self.position === 'absolute') {
-                let w = document.documentElement.offsetWidth;
-                if (w > viewportWidth) {
-                    //viewportWidth = w;
-                }
-            } else if (self.position !== 'center') {
-                margin = 0;
-            }
-        }
-
-        let el = self.el.getBoundingClientRect();
-
-        let rightEdgeDistance = viewportWidth - (el.left + el.width);
-        let transformX = 0;
-
-        if (self.position === 'absolute') {
-            if (rightEdgeDistance < 0) {
-                transformX = rightEdgeDistance - margin - 10; // 10 is the scroll width
-            }
-        } else {
-            if (rightEdgeDistance < 0) {
-                transformX = rightEdgeDistance - margin;
-            }
-        }
-
-        if (el.left < 0) {
-            transformX = margin - el.left;
-        }
-        if (transformX !== 0) {
-            self.el.style.marginLeft = transformX + 'px';
-        }
-    }
-
-    const adjustVertical = function(self) {
-        if (! isTrue(self['auto-adjust'])) {
-            return false;
-        }
-
-        self.el.style.marginTop = '';
-        let viewportHeight = window.innerHeight;
-        let margin = 10;
-
-        if (self.position) {
-            if (self.position === 'absolute') {
-                let h = document.documentElement.offsetHeight;
-                if (h > viewportHeight) {
-                    //viewportHeight = h;
-                }
-            } else if (self.position !== 'center') {
-                margin = 0;
-            }
-        }
-
-        let el = self.el.getBoundingClientRect();
-
-        let bottomEdgeDistance = viewportHeight - (el.top + el.height);
-        let transformY = 0;
-
-        if (self.position === 'absolute') {
-            if (bottomEdgeDistance < 5) {
-                transformY = (-1 * el.height) - margin - 12;
-                if (el.top + transformY < 0) {
-                    transformY = -el.top + 10;
-                }
-            }
-        } else {
-            if (bottomEdgeDistance < 0) {
-                transformY = bottomEdgeDistance - margin;
-            }
-        }
-
-        if (el.top < 0) {
-            transformY = margin - el.top;
-        }
-        if (transformY !== 0) {
-            self.el.style.marginTop = transformY + 'px';
-        }
-    }
-
-    const removeElements = function(root) {
-        // Keep the DOM elements
-        let elements = [];
-        if (root) {
-            while (root.firstChild) {
-                elements.push(root.firstChild);
-                root.firstChild.remove();
-            }
-        }
-        return elements;
-    }
-
-    const appendElements = function(root, elements) {
-        if (elements && elements.length) {
-            while (elements[0]) {
-                root.appendChild(elements.shift());
-            }
-        }
-    }
-
-    const Modal = function (template, { onchange, onload, track }) {
-        let self = this;
-        let backdrop = null;
-        let elements = null;
-
-        if (this.tagName) {
-            // Remove elements from the DOM
-            elements = removeElements(this);
-
-            this.addEventListener('dragstart', (e) => {
-                e.preventDefault();
-            });
-        }
-
-        // Make sure keep the state as boolean
-        self.closed = !! self.closed;
-
-        // Keep all modals references
-        modals.push(self);
-
-        // External onload remove from the lifecycle
-        let change = self.onchange;
-        self.onchange = null;
-
-        let load = self.onload;
-        self.onload = null;
-
-        let ignoreEvents = false;
-
-        const click = function(e) {
-            if (e.target.classList.contains('lm-modal-close')) {
-                self.close({ origin: 'button' });
-            }
-
-            if (e.target.classList.contains('lm-modal-minimize')) {
-                // Handles minimized modal positioning
-                if (self.minimized === true) {
-                    removeMini(self);
-                } else {
-                    setMini(self);
-                }
-            }
-        }
-
-        const mousemove = function(e) {
-            if (getButton(e)) {
-                return;
-            }
-
-            // Get mouse coordinates
-            let [x,y] = getCoords(e);
-            // Root element of the component
-            let item = self.el;
-            // Get the position and dimensions
-            let rect = item.getBoundingClientRect();
-
-            controls.type = null;
-            controls.d = null;
-            controls.e = item;
-            controls.w = rect.width;
-            controls.h = rect.height;
-            controls.t = rect.top;
-            controls.l = rect.left;
-
-            // When resizable
-            if (isTrue(self.resizable)) {
-                if (e.clientY - rect.top < cornerSize) {
-                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                        item.style.cursor = 'ne-resize';
-                    } else if (e.clientX - rect.left < cornerSize) {
-                        item.style.cursor = 'nw-resize';
-                    } else {
-                        item.style.cursor = 'n-resize';
-                    }
-                } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
-                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                        item.style.cursor = 'se-resize';
-                    } else if (e.clientX - rect.left < cornerSize) {
-                        item.style.cursor = 'sw-resize';
-                    } else {
-                        item.style.cursor = 's-resize';
-                    }
-                } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
-                    item.style.cursor = 'e-resize';
-                } else if (e.clientX - rect.left < cornerSize) {
-                    item.style.cursor = 'w-resize';
-                } else {
-                    item.style.cursor = '';
-                }
-
-                if (item.style.cursor) {
-                    controls.type = 'resize';
-                    controls.d = item.style.cursor;
-                } else {
-                    controls.type = null;
-                    controls.d = null;
-                }
-            }
-
-            if (controls.type == null && isTrue(self.draggable)) {
-                if (y - rect.top < 40) {
-                    item.style.cursor = 'move';
-                } else {
-                    item.style.cursor = '';
-                }
-
-                if (item.style.cursor) {
-                    controls.type = 'move';
-                    controls.d = item.style.cursor;
-                } else {
-                    controls.type = null;
-                    controls.d = null;
-                }
-            }
-        }
-
-        const mousedown = function(e) {
-            if (! self.minimized) {
-                // Get mouse coordinates
-                let [x,y] = getCoords(e);
-                controls.x = x;
-                controls.y = y;
-                // Root element of the component
-                let item = self.el;
-                // Get the position and dimensions
-                let rect = item.getBoundingClientRect();
-                controls.e = item;
-                controls.w = rect.width;
-                controls.h = rect.height;
-                controls.t = rect.top;
-                controls.l = rect.left;
-                // If is not minimized
-                if (controls.type === 'resize') {
-                    // Make sure the width and height is defined for the modal
-                    if (! item.style.width) {
-                        item.style.width = controls.w + 'px';
-                    }
-                    if (! item.style.height) {
-                        item.style.height = controls.h + 'px';
-                    }
-                    // This will be the callback when finalize the resize
-                    controls.action = function () {
-                        self.width = parseInt(item.style.width);
-                        self.height = parseInt(item.style.height);
-                        controls.e.classList.remove('action');
-                        // Event
-                        Dispatch.call(self, self.onresize, 'resize', {
-                            instance: self,
-                            width: self.width,
-                            height: self.height,
-                        });
-                    }
-                    controls.e.classList.add('action');
-                } else if (isTrue(self.draggable) && y - rect.top < 40) {
-                    // Callback
-                    controls.action = function () {
-                        self.top = parseInt(item.style.top);
-                        self.left = parseInt(item.style.left);
-                        controls.e.classList.remove('action');
-                        // Open event
-                        Dispatch.call(self, self.onmove, 'move', {
-                            instance: self,
-                            top: self.top,
-                            left: self.left,
-                        });
-                    }
-                    controls.e.classList.add('action');
-                    // Remove transform
-                    removeMargin(self);
-                }
-            }
-        }
-
-        self.back = function() {
-            sendToBack(self.el);
-        }
-
-        self.front = function() {
-            sendToFront(self.el);
-        }
-
-        self.open = function() {
-            if (self.closed === true) {
-                self.closed = false;
-                // Close event
-                Dispatch.call(self, self.onopen, 'open', {
-                    instance: self
-                });
-            }
-        }
-
-        self.close = function(options) {
-            if (self.closed === false) {
-                self.closed = true;
-                // Close event
-                Dispatch.call(self, self.onclose, 'close', {
-                    instance: self,
-                    ...options
-                });
-            }
-        }
-
-        self.isClosed = function() {
-            return self.closed;
-        }
-
-        if (! template || typeof(template) !== 'string') {
-            template = '';
-        }
-
-        // Custom Root Configuration
-        self.settings = {
-            getRoot: function() {
-                return self.root;
-            }
-        }
-
-        // Native lemonade
-        onload(() => {
-            // Dimensions
-            if (self.width) {
-                self.el.style.width = self.width + 'px';
-            }
-            if (self.height) {
-                self.el.style.height = self.height + 'px';
-            }
-            // Position
-            if (self.top) {
-                self.el.style.top = self.top + 'px';
-            }
-            if (self.left) {
-                self.el.style.left = self.left + 'px';
-            }
-
-            if (self.position === 'absolute' || self.position === 'right' || self.position === 'bottom' || self.position === 'left') {
-
-            } else {
-                if (!self.width && self.el.offsetWidth) {
-                    self.width = self.el.offsetWidth;
-                }
-                if (!self.height && self.el.offsetHeight) {
-                    self.height = self.el.offsetHeight;
-                }
-
-                // Initial centralize
-                if (self.position === 'center' || !self.top) {
-                    self.top = (window.innerHeight - self.height) / 2;
-                }
-                if (self.position === 'center' || !self.left) {
-                    self.left = (window.innerWidth - self.width) / 2;
-                }
-
-                // Responsive
-                if (document.documentElement.clientWidth < 800) {
-                    // Full screen
-                    if (self.height > 300) {
-                        self.el.classList.add('fullscreen');
-                    }
-                }
-            }
-
-            // Auto adjust
-            adjustHorizontal(self);
-            adjustVertical(self);
-
-            // Backdrop
-            if (self.backdrop === true) {
-                backdrop = document.createElement('div');
-                backdrop.classList.add('lm-modal-backdrop');
-                backdrop.addEventListener('click', () => {
-                    self.close({ origin: 'backdrop' });
-                });
-
-                if (self.closed === false) {
-                    self.el.parentNode.insertBefore(backdrop, self.el);
-                }
-            }
-
-            // Import content from DOM
-            if (self.content) {
-                if (typeof(self.content) === 'string') {
-                    template = self.content;
-                } else if (typeof(self.content) === 'object' && self.content.tagName) {
-                    self.root.appendChild(self.content);
-                }
-            }
-
-            // Focus out of the component
-            self.el.addEventListener('focusout', function(e) {
-                if (! self.el.contains(e.relatedTarget)) {
-                    if (isTrue(self['auto-close'])) {
-                        self.close({ origin: 'focusout' });
-                    }
-                    // Remove focus
-                    self.el.classList.remove('lm-modal-focus');
-                }
-            });
-
-            // Focus out of the component
-            self.el.addEventListener('focusin', function(e) {
-                self.el.classList.add('lm-modal-focus');
-            });
-
-            // Close and stop propagation
-            self.el.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    if (self.closed === false) {
-                        self.close({ origin: 'escape' });
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                } else if (e.key === 'Enter') {
-                    click(e);
-                }
-            });
-
-            // Append elements to the container
-            appendElements(self.el.children[1], elements);
-
-            if (self.url) {
-                fetch(self.url)
-                    .then(response => response.clone().body)
-                    .then(body => {
-                        let reader = body.getReader();
-                        reader.read().then(({ done, value }) => {
-                            // Add HTML to the modal
-                            self.root.innerHTML = new TextDecoder().decode(value.buffer);
-                            // Call onload event
-                            Dispatch.call(self, load, 'load', {
-                                instance: self
-                            });
-                        });
-                    });
-            } else {
-                // Call onload event
-                Dispatch.call(self, load, 'load', {
-                    instance: self
-                });
-            }
-        });
-
-        onchange((property) => {
-            if (ignoreEvents) {
-                return false;
-            }
-
-            if (property === 'closed') {
-                if (self.closed === false) {
-                    // Focus on the modal
-                    if (self.focus !== false) {
-                        self.el.focus();
-                    }
-                    // Show backdrop
-                    if (backdrop) {
-                        self.el.parentNode.insertBefore(backdrop, self.el);
-                    }
-
-                    // Auto adjust
-                    queueMicrotask(() => {
-                        adjustHorizontal(self);
-                        adjustVertical(self);
-                    });
-                } else {
-                    // Hide backdrop
-                    if (backdrop) {
-                        backdrop.remove();
-                    }
-                }
-            } else if (property === 'top' || property === 'left' || property === 'width' || property === 'height') {
-                if (self[property] !== '') {
-                    self.el.style[property] = self[property] + 'px';
-                } else {
-                    self.el.style[property] = '';
-                }
-
-                if (self.closed === false) {
-                    queueMicrotask(() => {
-                        if (property === 'top') {
-                            adjustVertical(self);
-                        }
-                        if (property === 'left') {
-                            adjustHorizontal(self);
-                        }
-                    });
-                }
-            } else if (property === 'position') {
-                if (self.position) {
-                    if (self.position === 'center') {
-                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
-                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
-                    } else {
-                        self.top = '';
-                        self.left = '';
-                    }
-                } else {
-                    if (! self.top) {
-                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
-                    }
-                    if (! self.left) {
-                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
-                    }
-                }
-            }
-        });
-
-        track('top');
-        track('left');
-        track('width');
-        track('height');
-
-        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
-            <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
-            <div :ref="self.root">${template}</div>
-        </div>`
-    }
-
-    const Component = function (root, options) {
-        if (typeof(root) === 'object') {
-            // Remove elements from the DOM
-            let elements = removeElements(root);
-            // Create the modal
-            let e = lemonade.render(Modal, root, options);
-            // Add elements to the container
-            appendElements(e.children[1], elements);
-
-            return options;
-        } else {
-            return Modal.call(this);
-        }
-    }
-
-    // Create LemonadeJS Component
-    lemonade.setComponents({ Modal: Modal });
-    // Create Web Component
-    lemonade.createWebComponent('modal', Modal)
-
-    return Component;
-})));
-
-/***/ }),
-
-/***/ 132:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-/**
- * Implement page up and down navigation
- * Implement color attribute for items
- */
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
-
-if (!Modal && "function" === 'function') {
-    var Modal = __webpack_require__(124);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            return this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // Default row height
-    let defaultRowHeight = 24;
-
-    // Translations
-    const T = function(t) {
-        if (typeof(document) !== "undefined" && document.dictionary) {
-            return document.dictionary[t] || t;
-        } else {
-            return t;
-        }
-    }
-
-    const isEmpty = function(v) {
-        return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
-    }
-
-    /**
-     * Compare two values (arrays, strings, numbers, etc.)
-     * Returns true if both are equal or empty
-     * @param {*} a1
-     * @param {*} a2
-     */
-    const compareValues = function(a1, a2) {
-        if (a1 === a2 || (isEmpty(a1) && isEmpty(a2))) {
-            return true;
-        }
-
-        if (!a1 || !a2) {
-            return false;
-        }
-
-        if (Array.isArray(a1) && Array.isArray(a2)) {
-            if (a1.length !== a2.length) {
-                return false;
-            }
-            for (let i = 0; i < a1.length; i++) {
-                if (a1[i] !== a2[i]) {
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        return a1 === a2;
-    }
-
-    const lazyLoading = function (self) {
-        /**
-         * Get the position from top of a row by its index
-         * @param item
-         * @returns {number}
-         */
-        const getRowPosition = function (item) {
-            // Position from top
-            let top = 0;
-            if (item) {
-                let items = self.rows;
-                if (items && items.length) {
-                    let index = self.rows.indexOf(item);
-                    // Go through the items
-                    for (let j = 0; j < index; j++) {
-                        top += items[j].height || defaultRowHeight;
-                    }
-                }
-            }
-            return top;
-        }
-
-        const updateScroll = function () {
-            let items = self.rows;
-            if (items) {
-                // Before control
-                let before = true;
-                // Total of items in the container
-                let numOfItems = items.length;
-                // Position from top
-                let height = 0;
-                // Size of the adjustment
-                let size = 0;
-                // Go through the items
-                for (let j = 0; j < numOfItems; j++) {
-                    let h = items[j].height || defaultRowHeight;
-                    // Height
-                    height += h;
-                    // Start tracking all items as before
-                    if (items[j] === self.result[0]) {
-                        before = false;
-                    }
-                    // Adjustment
-                    if (before) {
-                        size += h;
-                    }
-                }
-                // Update height
-                scroll.style.height = height + 'px';
-                // Adjust scroll position
-                return size;
-            }
-            return false;
-        }
-
-        const getVisibleRows = function (reset) {
-            let items = self.rows;
-            if (items) {
-                let adjust;
-                // Total of items in the container
-                let numOfItems = items.length;
-                // Get the position from top
-                let y = el.scrollTop;
-                // Get the height
-                let h = null;
-                if (self.type === 'searchbar' || self.type === 'picker') {
-                    // Priority should be the size used on the viewport
-                    h = y + (el.offsetHeight || self.height);
-                } else {
-                    // Priority is the height define during initialization
-                    h = y + (self.height || el.offsetHeight);
-                }
-                // Go through the items
-                let rows = [];
-                // Height
-                let height = 0;
-                // Go through all items
-                for (let j = 0; j < numOfItems; j++) {
-                    if (items[j].visible !== false) {
-                        // Height
-                        let rowHeight = items[j].height || defaultRowHeight;
-                        // Return on partial width
-                        if (height + rowHeight > y && height < h) {
-                            rows.push(items[j]);
-                        }
-                        height += rowHeight;
-                    }
-                }
-
-                // Update visible rows
-                if (reset || !compareValues(rows, self.result)) {
-                    // Render the items
-                    self.result = rows;
-                    // Adjust scroll height
-                    let adjustScroll = reset;
-                    // Adjust scrolling
-                    for (let i = 0; i < rows.length; i++) {
-                        // Item
-                        let item = rows[i];
-                        // Item height
-                        let h = item.el.offsetHeight;
-                        // Update row height
-                        if (!item.height || h !== item.height) {
-                            // Keep item height
-                            item.height = h;
-                            // Adjust total height
-                            adjustScroll = true;
-                        }
-                    }
-
-                    // Update scroll if the height of one element has been changed
-                    if (adjustScroll) {
-                        // Adjust the scroll height
-                        adjust = updateScroll();
-                    }
-                }
-
-                // Adjust position of the first element
-                let position = getRowPosition(self.result[0]);
-                let diff = position - el.scrollTop;
-                if (diff > 0) {
-                    diff = 0;
-                }
-                self.container.style.top = diff + 'px';
-
-                return adjust;
-            }
-        }
-
-        /**
-         * Move the position to the top and re-render based on the scroll
-         * @param reset
-         */
-        const render = function (reset) {
-            // Move scroll to the top
-            el.scrollTop = 0;
-            // Reset scroll
-            updateScroll();
-            // Append first batch
-            getVisibleRows(reset);
-        }
-
-        /**
-         * Will adjust the items based on the scroll position offset
-         */
-        self.adjustPosition = function (item) {
-            if (item.el) {
-                let h = item.el.offsetHeight;
-                let calc = item.el.offsetTop + h;
-                if (calc > el.offsetHeight) {
-                    let size = calc - el.offsetHeight;
-                    if (size < h) {
-                        size = h;
-                    }
-                    el.scrollTop -= -1 * size;
-                }
-            }
-        }
-
-        // Controls
-        const scrollControls = function () {
-            getVisibleRows(false);
-        }
-
-        // Element for scrolling
-        let el = self.container.parentNode;
-        el.classList.add('lm-lazy');
-        // Div to represent the height of the content
-        const scroll = document.createElement('div');
-        scroll.classList.add('lm-lazy-scroll');
-        // Force the height and add scrolling
-        el.appendChild(scroll);
-        el.addEventListener('scroll', scrollControls, { passive: true });
-        el.addEventListener('wheel', scrollControls, { passive: true });
-        self.container.classList.add('lm-lazy-items');
-
-        self.goto = function (item) {
-            el.scrollTop = getRowPosition(item);
-            let adjust = getVisibleRows(false);
-            if (adjust) {
-                el.scrollTop = adjust;
-                // Last adjust on the visible rows
-                getVisibleRows(false);
-            }
-        }
-
-        return (prop) => {
-            if (prop === 'rows') {
-                render(true);
-            }
-        }
-    }
-
-    const getAttributeName = function(prop) {
-        if (prop.substring(0,1) === ':') {
-            prop = prop.substring(1);
-        } else if (prop.substring(0,3) === 'lm-') {
-            prop = prop.substring(3);
-        }
-        return prop.toLowerCase();
-    }
-
-    const extractFromHtml =  function(element) {
-        let data = [];
-        // Content
-        for (let i = 0; i < element.children.length; i++) {
-            let e = element.children[i];
-            let item = {
-                text: e.textContent || e.getAttribute('title'),
-                value: e.getAttribute('value'),
-            }
-            if (item.value == null) {
-                item.value = item.text;
-            }
-            data.push(item);
-        }
-
-        return data;
-    }
-
-    const extract = function(children) {
-        let data = [];
-
-        if (this.tagName) {
-            data = extractFromHtml(this);
-            // Remove all elements
-            this.textContent = '';
-        } else {
-            // Get data
-            if (typeof(children) === 'string') {
-                // Version 4
-                let d = document.createElement('div');
-                d.innerHTML = children;
-                data = extractFromHtml(d);
-            } else if (children && children.length) {
-                // Version 5
-                children.forEach((v) => {
-                    let item = {}
-                    v.props.forEach((prop) => {
-                        item[getAttributeName(prop.name)] = prop.value;
-                    });
-                    if (! item.text) {
-                        item.text = v.children[0]?.props[0]?.value || '';
-                    }
-                    data.push(item);
-                });
-                // Block children
-                children.length = 0;
-            }
-        }
-
-        return data;
-    }
-
-    const isDOM = function(o) {
-        return (o instanceof Element || o instanceof HTMLDocument || o instanceof DocumentFragment);
-    }
-
-    const Dropdown = function (children, { onchange, onload }) {
-        let self = this;
-        // Data
-        let data = [];
-        // Internal value controllers
-        let value = [];
-        // Cursor
-        let cursor = null;
-        // Control events
-        let ignoreEvents = false;
-        // Lazy loading global instance
-        let lazyloading = null;
-        // Tracking changes
-        let changesDetected = false;
-        // Debounce timer for search
-        let searchTimeout = null;
-
-        // Data
-        if (! Array.isArray(self.data)) {
-            self.data = [];
-        }
-
-        let d = extract.call(this, children);
-        if (d) {
-            d.forEach((v) => {
-                self.data.push(v)
-            })
-        }
-
-        // Decide the type based on the size of the screen
-        let autoType = self.type === 'auto';
-
-        // Custom events defined by the user
-        let load = self.onload;
-        self.onload = null;
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Compatibility
-        if (typeof self.newOptions !== 'undefined') {
-            self.insert = self.newOptions;
-        }
-
-        // Cursor controllers
-        const setCursor = function (index, force) {
-            let item = self.rows[index];
-            if (typeof (item) !== 'undefined') {
-                // Set the cursor number
-                cursor = index;
-                // Set visual indication
-                item.cursor = true;
-                // Go to the item on the scroll in case the item is not on the viewport
-                if (!(item.el && item.el.parentNode) || force === true) {
-                    // Goto method
-                    self.goto(item);
-                }
-                // Adjust cursor position
-                setTimeout(function () {
-                    self.adjustPosition(item);
-                });
-            }
-        }
-
-        const removeCursor = function (reset) {
-            if (cursor !== null) {
-                if (typeof (self.rows[cursor]) !== 'undefined') {
-                    self.rows[cursor].cursor = false;
-                }
-                if (reset) {
-                    // Cursor is null
-                    cursor = null;
-                }
-            }
-        }
-
-        const moveCursor = function (direction, jump) {
-            // Remove cursor
-            removeCursor();
-            // Last item
-            let last = self.rows.length - 1;
-            if (jump) {
-                if (direction < 0) {
-                    cursor = 0;
-                } else {
-                    cursor = last;
-                }
-            } else {
-                // Position
-                if (cursor === null) {
-                    cursor = 0;
-                } else {
-                    // Move previous
-                    cursor = cursor + direction;
-                }
-                // Reach the boundaries
-                if (direction < 0) {
-                    // Back to the last one
-                    if (cursor < 0) {
-                        cursor = last;
-                    }
-                } else {
-                    // Back to the first one
-                    if (cursor > last) {
-                        cursor = 0;
-                    }
-                }
-            }
-            // Add cursor
-            setCursor(cursor);
-        }
-
-        const adjustDimensions = function(data) {
-            // Estimate width
-            let width = self.width ?? 0;
-            // Adjust the width
-            let w = getInput().offsetWidth;
-            if (width < w) {
-                width = w;
-            }
-            // Width && values
-            data.map(function (s) {
-                // Estimated width of the element
-                if (s.text) {
-                    let w = Math.max(width, s.text.length * 7.5);
-                    if (width < w) {
-                        width = w;
-                    }
-                }
-            });
-            // Min width for the container
-            self.container.parentNode.style.width = (width - 2) + 'px';
-        }
-
-        const setData = function () {
-            // Data
-            data = JSON.parse(JSON.stringify(self.data));
-            // Re-order to make sure groups are in sequence
-            if (data && data.length) {
-                // Adjust width and height
-                adjustDimensions(data);
-                // Groups
-                data.sort((a, b) => {
-                    // Compare groups
-                    if (a.group && b.group) {
-                        return a.group.localeCompare(b.group);
-                    }
-                    return 0;
-                });
-                let group = '';
-                // Define group headers
-                data.map((v) => {
-                    // Compare groups
-                    if (v && v.group && v.group !== group) {
-                        v.header = v.group;
-                        group = v.group;
-                    }
-                });
-            }
-            // Data to be listed
-            self.rows = data;
-        }
-
-        const updateLabel = function () {
-            if (value && value.length) {
-                getInput().textContent = value.filter(v => v.selected).map(i => i.text).join('; ');
-            } else {
-                getInput().textContent = '';
-            }
-        }
-
-        const setValue = function (v, ignoreEvent) {
-            // Values
-            let newValue;
-            if (! Array.isArray(v)) {
-                if (typeof(v) === 'string') {
-                    newValue = v.split(self.divisor ?? ';');
-                } else {
-                    newValue = [v];
-                }
-            } else {
-                newValue = v;
-            }
-
-            // Width && values
-            value = [];
-
-            if (Array.isArray(data)) {
-                data.map(function (s) {
-                    s.selected = newValue.some(v => {
-                        // Use strict equality when either value is empty string to avoid '' == 0 being true
-                        if (v === '' || s.value === '') {
-                            return v === s.value;
-                        }
-                        return v == s.value;
-                    });
-                    if (s.selected) {
-                        value.push(s);
-                    }
-                });
-            }
-
-            // Update label
-            if (self.isClosed()) {
-                updateLabel();
-            }
-
-            // Component onchange
-            if (! ignoreEvent) {
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: getValue(),
-                });
-            }
-        }
-
-        const getValue = function () {
-            if (self.multiple) {
-                if (value && value.length) {
-                    return value.filter(v => v.selected).map(i => i.value);
-                }
-            } else {
-                if (value && value.length) {
-                    return value[0].value;
-                }
-            }
-
-            return null;
-        }
-
-        const getText = function () {
-            if (self.multiple) {
-                if (value && value.length) {
-                    return value.filter(v => v.selected).map(i => i.text);
-                }
-            } else {
-                if (value && value.length) {
-                    return value[0].text;
-                }
-            }
-
-            return null;
-        }
-
-        const onopen = function () {
-            self.state = true;
-            // Value
-            let v = value[value.length - 1];
-            // Make sure goes back to the top of the scroll
-            if (self.container.parentNode.scrollTop > 0) {
-                self.container.parentNode.scrollTop = 0;
-            }
-            // Move to the correct position
-            if (v) {
-                // Mark the position of the cursor to the same element
-                setCursor(self.rows.indexOf(v), true);
-            }
-            // Prepare search field
-            if (self.autocomplete) {
-                // Get the input
-                let input = getInput();
-                // Editable
-                input.setAttribute('contenteditable', true);
-                // Clear input
-                input.textContent = '';
-                // Focus on the item
-                input.focus();
-            }
-            // Adjust width and height
-            adjustDimensions(self.data);
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function (options, origin) {
-            // Cursor
-            removeCursor(true);
-            // Reset search
-            if (self.autocomplete) {
-                // Go to begin of the data
-                self.rows = data;
-                // Get the input
-                let input = getInput();
-                if (input) {
-                    // Remove editable attribute
-                    input.removeAttribute('contenteditable');
-                    // Clear input
-                    input.textContent = '';
-                }
-            }
-
-            if (origin === 'escape') {
-                // Cancel operation and keep the same previous value
-                setValue(self.value, true);
-            } else {
-                // Current value
-                let newValue = getValue();
-
-                // If that is different from the component value
-                if (changesDetected === true && ! compareValues(newValue, self.value)) {
-                    self.value = newValue;
-                } else {
-                    // Update label
-                    updateLabel();
-                }
-            }
-
-            // Identify the new state of the dropdown
-            self.state = false;
-
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                ...options
-            });
-        }
-
-        const normalizeData = function(result) {
-            if (result && result.length) {
-                return result.map((v) => {
-                    if (typeof v === 'string' || typeof v === 'number') {
-                        return { value: v, text: v };
-                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
-                        return { value: v.id, text: v.name };
-                    } else {
-                        return v;
-                    }
-                });
-            }
-        }
-
-        const loadData = function(result) {
-            result = normalizeData(result);
-            // Loading controls
-            lazyloading = lazyLoading(self);
-            // Loading new data from a remote source
-            if (result) {
-                result.forEach((v) => {
-                    self.data.push(v);
-                });
-            }
-            // Process the data
-            setData();
-            // Set value
-            if (typeof(self.value) !== 'undefined') {
-                setValue(self.value, true);
-            }
-            // Onload method
-            Dispatch.call(self, load, 'load', {
-                instance: self
-            });
-            // Remove loading spin
-            self.input.classList.remove('lm-dropdown-loading');
-        }
-
-        const resetData = function(result) {
-            result = normalizeData(result);
-            // Reset cursor
-            removeCursor(true);
-            let r = data.filter(item => {
-                return item.selected === true;
-            });
-            // Loading new data from a remote source
-            if (result) {
-                result.forEach((v) => {
-                    r.push(v);
-                });
-            }
-            self.rows = r;
-            // Remove loading spin
-            self.input.classList.remove('lm-dropdown-loading');
-
-            // Event
-            Dispatch.call(self, self.onsearch, 'search', {
-                instance: self,
-                result: result,
-            });
-        }
-
-        const getInput = function() {
-            return self.input;
-        }
-
-        const search = function(query) {
-            if (! self.isClosed() && self.autocomplete) {
-
-                // Remote or normal search
-                if (self.remote === true && self.url) {
-                    // Clear existing timeout
-                    if (searchTimeout) {
-                        clearTimeout(searchTimeout);
-                    }
-                    // Loading spin
-                    self.input.classList.add('lm-dropdown-loading');
-                    // Headers
-                    let http = {
-                        headers: {
-                            'Content-Type': 'text/json',
-                        }
-                    }
-                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
-                        instance: self,
-                        http: http,
-                        query: query,
-                    });
-
-                    if (ret === false) {
-                        return;
-                    }
-
-                    // Debounce the search with 300ms delay
-                    searchTimeout = setTimeout(() => {
-                        let url = self.url;
-                        url += url.indexOf('?') === -1 ? '?' : '&';
-                        url += `q=${query}`;
-
-                        fetch(url, http).then(r => r.json()).then(resetData).catch((error) => {
-                            resetData([]);
-                        });
-                    }, 300);
-                } else {
-                    // Filter options
-                    let temp;
-
-                    const find = (prop) => {
-                        if (prop) {
-                            if (Array.isArray(prop)) {
-                                // match if ANY element contains the query (case-insensitive)
-                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
-                            }
-                            // handle strings/numbers/others
-                            return prop.toString().toLowerCase().includes(query);
-                        }
-                        return false;
-                    };
-
-                    if (! query) {
-                        temp = data;
-                    } else {
-                        temp = data.filter(item => {
-                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
-                        });
-                    }
-
-                    // Cursor
-                    removeCursor(true);
-                    // Update the data from the dropdown
-                    self.rows = temp;
-                }
-            }
-        }
-
-        const events = {
-            focusout: (e) => {
-                if (self.modal) {
-                    if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
-                        if (! self.isClosed()) {
-                            self.close({ origin: 'focusout '});
-                        }
-                    }
-                }
-            },
-            keydown: (e) => {
-                if (! self.isClosed()) {
-                    let prevent = false;
-                    if (e.code === 'ArrowUp') {
-                        moveCursor(-1);
-                        prevent = true;
-                    } else if (e.code === 'ArrowDown') {
-                        moveCursor(1);
-                        prevent = true;
-                    } else if (e.code === 'Home') {
-                        moveCursor(-1, true);
-                        if (!self.autocomplete) {
-                            prevent = true;
-                        }
-                    } else if (e.code === 'End') {
-                        moveCursor(1, true);
-                        if (!self.autocomplete) {
-                            prevent = true;
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (e.target.tagName === 'BUTTON') {
-                            e.target.click();
-                            let input = getInput();
-                            input.focus();
-                        } else {
-                            select(e, self.rows[cursor]);
-                        }
-                        prevent = true;
-                    } else if (e.code === 'Escape') {
-                        self.close({ origin: 'escape'});
-                        prevent = true;
-                    } else {
-                        if (e.keyCode === 32 && !self.autocomplete) {
-                            select(e, self.rows[cursor]);
-                        }
-                    }
-
-                    if (prevent) {
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                } else {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Enter') {
-                        self.open();
-                        e.preventDefault();
-                        e.stopImmediatePropagation();
-                    }
-                }
-            },
-            mousedown: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    if (self.autocomplete) {
-                        let x;
-                        if (e.changedTouches && e.changedTouches[0]) {
-                            x = e.changedTouches[0].clientX;
-                        } else {
-                            x = e.clientX;
-                        }
-                        if (e.target.offsetWidth - (x - e.target.offsetLeft) < 20) {
-                            toggle();
-                        } else {
-                            self.open();
-                        }
-                    } else {
-                        toggle();
-                    }
-                }
-            },
-            paste: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    let text;
-                    if (e.clipboardData || e.originalEvent.clipboardData) {
-                        text = (e.originalEvent || e).clipboardData.getData('text/plain');
-                    } else if (window.clipboardData) {
-                        text = window.clipboardData.getData('Text');
-                    }
-                    text = text.replace(/(\r\n|\n|\r)/gm, "");
-                    document.execCommand('insertText', false, text)
-                    e.preventDefault();
-                }
-            },
-            input: (e) => {
-                if (e.target.classList.contains('lm-dropdown-input')) {
-                    search(e.target.textContent.toLowerCase());
-                }
-            },
-        }
-
-        const selectItem = function(s) {
-            if (self.remote === true) {
-                if (data.indexOf(s) === -1) {
-                    self.data.push(s);
-                    data.push(s);
-                }
-            }
-
-            if (self.multiple === true) {
-                let position = value.indexOf(s);
-                if (position === -1) {
-                    value.push(s);
-                    s.selected = true;
-                } else {
-                    value.splice(position, 1);
-                    s.selected = false;
-                }
-            } else {
-                if (value[0] === s) {
-                    if (self.allowEmpty === false) {
-                        s.selected = true;
-                    } else {
-                        s.selected = !s.selected;
-                    }
-                } else {
-                    if (value[0]) {
-                        value[0].selected = false;
-                    }
-                    s.selected = true;
-                }
-                if (s.selected) {
-                    value = [s];
-                } else {
-                    value = [];
-                }
-            }
-
-            changesDetected = true;
-        }
-
-        const add = async function (e) {
-            let input = getInput();
-            let text = input.textContent;
-            if (! text) {
-                return false;
-            }
-
-            // New item
-            let s = {
-                text: text,
-                value: text,
-            }
-
-            self.add(s);
-
-            e.preventDefault();
-        }
-
-        const select = function (e, s) {
-            if (s && s.disabled !== true) {
-                selectItem(s);
-                // Close the modal
-                if (self.multiple !== true) {
-                    self.close({ origin: 'button' });
-                }
-            }
-        }
-
-        const toggle = function () {
-            if (self.modal) {
-                if (self.isClosed()) {
-                    self.open();
-                } else {
-                    self.close({ origin: 'button' });
-                }
-            }
-        }
-
-        self.add = async function (newItem) {
-            // Event
-            if (typeof(self.onbeforeinsert) === 'function') {
-                self.input.classList.add('lm-dropdown-loading');
-                let ret = await self.onbeforeinsert(self, newItem);
-                self.input.classList.remove('lm-dropdown-loading');
-                if (ret === false) {
-                    return;
-                } else if (ret) {
-                    newItem = ret;
-                }
-            }
-            // Process the data
-            data.push(newItem);
-            self.data.push(newItem);
-            // Refresh screen
-            self.result.unshift(newItem);
-            self.rows.unshift(newItem);
-            self.refresh('result');
-
-            Dispatch.call(self, self.oninsert, 'insert', {
-                instance: self,
-                item: newItem,
-            });
-        }
-
-        self.open = function () {
-            if (self.modal && ! self.disabled) {
-                if (self.isClosed()) {
-                    if (autoType) {
-                        self.type = window.innerWidth > 640 ? self.type = 'default' : (self.autocomplete ? 'searchbar' : 'picker');
-                    }
-                    // Track
-                    changesDetected = false;
-                    // Open the modal
-                    self.modal.open();
-                }
-            }
-        }
-
-        self.close = function (options) {
-            if (self.modal) {
-                if (options?.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.setData = function(data) {
-            self.data = data;
-        }
-
-        self.getData = function() {
-            return self.data;
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.getText = function() {
-            return getText();
-        }
-
-        self.setValue = function(v) {
-            self.value = v;
-        }
-
-        self.reset = function() {
-            self.value = null;
-            self.close({ origin: 'button' });
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        // Init with a
-        let input = self.input;
-
-        onload(() => {
-            if (self.type === "inline") {
-                // For inline dropdown
-                self.el.setAttribute('tabindex', 0);
-                // Remove search
-                self.input.remove();
-            } else {
-                // Create modal instance
-                self.modal = {
-                    closed: true,
-                    focus: false,
-                    onopen: onopen,
-                    onclose: onclose,
-                    position: 'absolute',
-                    'auto-adjust': true,
-                    'auto-close': false,
-                };
-                // Generate modal
-                Modal(self.el.children[1], self.modal);
-            }
-
-            if (self.remote === 'true') {
-                self.remote = true;
-            }
-
-            if (self.autocomplete === 'true') {
-                self.autocomplete = true;
-            }
-
-            if (self.multiple === 'true') {
-                self.multiple = true;
-            }
-
-            if (self.insert === 'true') {
-                self.insert = true;
-            }
-
-            // Autocomplete will be forced to be true when insert action is active
-            if ((self.insert === true || self.type === 'searchbar' || self.remote === true) && ! self.autocomplete) {
-                self.autocomplete = true;
-            }
-
-            if (typeof(input) !== 'undefined') {
-                // Remove the native element
-                if (isDOM(input)) {
-                    input.classList.add('lm-dropdown-input');
-                }
-                // Remove search
-                self.input.remove();
-                // New input
-                self.input = input;
-            } else {
-                self.el.children[0].style.position = 'relative';
-            }
-
-            // Default width
-            if (self.width) {
-                // Dropdown
-                self.el.style.width = self.width + 'px';
-            }
-
-            // Height
-            self.height = 400;
-
-            // Animation for mobile
-            if (document.documentElement.clientWidth < 800) {
-                self.animation = true;
-            }
-
-            // Events
-            self.el.addEventListener('focusout', events.focusout);
-            self.el.addEventListener('keydown', events.keydown);
-            self.el.addEventListener('mousedown', events.mousedown);
-            self.el.addEventListener('paste', events.paste);
-            self.el.addEventListener('input', events.input);
-
-            // Load remote data
-            if (self.url) {
-                if (self.remote === true) {
-                    loadData();
-                } else {
-                    // Loading spin
-                    self.input.classList.add('lm-dropdown-loading');
-                    // Load remote data
-                    fetch(self.url, {
-                        headers: {
-                            'Content-Type': 'text/json',
-                        }
-                    }).then(r => r.json()).then(loadData).catch(() => {
-                        loadData();
-                    });
-                }
-            } else {
-                loadData();
-            }
-        });
-
-        onchange(prop => {
-            if (prop === 'value') {
-                setValue(self.value);
-            } else if (prop === 'data') {
-                // Store current value before resetting data
-                let currentValue = self.value;
-                setData();
-
-                // Only reset value if it's not in the new data
-                if (currentValue !== null && currentValue !== undefined && currentValue !== '') {
-                    let valuesToCheck = Array.isArray(currentValue) ? currentValue : [currentValue];
-
-                    // Filter to keep only values that exist in the new data
-                    let validValues = valuesToCheck.filter(v => {
-                        return self.data.some(item => {
-                            if (v === '' || item.value === '') {
-                                return v === item.value;
-                            }
-                            return v == item.value;
-                        });
-                    });
-
-                    if (validValues.length === 0) {
-                        // No valid values remain, reset to null
-                        self.value = null;
-                    } else if (self.multiple) {
-                        // Multi-select: keep only valid values
-                        self.value = validValues;
-                    } else {
-                        // Single select: re-apply the value
-                        self.value = validValues[0];
-                    }
-                }
-            }
-
-            if (typeof (lazyloading) === 'function') {
-                lazyloading(prop);
-            }
-        });
-
-        return render => render`<div class="lm-dropdown" data-state="{{self.state}}" data-insert="{{self.insert}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" :value="self.value" :data="self.data">
-            <div class="lm-dropdown-header">
-                <div class="lm-dropdown-input" placeholder="{{self.placeholder}}" :ref="self.input" tabindex="0"></div>
-                <button class="lm-dropdown-add" onclick="${add}" tabindex="0"></button>
-                <div class="lm-dropdown-header-controls">
-                    <button onclick="self.reset" class="lm-dropdown-done">${T('Reset')}</button>
-                    <button onclick="self.close" class="lm-dropdown-done">${T('Done')}</button>
-                </div>
-            </div>
-            <div class="lm-dropdown-content">
-                <div>
-                    <div :loop="self.result" :ref="self.container" :rows="self.rows">
-                        <div class="lm-dropdown-item" onclick="${select}" data-cursor="{{self.cursor}}" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" data-group="{{self.header}}">
-                            <div><img :src="self.image" /> <div>{{self.text}}</div></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>`;
-    }
-
-    lemonade.setComponents({ Dropdown: Dropdown });
-
-    lemonade.createWebComponent('dropdown', Dropdown);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Dropdown, root, options)
-            return options;
-        } else {
-            return Dropdown.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 212:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
-
-;(function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    const Rating = function(children, { onchange, onload }) {
-        let self = this;
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        if (! self.number) {
-            self.number = 5;
-        }
-
-        self.stars = [];
-
-        // Current self star
-        let current = null;
-
-        /**
-         * Update the number of stars
-         */
-        const len = function () {
-            // Remove stars
-            if (self.number < self.stars.length) {
-                self.stars.splice(self.number, self.stars.length);
-                if (self.value > self.number) {
-                    self.value = self.number;
-                }
-            }
-            // Add missing stars
-            for (let i = 0; i < self.number; i++) {
-                if (! self.stars[i]) {
-                    self.stars[i] = {
-                        icon: 'star',
-                    };
-                    if (self.tooltip[i]) {
-                        self.stars[i].title = self.tooltip[i];
-                    }
-                }
-            }
-            // Refresh
-            self.refresh('stars');
-        }
-
-        const val = function (index, events) {
-            if (typeof(index) === 'string') {
-                index = Number(index);
-            }
-            // Apply value to the selected property in each star
-            for (let i = 0; i < self.number; i++) {
-                self.stars[i].selected = i <= index - 1 ? 1 : 0;
-            }
-            // Keep current value
-            current = index;
-            // Dispatch method
-            if (events !== false) {
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: index,
-                });
-            }
-        }
-
-        const getElementPosition = function(child) {
-            if (child.tagName === 'I') {
-                let root = self.el;
-                for (let i = 0; i < root.children.length; i++) {
-                    let c = root.children[i];
-                    if (c === child) {
-                        return i;
-                    }
-                }
-            }
-            return -1;
-        }
-
-        const click = function(e, s) {
-            let ret = getElementPosition(e.target);
-            if (ret !== -1) {
-                let index = ret + 1;
-                if (index === current) {
-                    index = 0;
-                }
-                self.value = index;
-            }
-        }
-
-        const mouseover = function(e, s) {
-            let index = getElementPosition(e.target);
-            if (index !== -1) {
-                for (let i = 0; i < self.number; i++) {
-                    if (i <= index) {
-                        self.stars[i].hover = 1;
-                    } else {
-                        self.stars[i].hover = 0;
-                    }
-                }
-            }
-        }
-
-        const mouseout = function(e, s) {
-            for (let i = 0; i < self.number; i++) {
-                self.stars[i].hover = 0;
-            }
-        }
-
-        onchange((prop) => {
-            if (prop === 'number') {
-                len();
-            } else if (prop === 'value') {
-                val(self.value);
-            } else if (prop === 'tooltip') {
-                if (typeof(self.tooltip) === 'string') {
-                    self.tooltip = self.tooltip.split(',')
-                }
-                len();
-            }
-        })
-
-        onload(() => {
-            // Bind global method to be compatible with LemonadeJS forms
-            self.el.val = function (v) {
-                if (typeof (v) === 'undefined') {
-                    return self.value;
-                } else {
-                    self.value = v;
-                }
-            }
-
-            if (self.tooltip && typeof(self.tooltip) === 'string') {
-                self.tooltip = self.tooltip.split(',')
-            } else {
-                self.tooltip = '';
-            }
-            len();
-            // Ignore events
-            val(self.value, false);
-
-            self.el.addEventListener('click', click);
-            self.el.addEventListener('mouseout', mouseout);
-            self.el.addEventListener('mouseover', mouseover);
-        });
-
-        self.getValue = function () {
-            return Number(self.value);
-        }
-
-        self.setValue = function (index) {
-            self.value = index;
-        }
-
-        return `<div class="lm-rating" value="{{self.value}}" number="{{self.number}}" name="{{self.name}}" data-size="{{self.size}}" :loop="self.stars">
-            <i class="material-symbols-outlined material-icons" data-selected="{{self.selected}}" data-hover="{{self.hover}}" title="{{self.title}}">star</i>
-        </div>`;
-    }
-
-    // Register the LemonadeJS Component
-    lemonade.setComponents({ Rating: Rating });
-    // Register the web component
-    lemonade.createWebComponent('rating', Rating);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Rating, root, options)
-            return options;
-        } else {
-            return Rating.call(this, root)
-        }
-    }
-
-})));
-
-/***/ }),
-
-/***/ 326:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
-
-if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(124);
-}
-
-if (! Tabs && "function" === 'function') {
-    var Tabs = __webpack_require__(519);
-}
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            method(...a);
-        } else if (this.tagName) {
-            // Fallback: dispatch a custom event
-            const event = new CustomEvent(type, {
-                bubbles: true,
-                cancelable: true,
-                detail: options,
-            });
-            this.dispatchEvent(event);
-        }
-    }
-
-    const defaultPalette =  [
-        ["#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1"],
-        ["#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc"],
-        ["#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5"],
-        ["#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae"],
-        ["#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c"],
-        ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b"],
-        ["#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a"],
-        ["#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64"],
-        ["#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f"],
-        ["#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238"],
-    ]
-
-    const Grid = function(children, { onchange }) {
-        const self = this;
-
-        if (! self.palette) {
-            self.palette = defaultPalette;
-        }
-
-        const select = (event) => {
-            if (event.target.tagName === 'TD') {
-                let color = event.target.getAttribute('data-value')
-
-                // Remove current selected mark
-                let selected = self.el.querySelector('.lm-color-selected');
-                if (selected) {
-                    selected.classList.remove('lm-color-selected');
-                }
-
-                // Mark cell as selected
-                if (color) {
-                    event.target.classList.add('lm-color-selected');
-                    self.set(color);
-                }
-            }
-        }
-
-        self.constructRows = function (e) {
-            let tbody = [];
-            e.textContent = '';
-            for (let j = 0; j < self.palette.length; j++) {
-                let tr = document.createElement('tr');
-                e.appendChild(tr);
-
-                for (let i = 0; i < self.palette[j].length; i++) {
-                    let color = self.palette[j][i];
-                    let td = document.createElement('td');
-                    td.setAttribute('data-value', color);
-                    td.style.backgroundColor = color;
-                    tr.appendChild(td);
-                }
-            }
-        }
-
-        onchange(property => {
-            if (property === 'palette') {
-                self.constructRows()
-            }
-        });
-
-        return render => render`<div class="lm-color-grid" :palette="self.palette">
-            <table cellpadding="7" cellspacing="0" onclick="${select}" :ref="self.table" :ready="self.constructRows"></table>
-        </div>`
-    }
-
-    const Spectrum = function(children, { onload }) {
-        let self = this;
-        let context = null;
-
-        let decToHex = function(num) {
-            let hex = num.toString(16);
-            return hex.length === 1 ? "0" + hex : hex;
-        }
-        let rgbToHex = function(r, g, b) {
-            return "#" + decToHex(r) + decToHex(g) + decToHex(b);
-        }
-
-        onload(() => {
-            context = self.canvas.getContext("2d", { willReadFrequently: true });
-            draw();
-        })
-
-        // Drsaw
-        const draw = function() {
-            let g = context.createLinearGradient(0, 0, self.canvas.width, 0);
-            // Create color gradient
-            g.addColorStop(0,    "rgb(255,0,0)");
-            g.addColorStop(0.15, "rgb(255,0,255)");
-            g.addColorStop(0.33, "rgb(0,0,255)");
-            g.addColorStop(0.49, "rgb(0,255,255)");
-            g.addColorStop(0.67, "rgb(0,255,0)");
-            g.addColorStop(0.84, "rgb(255,255,0)");
-            g.addColorStop(1,    "rgb(255,0,0)");
-            context.fillStyle = g;
-            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
-            g = context.createLinearGradient(0, 0, 0, self.canvas.height);
-            g.addColorStop(0,   "rgba(255,255,255,1)");
-            g.addColorStop(0.5, "rgba(255,255,255,0)");
-            g.addColorStop(0.5, "rgba(0,0,0,0)");
-            g.addColorStop(1,   "rgba(0,0,0,1)");
-            context.fillStyle = g;
-            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
-        }
-
-        // Moves the marquee point to the specified position
-        const update = (e) => {
-            let x;
-            let y;
-            let buttons = 1;
-            if (e.type === 'touchmove') {
-                x = e.changedTouches[0].clientX;
-                y = e.changedTouches[0].clientY;
-            } else {
-                buttons = e.buttons;
-                x = e.clientX;
-                y = e.clientY;
-            }
-
-            if (buttons === 1) {
-                let rect = self.el.getBoundingClientRect();
-                let left = x - rect.left;
-                let top = y - rect.top;
-                // Get the color in this pixel
-                let pixel = context.getImageData(left, top, 1, 1).data;
-                // Position pointer
-                self.point.style.left = left + 'px';
-                self.point.style.top = top + 'px';
-                // Return color
-                self.set(rgbToHex(pixel[0], pixel[1], pixel[2]));
-            }
-        }
-
-        return render => render`<div class="lm-color-hsl">
-            <canvas width="240" height="140" :ref="self.canvas" onmousedown="${update}" onmousemove="${update}" ontouchmove="${update}"></canvas>
-            <div class="lm-color-point" :ref="self.point"></div>
-        </div>`;
-    }
-
-    const Color = function(children, { onchange, onload }) {
-        let self = this;
-        let value = null;
-
-        const change = self.onchange;
-        self.onchange = null;
-
-        // Decide the type based on the size of the screen
-        let autoType = self.type === 'auto';
-
-        const applyValue = function(v) {
-            if (self.value !== v) {
-                self.value = v;
-            }
-        }
-
-        const onopen = function(e) {
-            self.open();
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function(modal, origin) {
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                origin: origin,
-            });
-        }
-
-        const update = function() {
-            applyValue(value);
-            self.close({ origin: 'button' });
-        }
-
-        const getInput = function() {
-            let input = self.input;
-            if (input && input.current) {
-                input = input.current;
-            } else {
-                if (self.input) {
-                    input = self.input;
-                }
-            }
-
-            return input;
-        }
-
-        const events = {
-            focusin: (e) => {
-                if (self.modal && self.isClosed()) {
-                    self.open();
-                }
-            },
-            focusout: (e) => {
-                if (self.modal && ! self.isClosed()) {
-                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
-                        self.modal.close({ origin: 'focusout' });
-                    }
-                }
-            },
-            click: (e) => {
-                if (e.target.classList.contains('lm-color-input')) {
-                    self.open();
-                }
-            },
-            keydown: (e) => {
-                if (self.modal) {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-                        if (self.isClosed()) {
-                            self.open();
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (! self.isClosed()) {
-                            update();
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Escape') {
-                        if (! self.isClosed()) {
-                            self.modal.close({origin: 'escape'});
-                        }
-                    }
-                }
-            }
-        }
-
-        const set = function(v) {
-            value = v;
-            // Close
-            if (self.closeOnChange === true) {
-                // Update value
-                self.setValue(v);
-                // Close modal
-                self.close({ origin: 'select' });
-            }
-        }
-
-        self.open = function(e) {
-            if (self.modal) {
-                if (autoType) {
-                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
-                }
-                value = self.value;
-                // Table
-                let table = self.grid.table;
-                // Remove any selection
-                let o = table.querySelector('.lm-color-selected');
-                if (o) {
-                    o.classList.remove('lm-color-selected');
-                }
-                // Selected
-                o = table.querySelector('[data-value="'+self.value+'"]');
-                if (o) {
-                    o.classList.add('lm-color-selected');
-                }
-                // Open modal
-                self.modal.open();
-            }
-        }
-
-        /**
-         * Close the modal
-         */
-        self.close = function(options) {
-            if (self.modal) {
-                if (options && options.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.reset = function() {
-            self.setValue('');
-            self.close({ origin: 'button' });
-        }
-
-        self.setValue = function(v) {
-            self.value = value = v;
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        onchange(prop => {
-            if (prop === 'value') {
-                let input = getInput();
-                if (input) {
-                    input.value = self.value;
-                    if (self.value) {
-                        input.style.color = self.value;
-                    } else {
-                        input.style.color = '';
-                    }
-                }
-
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-        });
-
-        // Input
-        if (self.input === 'auto') {
-            self.input = document.createElement('input');
-            self.input.type = 'text';
-        }
-
-        onload(() => {
-            if (self.type !== "inline") {
-                // Create modal instance
-                self.modal = {
-                    closed: true,
-                    onopen: onopen,
-                    onclose: onclose,
-                    focus: false,
-                    position: 'absolute',
-                    'auto-close': false,
-                    'auto-adjust': true,
-                };
-                // Generate modal
-                Modal(self.el, self.modal);
-            }
-
-            // Create input controls
-            if (self.input && self.initInput !== false) {
-                if (! self.input.parentNode) {
-                    self.el.parentNode.insertBefore(self.input, self.el);
-                }
-
-                let input = getInput();
-                if (input && input.tagName) {
-                    input.classList.add('lm-input');
-                    input.classList.add('lm-color-input');
-                    input.addEventListener('click', events.click);
-                    input.addEventListener('focusin', events.focusin);
-                    input.addEventListener('focusout', events.focusout);
-                    if (self.placeholder) {
-                        input.setAttribute('placeholder', self.placeholder);
-                    }
-                    if (self.onChange) {
-                        input.addEventListener('change', self.onChange);
-                    }
-
-                    // Retrieve the value
-                    if (self.value) {
-                        input.value = self.value;
-                    } else if (input.value && input.value !== self.value) {
-                        self.value = input.value;
-                    }
-                }
-            }
-
-            // Create event for focus out
-            self.el.addEventListener("focusout", (e) => {
-                let input = getInput();
-                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
-                    self.close({ origin: 'focusout' });
-                }
-            });
-        });
-
-        return render => render`<div class="lm-color" :value="self.value">
-            <div class="lm-color-options">
-                <button type="button" onclick="${self.reset}">Reset</button>
-                <button type="button" onclick="${update}">Done</button>
-            </div>
-            <lm-tabs selected="0" position="center" :ref="self.tabs">
-                <div title="Grid"><${Grid} :palette="self.palette" :ref="self.grid" :set="${set}" /></div>
-                <div title="Spectrum"><${Spectrum} :ref="self.spectrum" :set="${set}" /></div>
-            </lm-tabs>
-        </div>`;
-    }
-
-    lemonade.setComponents({ Color: Color });
-    // Register the web component
-    lemonade.createWebComponent('color', Color);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Color, root, options)
-            return options;
-        } else {
-            return Color.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 397:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
-
-if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
-
-if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(124);
-}
-
-if (! utils && "function" === 'function') {
-    var utils = __webpack_require__(414);
-}
-
-const Helpers = utils.Helpers;
-const Mask = utils.Mask;
-
-; (function (global, factory) {
-     true ? module.exports = factory() :
-    0;
-}(this, (function () {
-
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
-    // Dispatcher
-    const Dispatch = function(method, type, options) {
-        // Try calling the method directly if provided
-        if (typeof method === 'function') {
-            let a = Object.values(options);
-            return method(...a);
-        } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    // Translations
-    const T = function(t) {
-        if (typeof(document) !== "undefined" && document.dictionary) {
-            return document.dictionary[t] || t;
-        } else {
-            return t;
-        }
-    }
-
-    const filterData = function(year, month) {
-        // Data for the month
-        let data = {};
-        if (Array.isArray(this.data)) {
-            this.data.map(function (v) {
-                if (!v || typeof v !== 'object' || typeof v.date !== 'string') {
-                    return;
-                }
-                let d = year + '-' + Helpers.two(month + 1);
-                if (v.date.substring(0, 7) === d) {
-                    if (!data[v.date]) {
-                        data[v.date] = [];
-                    }
-                    data[v.date].push(v);
-                }
-            });
-        }
-        return data;
-    }
-
-    // Get the short weekdays name
-    const getWeekdays = function(firstDayOfWeek) {
-        const reorderedWeekdays = [];
-        for (let i = 0; i < 7; i++) {
-            const dayIndex = (firstDayOfWeek + i) % 7;
-            reorderedWeekdays.push(Helpers.weekdays[dayIndex]);
-        }
-
-        return reorderedWeekdays.map(w => {
-            return { title: w.substring(0, 1) };
-        });
-    }
-
-    const Views = function(self) {
-        const view = {};
-
-        // Create years container
-        view.years = [];
-        view.months = [];
-        view.days = [];
-        view.hours = [];
-        view.minutes = [];
-
-        for (let i = 0; i < 16; i++) {
-            view.years.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 12; i++) {
-            view.months.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 42; i++) {
-            view.days.push({
-                title: null,
-                value: null,
-                selected: false,
-            });
-        }
-
-        for (let i = 0; i < 24; i++) {
-            view.hours.push({
-                title: Helpers.two(i),
-                value: i
-            });
-        }
-
-        for (let i = 0; i < 60; i++) {
-            view.minutes.push({
-                title: Helpers.two(i),
-                value: i
-            });
-        }
-
-        view.years.update = function(date) {
-            let year = date.getUTCFullYear();
-            let start = year - (year % 16);
-
-            for (let i = 0; i < 16; i++) {
-                let item = view.years[i];
-                let value = start + i;
-
-                item.title = value
-                item.value = value;
-
-                if (self.cursor.y === value) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-            }
-        }
-
-        view.months.update = function(date) {
-            let year = date.getUTCFullYear();
-
-            for (let i = 0; i < 12; i++) {
-                let item = view.months[i];
-
-                item.title = Helpers.months[i].substring(0,3);
-                item.value = i;
-
-                if (self.cursor.y === year && self.cursor.m === i) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-            }
-        }
-
-        view.days.update = function(date) {
-            let year = date.getUTCFullYear();
-            let month = date.getUTCMonth();
-            let data = filterData.call(self, year, month);
-
-            // First day
-            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
-            let firstDayOfMonth = tmp.getUTCDay();
-            let firstDayOfWeek = self.startingDay ?? 0;
-
-            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
-            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
-
-            let index = -1 * offset;
-
-            for (let i = 0; i < 42; i++) {
-                index++;
-                // Item
-                let item = view.days[i];
-                // Get the day
-                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
-                // Day
-                let day = tmp.getUTCDate();
-
-                // Create the item
-                item.title = day;
-                item.value = index;
-                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
-
-                // Reset range properties for each item
-                item.start = false;
-                item.end = false;
-                item.range = false;
-                item.last = false;
-                item.disabled = false;
-                item.data = null;
-
-                // Check selections
-                if (tmp.getUTCMonth() !== month) {
-                    // Days are not in the current month
-                    item.grey = true;
-                } else {
-                    // Check for data
-                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
-
-                    if (data && data[d]) {
-                        item.data = data[d];
-                    }
-
-                    item.grey = false;
-                }
-                // Month
-                let m = tmp.getUTCMonth();
-
-                // Select cursor
-                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
-                    item.selected = true;
-                    // Current item
-                    self.cursor.current = item;
-                } else {
-                    item.selected = false;
-                }
-
-
-                // Valid ranges
-                if (self.validRange) {
-                    if (typeof self.validRange === 'function') {
-                        let ret = self.validRange(day,m,year,item);
-                        if (typeof ret !== 'undefined') {
-                            item.disabled = ret;
-                        }
-                    } else {
-                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
-
-                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
-                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
-
-                        if (! (test1 && test2)) {
-                            item.disabled = true;
-                        }
-                    }
-                }
-
-                // Select range
-                if (self.range && self.rangeValues) {
-                    // Only mark start/end if the number matches
-                    item.start = self.rangeValues[0] === item.number;
-                    item.end = self.rangeValues[1] === item.number;
-                    // Mark as part of range if between start and end
-                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
-                }
-            }
-        }
-
-        return view;
-    }
-
-    const isTrue = function(v) {
-        return v === true || v === 'true';
-    }
-
-    const isNumber = function (num) {
-        if (typeof(num) === 'string') {
-            num = num.trim();
-        }
-        return !isNaN(num) && num !== null && num !== '';
-    }
-
-    const Calendar = function(children, { onchange, onload, track }) {
-        let self = this;
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Coerce startingDay to a number so string inputs ('1') don't trigger string concat in modulo math
-        if (typeof self.startingDay !== 'number') {
-            self.startingDay = Number(self.startingDay) || 0;
-        }
-
-        // Weekdays
-        self.weekdays = getWeekdays(self.startingDay);
-
-        // Cursor
-        self.cursor = {};
-
-        // Time
-        self.time = !! self.time;
-
-        // Range values
-        self.rangeValues = null;
-
-        // Calendar date
-        let date = new Date();
-
-        // Views
-        const views = Views(self);
-        const hours = views.hours;
-        const minutes = views.minutes;
-
-        // Initial view
-        self.view = 'days';
-
-        // Auto Input
-        if (self.input === 'auto') {
-            self.input = document.createElement('input');
-            self.input.type = 'text';
-        }
-
-
-        // Get the position of the data based on the view
-        const getPosition = function() {
-            let position = 2;
-            if (self.view === 'years') {
-                position = 0;
-            } else if (self.view === 'months') {
-                position = 1;
-            }
-            return position;
-        }
-
-        const setView = function(e) {
-            if (typeof e === 'object') {
-                e = this.getAttribute('data-view');
-            }
-
-            // Valid views
-            const validViews = ['days', 'months', 'years'];
-
-            // Define new view
-            if (validViews.includes(e) && self.view !== e) {
-                self.view = e;
-            }
-        }
-
-        const reloadView = function(reset) {
-            if (reset) {
-                // Update options to the view
-                self.options = views[self.view];
-            }
-            // Update the values of hte options of hte view
-            views[self.view]?.update.call(self, date);
-        }
-
-        const getValue = function() {
-            let value = null;
-            if (isTrue(self.range)) {
-                if (Array.isArray(self.rangeValues)) {
-                    if (isTrue(self.numeric)) {
-                        value = self.rangeValues;
-                    } else {
-                        value = [
-                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
-                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
-                        ];
-                    }
-                }
-            } else {
-                value = getDate();
-                if (isTrue(self.numeric)) {
-                    value = Helpers.dateToNum(value);
-                }
-            }
-            return value;
-        }
-
-        const setValue = function(v) {
-            let d = new Date();
-            if (v) {
-                // Accept native Date objects by converting to ISO string
-                if (v instanceof Date) {
-                    v = v.toISOString().substring(0, 10);
-                }
-                if (isTrue(self.range)) {
-                    if (v) {
-                        if (! Array.isArray(v)) {
-                            v = v.toString().split(',');
-                        }
-                        self.rangeValues = [...v];
-
-                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
-                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
-                        }
-                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
-                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
-                        }
-
-                        v = v[0];
-                    }
-                } else if (typeof v === 'string' && v.includes(',')) {
-                    v = v.split(',')[0];
-                }
-
-                if (v) {
-                    v = isNumber(v) ? Helpers.numToDate(v) : v;
-                    d = new Date(v + '  GMT+0');
-                }
-
-                // if no date is defined
-                if (! Helpers.isValidDate(d)) {
-                    d = new Date();
-                }
-            }
-
-            // Update the internal calendar date
-            setDate(d, true);
-            // Update the view
-            reloadView();
-        }
-
-        const getDate = function() {
-            let v = [ self.cursor.y, self.cursor.m, self.cursor.d, self.hour, self.minute ];
-            let d = new Date(Date.UTC(...v));
-            // Update the headers of the calendar
-            if (self.time) {
-                return d.toISOString().substring(0, 19).replace('T', ' ');
-            } else {
-                return d.toISOString().substring(0, 10);
-            }
-        }
-
-        const setDate = function(d, update) {
-            if (Array.isArray(d)) {
-                d = new Date(Date.UTC(...d));
-            } else if (typeof(d) === 'string') {
-                d = new Date(d);
-            }
-
-            // Update the date
-            let value = d.toISOString().substring(0,10).split('-');
-            let month = Helpers.months[parseInt(value[1])-1];
-            let year = parseInt(value[0]);
-
-            if (self.month !== month) {
-                self.month = month;
-            }
-            if (self.year !== year) {
-                self.year = year;
-            }
-
-            // Update the time
-            let time = d.toISOString().substring(11,19).split(':');
-            let hour = parseInt(time[0]);
-            let minute = parseInt(time[1]);
-
-            if (self.hour !== hour) {
-                self.hour = hour;
-            }
-            if (self.minute !== minute) {
-                self.minute = minute;
-            }
-
-            // Update internal date
-            date = d;
-
-            // Update cursor information
-            if (update) {
-                updateCursor();
-            }
-        }
-
-        const updateCursor = function() {
-            self.cursor.y = date.getUTCFullYear();
-            self.cursor.m = date.getUTCMonth();
-            self.cursor.d = date.getUTCDate();
-        }
-
-        const resetCursor = function() {
-            // Remove selection from the current object
-            let current = self.cursor.current;
-            // Current item
-            if (typeof current !== 'undefined') {
-                current.selected = false;
-            }
-        }
-
-        const setCursor = function(s) {
-            // Reset current visual cursor
-            resetCursor();
-            // Update cursor based on the object position
-            if (s) {
-                // Update current
-                self.cursor.current = s;
-                // Update selected property
-                s.selected = true;
-            }
-
-            updateCursor();
-
-            // Update range
-            if (isTrue(self.range)) {
-                updateRange(s)
-            }
-
-            Dispatch.call(self, self.onupdate, 'update', {
-                instance: self,
-                value: date.toISOString(),
-            });
-        }
-
-        const select = function(e, s) {
-            if (self.disabled === true) {
-                return;
-            }
-            // Get new date content
-            let d = updateDate(s.value, getPosition());
-            // New date
-            setDate(new Date(Date.UTC(...d)))
-            // Based where was the click
-            if (self.view !== 'days') {
-                // Back to the days
-                self.view = 'days';
-            } else if (! s.disabled) {
-                if (isTrue(self.range)) {
-                    // Start a new range
-                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
-                        destroyRange();
-                    }
-                    // Range
-                    s.range = true;
-                    // Update range
-                    if (! self.rangeValues) {
-                        s.start = true;
-                        self.rangeValues = [s.number, null];
-                    } else {
-                        s.end = true;
-                        self.rangeValues[1] = s.number;
-                    }
-                    setCursor(s);
-                } else {
-                    setCursor(s);
-
-                    update(e);
-                }
-            }
-        }
-
-        // Update Calendar
-        const update = function(e) {
-            self.setValue(getValue());
-
-            if (! (e && e.type === 'click' && e.target.tagName === 'DIV' && self.time === true)) {
-                self.close({ origin: 'button' });
-            }
-        }
-
-        const reset = function() {
-            self.setValue('');
-            self.close({ origin: 'button' });
-        }
-
-        const updateDate = function(v, position) {
-            // Current internal date
-            let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
-            // Update internal date
-            value[position] = v;
-            // Return new value
-            return value;
-        }
-
-        const move = function(direction) {
-            // Reset visual cursor
-            resetCursor();
-
-            // Value
-            let value;
-
-            // Update the new internal date
-            if (self.view === 'days') {
-                // Select the new internal date
-                value = updateDate(date.getUTCMonth()+direction, 1);
-            } else if (self.view === 'months') {
-                // Select the new internal date
-                value = updateDate(date.getUTCFullYear()+direction, 0);
-            } else if (self.view === 'years') {
-                // Select the new internal date
-                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
-            }
-
-            // Update view
-            setDate(value);
-
-            // Reload content of the view
-            reloadView();
-        }
-
-        const getJump = function(e) {
-            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
-                return self.view === 'days' ? 7 : 4;
-            }
-
-            return 1;
-        }
-
-        const prev = function(e) {
-            if (e && e.type === 'keydown') {
-                // Current index
-                let total = self.options.length;
-                let position = self.options.indexOf(self.cursor.current) - getJump(e);
-                if (position < 0) {
-                    // Next month
-                    move(-1);
-                    // New position
-                    position = total + position;
-                }
-                // Update cursor
-                setCursor(self.options[position])
-            } else {
-                move(-1);
-            }
-        }
-
-        const next = function(e) {
-            if (e && e.type === 'keydown') {
-                // Current index
-                let total = self.options.length;
-                let position = self.options.indexOf(self.cursor.current) + getJump(e);
-                if (position >= total) {
-                    // Next month
-                    move(1);
-                    // New position
-                    position = position - total;
-                }
-                // Update cursor
-                setCursor(self.options[position])
-            } else {
-                move(1);
-            }
-        }
-
-        const getInput = function() {
-            let input = self.input;
-            if (input && input.current) {
-                input = input.current;
-            } else {
-                if (self.input) {
-                    input = self.input;
-                }
-            }
-
-            return input;
-        }
-
-        const updateRange = function(s) {
-            if (self.range && self.view === 'days' && self.rangeValues) {
-                // Creating a range
-                if (self.rangeValues[0] && ! self.rangeValues[1]) {
-                    let number = s.number;
-                    if (number) {
-                        // Update range properties
-                        for (let i = 0; i < self.options.length; i++) {
-                            let v = self.options[i].number;
-                            // Update property condition
-                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
-                            self.options[i].last = (v === number);
-                        }
-                    }
-                }
-            }
-        }
-
-        const destroyRange = function() {
-            if (self.range) {
-                for (let i = 0; i < self.options.length; i++) {
-                    if (self.options[i].range !== false) {
-                        self.options[i].range = false;
-                    }
-                    if (self.options[i].start !== false) {
-                        self.options[i].start = false;
-                    }
-                    if (self.options[i].end !== false) {
-                        self.options[i].end = false;
-                    }
-                    if (self.options[i].last !== false) {
-                        self.options[i].last = false;
-                    }
-                }
-                self.rangeValues = null;
-            }
-        }
-
-        const render = function(v) {
-            if (v) {
-                if (! Array.isArray(v)) {
-                    v = v.toString().split(',');
-                }
-
-                v = v.map(entry => {
-                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
-                }).join(',');
-            }
-            return v;
-        }
-
-        const normalize = function(v) {
-            if (v instanceof Date) {
-                v = Helpers.dateToString ? Helpers.dateToString(v) : v.toISOString().substring(0, 10);
-            }
-            if (! Array.isArray(v)) {
-                v = v.toString().split(',');
-            }
-
-            return v.map(item => {
-                if (item instanceof Date) {
-                    return Helpers.dateToString ? Helpers.dateToString(item) : item.toISOString().substring(0, 10);
-                }
-                if (Number(item) == item) {
-                    return Helpers.numToDate(item);
-                } else {
-                    if (Helpers.isValidDateFormat(item)) {
-                        return item;
-                    } else if (self.format) {
-                        let tmp = Mask.extractDateFromString(item, self.format);
-                        if (tmp) {
-                            return tmp;
-                        }
-                    }
-                }
-            })
-        }
-
-        const extractValueFromInput = function() {
-            let input = getInput();
-            if (input) {
-                let v;
-                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                    v = input.value;
-                } else if (input.isContentEditable) {
-                    v = input.textContent;
-                }
-                if (v) {
-                    return normalize(v).join(',');
-                }
-                return v;
-            }
-        }
-
-        const onopen = function() {
-            let isEditable = false;
-            let value = self.value;
-
-            let input = getInput();
-            if (input) {
-                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
-                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
-                } else if (input.isContentEditable) {
-                    isEditable = true;
-                }
-
-                let ret = extractValueFromInput();
-                if (ret && ret !== value) {
-                    value = ret;
-                }
-            }
-
-            if (! isEditable) {
-                self.content.focus();
-            }
-
-            // Update the internal date values
-            setValue(value);
-
-            // Open event
-            Dispatch.call(self, self.onopen, 'open', {
-                instance: self
-            });
-        }
-
-        const onclose = function(modal, origin) {
-            // Cancel range events
-            destroyRange();
-            // Close event
-            Dispatch.call(self, self.onclose, 'close', {
-                instance: self,
-                origin: origin,
-            });
-        }
-
-        const dispatchOnChangeEvent = function() {
-            // Destroy range
-            destroyRange();
-            // Update the internal controllers
-            setValue(self.value);
-            // Events
-            Dispatch.call(self, change, 'change', {
-                instance: self,
-                value: self.value,
-            });
-            // Update input
-            let input = getInput();
-            if (input) {
-                // Update input value
-                input.value = render(self.value);
-                // Dispatch event
-                Dispatch.call(input, null, 'change', {
-                    instance: self,
-                    value: self.value,
-                });
-            }
-        }
-
-        const events = {
-            focusin: (e) => {
-                if (self.modal && self.isClosed()) {
-                    self.open();
-                }
-            },
-            focusout: (e) => {
-                if (self.modal && ! self.isClosed()) {
-                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
-                        self.modal.close({ origin: 'focusout' });
-                    }
-                }
-            },
-            click: (e) => {
-                if (e.target.classList.contains('lm-calendar-input')) {
-                    self.open();
-                }
-            },
-            keydown: (e) => {
-                if (self.modal) {
-                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
-                        if (! self.isClosed()) {
-                            self.content.focus();
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Enter') {
-                        if (! self.isClosed()) {
-                            update(e);
-                        } else {
-                            self.open();
-                        }
-                    } else if (e.code === 'Escape') {
-                        if (! self.isClosed()) {
-                            self.modal.close({origin: 'escape'});
-                        }
-                    }
-                }
-            },
-            input: (e) => {
-                let input = e.target;
-                if (input.classList.contains('lm-calendar-input')) {
-                    if (! isTrue(self.range)) {
-                        // TODO: process with range
-                        // Apply mask
-                        if (self.format) {
-                            Mask.oninput(e, self.format);
-                        }
-                        let value = null;
-                        // Content
-                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
-                        // Check if that is a valid date
-                        if (Helpers.isValidDateFormat(content)) {
-                            value = content;
-                        } else if (self.format) {
-                            let tmp = Mask.extractDateFromString(content, self.format);
-                            if (tmp) {
-                                value = tmp;
-                            }
-                        }
-                        // Change the calendar view
-                        if (value) {
-                            setValue(value);
-                        }
-                    }
-                }
-            }
-        }
-
-        // Onload
-        onload(() => {
-            if (self.type !== "inline") {
-                // Create modal instance
-                self.modal = {
-                    width: 300,
-                    closed: true,
-                    focus: false,
-                    onopen: onopen,
-                    onclose: onclose,
-                    position: 'absolute',
-                    'auto-close': false,
-                    'auto-adjust': true,
-                };
-                // Generate modal
-                Modal(self.el, self.modal);
-            }
-
-            let ret;
-
-            // Create input controls
-            if (self.input && self.initInput !== false) {
-                if (! self.input.parentNode) {
-                    self.el.parentNode.insertBefore(self.input, self.el);
-                }
-
-                let input = getInput();
-                if (input && input.tagName) {
-                    input.classList.add('lm-input');
-                    input.classList.add('lm-calendar-input');
-                    input.addEventListener('click', events.click);
-                    input.addEventListener('input', events.input);
-                    input.addEventListener('keydown', events.keydown);
-                    input.addEventListener('focusin', events.focusin);
-                    input.addEventListener('focusout', events.focusout);
-                    if (self.placeholder) {
-                        input.setAttribute('placeholder', self.placeholder);
-                    }
-                    if (self.onChange) {
-                        input.addEventListener('change', self.onChange);
-                    }
-
-                    // Retrieve the value
-                    if (self.value) {
-                        input.value = render(self.value);
-                    } else {
-                        let value = extractValueFromInput();
-                        if (value && value !== self.value) {
-                            ret = value;
-                        }
-                    }
-                }
-            }
-
-            // Update the internal date values
-            if (ret) {
-                self.setValue(ret);
-            } else {
-                setValue(self.value);
-            }
-
-            // Reload view
-            reloadView(true);
-
-            /**
-             * Handler keyboard
-             * @param {object} e - event
-             */
-            self.el.addEventListener('keydown', function(e) {
-                let prevent = false;
-                if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                    if (e.target !== self.content) {
-                        self.content.focus();
-                    }
-                    prev(e);
-                    prevent = true;
-                } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                    if (e.target !== self.content) {
-                        self.content.focus();
-                    }
-                    next(e);
-                    prevent = true;
-                } else if (e.key === 'Enter') {
-                    if (e.target === self.content) {
-                        // Item
-                        if (self.cursor.current) {
-                            // Select
-                            select(e, self.cursor.current);
-                            prevent = true;
-                        }
-                    }
-                } else if (e.key === 'Escape') {
-                    if (! self.isClosed()) {
-                        self.close({ origin: 'escape' });
-                        prevent = true;
-                    }
-                }
-
-                if (prevent) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            });
-
-            /**
-             * Mouse wheel handler
-             * @param {object} e - mouse event
-             */
-            self.content.addEventListener('wheel', function(e){
-                if (self.wheel !== false) {
-                    if (e.deltaY < 0) {
-                        prev(e);
-                    } else {
-                        next(e);
-                    }
-                    e.preventDefault();
-                }
-            }, { passive: false });
-
-            /**
-             * Range handler
-             * @param {object} e - mouse event
-             */
-            self.content.addEventListener('mouseover', function(e){
-                let parent = e.target.parentNode
-                if (parent === self.content) {
-                    let index = Array.prototype.indexOf.call(parent.children, e.target);
-                    updateRange(self.options[index]);
-                }
-            });
-
-            // Create event for focus out
-            self.el.addEventListener("focusout", (e) => {
-                let input = getInput();
-                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
-                    self.close({ origin: 'focusout' });
-                }
-            });
-        });
-
-        onchange((prop) => {
-            if (prop === 'view') {
-                reloadView(true);
-            } else if (prop === 'startingDay') {
-                if (typeof self.startingDay !== 'number') {
-                    self.startingDay = Number(self.startingDay) || 0;
-                }
-                self.weekdays = getWeekdays(self.startingDay);
-            } else if (prop === 'value') {
-                dispatchOnChangeEvent();
-            }
-        })
-
-        // Tracking variables
-        track('value');
-
-        // Public methods
-
-        self.open = function(e) {
-            if (self.modal) {
-                if (self.type === 'auto') {
-                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
-                }
-                self.modal.open();
-            }
-        }
-
-        self.close = function(options) {
-            if (self.modal) {
-                if (options && options.origin) {
-                    self.modal.close(options)
-                } else {
-                    self.modal.close({ origin: 'button' })
-                }
-            }
-        }
-
-        self.isClosed = function() {
-            if (self.modal) {
-                return self.modal.isClosed();
-            }
-        }
-
-        self.getValue = function() {
-            return self.value;
-        }
-
-        self.setValue = function(v) {
-            // Update value
-            if (v) {
-                let ret = normalize(v);
-                if (isTrue(self.numeric)) {
-                    ret = ret.map(entry => {
-                        return Helpers.dateToNum(entry);
-                    })
-                }
-
-                if (! Array.isArray(v)) {
-                    ret = ret.join(',');
-                }
-
-                if (ret == Number(ret)) {
-                    ret = Number(ret);
-                }
-
-                v = ret;
-            }
-
-            // Events
-            if (v !== self.value) {
-                self.value = v;
-            }
-        }
-
-        self.onevent = function(e) {
-            if (events[e.type]) {
-                events[e.type](e);
-            }
-        }
-
-        self.update = update;
-        self.next = next;
-        self.prev = prev;
-        self.reset = reset;
-        self.setView = setView;
-        self.helpers = Helpers;
-        self.helpers.getDate = Mask.getDate;
-
-        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
-            <div class="lm-calendar-options">
-                <button type="button" onclick="${reset}">${T('Reset')}</button>
-                <button type="button" onclick="${update}">${T('Done')}</button>
-            </div>
-            <div class="lm-calendar-container" data-view="{{self.view}}">
-                <div class="lm-calendar-header">
-                    <div>
-                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
-                        <div class="lm-calendar-navigation">
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
-                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
-                        </div>
-                    </div>
-                    <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
-                </div>
-                <div class="lm-calendar-content" :loop="self.options" tabindex="0" :ref="self.content">
-                    <div data-start="{{self.start}}" data-end="{{self.end}}" data-last="{{self.last}}" data-range="{{self.range}}" data-event="{{self.data}}" data-grey="{{self.grey}}" data-bold="{{self.bold}}" data-selected="{{self.selected}}" data-disabled="{{self.disabled}}" onclick="${select}">{{self.title}}</div>
-                </div>
-                <div class="lm-calendar-footer" data-visible="{{self.footer}}">
-                    <div class="lm-calendar-time" data-visible="{{self.time}}"><select :loop="${hours}" :bind="self.hour" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select>:<select :loop="${minutes}" :bind="self.minute" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select></div>
-                    <div class="lm-calendar-update"><input type="button" value="${T('Update')}" onclick="${update}" class="lm-ripple lm-input"></div>
-                </div>
-            </div>
-        </div>`
-    }
-
-    // Register the LemonadeJS Component
-    lemonade.setComponents({ Calendar: Calendar });
-    // Register the web component
-    lemonade.createWebComponent('calendar', Calendar);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Calendar, root, options)
-            return options;
-        } else {
-            return Calendar.call(this, root)
-        }
-    }
-})));
-
-/***/ }),
-
-/***/ 414:
+/***/ 791:
 /***/ (function(module) {
 
 /**
@@ -6252,23 +2307,10 @@ const Mask = utils.Mask;
                     // Mask
                     mask = d[0];
 
-                    // A string can still be a localized number (e.g. 1.234,50) that isNumber does not recognize
-                    let num = value;
-                    if (typeof(num) === 'string' && ! isNumber(num)) {
-                        let t = num.trim();
-                        if (getDecimal.call({}, d[0]) === ',') {
-                            if (/^-?(\d+|\d{1,3}(\.\d{3})+)(,\d+)?$/.test(t)) {
-                                num = t.replace(/\./g, '').replace(',', '.');
-                            }
-                        } else if (/^-?\d{1,3}(,\d{3})+(\.\d+)?$/.test(t)) {
-                            num = t.replace(/,/g, '');
-                        }
-                    }
-
-                    if (typeof (num) === 'number' || isNumber(num)) {
-                        if (Number(num) < 0 && d[1]) {
+                    if (typeof (value) === 'number' || isNumber(value)) {
+                        if (Number(value) < 0 && d[1]) {
                             mask = d[1];
-                        } else if (Number(num) === 0 && d[2]) {
+                        } else if (Number(value) === 0 && d[2]) {
                             mask = d[2];
                         } else {
                             mask = d[0];
@@ -6278,6 +2320,10 @@ const Mask = utils.Mask;
                             mask = d[3];
                         }
                     }
+
+                    // Section chosen for this value, so a later pass over its
+                    // rendered string does not choose again
+                    control.section = mask;
                 }
 
                 // Transform Excel locale patterns (e.g., [$$-409]#,##0.00) - only if pattern exists
@@ -7660,8 +3706,13 @@ const Mask = utils.Mask;
                     }
                 }
 
-                // Process mask
-                let control = Component(value, options, true);
+                // Process mask. The section of a multi-section mask was chosen
+                // from the original value above: the localized string keeps it
+                let sectionOptions = options;
+                if (typeof(config.section) !== 'undefined') {
+                    sectionOptions = typeof(options) === 'string' ? config.section : Object.assign({}, options, { mask: config.section });
+                }
+                let control = Component(value, sectionOptions, true);
                 // Complement render
                 if (fullMask) {
                     processNumOfPaddingZeros(control);
@@ -8044,12 +4095,23 @@ const Mask = utils.Mask;
 
 /***/ }),
 
-/***/ 507:
+/***/ 763:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
 }
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! utils && "function" === 'function') {
+    var utils = __webpack_require__(791);
+}
+
+const Helpers = utils.Helpers;
+const Mask = utils.Mask;
 
 ; (function (global, factory) {
      true ? module.exports = factory() :
@@ -8086,61 +4148,1131 @@ if (!lemonade && "function" === 'function') {
         }
     }
 
-    const Switch = function (children, { onchange, onload }) {
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const filterData = function(year, month) {
+        // Data for the month
+        let data = {};
+        if (Array.isArray(this.data)) {
+            this.data.map(function (v) {
+                if (!v || typeof v !== 'object' || typeof v.date !== 'string') {
+                    return;
+                }
+                let d = year + '-' + Helpers.two(month + 1);
+                if (v.date.substring(0, 7) === d) {
+                    if (!data[v.date]) {
+                        data[v.date] = [];
+                    }
+                    data[v.date].push(v);
+                }
+            });
+        }
+        return data;
+    }
+
+    // Get the short weekdays name
+    const getWeekdays = function(firstDayOfWeek) {
+        const reorderedWeekdays = [];
+        for (let i = 0; i < 7; i++) {
+            const dayIndex = (firstDayOfWeek + i) % 7;
+            reorderedWeekdays.push(Helpers.weekdays[dayIndex]);
+        }
+
+        return reorderedWeekdays.map(w => {
+            return { title: w.substring(0, 1) };
+        });
+    }
+
+    const Views = function(self) {
+        const view = {};
+
+        // Create years container
+        view.years = [];
+        view.months = [];
+        view.days = [];
+        view.hours = [];
+        view.minutes = [];
+
+        for (let i = 0; i < 16; i++) {
+            view.years.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 12; i++) {
+            view.months.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 42; i++) {
+            view.days.push({
+                title: null,
+                value: null,
+                selected: false,
+            });
+        }
+
+        for (let i = 0; i < 24; i++) {
+            view.hours.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        for (let i = 0; i < 60; i++) {
+            view.minutes.push({
+                title: Helpers.two(i),
+                value: i
+            });
+        }
+
+        view.years.update = function(date) {
+            let year = date.getUTCFullYear();
+            let start = year - (year % 16);
+
+            for (let i = 0; i < 16; i++) {
+                let item = view.years[i];
+                let value = start + i;
+
+                item.title = value
+                item.value = value;
+
+                if (self.cursor.y === value) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.months.update = function(date) {
+            let year = date.getUTCFullYear();
+
+            for (let i = 0; i < 12; i++) {
+                let item = view.months[i];
+
+                item.title = Helpers.months[i].substring(0,3);
+                item.value = i;
+
+                if (self.cursor.y === year && self.cursor.m === i) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+            }
+        }
+
+        view.days.update = function(date) {
+            let year = date.getUTCFullYear();
+            let month = date.getUTCMonth();
+            let data = filterData.call(self, year, month);
+
+            // First day
+            let tmp = new Date(Date.UTC(year, month, 1, 0, 0, 0));
+            let firstDayOfMonth = tmp.getUTCDay();
+            let firstDayOfWeek = self.startingDay ?? 0;
+
+            // Calculate offset based on desired first day of week. firstDayOfWeek: 0 = Sunday, 1 = Monday, 2 = Tuesday, etc.
+            let offset = (firstDayOfMonth - firstDayOfWeek + 7) % 7;
+
+            let index = -1 * offset;
+
+            for (let i = 0; i < 42; i++) {
+                index++;
+                // Item
+                let item = view.days[i];
+                // Get the day
+                tmp = new Date(Date.UTC(year, month, index, 0, 0, 0));
+                // Day
+                let day = tmp.getUTCDate();
+
+                // Create the item
+                item.title = day;
+                item.value = index;
+                item.number = Helpers.dateToNum(tmp.toISOString().substring(0, 10));
+
+                // Reset range properties for each item
+                item.start = false;
+                item.end = false;
+                item.range = false;
+                item.last = false;
+                item.disabled = false;
+                item.data = null;
+
+                // Check selections
+                if (tmp.getUTCMonth() !== month) {
+                    // Days are not in the current month
+                    item.grey = true;
+                } else {
+                    // Check for data
+                    let d = [ year, Helpers.two(month+1), Helpers.two(day) ].join('-');
+
+                    if (data && data[d]) {
+                        item.data = data[d];
+                    }
+
+                    item.grey = false;
+                }
+                // Month
+                let m = tmp.getUTCMonth();
+
+                // Select cursor
+                if (self.cursor.y === year && self.cursor.m === m && self.cursor.d === day) {
+                    item.selected = true;
+                    // Current item
+                    self.cursor.current = item;
+                } else {
+                    item.selected = false;
+                }
+
+
+                // Valid ranges
+                if (self.validRange) {
+                    if (typeof self.validRange === 'function') {
+                        let ret = self.validRange(day,m,year,item);
+                        if (typeof ret !== 'undefined') {
+                            item.disabled = ret;
+                        }
+                    } else {
+                        let current = year + '-' + Helpers.two(m+1) + '-' + Helpers.two(day);
+
+                        let test1 = !self.validRange[0] || current >= self.validRange[0].substr(0, 10);
+                        let test2 = !self.validRange[1] || current <= self.validRange[1].substr(0, 10);
+
+                        if (! (test1 && test2)) {
+                            item.disabled = true;
+                        }
+                    }
+                }
+
+                // Select range
+                if (self.range && self.rangeValues) {
+                    // Only mark start/end if the number matches
+                    item.start = self.rangeValues[0] === item.number;
+                    item.end = self.rangeValues[1] === item.number;
+                    // Mark as part of range if between start and end
+                    item.range = self.rangeValues[0] && self.rangeValues[1] && self.rangeValues[0] <= item.number && self.rangeValues[1] >= item.number;
+                }
+            }
+        }
+
+        return view;
+    }
+
+    const isTrue = function(v) {
+        return v === true || v === 'true';
+    }
+
+    const isNumber = function (num) {
+        if (typeof(num) === 'string') {
+            num = num.trim();
+        }
+        return !isNaN(num) && num !== null && num !== '';
+    }
+
+    const Calendar = function(children, { onchange, onload, track }) {
         let self = this;
 
         // Event
         let change = self.onchange;
         self.onchange = null;
 
-        const state = () => {
-            let s = self.el.firstChild.checked;
-            if (s !== self.checked) {
-                self.checked = s;
+        // Coerce startingDay to a number so string inputs ('1') don't trigger string concat in modulo math
+        if (typeof self.startingDay !== 'number') {
+            self.startingDay = Number(self.startingDay) || 0;
+        }
+
+        // Weekdays
+        self.weekdays = getWeekdays(self.startingDay);
+
+        // Cursor
+        self.cursor = {};
+
+        // Time
+        self.time = !! self.time;
+
+        // Range values
+        self.rangeValues = null;
+
+        // Calendar date
+        let date = new Date();
+
+        // Views
+        const views = Views(self);
+        const hours = views.hours;
+        const minutes = views.minutes;
+
+        // Initial view
+        self.view = 'days';
+
+        // Auto Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+
+        // Get the position of the data based on the view
+        const getPosition = function() {
+            let position = 2;
+            if (self.view === 'years') {
+                position = 0;
+            } else if (self.view === 'months') {
+                position = 1;
+            }
+            return position;
+        }
+
+        const setView = function(e) {
+            if (typeof e === 'object') {
+                e = this.getAttribute('data-view');
+            }
+
+            // Valid views
+            const validViews = ['days', 'months', 'years'];
+
+            // Define new view
+            if (validViews.includes(e) && self.view !== e) {
+                self.view = e;
             }
         }
 
-        onchange((prop, a, b, c, d) => {
-            if (a !== b) {
-                Dispatch.call(self, change, 'change', {
+        const reloadView = function(reset) {
+            if (reset) {
+                // Update options to the view
+                self.options = views[self.view];
+            }
+            // Update the values of hte options of hte view
+            views[self.view]?.update.call(self, date);
+        }
+
+        const getValue = function() {
+            let value = null;
+            if (isTrue(self.range)) {
+                if (Array.isArray(self.rangeValues)) {
+                    if (isTrue(self.numeric)) {
+                        value = self.rangeValues;
+                    } else {
+                        value = [
+                            Helpers.numToDate(self.rangeValues[0]).substring(0, 10),
+                            Helpers.numToDate(self.rangeValues[1]).substring(0, 10)
+                        ];
+                    }
+                }
+            } else {
+                value = getDate();
+                if (isTrue(self.numeric)) {
+                    value = Helpers.dateToNum(value);
+                }
+            }
+            return value;
+        }
+
+        const setValue = function(v) {
+            let d = new Date();
+            if (v) {
+                // Accept native Date objects by converting to ISO string
+                if (v instanceof Date) {
+                    v = v.toISOString().substring(0, 10);
+                }
+                if (isTrue(self.range)) {
+                    if (v) {
+                        if (! Array.isArray(v)) {
+                            v = v.toString().split(',');
+                        }
+                        self.rangeValues = [...v];
+
+                        if (v[0] && typeof (v[0]) === 'string' && v[0].indexOf('-')) {
+                            self.rangeValues[0] = Helpers.dateToNum(v[0]);
+                        }
+                        if (v[1] && typeof (v[1]) === 'string' && v[1].indexOf('-')) {
+                            self.rangeValues[1] = Helpers.dateToNum(v[1]);
+                        }
+
+                        v = v[0];
+                    }
+                } else if (typeof v === 'string' && v.includes(',')) {
+                    v = v.split(',')[0];
+                }
+
+                if (v) {
+                    v = isNumber(v) ? Helpers.numToDate(v) : v;
+                    d = new Date(v + '  GMT+0');
+                }
+
+                // if no date is defined
+                if (! Helpers.isValidDate(d)) {
+                    d = new Date();
+                }
+            }
+
+            // Update the internal calendar date
+            setDate(d, true);
+            // Update the view
+            reloadView();
+        }
+
+        const getDate = function() {
+            let v = [ self.cursor.y, self.cursor.m, self.cursor.d, self.hour, self.minute ];
+            let d = new Date(Date.UTC(...v));
+            // Update the headers of the calendar
+            if (self.time) {
+                return d.toISOString().substring(0, 19).replace('T', ' ');
+            } else {
+                return d.toISOString().substring(0, 10);
+            }
+        }
+
+        const setDate = function(d, update) {
+            if (Array.isArray(d)) {
+                d = new Date(Date.UTC(...d));
+            } else if (typeof(d) === 'string') {
+                d = new Date(d);
+            }
+
+            // Update the date
+            let value = d.toISOString().substring(0,10).split('-');
+            let month = Helpers.months[parseInt(value[1])-1];
+            let year = parseInt(value[0]);
+
+            if (self.month !== month) {
+                self.month = month;
+            }
+            if (self.year !== year) {
+                self.year = year;
+            }
+
+            // Update the time
+            let time = d.toISOString().substring(11,19).split(':');
+            let hour = parseInt(time[0]);
+            let minute = parseInt(time[1]);
+
+            if (self.hour !== hour) {
+                self.hour = hour;
+            }
+            if (self.minute !== minute) {
+                self.minute = minute;
+            }
+
+            // Update internal date
+            date = d;
+
+            // Update cursor information
+            if (update) {
+                updateCursor();
+            }
+        }
+
+        const updateCursor = function() {
+            self.cursor.y = date.getUTCFullYear();
+            self.cursor.m = date.getUTCMonth();
+            self.cursor.d = date.getUTCDate();
+        }
+
+        const resetCursor = function() {
+            // Remove selection from the current object
+            let current = self.cursor.current;
+            // Current item
+            if (typeof current !== 'undefined') {
+                current.selected = false;
+            }
+        }
+
+        const setCursor = function(s) {
+            // Reset current visual cursor
+            resetCursor();
+            // Update cursor based on the object position
+            if (s) {
+                // Update current
+                self.cursor.current = s;
+                // Update selected property
+                s.selected = true;
+            }
+
+            updateCursor();
+
+            // Update range
+            if (isTrue(self.range)) {
+                updateRange(s)
+            }
+
+            Dispatch.call(self, self.onupdate, 'update', {
+                instance: self,
+                value: date.toISOString(),
+            });
+        }
+
+        const select = function(e, s) {
+            if (self.disabled === true) {
+                return;
+            }
+            // Get new date content
+            let d = updateDate(s.value, getPosition());
+            // New date
+            setDate(new Date(Date.UTC(...d)))
+            // Based where was the click
+            if (self.view !== 'days') {
+                // Back to the days
+                self.view = 'days';
+            } else if (! s.disabled) {
+                if (isTrue(self.range)) {
+                    // Start a new range
+                    if (self.rangeValues && (self.rangeValues[0] >= s.number || self.rangeValues[1])) {
+                        destroyRange();
+                    }
+                    // Range
+                    s.range = true;
+                    // Update range
+                    if (! self.rangeValues) {
+                        s.start = true;
+                        self.rangeValues = [s.number, null];
+                    } else {
+                        s.end = true;
+                        self.rangeValues[1] = s.number;
+                    }
+                    setCursor(s);
+                } else {
+                    setCursor(s);
+
+                    update(e);
+                }
+            }
+        }
+
+        // Update Calendar
+        const update = function(e) {
+            self.setValue(getValue());
+
+            if (! (e && e.type === 'click' && e.target.tagName === 'DIV' && self.time === true)) {
+                self.close({ origin: 'button' });
+            }
+        }
+
+        const reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        const updateDate = function(v, position) {
+            // Current internal date
+            let value = [date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), self.hour, self.minute, 0];
+            // Update internal date
+            value[position] = v;
+            // Return new value
+            return value;
+        }
+
+        const move = function(direction) {
+            // Reset visual cursor
+            resetCursor();
+
+            // Value
+            let value;
+
+            // Update the new internal date
+            if (self.view === 'days') {
+                // Select the new internal date
+                value = updateDate(date.getUTCMonth()+direction, 1);
+            } else if (self.view === 'months') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+direction, 0);
+            } else if (self.view === 'years') {
+                // Select the new internal date
+                value = updateDate(date.getUTCFullYear()+(direction*16), 0);
+            }
+
+            // Update view
+            setDate(value);
+
+            // Reload content of the view
+            reloadView();
+        }
+
+        const getJump = function(e) {
+            if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+                return self.view === 'days' ? 7 : 4;
+            }
+
+            return 1;
+        }
+
+        const prev = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) - getJump(e);
+                if (position < 0) {
+                    // Next month
+                    move(-1);
+                    // New position
+                    position = total + position;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(-1);
+            }
+        }
+
+        const next = function(e) {
+            if (e && e.type === 'keydown') {
+                // Current index
+                let total = self.options.length;
+                let position = self.options.indexOf(self.cursor.current) + getJump(e);
+                if (position >= total) {
+                    // Next month
+                    move(1);
+                    // New position
+                    position = position - total;
+                }
+                // Update cursor
+                setCursor(self.options[position])
+            } else {
+                move(1);
+            }
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const updateRange = function(s) {
+            if (self.range && self.view === 'days' && self.rangeValues) {
+                // Creating a range
+                if (self.rangeValues[0] && ! self.rangeValues[1]) {
+                    let number = s.number;
+                    if (number) {
+                        // Update range properties
+                        for (let i = 0; i < self.options.length; i++) {
+                            let v = self.options[i].number;
+                            // Update property condition
+                            self.options[i].range = v >= self.rangeValues[0] && v <= number;
+                            self.options[i].last = (v === number);
+                        }
+                    }
+                }
+            }
+        }
+
+        const destroyRange = function() {
+            if (self.range) {
+                for (let i = 0; i < self.options.length; i++) {
+                    if (self.options[i].range !== false) {
+                        self.options[i].range = false;
+                    }
+                    if (self.options[i].start !== false) {
+                        self.options[i].start = false;
+                    }
+                    if (self.options[i].end !== false) {
+                        self.options[i].end = false;
+                    }
+                    if (self.options[i].last !== false) {
+                        self.options[i].last = false;
+                    }
+                }
+                self.rangeValues = null;
+            }
+        }
+
+        const render = function(v) {
+            if (v) {
+                if (! Array.isArray(v)) {
+                    v = v.toString().split(',');
+                }
+
+                v = v.map(entry => {
+                    return Mask.render(entry, self.format || 'YYYY-MM-DD');
+                }).join(',');
+            }
+            return v;
+        }
+
+        const normalize = function(v) {
+            if (v instanceof Date) {
+                v = Helpers.dateToString ? Helpers.dateToString(v) : v.toISOString().substring(0, 10);
+            }
+            if (! Array.isArray(v)) {
+                v = v.toString().split(',');
+            }
+
+            return v.map(item => {
+                if (item instanceof Date) {
+                    return Helpers.dateToString ? Helpers.dateToString(item) : item.toISOString().substring(0, 10);
+                }
+                if (Number(item) == item) {
+                    return Helpers.numToDate(item);
+                } else {
+                    if (Helpers.isValidDateFormat(item)) {
+                        return item;
+                    } else if (self.format) {
+                        let tmp = Mask.extractDateFromString(item, self.format);
+                        if (tmp) {
+                            return tmp;
+                        }
+                    }
+                }
+            })
+        }
+
+        const extractValueFromInput = function() {
+            let input = getInput();
+            if (input) {
+                let v;
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    v = input.value;
+                } else if (input.isContentEditable) {
+                    v = input.textContent;
+                }
+                if (v) {
+                    return normalize(v).join(',');
+                }
+                return v;
+            }
+        }
+
+        const onopen = function() {
+            let isEditable = false;
+            let value = self.value;
+
+            let input = getInput();
+            if (input) {
+                if (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') {
+                    isEditable = !input.hasAttribute('readonly') && !input.hasAttribute('disabled');
+                } else if (input.isContentEditable) {
+                    isEditable = true;
+                }
+
+                let ret = extractValueFromInput();
+                if (ret && ret !== value) {
+                    value = ret;
+                }
+            }
+
+            if (! isEditable) {
+                self.content.focus();
+            }
+
+            // Update the internal date values
+            setValue(value);
+
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Cancel range events
+            destroyRange();
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const dispatchOnChangeEvent = function() {
+            // Destroy range
+            destroyRange();
+            // Update the internal controllers
+            setValue(self.value);
+            // Events
+            Dispatch.call(self, change, 'change', {
+                instance: self,
+                value: self.value,
+            });
+            // Update input
+            let input = getInput();
+            if (input) {
+                // Update input value
+                input.value = render(self.value);
+                // Dispatch event
+                Dispatch.call(input, null, 'change', {
                     instance: self,
                     value: self.value,
                 });
             }
+        }
 
-            state();
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-calendar-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (! self.isClosed()) {
+                            self.content.focus();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update(e);
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            },
+            input: (e) => {
+                let input = e.target;
+                if (input.classList.contains('lm-calendar-input')) {
+                    if (! isTrue(self.range)) {
+                        // TODO: process with range
+                        // Apply mask
+                        if (self.format) {
+                            Mask.oninput(e, self.format);
+                        }
+                        let value = null;
+                        // Content
+                        let content = (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA') ? input.value : input.textContent;
+                        // Check if that is a valid date
+                        if (Helpers.isValidDateFormat(content)) {
+                            value = content;
+                        } else if (self.format) {
+                            let tmp = Mask.extractDateFromString(content, self.format);
+                            if (tmp) {
+                                value = tmp;
+                            }
+                        }
+                        // Change the calendar view
+                        if (value) {
+                            setValue(value);
+                        }
+                    }
+                }
+            }
+        }
+
+        // Onload
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    width: 300,
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            let ret;
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-calendar-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('input', events.input);
+                    input.addEventListener('keydown', events.keydown);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = render(self.value);
+                    } else {
+                        let value = extractValueFromInput();
+                        if (value && value !== self.value) {
+                            ret = value;
+                        }
+                    }
+                }
+            }
+
+            // Update the internal date values
+            if (ret) {
+                self.setValue(ret);
+            } else {
+                setValue(self.value);
+            }
+
+            // Reload view
+            reloadView(true);
+
+            /**
+             * Handler keyboard
+             * @param {object} e - event
+             */
+            self.el.addEventListener('keydown', function(e) {
+                let prevent = false;
+                if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    prev(e);
+                    prevent = true;
+                } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                    if (e.target !== self.content) {
+                        self.content.focus();
+                    }
+                    next(e);
+                    prevent = true;
+                } else if (e.key === 'Enter') {
+                    if (e.target === self.content) {
+                        // Item
+                        if (self.cursor.current) {
+                            // Select
+                            select(e, self.cursor.current);
+                            prevent = true;
+                        }
+                    }
+                } else if (e.key === 'Escape') {
+                    if (! self.isClosed()) {
+                        self.close({ origin: 'escape' });
+                        prevent = true;
+                    }
+                }
+
+                if (prevent) {
+                    e.preventDefault();
+                    e.stopImmediatePropagation();
+                }
+            });
+
+            /**
+             * Mouse wheel handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('wheel', function(e){
+                if (self.wheel !== false) {
+                    if (e.deltaY < 0) {
+                        prev(e);
+                    } else {
+                        next(e);
+                    }
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            /**
+             * Range handler
+             * @param {object} e - mouse event
+             */
+            self.content.addEventListener('mouseover', function(e){
+                let parent = e.target.parentNode
+                if (parent === self.content) {
+                    let index = Array.prototype.indexOf.call(parent.children, e.target);
+                    updateRange(self.options[index]);
+                }
+            });
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        onchange((prop) => {
+            if (prop === 'view') {
+                reloadView(true);
+            } else if (prop === 'startingDay') {
+                if (typeof self.startingDay !== 'number') {
+                    self.startingDay = Number(self.startingDay) || 0;
+                }
+                self.weekdays = getWeekdays(self.startingDay);
+            } else if (prop === 'value') {
+                dispatchOnChangeEvent();
+            }
         })
 
-        onload(state);
+        // Tracking variables
+        track('value');
 
-        return render => render`<label class="lm-switch" position="{{self.position}}" data-color="{{self.color}}">
-            <input type="checkbox" name="{{self.name}}" disabled="{{self.disabled}}" checked="{{self.checked}}" :bind="self.value" /> <span>{{self.text}}</span>
-        </label>`
+        // Public methods
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (self.type === 'auto') {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                self.modal.open();
+            }
+        }
+
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.setValue = function(v) {
+            // Update value
+            if (v) {
+                let ret = normalize(v);
+                if (isTrue(self.numeric)) {
+                    ret = ret.map(entry => {
+                        return Helpers.dateToNum(entry);
+                    })
+                }
+
+                if (! Array.isArray(v)) {
+                    ret = ret.join(',');
+                }
+
+                if (ret == Number(ret)) {
+                    ret = Number(ret);
+                }
+
+                v = ret;
+            }
+
+            // Events
+            if (v !== self.value) {
+                self.value = v;
+            }
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        self.update = update;
+        self.next = next;
+        self.prev = prev;
+        self.reset = reset;
+        self.setView = setView;
+        self.helpers = Helpers;
+        self.helpers.getDate = Mask.getDate;
+
+        return render => render`<div class="lm-calendar" data-grid="{{self.grid}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" data-starting-day="{{self.startingDay}}">
+            <div class="lm-calendar-options">
+                <button type="button" onclick="${reset}">${T('Reset')}</button>
+                <button type="button" onclick="${update}">${T('Done')}</button>
+            </div>
+            <div class="lm-calendar-container" data-view="{{self.view}}">
+                <div class="lm-calendar-header">
+                    <div>
+                        <div class="lm-calendar-labels"><button type="button" onclick="${setView}" data-view="months">{{self.month}}</button> <button type="button" onclick="${setView}" data-view="years">{{self.year}}</button></div> 
+                        <div class="lm-calendar-navigation">
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${prev}" tabindex="0">expand_less</button>
+                            <button type="button" class="lm-calendar-icon lm-ripple" onclick="${next}" tabindex="0">expand_more</button>
+                        </div>
+                    </div>
+                    <div class="lm-calendar-weekdays" :loop="self.weekdays"><div>{{self.title}}</div></div>
+                </div>
+                <div class="lm-calendar-content" :loop="self.options" tabindex="0" :ref="self.content">
+                    <div data-start="{{self.start}}" data-end="{{self.end}}" data-last="{{self.last}}" data-range="{{self.range}}" data-event="{{self.data}}" data-grey="{{self.grey}}" data-bold="{{self.bold}}" data-selected="{{self.selected}}" data-disabled="{{self.disabled}}" onclick="${select}">{{self.title}}</div>
+                </div>
+                <div class="lm-calendar-footer" data-visible="{{self.footer}}">
+                    <div class="lm-calendar-time" data-visible="{{self.time}}"><select :loop="${hours}" :bind="self.hour" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select>:<select :loop="${minutes}" :bind="self.minute" class="lm-calendar-control"><option value="{{self.value}}">{{self.title}}</option></select></div>
+                    <div class="lm-calendar-update"><input type="button" value="${T('Update')}" onclick="${update}" class="lm-ripple lm-input"></div>
+                </div>
+            </div>
+        </div>`
     }
 
-    // Create LemonadeJS references
-    lemonade.setComponents({ Switch: Switch });
-    // Create web-component
-    lemonade.createWebComponent('switch', Switch);
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Calendar: Calendar });
+    // Register the web component
+    lemonade.createWebComponent('calendar', Calendar);
 
     return function (root, options) {
         if (typeof (root) === 'object') {
-            lemonade.render(Switch, root, options)
+            lemonade.render(Calendar, root, options)
             return options;
         } else {
-            return Switch.call(this, root);
+            return Calendar.call(this, root)
         }
     }
-
 })));
 
 /***/ }),
 
-/***/ 519:
+/***/ 541:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+if (! Tabs && "function" === 'function') {
+    var Tabs = __webpack_require__(560);
 }
 
 ; (function (global, factory) {
@@ -8148,442 +5280,439 @@ if (! lemonade && "function" === 'function') {
     0;
 }(this, (function () {
 
-    class CustomEvents extends Event {
-        constructor(type, props, options) {
-            super(type, {
-                bubbles: true,
-                composed: true,
-                ...options,
-            });
-
-            if (props) {
-                for (const key in props) {
-                    // Avoid assigning if property already exists anywhere on `this`
-                    if (! (key in this)) {
-                        this[key] = props[key];
-                    }
-                }
-            }
-        }
-    }
-
     // Dispatcher
     const Dispatch = function(method, type, options) {
         // Try calling the method directly if provided
         if (typeof method === 'function') {
             let a = Object.values(options);
-            return method(...a);
+            method(...a);
         } else if (this.tagName) {
-            this.dispatchEvent(new CustomEvents(type, options));
-        }
-    }
-
-    const extract = function(root, self) {
-        if (! Array.isArray(self.data)) {
-            self.data = [];
-        }
-
-        if (root.tagName) {
-            for (let i = 0; i < root.children.length; i++) {
-                self.data.push({
-                    el: root.children[i],
-                })
-            }
-        } else {
-            root.forEach((child) => {
-                self.data.push({
-                    el: child.element,
-                })
+            // Fallback: dispatch a custom event
+            const event = new CustomEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                detail: options,
             });
+            this.dispatchEvent(event);
         }
     }
 
-    const sorting = function(el, options) {
-        const obj = {};
+    const defaultPalette =  [
+        ["#ffebee", "#fce4ec", "#f3e5f5", "#e8eaf6", "#e3f2fd", "#e0f7fa", "#e0f2f1", "#e8f5e9", "#f1f8e9", "#f9fbe7", "#fffde7", "#fff8e1", "#fff3e0", "#fbe9e7", "#efebe9", "#fafafa", "#eceff1"],
+        ["#ffcdd2", "#f8bbd0", "#e1bee7", "#c5cae9", "#bbdefb", "#b2ebf2", "#b2dfdb", "#c8e6c9", "#dcedc8", "#f0f4c3", "#fff9c4", "#ffecb3", "#ffe0b2", "#ffccbc", "#d7ccc8", "#f5f5f5", "#cfd8dc"],
+        ["#ef9a9a", "#f48fb1", "#ce93d8", "#9fa8da", "#90caf9", "#80deea", "#80cbc4", "#a5d6a7", "#c5e1a5", "#e6ee9c", "#fff59d", "#ffe082", "#ffcc80", "#ffab91", "#bcaaa4", "#eeeeee", "#b0bec5"],
+        ["#e57373", "#f06292", "#ba68c8", "#7986cb", "#64b5f6", "#4dd0e1", "#4db6ac", "#81c784", "#aed581", "#dce775", "#fff176", "#ffd54f", "#ffb74d", "#ff8a65", "#a1887f", "#e0e0e0", "#90a4ae"],
+        ["#ef5350", "#ec407a", "#ab47bc", "#5c6bc0", "#42a5f5", "#26c6da", "#26a69a", "#66bb6a", "#9ccc65", "#d4e157", "#ffee58", "#ffca28", "#ffa726", "#ff7043", "#8d6e63", "#bdbdbd", "#78909c"],
+        ["#f44336", "#e91e63", "#9c27b0", "#3f51b5", "#2196f3", "#00bcd4", "#009688", "#4caf50", "#8bc34a", "#cddc39", "#ffeb3b", "#ffc107", "#ff9800", "#ff5722", "#795548", "#9e9e9e", "#607d8b"],
+        ["#e53935", "#d81b60", "#8e24aa", "#3949ab", "#1e88e5", "#00acc1", "#00897b", "#43a047", "#7cb342", "#c0ca33", "#fdd835", "#ffb300", "#fb8c00", "#f4511e", "#6d4c41", "#757575", "#546e7a"],
+        ["#d32f2f", "#c2185b", "#7b1fa2", "#303f9f", "#1976d2", "#0097a7", "#00796b", "#388e3c", "#689f38", "#afb42b", "#fbc02d", "#ffa000", "#f57c00", "#e64a19", "#5d4037", "#616161", "#455a64"],
+        ["#c62828", "#ad1457", "#6a1b9a", "#283593", "#1565c0", "#00838f", "#00695c", "#2e7d32", "#558b2f", "#9e9d24", "#f9a825", "#ff8f00", "#ef6c00", "#d84315", "#4e342e", "#424242", "#37474f"],
+        ["#b71c1c", "#880e4f", "#4a148c", "#1a237e", "#0d47a1", "#006064", "#004d40", "#1b5e20", "#33691e", "#827717", "#f57f17", "#ff6f00", "#e65100", "#bf360c", "#3e2723", "#212121", "#263238"],
+    ]
 
-        let dragElement = null;
+    const Grid = function(children, { onchange }) {
+        const self = this;
 
-        el.addEventListener('dragstart', function(e) {
-            let target = e.target;
-            if (target.nodeType === 3) {
-                if (target.parentNode.getAttribute('draggable') === 'true') {
-                    target = target.parentNode;
-                } else {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    return;
+        if (! self.palette) {
+            self.palette = defaultPalette;
+        }
+
+        const select = (event) => {
+            if (event.target.tagName === 'TD') {
+                let color = event.target.getAttribute('data-value')
+
+                // Remove current selected mark
+                let selected = self.el.querySelector('.lm-color-selected');
+                if (selected) {
+                    selected.classList.remove('lm-color-selected');
+                }
+
+                // Mark cell as selected
+                if (color) {
+                    event.target.classList.add('lm-color-selected');
+                    self.set(color);
                 }
             }
+        }
 
-            if (target.getAttribute('draggable') === 'true') {
-                let position = Array.prototype.indexOf.call(target.parentNode.children, target);
-                dragElement = {
-                    element: target,
-                    o: position,
-                    d: position
+        self.constructRows = function (e) {
+            let tbody = [];
+            e.textContent = '';
+            for (let j = 0; j < self.palette.length; j++) {
+                let tr = document.createElement('tr');
+                e.appendChild(tr);
+
+                for (let i = 0; i < self.palette[j].length; i++) {
+                    let color = self.palette[j][i];
+                    let td = document.createElement('td');
+                    td.setAttribute('data-value', color);
+                    td.style.backgroundColor = color;
+                    tr.appendChild(td);
                 }
-                target.style.opacity = '0.25';
-                e.dataTransfer.setDragImage(target,0,0);
+            }
+        }
+
+        onchange(property => {
+            if (property === 'palette') {
+                self.constructRows()
             }
         });
 
-        el.addEventListener('dragover', function(e) {
-            e.preventDefault();
-
-            if (dragElement && getElement(e.target) && e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
-                let element = e.target.clientWidth / 2 > e.offsetX ? e.target : e.target.nextSibling;
-                e.target.parentNode.insertBefore(dragElement.element, element);
-                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
-            }
-        });
-
-        el.addEventListener('dragleave', function(e) {
-            e.preventDefault();
-        });
-
-        el.addEventListener('dragend', function(e) {
-            e.preventDefault();
-
-            if (dragElement) {
-                let element = dragElement.o < dragElement.d ? e.target.parentNode.children[dragElement.o] : e.target.parentNode.children[dragElement.o].nextSibling
-                e.target.parentNode.insertBefore(dragElement.element, element);
-                dragElement.element.style.opacity = '';
-                dragElement = null;
-            }
-        });
-
-        el.addEventListener('drop', function(e) {
-            e.preventDefault();
-
-            if (dragElement) {
-                if (dragElement.o !== dragElement.d) {
-                    if (typeof(options.ondrop) == 'function') {
-                        options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
-                    }
-                }
-
-                dragElement.element.style.opacity = '';
-                dragElement = null;
-            }
-        });
-
-        const getElement = function(element) {
-            var sorting = false;
-
-            function path (element) {
-                if (element === el) {
-                    sorting = true;
-                }
-
-                if (! sorting) {
-                    path(element.parentNode);
-                }
-            }
-
-            path(element);
-
-            return sorting;
-        }
-
-        for (let i = 0; i < el.children.length; i++) {
-            if (! el.children[i].hasAttribute('draggable')) {
-                el.children[i].setAttribute('draggable', 'true');
-            }
-        }
-
-        return el;
-    }
-
-    const Tabs = function(children, { onchange, onload }) {
-        let self = this
-
-        // Event
-        let change = self.onchange;
-        self.onchange = null;
-
-        // Add new tab
-        let createButton;
-
-        // Get the references from the root web component
-        let root;
-        let template = '';
-        if (this.tagName) {
-            root = this;
-        } else {
-            // References from LemonadeJS
-            if (typeof(children) === 'string') {
-                // Version 4
-                template = children;
-            } else if (children && children.length) {
-                // Version 5
-                root = children;
-            }
-        }
-
-        if (root) {
-            extract(root, self);
-        }
-
-        // Process the data
-        if (self.data) {
-            for (let i = 0; i < self.data.length; i++) {
-                if (! self.data[i].el) {
-                    // Create element
-                    self.data[i].el = document.createElement('div');
-                    // Create from content
-                    if (self.data[i].content) {
-                        self.data[i].el.innerHTML = self.data[i].content;
-                    }
-                }
-            }
-        }
-
-        let props = ['title', 'selected', 'data-icon'];
-
-        const select = function(index) {
-            // Make sure the index is a number
-            index = parseInt(index);
-            // Do not select tabs that does not exist
-            if (index >= 0 && index < self.data.length) {
-                for (let i = 0; i < self.root.children.length; i++) {
-                    self.headers.children[i].classList.remove('selected');
-                    self.root.children[i].classList.remove('selected');
-                }
-                self.headers.children[index].classList.add('selected');
-                self.root.children[index].classList.add('selected');
-            }
-        }
-
-        const init = function(selected) {
-            let tabs = [];
-
-            for (let i = 0; i < self.data.length; i++) {
-                // Extract meta information from the DOM
-                if (props) {
-                    props.forEach((prop) => {
-                        let short = prop.replace('data-', '');
-                        if (! self.data[i][short]) {
-                            let ret = self.data[i].el.getAttribute(prop);
-                            if (ret != null) {
-                                self.data[i][short] = ret;
-                            }
-                        }
-                    });
-                }
-                // Create tabs object
-                tabs[i] = {
-                    title: self.data[i].title,
-                }
-                // Which one is selected by default
-                if (self.data[i].selected) {
-                    selected = i;
-                }
-                if (self.data[i].icon) {
-                    tabs[i].icon = self.data[i].icon;
-                }
-
-                self.root.appendChild(self.data[i].el);
-            }
-
-            // Create headers
-            self.tabs = tabs;
-
-            // Default selected
-            if (typeof(selected) !== 'undefined') {
-                self.selected = selected;
-            }
-
-            if (props) {
-                // Add create new tab button
-                if (createButton) {
-                    self.headers.appendChild(createButton);
-                }
-                // Add sorting
-                sorting(self.el.firstChild.firstChild, {
-                    ondrop: (el, fromIndex, toIndex) => {
-                        // Remove the item from its original position
-                        const [movedItem] = self.data.splice(fromIndex, 1);
-                        // Insert it into the new position
-                        self.data.splice(toIndex, 0, movedItem);
-                        // Make sure correct order
-                        for (let i = 0; i < self.data.length; i++) {
-                            self.root.appendChild(self.data[i].el);
-                        }
-                        // Select new position
-                        self.selected = toIndex;
-                        // Dispatch event
-                        Dispatch.call(self, self.onchangeposition, 'changeposition', {
-                            instance: self,
-                            fromIndex: fromIndex,
-                            toIndex: toIndex,
-                        });
-                    }
-                })
-            }
-
-            props = null;
-        }
-
-        const create = function() {
-            // Create a new item
-            self.create({ title: 'Untitled' }, null, true);
-        }
-
-        const open = function(e) {
-            if (e.target.tagName === 'LI') {
-                // Avoid select something already selected
-                let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
-                if (index !== self.selected) {
-                    self.selected = index;
-                }
-            }
-        }
-
-        const keydown = function(e, s) {
-            let index = null;
-            if (e.key === 'Enter') {
-                self.click(e, s);
-            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
-                index = self.selected - 1;
-                if (index < 0) {
-                    index = 0;
-                }
-            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
-                index = self.selected + 1;
-                if (index > self.tabs.length-1) {
-                    index = self.tabs.length-1;
-                }
-            }
-
-            // Make selection
-            if (index !== null) {
-                self.tabs[index].el.focus();
-            }
-        }
-
-        onload(() => {
-            if (template) {
-                extract(self.root, self);
-            }
-
-            init(self.selected || 0);
-        })
-
-        onchange((property) => {
-            if (property === 'selected') {
-                select(self.selected);
-
-                Dispatch.call(self, self.onopen, 'open', {
-                    instance: self,
-                    selected: self.selected,
-                });
-
-                Dispatch.call(self, change, 'change', {
-                    instance: self,
-                    value: self.selected,
-                });
-            }
-        })
-
-        self.open = function (index) {
-            self.selected = index;
-        }
-
-        self.create = function(item, position, select) {
-            // Create element
-            if (typeof(item) !== 'object') {
-                console.error('Item must be an object');
-            } else {
-
-                let ret = Dispatch.call(self, self.onbeforecreate, 'beforecreate', {
-                    instance: self,
-                    item: item,
-                    position: position,
-                });
-
-                if (ret === false) {
-                    return false;
-                }
-
-                // Create DOM
-                item.el = document.createElement('div');
-                // Create from content
-                if (item.content) {
-                    item.el.innerHTML = item.content;
-                }
-
-                // Add the new item in the end
-                if (typeof(position) === 'undefined' || position === null) {
-                    // Mew item
-                    position = self.data.length;
-                    // Add in the end
-                    self.data.push(item);
-                } else {
-                    self.data.splice(position, 0, item);
-                }
-                // New position
-                if (select) {
-                    // Refresh
-                    init(self.data.indexOf(item));
-                } else {
-                    init(self.selected);
-                }
-
-                self.tabs.forEach(item => {
-                    item.el.setAttribute('draggable', 'true');
-                })
-
-                Dispatch.call(self, self.oncreate, 'create', {
-                    instance: self,
-                    item: item,
-                    position: position,
-                });
-            }
-        }
-
-        self.allowCreate = !! self.allowCreate;
-
-        return render => render`<div class="lm-tabs" data-position="{{self.position}}" data-round="{{self.round}}">
-            <div role="tabs" class="lm-tabs-headers">
-                <ul :ref="self.headers" :loop="self.tabs" :selected="self.selected" onclick="${open}" onkeydown="${keydown}" onfocusin="${open}"><li class="lm-tab" tabindex="0" role="tab" data-icon="{{self.icon}}">{{self.title}}</li></ul>
-                <div data-visible="{{self.allowCreate}}" class="lm-tabs-insert-button" role="insert-tab" onclick="${create}">add</div>
-            </div>
-            <div :ref="self.root" class="lm-tabs-content">${template}</div>
+        return render => render`<div class="lm-color-grid" :palette="self.palette">
+            <table cellpadding="7" cellspacing="0" onclick="${select}" :ref="self.table" :ready="self.constructRows"></table>
         </div>`
     }
 
-    lemonade.setComponents({ Tabs: Tabs });
+    const Spectrum = function(children, { onload }) {
+        let self = this;
+        let context = null;
 
-    lemonade.createWebComponent('tabs', Tabs);
+        let decToHex = function(num) {
+            let hex = num.toString(16);
+            return hex.length === 1 ? "0" + hex : hex;
+        }
+        let rgbToHex = function(r, g, b) {
+            return "#" + decToHex(r) + decToHex(g) + decToHex(b);
+        }
+
+        onload(() => {
+            context = self.canvas.getContext("2d", { willReadFrequently: true });
+            draw();
+        })
+
+        // Drsaw
+        const draw = function() {
+            let g = context.createLinearGradient(0, 0, self.canvas.width, 0);
+            // Create color gradient
+            g.addColorStop(0,    "rgb(255,0,0)");
+            g.addColorStop(0.15, "rgb(255,0,255)");
+            g.addColorStop(0.33, "rgb(0,0,255)");
+            g.addColorStop(0.49, "rgb(0,255,255)");
+            g.addColorStop(0.67, "rgb(0,255,0)");
+            g.addColorStop(0.84, "rgb(255,255,0)");
+            g.addColorStop(1,    "rgb(255,0,0)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+            g = context.createLinearGradient(0, 0, 0, self.canvas.height);
+            g.addColorStop(0,   "rgba(255,255,255,1)");
+            g.addColorStop(0.5, "rgba(255,255,255,0)");
+            g.addColorStop(0.5, "rgba(0,0,0,0)");
+            g.addColorStop(1,   "rgba(0,0,0,1)");
+            context.fillStyle = g;
+            context.fillRect(0, 0, self.canvas.width, self.canvas.height);
+        }
+
+        // Moves the marquee point to the specified position
+        const update = (e) => {
+            let x;
+            let y;
+            let buttons = 1;
+            if (e.type === 'touchmove') {
+                x = e.changedTouches[0].clientX;
+                y = e.changedTouches[0].clientY;
+            } else {
+                buttons = e.buttons;
+                x = e.clientX;
+                y = e.clientY;
+            }
+
+            if (buttons === 1) {
+                let rect = self.el.getBoundingClientRect();
+                let left = x - rect.left;
+                let top = y - rect.top;
+                // Get the color in this pixel
+                let pixel = context.getImageData(left, top, 1, 1).data;
+                // Position pointer
+                self.point.style.left = left + 'px';
+                self.point.style.top = top + 'px';
+                // Return color
+                self.set(rgbToHex(pixel[0], pixel[1], pixel[2]));
+            }
+        }
+
+        return render => render`<div class="lm-color-hsl">
+            <canvas width="240" height="140" :ref="self.canvas" onmousedown="${update}" onmousemove="${update}" ontouchmove="${update}"></canvas>
+            <div class="lm-color-point" :ref="self.point"></div>
+        </div>`;
+    }
+
+    const Color = function(children, { onchange, onload }) {
+        let self = this;
+        let value = null;
+
+        const change = self.onchange;
+        self.onchange = null;
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        const applyValue = function(v) {
+            if (self.value !== v) {
+                self.value = v;
+            }
+        }
+
+        const onopen = function(e) {
+            self.open();
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function(modal, origin) {
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                origin: origin,
+            });
+        }
+
+        const update = function() {
+            applyValue(value);
+            self.close({ origin: 'button' });
+        }
+
+        const getInput = function() {
+            let input = self.input;
+            if (input && input.current) {
+                input = input.current;
+            } else {
+                if (self.input) {
+                    input = self.input;
+                }
+            }
+
+            return input;
+        }
+
+        const events = {
+            focusin: (e) => {
+                if (self.modal && self.isClosed()) {
+                    self.open();
+                }
+            },
+            focusout: (e) => {
+                if (self.modal && ! self.isClosed()) {
+                    if (! (e.relatedTarget && self.modal.el.contains(e.relatedTarget))) {
+                        self.modal.close({ origin: 'focusout' });
+                    }
+                }
+            },
+            click: (e) => {
+                if (e.target.classList.contains('lm-color-input')) {
+                    self.open();
+                }
+            },
+            keydown: (e) => {
+                if (self.modal) {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {
+                        if (self.isClosed()) {
+                            self.open();
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (! self.isClosed()) {
+                            update();
+                        } else {
+                            self.open();
+                        }
+                    } else if (e.code === 'Escape') {
+                        if (! self.isClosed()) {
+                            self.modal.close({origin: 'escape'});
+                        }
+                    }
+                }
+            }
+        }
+
+        const set = function(v) {
+            value = v;
+            // Close
+            if (self.closeOnChange === true) {
+                // Update value
+                self.setValue(v);
+                // Close modal
+                self.close({ origin: 'select' });
+            }
+        }
+
+        self.open = function(e) {
+            if (self.modal) {
+                if (autoType) {
+                    self.type = window.innerWidth > 640 ? self.type = 'default' : 'picker';
+                }
+                value = self.value;
+                // Table
+                let table = self.grid.table;
+                // Remove any selection
+                let o = table.querySelector('.lm-color-selected');
+                if (o) {
+                    o.classList.remove('lm-color-selected');
+                }
+                // Selected
+                o = table.querySelector('[data-value="'+self.value+'"]');
+                if (o) {
+                    o.classList.add('lm-color-selected');
+                }
+                // Open modal
+                self.modal.open();
+            }
+        }
+
+        /**
+         * Close the modal
+         */
+        self.close = function(options) {
+            if (self.modal) {
+                if (options && options.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.reset = function() {
+            self.setValue('');
+            self.close({ origin: 'button' });
+        }
+
+        self.setValue = function(v) {
+            self.value = value = v;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        onchange(prop => {
+            if (prop === 'value') {
+                let input = getInput();
+                if (input) {
+                    input.value = self.value;
+                    if (self.value) {
+                        input.style.color = self.value;
+                    } else {
+                        input.style.color = '';
+                    }
+                }
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+        });
+
+        // Input
+        if (self.input === 'auto') {
+            self.input = document.createElement('input');
+            self.input.type = 'text';
+        }
+
+        onload(() => {
+            if (self.type !== "inline") {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    onopen: onopen,
+                    onclose: onclose,
+                    focus: false,
+                    position: 'absolute',
+                    'auto-close': false,
+                    'auto-adjust': true,
+                };
+                // Generate modal
+                Modal(self.el, self.modal);
+            }
+
+            // Create input controls
+            if (self.input && self.initInput !== false) {
+                if (! self.input.parentNode) {
+                    self.el.parentNode.insertBefore(self.input, self.el);
+                }
+
+                let input = getInput();
+                if (input && input.tagName) {
+                    input.classList.add('lm-input');
+                    input.classList.add('lm-color-input');
+                    input.addEventListener('click', events.click);
+                    input.addEventListener('focusin', events.focusin);
+                    input.addEventListener('focusout', events.focusout);
+                    if (self.placeholder) {
+                        input.setAttribute('placeholder', self.placeholder);
+                    }
+                    if (self.onChange) {
+                        input.addEventListener('change', self.onChange);
+                    }
+
+                    // Retrieve the value
+                    if (self.value) {
+                        input.value = self.value;
+                    } else if (input.value && input.value !== self.value) {
+                        self.value = input.value;
+                    }
+                }
+            }
+
+            // Create event for focus out
+            self.el.addEventListener("focusout", (e) => {
+                let input = getInput();
+                if (e.relatedTarget !== input && ! self.el.contains(e.relatedTarget)) {
+                    self.close({ origin: 'focusout' });
+                }
+            });
+        });
+
+        return render => render`<div class="lm-color" :value="self.value">
+            <div class="lm-color-options">
+                <button type="button" onclick="${self.reset}">Reset</button>
+                <button type="button" onclick="${update}">Done</button>
+            </div>
+            <lm-tabs selected="0" position="center" :ref="self.tabs">
+                <div title="Grid"><${Grid} :palette="self.palette" :ref="self.grid" :set="${set}" /></div>
+                <div title="Spectrum"><${Spectrum} :ref="self.spectrum" :set="${set}" /></div>
+            </lm-tabs>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Color: Color });
+    // Register the web component
+    lemonade.createWebComponent('color', Color);
 
     return function (root, options) {
         if (typeof (root) === 'object') {
-            if (typeof(options) !== 'object') {
-                options = {};
-            }
-            // Extract DOM references
-            extract(root, options);
-            // Create the modal
-            lemonade.render(Tabs, root, options);
-            // Return self
+            lemonade.render(Color, root, options)
             return options;
         } else {
-            return Tabs.call(this);
+            return Color.call(this, root)
         }
-    };
+    }
 })));
 
 /***/ }),
 
-/***/ 691:
+/***/ 238:
 /***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 if (! lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
+    var lemonade = __webpack_require__(966);
 }
 
 if (! Modal && "function" === 'function') {
-    var Modal = __webpack_require__(124);
+    var Modal = __webpack_require__(72);
 }
 
 ; (function (global, factory) {
@@ -9035,8 +6164,9 @@ if (! Modal && "function" === 'function') {
             }
             // Focus
             self.el.classList.add('lm-menu-focus');
-            // Focus on the contextmenu
-            self.el.focus();
+            // Focus on the contextmenu. preventScroll stops the browser from
+            // scrolling this in-flow element into view, which would jump the page
+            self.el.focus({ preventScroll: true });
         }
 
         self.close = function(level) {
@@ -9074,6 +6204,16 @@ if (! Modal && "function" === 'function') {
                     self.close(0);
                 }
             });
+
+            // Any scroll outside the menu closes it (matches the OS context menu:
+            // the menu refers to the spot that was right-clicked, and scrolling
+            // moves that content away). Capture phase: scroll does not bubble.
+            // Scrolling INSIDE a long menu list keeps it open
+            window.addEventListener("scroll", function(e) {
+                if (! self.isClosed() && ! (e.target instanceof Node && self.el.contains(e.target))) {
+                    self.close(0);
+                }
+            }, true);
 
             // Keyboard event
             self.el.addEventListener("keydown", function(e) {
@@ -9180,298 +6320,3149 @@ if (! Modal && "function" === 'function') {
 
 /***/ }),
 
-/***/ 794:
-/***/ (function(module) {
+/***/ 692:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
 
 /**
- * (c) jSuites Javascript Plugins and Web Components (v4)
- *
- * Website: https://jsuites.net
- * Description: Create amazing web based applications.
- * Plugin: Organogram
- *
- * MIT License
+ * Implement page up and down navigation
+ * Implement color attribute for items
  */
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (!Modal && "function" === 'function') {
+    var Modal = __webpack_require__(72);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            return this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // Default row height
+    let defaultRowHeight = 24;
+
+    // Translations
+    const T = function(t) {
+        if (typeof(document) !== "undefined" && document.dictionary) {
+            return document.dictionary[t] || t;
+        } else {
+            return t;
+        }
+    }
+
+    const isEmpty = function(v) {
+        return v === '' || v === null || v === undefined || (Array.isArray(v) && v.length === 0);
+    }
+
+    /**
+     * Compare two values (arrays, strings, numbers, etc.)
+     * Returns true if both are equal or empty
+     * @param {*} a1
+     * @param {*} a2
+     */
+    const compareValues = function(a1, a2) {
+        if (a1 === a2 || (isEmpty(a1) && isEmpty(a2))) {
+            return true;
+        }
+
+        if (!a1 || !a2) {
+            return false;
+        }
+
+        if (Array.isArray(a1) && Array.isArray(a2)) {
+            if (a1.length !== a2.length) {
+                return false;
+            }
+            for (let i = 0; i < a1.length; i++) {
+                if (a1[i] !== a2[i]) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        return a1 === a2;
+    }
+
+    const lazyLoading = function (self) {
+        /**
+         * Get the position from top of a row by its index
+         * @param item
+         * @returns {number}
+         */
+        const getRowPosition = function (item) {
+            // Position from top
+            let top = 0;
+            if (item) {
+                let items = self.rows;
+                if (items && items.length) {
+                    let index = self.rows.indexOf(item);
+                    // Go through the items
+                    for (let j = 0; j < index; j++) {
+                        top += items[j].height || defaultRowHeight;
+                    }
+                }
+            }
+            return top;
+        }
+
+        const updateScroll = function () {
+            let items = self.rows;
+            if (items) {
+                // Before control
+                let before = true;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Position from top
+                let height = 0;
+                // Size of the adjustment
+                let size = 0;
+                // Go through the items
+                for (let j = 0; j < numOfItems; j++) {
+                    let h = items[j].height || defaultRowHeight;
+                    // Height
+                    height += h;
+                    // Start tracking all items as before
+                    if (items[j] === self.result[0]) {
+                        before = false;
+                    }
+                    // Adjustment
+                    if (before) {
+                        size += h;
+                    }
+                }
+                // Update height
+                scroll.style.height = height + 'px';
+                // Adjust scroll position
+                return size;
+            }
+            return false;
+        }
+
+        const getVisibleRows = function (reset) {
+            let items = self.rows;
+            if (items) {
+                let adjust;
+                // Total of items in the container
+                let numOfItems = items.length;
+                // Get the position from top
+                let y = el.scrollTop;
+                // Get the height
+                let h = null;
+                if (self.type === 'searchbar' || self.type === 'picker') {
+                    // Priority should be the size used on the viewport
+                    h = y + (el.offsetHeight || self.height);
+                } else {
+                    // Priority is the height define during initialization
+                    h = y + (self.height || el.offsetHeight);
+                }
+                // Go through the items
+                let rows = [];
+                // Height
+                let height = 0;
+                // Go through all items
+                for (let j = 0; j < numOfItems; j++) {
+                    if (items[j].visible !== false) {
+                        // Height
+                        let rowHeight = items[j].height || defaultRowHeight;
+                        // Return on partial width
+                        if (height + rowHeight > y && height < h) {
+                            rows.push(items[j]);
+                        }
+                        height += rowHeight;
+                    }
+                }
+
+                // Update visible rows
+                if (reset || !compareValues(rows, self.result)) {
+                    // Render the items
+                    self.result = rows;
+                    // Adjust scroll height
+                    let adjustScroll = reset;
+                    // Adjust scrolling
+                    for (let i = 0; i < rows.length; i++) {
+                        // Item
+                        let item = rows[i];
+                        // Item height
+                        let h = item.el.offsetHeight;
+                        // Update row height
+                        if (!item.height || h !== item.height) {
+                            // Keep item height
+                            item.height = h;
+                            // Adjust total height
+                            adjustScroll = true;
+                        }
+                    }
+
+                    // Update scroll if the height of one element has been changed
+                    if (adjustScroll) {
+                        // Adjust the scroll height
+                        adjust = updateScroll();
+                    }
+                }
+
+                // Adjust position of the first element
+                let position = getRowPosition(self.result[0]);
+                let diff = position - el.scrollTop;
+                if (diff > 0) {
+                    diff = 0;
+                }
+                self.container.style.top = diff + 'px';
+
+                return adjust;
+            }
+        }
+
+        /**
+         * Move the position to the top and re-render based on the scroll
+         * @param reset
+         */
+        const render = function (reset) {
+            // Move scroll to the top
+            el.scrollTop = 0;
+            // Reset scroll
+            updateScroll();
+            // Append first batch
+            getVisibleRows(reset);
+        }
+
+        /**
+         * Will adjust the items based on the scroll position offset
+         */
+        self.adjustPosition = function (item) {
+            if (item.el) {
+                let h = item.el.offsetHeight;
+                let calc = item.el.offsetTop + h;
+                if (calc > el.offsetHeight) {
+                    let size = calc - el.offsetHeight;
+                    if (size < h) {
+                        size = h;
+                    }
+                    el.scrollTop -= -1 * size;
+                }
+            }
+        }
+
+        // Controls
+        const scrollControls = function () {
+            getVisibleRows(false);
+        }
+
+        // Element for scrolling
+        let el = self.container.parentNode;
+        el.classList.add('lm-lazy');
+        // Div to represent the height of the content
+        const scroll = document.createElement('div');
+        scroll.classList.add('lm-lazy-scroll');
+        // Force the height and add scrolling
+        el.appendChild(scroll);
+        el.addEventListener('scroll', scrollControls, { passive: true });
+        el.addEventListener('wheel', scrollControls, { passive: true });
+        self.container.classList.add('lm-lazy-items');
+
+        self.goto = function (item) {
+            el.scrollTop = getRowPosition(item);
+            let adjust = getVisibleRows(false);
+            if (adjust) {
+                el.scrollTop = adjust;
+                // Last adjust on the visible rows
+                getVisibleRows(false);
+            }
+        }
+
+        return (prop) => {
+            if (prop === 'rows') {
+                render(true);
+            }
+        }
+    }
+
+    const getAttributeName = function(prop) {
+        if (prop.substring(0,1) === ':') {
+            prop = prop.substring(1);
+        } else if (prop.substring(0,3) === 'lm-') {
+            prop = prop.substring(3);
+        }
+        return prop.toLowerCase();
+    }
+
+    const extractFromHtml =  function(element) {
+        let data = [];
+        // Content
+        for (let i = 0; i < element.children.length; i++) {
+            let e = element.children[i];
+            let item = {
+                text: e.textContent || e.getAttribute('title'),
+                value: e.getAttribute('value'),
+            }
+            if (item.value == null) {
+                item.value = item.text;
+            }
+            data.push(item);
+        }
+
+        return data;
+    }
+
+    const extract = function(children) {
+        let data = [];
+
+        if (this.tagName) {
+            data = extractFromHtml(this);
+            // Remove all elements
+            this.textContent = '';
+        } else {
+            // Get data
+            if (typeof(children) === 'string') {
+                // Version 4
+                let d = document.createElement('div');
+                d.innerHTML = children;
+                data = extractFromHtml(d);
+            } else if (children && children.length) {
+                // Version 5
+                children.forEach((v) => {
+                    let item = {}
+                    v.props.forEach((prop) => {
+                        item[getAttributeName(prop.name)] = prop.value;
+                    });
+                    if (! item.text) {
+                        item.text = v.children[0]?.props[0]?.value || '';
+                    }
+                    data.push(item);
+                });
+                // Block children
+                children.length = 0;
+            }
+        }
+
+        return data;
+    }
+
+    const isDOM = function(o) {
+        return (o instanceof Element || o instanceof HTMLDocument || o instanceof DocumentFragment);
+    }
+
+    const Dropdown = function (children, { onchange, onload }) {
+        let self = this;
+        // Data
+        let data = [];
+        // Internal value controllers
+        let value = [];
+        // Cursor
+        let cursor = null;
+        // Control events
+        let ignoreEvents = false;
+        // Lazy loading global instance
+        let lazyloading = null;
+        // Tracking changes
+        let changesDetected = false;
+        // Debounce timer for search
+        let searchTimeout = null;
+
+        // Data
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        let d = extract.call(this, children);
+        if (d) {
+            d.forEach((v) => {
+                self.data.push(v)
+            })
+        }
+
+        // Decide the type based on the size of the screen
+        let autoType = self.type === 'auto';
+
+        // Custom events defined by the user
+        let load = self.onload;
+        self.onload = null;
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Compatibility
+        if (typeof self.newOptions !== 'undefined') {
+            self.insert = self.newOptions;
+        }
+
+        // Cursor controllers
+        const setCursor = function (index, force) {
+            let item = self.rows[index];
+            if (typeof (item) !== 'undefined') {
+                // Set the cursor number
+                cursor = index;
+                // Set visual indication
+                item.cursor = true;
+                // Go to the item on the scroll in case the item is not on the viewport
+                if (!(item.el && item.el.parentNode) || force === true) {
+                    // Goto method
+                    self.goto(item);
+                }
+                // Adjust cursor position
+                setTimeout(function () {
+                    self.adjustPosition(item);
+                });
+            }
+        }
+
+        const removeCursor = function (reset) {
+            if (cursor !== null) {
+                if (typeof (self.rows[cursor]) !== 'undefined') {
+                    self.rows[cursor].cursor = false;
+                }
+                if (reset) {
+                    // Cursor is null
+                    cursor = null;
+                }
+            }
+        }
+
+        const moveCursor = function (direction, jump) {
+            // Remove cursor
+            removeCursor();
+            // Last item
+            let last = self.rows.length - 1;
+            if (jump) {
+                if (direction < 0) {
+                    cursor = 0;
+                } else {
+                    cursor = last;
+                }
+            } else {
+                // Position
+                if (cursor === null) {
+                    cursor = 0;
+                } else {
+                    // Move previous
+                    cursor = cursor + direction;
+                }
+                // Reach the boundaries
+                if (direction < 0) {
+                    // Back to the last one
+                    if (cursor < 0) {
+                        cursor = last;
+                    }
+                } else {
+                    // Back to the first one
+                    if (cursor > last) {
+                        cursor = 0;
+                    }
+                }
+            }
+            // Add cursor
+            setCursor(cursor);
+        }
+
+        const adjustDimensions = function(data) {
+            // Estimate width
+            let width = self.width ?? 0;
+            // Adjust the width
+            let w = getInput().offsetWidth;
+            if (width < w) {
+                width = w;
+            }
+            // Width && values
+            data.map(function (s) {
+                // Estimated width of the element
+                if (s.text) {
+                    let w = Math.max(width, s.text.length * 7.5);
+                    if (width < w) {
+                        width = w;
+                    }
+                }
+            });
+            // Min width for the container
+            self.container.parentNode.style.width = (width - 2) + 'px';
+        }
+
+        const setData = function () {
+            // Data
+            data = JSON.parse(JSON.stringify(self.data));
+            // Re-order to make sure groups are in sequence
+            if (data && data.length) {
+                // Adjust width and height
+                adjustDimensions(data);
+                // Groups
+                data.sort((a, b) => {
+                    // Compare groups
+                    if (a.group && b.group) {
+                        return a.group.localeCompare(b.group);
+                    }
+                    return 0;
+                });
+                let group = '';
+                // Define group headers
+                data.map((v) => {
+                    // Compare groups
+                    if (v && v.group && v.group !== group) {
+                        v.header = v.group;
+                        group = v.group;
+                    }
+                });
+            }
+            // Data to be listed
+            self.rows = data;
+        }
+
+        const updateLabel = function () {
+            if (value && value.length) {
+                getInput().textContent = value.filter(v => v.selected).map(i => i.text).join('; ');
+            } else {
+                getInput().textContent = '';
+            }
+        }
+
+        const setValue = function (v, ignoreEvent) {
+            // Values
+            let newValue;
+            if (! Array.isArray(v)) {
+                if (typeof(v) === 'string') {
+                    newValue = v.split(self.divisor ?? ';');
+                } else {
+                    newValue = [v];
+                }
+            } else {
+                newValue = v;
+            }
+
+            // Width && values
+            value = [];
+
+            if (Array.isArray(data)) {
+                data.map(function (s) {
+                    s.selected = newValue.some(v => {
+                        // Use strict equality when either value is empty string to avoid '' == 0 being true
+                        if (v === '' || s.value === '') {
+                            return v === s.value;
+                        }
+                        return v == s.value;
+                    });
+                    if (s.selected) {
+                        value.push(s);
+                    }
+                });
+            }
+
+            // Update label
+            if (self.isClosed()) {
+                updateLabel();
+            }
+
+            // Component onchange
+            if (! ignoreEvent) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: getValue(),
+                });
+            }
+        }
+
+        const getValue = function () {
+            if (self.multiple) {
+                if (value && value.length) {
+                    return value.filter(v => v.selected).map(i => i.value);
+                }
+            } else {
+                if (value && value.length) {
+                    return value[0].value;
+                }
+            }
+
+            return null;
+        }
+
+        const getText = function () {
+            if (self.multiple) {
+                if (value && value.length) {
+                    return value.filter(v => v.selected).map(i => i.text);
+                }
+            } else {
+                if (value && value.length) {
+                    return value[0].text;
+                }
+            }
+
+            return null;
+        }
+
+        const onopen = function () {
+            self.state = true;
+            // Value
+            let v = value[value.length - 1];
+            // Make sure goes back to the top of the scroll
+            if (self.container.parentNode.scrollTop > 0) {
+                self.container.parentNode.scrollTop = 0;
+            }
+            // Move to the correct position
+            if (v) {
+                // Mark the position of the cursor to the same element
+                setCursor(self.rows.indexOf(v), true);
+            }
+            // Prepare search field
+            if (self.autocomplete) {
+                // Get the input
+                let input = getInput();
+                // Editable
+                input.setAttribute('contenteditable', true);
+                // Clear input
+                input.textContent = '';
+                // Focus on the item
+                input.focus();
+            }
+            // Adjust width and height
+            adjustDimensions(self.data);
+            // Open event
+            Dispatch.call(self, self.onopen, 'open', {
+                instance: self
+            });
+        }
+
+        const onclose = function (options, origin) {
+            // Cursor
+            removeCursor(true);
+            // Reset search
+            if (self.autocomplete) {
+                // Go to begin of the data
+                self.rows = data;
+                // Get the input
+                let input = getInput();
+                if (input) {
+                    // Remove editable attribute
+                    input.removeAttribute('contenteditable');
+                    // Clear input
+                    input.textContent = '';
+                }
+            }
+
+            if (origin === 'escape') {
+                // Cancel operation and keep the same previous value
+                setValue(self.value, true);
+            } else {
+                // Current value
+                let newValue = getValue();
+
+                // If that is different from the component value
+                if (changesDetected === true && ! compareValues(newValue, self.value)) {
+                    self.value = newValue;
+                } else {
+                    // Update label
+                    updateLabel();
+                }
+            }
+
+            // Identify the new state of the dropdown
+            self.state = false;
+
+            // Close event
+            Dispatch.call(self, self.onclose, 'close', {
+                instance: self,
+                ...options
+            });
+        }
+
+        const normalizeData = function(result) {
+            if (result && result.length) {
+                return result.map((v) => {
+                    if (typeof v === 'string' || typeof v === 'number') {
+                        return { value: v, text: v };
+                    } else if (typeof v === 'object' && v.hasOwnProperty('name')) {
+                        return { value: v.id, text: v.name };
+                    } else {
+                        return v;
+                    }
+                });
+            }
+        }
+
+        const loadData = function(result) {
+            result = normalizeData(result);
+            // Loading controls
+            lazyloading = lazyLoading(self);
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    self.data.push(v);
+                });
+            }
+            // Process the data
+            setData();
+            // Set value
+            if (typeof(self.value) !== 'undefined') {
+                setValue(self.value, true);
+            }
+            // Onload method
+            Dispatch.call(self, load, 'load', {
+                instance: self
+            });
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+        }
+
+        const resetData = function(result) {
+            result = normalizeData(result);
+            // Reset cursor
+            removeCursor(true);
+            let r = data.filter(item => {
+                return item.selected === true;
+            });
+            // Loading new data from a remote source
+            if (result) {
+                result.forEach((v) => {
+                    r.push(v);
+                });
+            }
+            self.rows = r;
+            // Remove loading spin
+            self.input.classList.remove('lm-dropdown-loading');
+
+            // Event
+            Dispatch.call(self, self.onsearch, 'search', {
+                instance: self,
+                result: result,
+            });
+        }
+
+        const getInput = function() {
+            return self.input;
+        }
+
+        const search = function(query) {
+            if (! self.isClosed() && self.autocomplete) {
+
+                // Remote or normal search
+                if (self.remote === true && self.url) {
+                    // Clear existing timeout
+                    if (searchTimeout) {
+                        clearTimeout(searchTimeout);
+                    }
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Headers
+                    let http = {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }
+                    let ret = Dispatch.call(self, self.onbeforesearch, 'beforesearch', {
+                        instance: self,
+                        http: http,
+                        query: query,
+                    });
+
+                    if (ret === false) {
+                        return;
+                    }
+
+                    // Debounce the search with 300ms delay
+                    searchTimeout = setTimeout(() => {
+                        let url = self.url;
+                        url += url.indexOf('?') === -1 ? '?' : '&';
+                        url += `q=${query}`;
+
+                        fetch(url, http).then(r => r.json()).then(resetData).catch((error) => {
+                            resetData([]);
+                        });
+                    }, 300);
+                } else {
+                    // Filter options
+                    let temp;
+
+                    const find = (prop) => {
+                        if (prop) {
+                            if (Array.isArray(prop)) {
+                                // match if ANY element contains the query (case-insensitive)
+                                return prop.some(v => v != null && v.toString().toLowerCase().includes(query));
+                            }
+                            // handle strings/numbers/others
+                            return prop.toString().toLowerCase().includes(query);
+                        }
+                        return false;
+                    };
+
+                    if (! query) {
+                        temp = data;
+                    } else {
+                        temp = data.filter(item => {
+                            return item.selected === true || find(item.text) || find(item.group) || find(item.keywords) || find(item.synonym);
+                        });
+                    }
+
+                    // Cursor
+                    removeCursor(true);
+                    // Update the data from the dropdown
+                    self.rows = temp;
+                }
+            }
+        }
+
+        const events = {
+            focusout: (e) => {
+                if (self.modal) {
+                    if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                        if (! self.isClosed()) {
+                            self.close({ origin: 'focusout '});
+                        }
+                    }
+                }
+            },
+            keydown: (e) => {
+                if (! self.isClosed()) {
+                    let prevent = false;
+                    if (e.code === 'ArrowUp') {
+                        moveCursor(-1);
+                        prevent = true;
+                    } else if (e.code === 'ArrowDown') {
+                        moveCursor(1);
+                        prevent = true;
+                    } else if (e.code === 'Home') {
+                        moveCursor(-1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'End') {
+                        moveCursor(1, true);
+                        if (!self.autocomplete) {
+                            prevent = true;
+                        }
+                    } else if (e.code === 'Enter') {
+                        if (e.target.tagName === 'BUTTON') {
+                            e.target.click();
+                            let input = getInput();
+                            input.focus();
+                        } else {
+                            select(e, self.rows[cursor]);
+                        }
+                        prevent = true;
+                    } else if (e.code === 'Escape') {
+                        self.close({ origin: 'escape'});
+                        prevent = true;
+                    } else {
+                        if (e.keyCode === 32 && !self.autocomplete) {
+                            select(e, self.rows[cursor]);
+                        }
+                    }
+
+                    if (prevent) {
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else {
+                    if (e.code === 'ArrowUp' || e.code === 'ArrowDown' || e.code === 'Enter') {
+                        self.open();
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                }
+            },
+            mousedown: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    if (self.autocomplete) {
+                        let x;
+                        if (e.changedTouches && e.changedTouches[0]) {
+                            x = e.changedTouches[0].clientX;
+                        } else {
+                            x = e.clientX;
+                        }
+                        if (e.target.offsetWidth - (x - e.target.offsetLeft) < 20) {
+                            toggle();
+                        } else {
+                            self.open();
+                        }
+                    } else {
+                        toggle();
+                    }
+                }
+            },
+            paste: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    let text;
+                    if (e.clipboardData || e.originalEvent.clipboardData) {
+                        text = (e.originalEvent || e).clipboardData.getData('text/plain');
+                    } else if (window.clipboardData) {
+                        text = window.clipboardData.getData('Text');
+                    }
+                    text = text.replace(/(\r\n|\n|\r)/gm, "");
+                    document.execCommand('insertText', false, text)
+                    e.preventDefault();
+                }
+            },
+            input: (e) => {
+                if (e.target.classList.contains('lm-dropdown-input')) {
+                    search(e.target.textContent.toLowerCase());
+                }
+            },
+        }
+
+        const selectItem = function(s) {
+            if (self.remote === true) {
+                if (data.indexOf(s) === -1) {
+                    self.data.push(s);
+                    data.push(s);
+                }
+            }
+
+            if (self.multiple === true) {
+                let position = value.indexOf(s);
+                if (position === -1) {
+                    value.push(s);
+                    s.selected = true;
+                } else {
+                    value.splice(position, 1);
+                    s.selected = false;
+                }
+            } else {
+                if (value[0] === s) {
+                    if (self.allowEmpty === false) {
+                        s.selected = true;
+                    } else {
+                        s.selected = !s.selected;
+                    }
+                } else {
+                    if (value[0]) {
+                        value[0].selected = false;
+                    }
+                    s.selected = true;
+                }
+                if (s.selected) {
+                    value = [s];
+                } else {
+                    value = [];
+                }
+            }
+
+            changesDetected = true;
+        }
+
+        const add = async function (e) {
+            let input = getInput();
+            let text = input.textContent;
+            if (! text) {
+                return false;
+            }
+
+            // New item
+            let s = {
+                text: text,
+                value: text,
+            }
+
+            self.add(s);
+
+            e.preventDefault();
+        }
+
+        const select = function (e, s) {
+            if (s && s.disabled !== true) {
+                selectItem(s);
+                // Close the modal
+                if (self.multiple !== true) {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        const toggle = function () {
+            if (self.modal) {
+                if (self.isClosed()) {
+                    self.open();
+                } else {
+                    self.close({ origin: 'button' });
+                }
+            }
+        }
+
+        self.add = async function (newItem) {
+            // Event
+            if (typeof(self.onbeforeinsert) === 'function') {
+                self.input.classList.add('lm-dropdown-loading');
+                let ret = await self.onbeforeinsert(self, newItem);
+                self.input.classList.remove('lm-dropdown-loading');
+                if (ret === false) {
+                    return;
+                } else if (ret) {
+                    newItem = ret;
+                }
+            }
+            // Process the data
+            data.push(newItem);
+            self.data.push(newItem);
+            // Refresh screen
+            self.result.unshift(newItem);
+            self.rows.unshift(newItem);
+            self.refresh('result');
+
+            Dispatch.call(self, self.oninsert, 'insert', {
+                instance: self,
+                item: newItem,
+            });
+        }
+
+        self.open = function () {
+            if (self.modal && ! self.disabled) {
+                if (self.isClosed()) {
+                    if (autoType) {
+                        self.type = window.innerWidth > 640 ? self.type = 'default' : (self.autocomplete ? 'searchbar' : 'picker');
+                    }
+                    // Track
+                    changesDetected = false;
+                    // Open the modal
+                    self.modal.open();
+                }
+            }
+        }
+
+        self.close = function (options) {
+            if (self.modal) {
+                if (options?.origin) {
+                    self.modal.close(options)
+                } else {
+                    self.modal.close({ origin: 'button' })
+                }
+            }
+        }
+
+        self.isClosed = function() {
+            if (self.modal) {
+                return self.modal.isClosed();
+            }
+        }
+
+        self.setData = function(data) {
+            self.data = data;
+        }
+
+        self.getData = function() {
+            return self.data;
+        }
+
+        self.getValue = function() {
+            return self.value;
+        }
+
+        self.getText = function() {
+            return getText();
+        }
+
+        self.setValue = function(v) {
+            self.value = v;
+        }
+
+        self.reset = function() {
+            self.value = null;
+            self.close({ origin: 'button' });
+        }
+
+        self.onevent = function(e) {
+            if (events[e.type]) {
+                events[e.type](e);
+            }
+        }
+
+        // Init with a
+        let input = self.input;
+
+        onload(() => {
+            if (self.type === "inline") {
+                // For inline dropdown
+                self.el.setAttribute('tabindex', 0);
+                // Remove search
+                self.input.remove();
+            } else {
+                // Create modal instance
+                self.modal = {
+                    closed: true,
+                    focus: false,
+                    onopen: onopen,
+                    onclose: onclose,
+                    position: 'absolute',
+                    'auto-adjust': true,
+                    'auto-close': false,
+                };
+                // Generate modal
+                Modal(self.el.children[1], self.modal);
+            }
+
+            if (self.remote === 'true') {
+                self.remote = true;
+            }
+
+            if (self.autocomplete === 'true') {
+                self.autocomplete = true;
+            }
+
+            if (self.multiple === 'true') {
+                self.multiple = true;
+            }
+
+            if (self.insert === 'true') {
+                self.insert = true;
+            }
+
+            // Autocomplete will be forced to be true when insert action is active
+            if ((self.insert === true || self.type === 'searchbar' || self.remote === true) && ! self.autocomplete) {
+                self.autocomplete = true;
+            }
+
+            if (typeof(input) !== 'undefined') {
+                // Remove the native element
+                if (isDOM(input)) {
+                    input.classList.add('lm-dropdown-input');
+                }
+                // Remove search
+                self.input.remove();
+                // New input
+                self.input = input;
+            } else {
+                self.el.children[0].style.position = 'relative';
+            }
+
+            // Default width
+            if (self.width) {
+                // Dropdown
+                self.el.style.width = self.width + 'px';
+            }
+
+            // Height
+            self.height = 400;
+
+            // Animation for mobile
+            if (document.documentElement.clientWidth < 800) {
+                self.animation = true;
+            }
+
+            // Events
+            self.el.addEventListener('focusout', events.focusout);
+            self.el.addEventListener('keydown', events.keydown);
+            self.el.addEventListener('mousedown', events.mousedown);
+            self.el.addEventListener('paste', events.paste);
+            self.el.addEventListener('input', events.input);
+
+            // Load remote data
+            if (self.url) {
+                if (self.remote === true) {
+                    loadData();
+                } else {
+                    // Loading spin
+                    self.input.classList.add('lm-dropdown-loading');
+                    // Load remote data
+                    fetch(self.url, {
+                        headers: {
+                            'Content-Type': 'text/json',
+                        }
+                    }).then(r => r.json()).then(loadData).catch(() => {
+                        loadData();
+                    });
+                }
+            } else {
+                loadData();
+            }
+        });
+
+        onchange(prop => {
+            if (prop === 'value') {
+                setValue(self.value);
+            } else if (prop === 'rows') {
+                // The number of results changes the modal height, so the position needs to be recalculated
+                if (self.modal && typeof (self.modal.refreshPosition) === 'function') {
+                    self.modal.refreshPosition();
+                }
+            } else if (prop === 'data') {
+                // Store current value before resetting data
+                let currentValue = self.value;
+                setData();
+
+                // Only reset value if it's not in the new data
+                if (currentValue !== null && currentValue !== undefined && currentValue !== '') {
+                    let valuesToCheck = Array.isArray(currentValue) ? currentValue : [currentValue];
+
+                    // Filter to keep only values that exist in the new data
+                    let validValues = valuesToCheck.filter(v => {
+                        return self.data.some(item => {
+                            if (v === '' || item.value === '') {
+                                return v === item.value;
+                            }
+                            return v == item.value;
+                        });
+                    });
+
+                    if (validValues.length === 0) {
+                        // No valid values remain, reset to null
+                        self.value = null;
+                    } else if (self.multiple) {
+                        // Multi-select: keep only valid values
+                        self.value = validValues;
+                    } else {
+                        // Single select: re-apply the value
+                        self.value = validValues[0];
+                    }
+                }
+            }
+
+            if (typeof (lazyloading) === 'function') {
+                lazyloading(prop);
+            }
+        });
+
+        return render => render`<div class="lm-dropdown" data-state="{{self.state}}" data-insert="{{self.insert}}" data-type="{{self.type}}" data-disabled="{{self.disabled}}" :value="self.value" :data="self.data">
+            <div class="lm-dropdown-header">
+                <div class="lm-dropdown-input" placeholder="{{self.placeholder}}" :ref="self.input" tabindex="0"></div>
+                <button class="lm-dropdown-add" onclick="${add}" tabindex="0"></button>
+                <div class="lm-dropdown-header-controls">
+                    <button onclick="self.reset" class="lm-dropdown-done">${T('Reset')}</button>
+                    <button onclick="self.close" class="lm-dropdown-done">${T('Done')}</button>
+                </div>
+            </div>
+            <div class="lm-dropdown-content">
+                <div>
+                    <div :loop="self.result" :ref="self.container" :rows="self.rows">
+                        <div class="lm-dropdown-item" onclick="${select}" data-cursor="{{self.cursor}}" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" data-group="{{self.header}}">
+                            <div><img :src="self.image" /> <div>{{self.text}}</div></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    lemonade.setComponents({ Dropdown: Dropdown });
+
+    lemonade.createWebComponent('dropdown', Dropdown);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Dropdown, root, options)
+            return options;
+        } else {
+            return Dropdown.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 72:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+/**
+ * pin the modal to the left panel
+ */
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+;(function (global, factory) {
+     true ? module.exports = factory() :
+        0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (!(key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function (method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    // References
+    const modals = [];
+    // State of the resize and move modal
+    let state = {};
+    // Internal controls of the action of resize and move
+    let controls = {};
+    // Width of the border
+    let cornerSize = 10;
+    // Container with minimized modals
+    const minimizedModals = [];
+    // Default z-index for the modals
+    const defaultZIndex = 20;
+
+    /**
+     * Send the modal to the front
+     * @param container
+     */
+    const sendToFront = function (container) {
+        let highestXIndex = defaultZIndex;
+        for (let i = 0; i < modals.length; i++) {
+            const zIndex = parseInt(modals[i].el.style.zIndex);
+            if (zIndex > highestXIndex) {
+                highestXIndex = zIndex;
+            }
+        }
+        container.style.zIndex = highestXIndex + 1;
+    }
+
+    /**
+     * Send modal to the back
+     * @param container
+     */
+    const sendToBack = function (container) {
+        container.style.zIndex = defaultZIndex;
+    }
+
+    // Get the coordinates of the action
+    const getCoords = function (e) {
+        let x;
+        let y;
+
+        if (e.changedTouches && e.changedTouches[0]) {
+            x = e.changedTouches[0].clientX;
+            y = e.changedTouches[0].clientY;
+        } else {
+            x = e.clientX;
+            y = e.clientY;
+        }
+
+        return [x, y];
+    }
+
+    // Get the button status
+    const getButton = function (e) {
+        e = e || window.event;
+        if (e.buttons) {
+            return e.buttons;
+        } else if (e.button) {
+            return e.button;
+        } else {
+            return e.which;
+        }
+    }
+
+    // Finalize any potential action
+    const mouseUp = function (e) {
+        // Finalize all actions
+        if (typeof (controls.action) === 'function') {
+            controls.action();
+        }
+        setTimeout(function () {
+            // Remove cursor
+            if (controls.e) {
+                controls.e.style.cursor = '';
+            }
+            // Reset controls
+            controls = {};
+            // Reset state controls
+            state = {
+                x: null,
+                y: null,
+            }
+        }, 0)
+    }
+
+    const mouseMove = function (e) {
+        if (!getButton(e)) {
+            return false;
+        }
+        // Get mouse coordinates
+        let [x, y] = getCoords(e);
+
+        // Move modal
+        if (controls.type === 'move') {
+            if (state && state.x == null && state.y == null) {
+                state.x = x;
+                state.y = y;
+            }
+
+            let dx = x - state.x;
+            let dy = y - state.y;
+            let top = controls.e.offsetTop + dy;
+            let left = controls.e.offsetLeft + dx;
+
+            // Update position
+            controls.top = top;
+            controls.left = left;
+            controls.e.style.top = top + 'px';
+            controls.e.style.left = left + 'px';
+
+            state.x = x;
+            state.y = y;
+            state.top = top;
+            state.left = left;
+        } else if (controls.type === 'resize') {
+            let top = null;
+            let left = null;
+            let width = null;
+            let height = null;
+
+            if (controls.d === 'e-resize' || controls.d === 'ne-resize' || controls.d === 'se-resize') {
+                width = controls.w + (x - controls.x);
+
+                if (e.shiftKey) {
+                    height = controls.h + (x - controls.x) * (controls.h / controls.w);
+                }
+            } else if (controls.d === 'w-resize' || controls.d === 'nw-resize' || controls.d === 'sw-resize') {
+                left = controls.l + (x - controls.x);
+                // Do not move further
+                if (left >= controls.l) {
+                    left = controls.l;
+                }
+                // Update width
+                width = controls.l + controls.w - left;
+                // Consider shift to update height
+                if (e.shiftKey) {
+                    height = controls.h - (x - controls.x) * (controls.h / controls.w);
+                }
+            }
+
+            if (controls.d === 's-resize' || controls.d === 'se-resize' || controls.d === 'sw-resize') {
+                if (!height) {
+                    height = controls.h + (y - controls.y);
+                }
+            } else if (controls.d === 'n-resize' || controls.d === 'ne-resize' || controls.d === 'nw-resize') {
+                top = controls.t + (y - controls.y);
+                // Do not move further
+                if (top >= controls.t) {
+                    top = controls.t;
+                }
+                // Update height
+                height = controls.t + controls.h - top;
+            }
+
+            if (top) {
+                controls.e.style.top = top + 'px';
+            }
+            if (left) {
+                controls.e.style.left = left + 'px';
+            }
+            if (width) {
+                controls.e.style.width = width + 'px';
+            }
+            if (height) {
+                controls.e.style.height = height + 'px';
+            }
+        }
+    }
+
+    if (typeof (document) !== "undefined") {
+        document.addEventListener('mouseup', mouseUp);
+        document.addEventListener('mousemove', mouseMove);
+    }
+
+    const isTrue = function (e) {
+        return e === true || e === 1 || e === 'true';
+    }
+
+    const refreshMinimized = function () {
+        let items = minimizedModals;
+        let numOfItems = items.length;
+        let width = 10;
+        let height = 55;
+        let offsetWidth = window.innerWidth;
+        let offsetHeight = window.innerHeight;
+        for (let i = 0; i < numOfItems; i++) {
+            let item = items[i];
+            item.el.style.left = width + 'px';
+            item.el.style.top = offsetHeight - height + 'px';
+            width += 205;
+
+            if (offsetWidth - width < 205) {
+                width = 10;
+                height += 50;
+            }
+        }
+    }
+
+    const delayAction = function (self, action) {
+        // Make sure to remove the transformation before minimize to preserve the animation
+        if (self.el.style.marginLeft || self.el.style.marginTop) {
+            // Make sure no animation during this process
+            self.el.classList.add('action');
+            // Remove adjustment
+            removeMargin(self);
+            // Make sure to continue with minimize
+            setTimeout(function () {
+                // Remove class
+                self.el.classList.remove('action');
+                // Call action
+                action(self);
+            }, 0)
+
+            return true;
+        }
+    }
+
+    const setMini = function (self) {
+        if (delayAction(self, setMini)) {
+            return;
+        }
+
+        // Minimize modals
+        minimizedModals.push(self);
+
+        self.el.top = self.el.offsetTop;
+        self.el.left = self.el.offsetLeft;
+
+        if (!self.el.style.top) {
+            self.el.style.top = self.el.top + 'px';
+        }
+        if (!self.el.style.left) {
+            self.el.style.left = self.el.left + 'px';
+        }
+
+        self.el.translateY = 0;
+        self.el.translateX = 0;
+
+        // Refresh positions
+        setTimeout(function () {
+            refreshMinimized();
+            self.minimized = true;
+        }, 10)
+    }
+
+    const removeMini = function (self) {
+        minimizedModals.splice(minimizedModals.indexOf(self), 1);
+        self.minimized = false;
+        self.el.style.top = self.el.top + 'px';
+        self.el.style.left = self.el.left + 'px';
+        // Refresh positions
+        setTimeout(() => {
+            refreshMinimized();
+        }, 10);
+        // Refresh positions
+        setTimeout(() => {
+            if (self.top === '') {
+                self.el.style.top = '';
+            }
+            if (self.left === '') {
+                self.el.style.left = '';
+            }
+        }, 400);
+    }
+
+    const removeMargin = function (self) {
+        if (self.el.style.marginLeft) {
+            let y = self.el.offsetLeft;
+            self.el.style.marginLeft = '';
+            self.left = y;
+        }
+
+        if (self.el.style.marginTop) {
+            let x = self.el.offsetTop;
+            self.el.style.marginTop = '';
+            self.top = x;
+        }
+    }
+
+    const adjustHorizontal = function (self) {
+        if (!isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginLeft = '';
+        let viewportWidth = window.innerWidth;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let w = document.documentElement.offsetWidth;
+                if (w > viewportWidth) {
+                    //viewportWidth = w;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let rightEdgeDistance = viewportWidth - (el.left + el.width);
+        let transformX = 0;
+
+        if (self.position === 'absolute') {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin - 10; // 10 is the scroll width
+            }
+        } else {
+            if (rightEdgeDistance < 0) {
+                transformX = rightEdgeDistance - margin;
+            }
+        }
+
+        if (el.left < 0) {
+            transformX = margin - el.left;
+        }
+        if (transformX !== 0) {
+            self.el.style.marginLeft = transformX + 'px';
+        }
+    }
+
+    const adjustVertical = function (self) {
+        if (!isTrue(self['auto-adjust'])) {
+            return false;
+        }
+
+        self.el.style.marginTop = '';
+        let viewportHeight = window.innerHeight;
+        let margin = 10;
+
+        if (self.position) {
+            if (self.position === 'absolute') {
+                let h = document.documentElement.offsetHeight;
+                if (h > viewportHeight) {
+                    //viewportHeight = h;
+                }
+            } else if (self.position !== 'center') {
+                margin = 0;
+            }
+        }
+
+        let el = self.el.getBoundingClientRect();
+
+        let bottomEdgeDistance = viewportHeight - (el.top + el.height);
+        let transformY = 0;
+
+        if (self.position === 'absolute') {
+            if (bottomEdgeDistance < 5) {
+                transformY = (-1 * el.height) - margin - 12;
+                if (el.top + transformY < 0) {
+                    transformY = -el.top + 10;
+                }
+            }
+        } else {
+            if (bottomEdgeDistance < 0) {
+                transformY = bottomEdgeDistance - margin;
+            }
+        }
+
+        if (el.top < 0) {
+            transformY = margin - el.top;
+        }
+        if (transformY !== 0) {
+            self.el.style.marginTop = transformY + 'px';
+        }
+    }
+
+    const removeElements = function (root) {
+        // Keep the DOM elements
+        let elements = [];
+        if (root) {
+            while (root.firstChild) {
+                elements.push(root.firstChild);
+                root.firstChild.remove();
+            }
+        }
+        return elements;
+    }
+
+    const appendElements = function (root, elements) {
+        if (elements && elements.length) {
+            while (elements[0]) {
+                root.appendChild(elements.shift());
+            }
+        }
+    }
+
+    const Modal = function (template, {onchange, onload, track}) {
+        let self = this;
+        let backdrop = null;
+        let elements = null;
+
+        if (this.tagName) {
+            // Remove elements from the DOM
+            elements = removeElements(this);
+
+            this.addEventListener('dragstart', (e) => {
+                e.preventDefault();
+            });
+        }
+
+        // Make sure keep the state as boolean
+        self.closed = !!self.closed;
+
+        // Keep all modals references
+        modals.push(self);
+
+        // External onload remove from the lifecycle
+        let change = self.onchange;
+        self.onchange = null;
+
+        let load = self.onload;
+        self.onload = null;
+
+        let ignoreEvents = false;
+
+        const click = function (e) {
+            if (e.target.classList.contains('lm-modal-close')) {
+                self.close({origin: 'button'});
+            }
+
+            if (e.target.classList.contains('lm-modal-minimize')) {
+                // Handles minimized modal positioning
+                if (self.minimized === true) {
+                    removeMini(self);
+                } else {
+                    setMini(self);
+                }
+            }
+        }
+
+        const mousemove = function (e) {
+            if (getButton(e)) {
+                return;
+            }
+
+            // Get mouse coordinates
+            let [x, y] = getCoords(e);
+            // Root element of the component
+            let item = self.el;
+            // Get the position and dimensions
+            let rect = item.getBoundingClientRect();
+
+            controls.type = null;
+            controls.d = null;
+            controls.e = item;
+            controls.w = rect.width;
+            controls.h = rect.height;
+            controls.t = rect.top;
+            controls.l = rect.left;
+
+            // When resizable
+            if (isTrue(self.resizable)) {
+                if (e.clientY - rect.top < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'ne-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'nw-resize';
+                    } else {
+                        item.style.cursor = 'n-resize';
+                    }
+                } else if (rect.height - (e.clientY - rect.top) < cornerSize) {
+                    if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                        item.style.cursor = 'se-resize';
+                    } else if (e.clientX - rect.left < cornerSize) {
+                        item.style.cursor = 'sw-resize';
+                    } else {
+                        item.style.cursor = 's-resize';
+                    }
+                } else if (rect.width - (e.clientX - rect.left) < cornerSize) {
+                    item.style.cursor = 'e-resize';
+                } else if (e.clientX - rect.left < cornerSize) {
+                    item.style.cursor = 'w-resize';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'resize';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+
+            if (controls.type == null && isTrue(self.draggable)) {
+                if (y - rect.top < 40) {
+                    item.style.cursor = 'move';
+                } else {
+                    item.style.cursor = '';
+                }
+
+                if (item.style.cursor) {
+                    controls.type = 'move';
+                    controls.d = item.style.cursor;
+                } else {
+                    controls.type = null;
+                    controls.d = null;
+                }
+            }
+        }
+
+        const mousedown = function (e) {
+            if (!self.minimized) {
+                // Get mouse coordinates
+                let [x, y] = getCoords(e);
+                controls.x = x;
+                controls.y = y;
+                // Root element of the component
+                let item = self.el;
+                // Get the position and dimensions
+                let rect = item.getBoundingClientRect();
+                controls.e = item;
+                controls.w = rect.width;
+                controls.h = rect.height;
+                controls.t = rect.top;
+                controls.l = rect.left;
+                // If is not minimized
+                if (controls.type === 'resize') {
+                    // Make sure the width and height is defined for the modal
+                    if (!item.style.width) {
+                        item.style.width = controls.w + 'px';
+                    }
+                    if (!item.style.height) {
+                        item.style.height = controls.h + 'px';
+                    }
+                    // This will be the callback when finalize the resize
+                    controls.action = function () {
+                        self.width = parseInt(item.style.width);
+                        self.height = parseInt(item.style.height);
+                        controls.e.classList.remove('action');
+                        // Event
+                        Dispatch.call(self, self.onresize, 'resize', {
+                            instance: self,
+                            width: self.width,
+                            height: self.height,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                } else if (isTrue(self.draggable) && y - rect.top < 40) {
+                    // Callback
+                    controls.action = function () {
+                        self.top = parseInt(item.style.top);
+                        self.left = parseInt(item.style.left);
+                        controls.e.classList.remove('action');
+                        // Open event
+                        Dispatch.call(self, self.onmove, 'move', {
+                            instance: self,
+                            top: self.top,
+                            left: self.left,
+                        });
+                    }
+                    controls.e.classList.add('action');
+                    // Remove transform
+                    removeMargin(self);
+                }
+            }
+        }
+
+        self.back = function () {
+            sendToBack(self.el);
+        }
+
+        self.front = function () {
+            sendToFront(self.el);
+        }
+
+        self.open = function () {
+            if (self.closed === true) {
+                self.closed = false;
+                // Close event
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self
+                });
+            }
+        }
+
+        self.close = function (options) {
+            if (self.closed === false) {
+                self.closed = true;
+                // Close event
+                Dispatch.call(self, self.onclose, 'close', {
+                    instance: self,
+                    ...options
+                });
+            }
+        }
+
+        self.isClosed = function () {
+            return self.closed;
+        }
+
+        /**
+         * Recalculate the auto-adjust position when the modal dimensions change,
+         * since the margin compensation depends on the current size of the modal.
+         * NOTE: cannot be named refresh, since lemonade registers its own refresh on self
+         */
+        self.refreshPosition = function () {
+            if (self.closed === false) {
+                // Auto adjust
+                queueMicrotask(() => {
+                    adjustHorizontal(self);
+                    adjustVertical(self);
+                });
+            }
+        }
+
+        if (!template || typeof (template) !== 'string') {
+            template = '';
+        }
+
+        // Custom Root Configuration
+        self.settings = {
+            getRoot: function () {
+                return self.root;
+            }
+        }
+
+        // Native lemonade
+        onload(() => {
+            // Dimensions
+            if (self.width) {
+                self.el.style.width = self.width + 'px';
+            }
+            if (self.height) {
+                self.el.style.height = self.height + 'px';
+            }
+            // Position
+            if (self.top) {
+                self.el.style.top = self.top + 'px';
+            }
+            if (self.left) {
+                self.el.style.left = self.left + 'px';
+            }
+
+            if (self.position === 'absolute' || self.position === 'right' || self.position === 'bottom' || self.position === 'left') {
+
+            } else {
+                if (!self.width && self.el.offsetWidth) {
+                    self.width = self.el.offsetWidth;
+                }
+                if (!self.height && self.el.offsetHeight) {
+                    self.height = self.el.offsetHeight;
+                }
+
+                // Initial centralize
+                if (self.position === 'center' || !self.top) {
+                    self.top = (window.innerHeight - self.height) / 2;
+                }
+                if (self.position === 'center' || !self.left) {
+                    self.left = (window.innerWidth - self.width) / 2;
+                }
+
+                // Responsive
+                if (document.documentElement.clientWidth < 800) {
+                    // Full screen
+                    if (self.height > 300) {
+                        self.el.classList.add('fullscreen');
+                    }
+                }
+            }
+
+            // Auto adjust
+            adjustHorizontal(self);
+            adjustVertical(self);
+
+            // Backdrop
+            if (self.backdrop === true) {
+                backdrop = document.createElement('div');
+                backdrop.classList.add('lm-modal-backdrop');
+                backdrop.addEventListener('click', () => {
+                    self.close({origin: 'backdrop'});
+                });
+
+                if (self.closed === false) {
+                    self.el.parentNode.insertBefore(backdrop, self.el);
+                }
+            }
+
+            // Import content from DOM
+            if (self.content) {
+                if (typeof (self.content) === 'string') {
+                    template = self.content;
+                } else if (typeof (self.content) === 'object' && self.content.tagName) {
+                    self.root.appendChild(self.content);
+                }
+            }
+
+            // Focus out of the component
+            self.el.addEventListener('focusout', function (e) {
+                if (!self.el.contains(e.relatedTarget)) {
+                    if (isTrue(self['auto-close'])) {
+                        self.close({origin: 'focusout'});
+                    }
+                    // Remove focus
+                    self.el.classList.remove('lm-modal-focus');
+                }
+            });
+
+            // Focus out of the component
+            self.el.addEventListener('focusin', function (e) {
+                self.el.classList.add('lm-modal-focus');
+            });
+
+            // Close and stop propagation
+            self.el.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    if (self.closed === false) {
+                        self.close({origin: 'escape'});
+                        e.preventDefault();
+                        e.stopImmediatePropagation();
+                    }
+                } else if (e.key === 'Enter') {
+                    click(e);
+                }
+            });
+
+            // Append elements to the container
+            appendElements(self.el.children[1], elements);
+
+            if (self.url) {
+                fetch(self.url)
+                    .then(response => response.clone().body)
+                    .then(body => {
+                        let reader = body.getReader();
+                        reader.read().then(({done, value}) => {
+                            // Add HTML to the modal
+                            self.root.innerHTML = new TextDecoder().decode(value.buffer);
+                            // Call onload event
+                            Dispatch.call(self, load, 'load', {
+                                instance: self
+                            });
+                        });
+                    });
+            } else {
+                // Call onload event
+                Dispatch.call(self, load, 'load', {
+                    instance: self
+                });
+            }
+        });
+
+        onchange((property) => {
+            if (ignoreEvents) {
+                return false;
+            }
+
+            if (property === 'closed') {
+                if (self.closed === false) {
+                    // Focus on the modal
+                    if (self.focus !== false) {
+                        self.el.focus();
+                    }
+                    // Show backdrop
+                    if (backdrop) {
+                        self.el.parentNode.insertBefore(backdrop, self.el);
+                    }
+
+                    // Auto adjust
+                    queueMicrotask(() => {
+                        adjustHorizontal(self);
+                        adjustVertical(self);
+                    });
+                } else {
+                    // Hide backdrop
+                    if (backdrop) {
+                        backdrop.remove();
+                    }
+                }
+            } else if (property === 'top' || property === 'left' || property === 'width' || property === 'height') {
+                if (self[property] !== '') {
+                    self.el.style[property] = self[property] + 'px';
+                } else {
+                    self.el.style[property] = '';
+                }
+
+                if (self.closed === false) {
+                    queueMicrotask(() => {
+                        if (property === 'top') {
+                            adjustVertical(self);
+                        }
+                        if (property === 'left') {
+                            adjustHorizontal(self);
+                        }
+                    });
+                }
+            } else if (property === 'position') {
+                if (self.position) {
+                    if (self.position === 'center') {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    } else {
+                        self.top = '';
+                        self.left = '';
+                    }
+                } else {
+                    if (!self.top) {
+                        self.top = (window.innerHeight - self.el.offsetHeight) / 2;
+                    }
+                    if (!self.left) {
+                        self.left = (window.innerWidth - self.el.offsetWidth) / 2;
+                    }
+                }
+            }
+        });
+
+        track('top');
+        track('left');
+        track('width');
+        track('height');
+
+        return render => render`<div class="lm-modal" animation="{{self.animation}}" position="{{self.position}}" closed="{{self.closed}}" closable="{{self.closable}}" minimizable="{{self.minimizable}}" minimized="{{self.minimized}}" overflow="{{self.overflow}}" tabindex="-1" role="modal" onmousedown="${mousedown}" onmousemove="${mousemove}" onclick="${click}">
+            <div class="lm-modal-title" data-title="{{self.title}}" data-icon="{{self.icon}}"><div class="lm-modal-icon">{{self.icon}}</div><div>{{self.title}}</div><div class="lm-modal-icon lm-modal-minimize" tabindex="0"></div><div class="lm-modal-icon lm-modal-close" tabindex="0"></div></div>
+            <div :ref="self.root">${template}</div>
+        </div>`
+    }
+
+    const Component = function (root, options) {
+        if (typeof (root) === 'object') {
+            // Remove elements from the DOM
+            let elements = removeElements(root);
+            // Create the modal
+            let e = lemonade.render(Modal, root, options);
+            // Add elements to the container
+            appendElements(e.children[1], elements);
+
+            return options;
+        } else {
+            return Modal.call(this);
+        }
+    }
+
+    // Create LemonadeJS Component
+    lemonade.setComponents({Modal: Modal});
+    // Create Web Component
+    lemonade.createWebComponent('modal', Modal)
+
+    return Component;
+})));
+
+/***/ }),
+
+/***/ 867:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
 
 ;(function (global, factory) {
      true ? module.exports = factory() :
     0;
 }(this, (function () {
 
-    return (function(str) {
-        function int64(msint_32, lsint_32) {
-            this.highOrder = msint_32;
-            this.lowOrder = lsint_32;
-        }
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
 
-        var H = [new int64(0x6a09e667, 0xf3bcc908), new int64(0xbb67ae85, 0x84caa73b),
-            new int64(0x3c6ef372, 0xfe94f82b), new int64(0xa54ff53a, 0x5f1d36f1),
-            new int64(0x510e527f, 0xade682d1), new int64(0x9b05688c, 0x2b3e6c1f),
-            new int64(0x1f83d9ab, 0xfb41bd6b), new int64(0x5be0cd19, 0x137e2179)];
-
-        var K = [new int64(0x428a2f98, 0xd728ae22), new int64(0x71374491, 0x23ef65cd),
-            new int64(0xb5c0fbcf, 0xec4d3b2f), new int64(0xe9b5dba5, 0x8189dbbc),
-            new int64(0x3956c25b, 0xf348b538), new int64(0x59f111f1, 0xb605d019),
-            new int64(0x923f82a4, 0xaf194f9b), new int64(0xab1c5ed5, 0xda6d8118),
-            new int64(0xd807aa98, 0xa3030242), new int64(0x12835b01, 0x45706fbe),
-            new int64(0x243185be, 0x4ee4b28c), new int64(0x550c7dc3, 0xd5ffb4e2),
-            new int64(0x72be5d74, 0xf27b896f), new int64(0x80deb1fe, 0x3b1696b1),
-            new int64(0x9bdc06a7, 0x25c71235), new int64(0xc19bf174, 0xcf692694),
-            new int64(0xe49b69c1, 0x9ef14ad2), new int64(0xefbe4786, 0x384f25e3),
-            new int64(0x0fc19dc6, 0x8b8cd5b5), new int64(0x240ca1cc, 0x77ac9c65),
-            new int64(0x2de92c6f, 0x592b0275), new int64(0x4a7484aa, 0x6ea6e483),
-            new int64(0x5cb0a9dc, 0xbd41fbd4), new int64(0x76f988da, 0x831153b5),
-            new int64(0x983e5152, 0xee66dfab), new int64(0xa831c66d, 0x2db43210),
-            new int64(0xb00327c8, 0x98fb213f), new int64(0xbf597fc7, 0xbeef0ee4),
-            new int64(0xc6e00bf3, 0x3da88fc2), new int64(0xd5a79147, 0x930aa725),
-            new int64(0x06ca6351, 0xe003826f), new int64(0x14292967, 0x0a0e6e70),
-            new int64(0x27b70a85, 0x46d22ffc), new int64(0x2e1b2138, 0x5c26c926),
-            new int64(0x4d2c6dfc, 0x5ac42aed), new int64(0x53380d13, 0x9d95b3df),
-            new int64(0x650a7354, 0x8baf63de), new int64(0x766a0abb, 0x3c77b2a8),
-            new int64(0x81c2c92e, 0x47edaee6), new int64(0x92722c85, 0x1482353b),
-            new int64(0xa2bfe8a1, 0x4cf10364), new int64(0xa81a664b, 0xbc423001),
-            new int64(0xc24b8b70, 0xd0f89791), new int64(0xc76c51a3, 0x0654be30),
-            new int64(0xd192e819, 0xd6ef5218), new int64(0xd6990624, 0x5565a910),
-            new int64(0xf40e3585, 0x5771202a), new int64(0x106aa070, 0x32bbd1b8),
-            new int64(0x19a4c116, 0xb8d2d0c8), new int64(0x1e376c08, 0x5141ab53),
-            new int64(0x2748774c, 0xdf8eeb99), new int64(0x34b0bcb5, 0xe19b48a8),
-            new int64(0x391c0cb3, 0xc5c95a63), new int64(0x4ed8aa4a, 0xe3418acb),
-            new int64(0x5b9cca4f, 0x7763e373), new int64(0x682e6ff3, 0xd6b2b8a3),
-            new int64(0x748f82ee, 0x5defb2fc), new int64(0x78a5636f, 0x43172f60),
-            new int64(0x84c87814, 0xa1f0ab72), new int64(0x8cc70208, 0x1a6439ec),
-            new int64(0x90befffa, 0x23631e28), new int64(0xa4506ceb, 0xde82bde9),
-            new int64(0xbef9a3f7, 0xb2c67915), new int64(0xc67178f2, 0xe372532b),
-            new int64(0xca273ece, 0xea26619c), new int64(0xd186b8c7, 0x21c0c207),
-            new int64(0xeada7dd6, 0xcde0eb1e), new int64(0xf57d4f7f, 0xee6ed178),
-            new int64(0x06f067aa, 0x72176fba), new int64(0x0a637dc5, 0xa2c898a6),
-            new int64(0x113f9804, 0xbef90dae), new int64(0x1b710b35, 0x131c471b),
-            new int64(0x28db77f5, 0x23047d84), new int64(0x32caab7b, 0x40c72493),
-            new int64(0x3c9ebe0a, 0x15c9bebc), new int64(0x431d67c4, 0x9c100d4c),
-            new int64(0x4cc5d4be, 0xcb3e42b6), new int64(0x597f299c, 0xfc657e2a),
-            new int64(0x5fcb6fab, 0x3ad6faec), new int64(0x6c44198c, 0x4a475817)];
-
-        var W = new Array(64);
-        var a, b, c, d, e, f, g, h, i, j;
-        var T1, T2;
-        var charsize = 8;
-
-        function utf8_encode(str) {
-            return unescape(encodeURIComponent(str));
-        }
-
-        function str2binb(str) {
-            var bin = [];
-            var mask = (1 << charsize) - 1;
-            var len = str.length * charsize;
-
-            for (var i = 0; i < len; i += charsize) {
-                bin[i >> 5] |= (str.charCodeAt(i / charsize) & mask) << (32 - charsize - (i % 32));
-            }
-
-            return bin;
-        }
-
-        function binb2hex(binarray) {
-            var hex_tab = "0123456789abcdef";
-            var str = "";
-            var length = binarray.length * 4;
-            var srcByte;
-
-            for (var i = 0; i < length; i += 1) {
-                srcByte = binarray[i >> 2] >> ((3 - (i % 4)) * 8);
-                str += hex_tab.charAt((srcByte >> 4) & 0xF) + hex_tab.charAt(srcByte & 0xF);
-            }
-
-            return str;
-        }
-
-        function safe_add_2(x, y) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (x.lowOrder & 0xFFFF) + (y.lowOrder & 0xFFFF);
-            msw = (x.lowOrder >>> 16) + (y.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (x.highOrder & 0xFFFF) + (y.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (x.highOrder >>> 16) + (y.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function safe_add_4(a, b, c, d) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF);
-            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function safe_add_5(a, b, c, d, e) {
-            var lsw, msw, lowOrder, highOrder;
-
-            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF) + (e.lowOrder & 0xFFFF);
-            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (e.lowOrder >>> 16) + (lsw >>> 16);
-            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (e.highOrder & 0xFFFF) + (msw >>> 16);
-            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (e.highOrder >>> 16) + (lsw >>> 16);
-            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
-
-            return new int64(highOrder, lowOrder);
-        }
-
-        function maj(x, y, z) {
-            return new int64(
-                (x.highOrder & y.highOrder) ^ (x.highOrder & z.highOrder) ^ (y.highOrder & z.highOrder),
-                (x.lowOrder & y.lowOrder) ^ (x.lowOrder & z.lowOrder) ^ (y.lowOrder & z.lowOrder)
-            );
-        }
-
-        function ch(x, y, z) {
-            return new int64(
-                (x.highOrder & y.highOrder) ^ (~x.highOrder & z.highOrder),
-                (x.lowOrder & y.lowOrder) ^ (~x.lowOrder & z.lowOrder)
-            );
-        }
-
-        function rotr(x, n) {
-            if (n <= 32) {
-                return new int64(
-                    (x.highOrder >>> n) | (x.lowOrder << (32 - n)),
-                    (x.lowOrder >>> n) | (x.highOrder << (32 - n))
-                );
-            } else {
-                return new int64(
-                    (x.lowOrder >>> n) | (x.highOrder << (32 - n)),
-                    (x.highOrder >>> n) | (x.lowOrder << (32 - n))
-                );
-            }
-        }
-
-        function sigma0(x) {
-            var rotr28 = rotr(x, 28);
-            var rotr34 = rotr(x, 34);
-            var rotr39 = rotr(x, 39);
-
-            return new int64(
-                rotr28.highOrder ^ rotr34.highOrder ^ rotr39.highOrder,
-                rotr28.lowOrder ^ rotr34.lowOrder ^ rotr39.lowOrder
-            );
-        }
-
-        function sigma1(x) {
-            var rotr14 = rotr(x, 14);
-            var rotr18 = rotr(x, 18);
-            var rotr41 = rotr(x, 41);
-
-            return new int64(
-                rotr14.highOrder ^ rotr18.highOrder ^ rotr41.highOrder,
-                rotr14.lowOrder ^ rotr18.lowOrder ^ rotr41.lowOrder
-            );
-        }
-
-        function gamma0(x) {
-            var rotr1 = rotr(x, 1), rotr8 = rotr(x, 8), shr7 = shr(x, 7);
-
-            return new int64(
-                rotr1.highOrder ^ rotr8.highOrder ^ shr7.highOrder,
-                rotr1.lowOrder ^ rotr8.lowOrder ^ shr7.lowOrder
-            );
-        }
-
-        function gamma1(x) {
-            var rotr19 = rotr(x, 19);
-            var rotr61 = rotr(x, 61);
-            var shr6 = shr(x, 6);
-
-            return new int64(
-                rotr19.highOrder ^ rotr61.highOrder ^ shr6.highOrder,
-                rotr19.lowOrder ^ rotr61.lowOrder ^ shr6.lowOrder
-            );
-        }
-
-        function shr(x, n) {
-            if (n <= 32) {
-                return new int64(
-                    x.highOrder >>> n,
-                    x.lowOrder >>> n | (x.highOrder << (32 - n))
-                );
-            } else {
-                return new int64(
-                    0,
-                    x.highOrder << (32 - n)
-                );
-            }
-        }
-
-        var str = utf8_encode(str);
-        var strlen = str.length*charsize;
-        str = str2binb(str);
-
-        str[strlen >> 5] |= 0x80 << (24 - strlen % 32);
-        str[(((strlen + 128) >> 10) << 5) + 31] = strlen;
-
-        for (var i = 0; i < str.length; i += 32) {
-            a = H[0];
-            b = H[1];
-            c = H[2];
-            d = H[3];
-            e = H[4];
-            f = H[5];
-            g = H[6];
-            h = H[7];
-
-            for (var j = 0; j < 80; j++) {
-                if (j < 16) {
-                    W[j] = new int64(str[j*2 + i], str[j*2 + i + 1]);
-                } else {
-                    W[j] = safe_add_4(gamma1(W[j - 2]), W[j - 7], gamma0(W[j - 15]), W[j - 16]);
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
                 }
+            }
+        }
+    }
 
-                T1 = safe_add_5(h, sigma1(e), ch(e, f, g), K[j], W[j]);
-                T2 = safe_add_2(sigma0(a), maj(a, b, c));
-                h = g;
-                g = f;
-                f = e;
-                e = safe_add_2(d, T1);
-                d = c;
-                c = b;
-                b = a;
-                a = safe_add_2(T1, T2);
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Rating = function(children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        if (! self.number) {
+            self.number = 5;
+        }
+
+        self.stars = [];
+
+        // Current self star
+        let current = null;
+
+        /**
+         * Update the number of stars
+         */
+        const len = function () {
+            // Remove stars
+            if (self.number < self.stars.length) {
+                self.stars.splice(self.number, self.stars.length);
+                if (self.value > self.number) {
+                    self.value = self.number;
+                }
+            }
+            // Add missing stars
+            for (let i = 0; i < self.number; i++) {
+                if (! self.stars[i]) {
+                    self.stars[i] = {
+                        icon: 'star',
+                    };
+                    if (self.tooltip[i]) {
+                        self.stars[i].title = self.tooltip[i];
+                    }
+                }
+            }
+            // Refresh
+            self.refresh('stars');
+        }
+
+        const val = function (index, events) {
+            if (typeof(index) === 'string') {
+                index = Number(index);
+            }
+            // Apply value to the selected property in each star
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].selected = i <= index - 1 ? 1 : 0;
+            }
+            // Keep current value
+            current = index;
+            // Dispatch method
+            if (events !== false) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: index,
+                });
+            }
+        }
+
+        const getElementPosition = function(child) {
+            if (child.tagName === 'I') {
+                let root = self.el;
+                for (let i = 0; i < root.children.length; i++) {
+                    let c = root.children[i];
+                    if (c === child) {
+                        return i;
+                    }
+                }
+            }
+            return -1;
+        }
+
+        const click = function(e, s) {
+            let ret = getElementPosition(e.target);
+            if (ret !== -1) {
+                let index = ret + 1;
+                if (index === current) {
+                    index = 0;
+                }
+                self.value = index;
+            }
+        }
+
+        const mouseover = function(e, s) {
+            let index = getElementPosition(e.target);
+            if (index !== -1) {
+                for (let i = 0; i < self.number; i++) {
+                    if (i <= index) {
+                        self.stars[i].hover = 1;
+                    } else {
+                        self.stars[i].hover = 0;
+                    }
+                }
+            }
+        }
+
+        const mouseout = function(e, s) {
+            for (let i = 0; i < self.number; i++) {
+                self.stars[i].hover = 0;
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'number') {
+                len();
+            } else if (prop === 'value') {
+                val(self.value);
+            } else if (prop === 'tooltip') {
+                if (typeof(self.tooltip) === 'string') {
+                    self.tooltip = self.tooltip.split(',')
+                }
+                len();
+            }
+        })
+
+        onload(() => {
+            // Bind global method to be compatible with LemonadeJS forms
+            self.el.val = function (v) {
+                if (typeof (v) === 'undefined') {
+                    return self.value;
+                } else {
+                    self.value = v;
+                }
             }
 
-            H[0] = safe_add_2(a, H[0]);
-            H[1] = safe_add_2(b, H[1]);
-            H[2] = safe_add_2(c, H[2]);
-            H[3] = safe_add_2(d, H[3]);
-            H[4] = safe_add_2(e, H[4]);
-            H[5] = safe_add_2(f, H[5]);
-            H[6] = safe_add_2(g, H[6]);
-            H[7] = safe_add_2(h, H[7]);
+            if (self.tooltip && typeof(self.tooltip) === 'string') {
+                self.tooltip = self.tooltip.split(',')
+            } else {
+                self.tooltip = '';
+            }
+            len();
+            // Ignore events
+            val(self.value, false);
+
+            self.el.addEventListener('click', click);
+            self.el.addEventListener('mouseout', mouseout);
+            self.el.addEventListener('mouseover', mouseover);
+        });
+
+        self.getValue = function () {
+            return Number(self.value);
         }
 
-        var binarray = [];
-        for (var i = 0; i < H.length; i++) {
-            binarray.push(H[i].highOrder);
-            binarray.push(H[i].lowOrder);
+        self.setValue = function (index) {
+            self.value = index;
         }
 
-        return binb2hex(binarray);
-    });
+        return `<div class="lm-rating" value="{{self.value}}" number="{{self.number}}" name="{{self.name}}" data-size="{{self.size}}" :loop="self.stars">
+            <i class="material-symbols-outlined material-icons" data-selected="{{self.selected}}" data-hover="{{self.hover}}" title="{{self.title}}">star</i>
+        </div>`;
+    }
+
+    // Register the LemonadeJS Component
+    lemonade.setComponents({ Rating: Rating });
+    // Register the web component
+    lemonade.createWebComponent('rating', Rating);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Rating, root, options)
+            return options;
+        } else {
+            return Rating.call(this, root)
+        }
+    }
 
 })));
 
+/***/ }),
+
+/***/ 539:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const Switch = function (children, { onchange, onload }) {
+        let self = this;
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        const state = () => {
+            let s = self.el.firstChild.checked;
+            if (s !== self.checked) {
+                self.checked = s;
+            }
+        }
+
+        onchange((prop, a, b, c, d) => {
+            if (a !== b) {
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.value,
+                });
+            }
+
+            state();
+        })
+
+        onload(state);
+
+        return render => render`<label class="lm-switch" position="{{self.position}}" data-color="{{self.color}}">
+            <input type="checkbox" name="{{self.name}}" disabled="{{self.disabled}}" checked="{{self.checked}}" :bind="self.value" /> <span>{{self.text}}</span>
+        </label>`
+    }
+
+    // Create LemonadeJS references
+    lemonade.setComponents({ Switch: Switch });
+    // Create web-component
+    lemonade.createWebComponent('switch', Switch);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Switch, root, options)
+            return options;
+        } else {
+            return Switch.call(this, root);
+        }
+    }
+
+})));
 
 /***/ }),
 
-/***/ 831:
+/***/ 560:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (! lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    class CustomEvents extends Event {
+        constructor(type, props, options) {
+            super(type, {
+                bubbles: true,
+                composed: true,
+                ...options,
+            });
+
+            if (props) {
+                for (const key in props) {
+                    // Avoid assigning if property already exists anywhere on `this`
+                    if (! (key in this)) {
+                        this[key] = props[key];
+                    }
+                }
+            }
+        }
+    }
+
+    // Dispatcher
+    const Dispatch = function(method, type, options) {
+        // Try calling the method directly if provided
+        if (typeof method === 'function') {
+            let a = Object.values(options);
+            return method(...a);
+        } else if (this.tagName) {
+            this.dispatchEvent(new CustomEvents(type, options));
+        }
+    }
+
+    const extract = function(root, self) {
+        if (! Array.isArray(self.data)) {
+            self.data = [];
+        }
+
+        if (root.tagName) {
+            for (let i = 0; i < root.children.length; i++) {
+                self.data.push({
+                    el: root.children[i],
+                })
+            }
+        } else {
+            root.forEach((child) => {
+                self.data.push({
+                    el: child.element,
+                })
+            });
+        }
+    }
+
+    const sorting = function(el, options) {
+        const obj = {};
+
+        let dragElement = null;
+
+        el.addEventListener('dragstart', function(e) {
+            let target = e.target;
+            if (target.nodeType === 3) {
+                if (target.parentNode.getAttribute('draggable') === 'true') {
+                    target = target.parentNode;
+                } else {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    return;
+                }
+            }
+
+            if (target.getAttribute('draggable') === 'true') {
+                let position = Array.prototype.indexOf.call(target.parentNode.children, target);
+                dragElement = {
+                    element: target,
+                    o: position,
+                    d: position
+                }
+                target.style.opacity = '0.25';
+                e.dataTransfer.setDragImage(target,0,0);
+            }
+        });
+
+        el.addEventListener('dragover', function(e) {
+            e.preventDefault();
+
+            if (dragElement && getElement(e.target) && e.target.getAttribute('draggable') == 'true' && dragElement.element != e.target) {
+                let element = e.target.clientWidth / 2 > e.offsetX ? e.target : e.target.nextSibling;
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.d = Array.prototype.indexOf.call(e.target.parentNode.children, dragElement.element);
+            }
+        });
+
+        el.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+        });
+
+        el.addEventListener('dragend', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                let element = dragElement.o < dragElement.d ? e.target.parentNode.children[dragElement.o] : e.target.parentNode.children[dragElement.o].nextSibling
+                e.target.parentNode.insertBefore(dragElement.element, element);
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        el.addEventListener('drop', function(e) {
+            e.preventDefault();
+
+            if (dragElement) {
+                if (dragElement.o !== dragElement.d) {
+                    if (typeof(options.ondrop) == 'function') {
+                        options.ondrop(el, dragElement.o, dragElement.d, dragElement.element, e.target, e);
+                    }
+                }
+
+                dragElement.element.style.opacity = '';
+                dragElement = null;
+            }
+        });
+
+        const getElement = function(element) {
+            var sorting = false;
+
+            function path (element) {
+                if (element === el) {
+                    sorting = true;
+                }
+
+                if (! sorting) {
+                    path(element.parentNode);
+                }
+            }
+
+            path(element);
+
+            return sorting;
+        }
+
+        for (let i = 0; i < el.children.length; i++) {
+            if (! el.children[i].hasAttribute('draggable')) {
+                el.children[i].setAttribute('draggable', 'true');
+            }
+        }
+
+        return el;
+    }
+
+    const Tabs = function(children, { onchange, onload }) {
+        let self = this
+
+        // Event
+        let change = self.onchange;
+        self.onchange = null;
+
+        // Add new tab
+        let createButton;
+
+        // Get the references from the root web component
+        let root;
+        let template = '';
+        if (this.tagName) {
+            root = this;
+        } else {
+            // References from LemonadeJS
+            if (typeof(children) === 'string') {
+                // Version 4
+                template = children;
+            } else if (children && children.length) {
+                // Version 5
+                root = children;
+            }
+        }
+
+        if (root) {
+            extract(root, self);
+        }
+
+        // Process the data
+        if (self.data) {
+            for (let i = 0; i < self.data.length; i++) {
+                if (! self.data[i].el) {
+                    // Create element
+                    self.data[i].el = document.createElement('div');
+                    // Create from content
+                    if (self.data[i].content) {
+                        self.data[i].el.innerHTML = self.data[i].content;
+                    }
+                }
+            }
+        }
+
+        let props = ['title', 'selected', 'data-icon'];
+
+        const select = function(index) {
+            // Make sure the index is a number
+            index = parseInt(index);
+            // Do not select tabs that does not exist
+            if (index >= 0 && index < self.data.length) {
+                for (let i = 0; i < self.root.children.length; i++) {
+                    self.headers.children[i].classList.remove('selected');
+                    self.root.children[i].classList.remove('selected');
+                }
+                self.headers.children[index].classList.add('selected');
+                self.root.children[index].classList.add('selected');
+            }
+        }
+
+        const init = function(selected) {
+            let tabs = [];
+
+            for (let i = 0; i < self.data.length; i++) {
+                // Extract meta information from the DOM
+                if (props) {
+                    props.forEach((prop) => {
+                        let short = prop.replace('data-', '');
+                        if (! self.data[i][short]) {
+                            let ret = self.data[i].el.getAttribute(prop);
+                            if (ret != null) {
+                                self.data[i][short] = ret;
+                            }
+                        }
+                    });
+                }
+                // Create tabs object
+                tabs[i] = {
+                    title: self.data[i].title,
+                }
+                // Which one is selected by default
+                if (self.data[i].selected) {
+                    selected = i;
+                }
+                if (self.data[i].icon) {
+                    tabs[i].icon = self.data[i].icon;
+                }
+
+                self.root.appendChild(self.data[i].el);
+            }
+
+            // Create headers
+            self.tabs = tabs;
+
+            // Default selected
+            if (typeof(selected) !== 'undefined') {
+                self.selected = selected;
+            }
+
+            if (props) {
+                // Add create new tab button
+                if (createButton) {
+                    self.headers.appendChild(createButton);
+                }
+                // Add sorting
+                sorting(self.el.firstChild.firstChild, {
+                    ondrop: (el, fromIndex, toIndex) => {
+                        // Remove the item from its original position
+                        const [movedItem] = self.data.splice(fromIndex, 1);
+                        // Insert it into the new position
+                        self.data.splice(toIndex, 0, movedItem);
+                        // Make sure correct order
+                        for (let i = 0; i < self.data.length; i++) {
+                            self.root.appendChild(self.data[i].el);
+                        }
+                        // Select new position
+                        self.selected = toIndex;
+                        // Dispatch event
+                        Dispatch.call(self, self.onchangeposition, 'changeposition', {
+                            instance: self,
+                            fromIndex: fromIndex,
+                            toIndex: toIndex,
+                        });
+                    }
+                })
+            }
+
+            props = null;
+        }
+
+        const create = function() {
+            // Create a new item
+            self.create({ title: 'Untitled' }, null, true);
+        }
+
+        const open = function(e) {
+            if (e.target.tagName === 'LI') {
+                // Avoid select something already selected
+                let index = Array.prototype.indexOf.call(e.target.parentNode.children, e.target);
+                if (index !== self.selected) {
+                    self.selected = index;
+                }
+            }
+        }
+
+        const keydown = function(e, s) {
+            let index = null;
+            if (e.key === 'Enter') {
+                self.click(e, s);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                index = self.selected - 1;
+                if (index < 0) {
+                    index = 0;
+                }
+            } else if (e.key === 'ArrowDown' || e.key === 'ArrowRight') {
+                index = self.selected + 1;
+                if (index > self.tabs.length-1) {
+                    index = self.tabs.length-1;
+                }
+            }
+
+            // Make selection
+            if (index !== null) {
+                self.tabs[index].el.focus();
+            }
+        }
+
+        onload(() => {
+            if (template) {
+                extract(self.root, self);
+            }
+
+            init(self.selected || 0);
+        })
+
+        onchange((property) => {
+            if (property === 'selected') {
+                select(self.selected);
+
+                Dispatch.call(self, self.onopen, 'open', {
+                    instance: self,
+                    selected: self.selected,
+                });
+
+                Dispatch.call(self, change, 'change', {
+                    instance: self,
+                    value: self.selected,
+                });
+            }
+        })
+
+        self.open = function (index) {
+            self.selected = index;
+        }
+
+        self.create = function(item, position, select) {
+            // Create element
+            if (typeof(item) !== 'object') {
+                console.error('Item must be an object');
+            } else {
+
+                let ret = Dispatch.call(self, self.onbeforecreate, 'beforecreate', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+
+                if (ret === false) {
+                    return false;
+                }
+
+                // Create DOM
+                item.el = document.createElement('div');
+                // Create from content
+                if (item.content) {
+                    item.el.innerHTML = item.content;
+                }
+
+                // Add the new item in the end
+                if (typeof(position) === 'undefined' || position === null) {
+                    // Mew item
+                    position = self.data.length;
+                    // Add in the end
+                    self.data.push(item);
+                } else {
+                    self.data.splice(position, 0, item);
+                }
+                // New position
+                if (select) {
+                    // Refresh
+                    init(self.data.indexOf(item));
+                } else {
+                    init(self.selected);
+                }
+
+                self.tabs.forEach(item => {
+                    item.el.setAttribute('draggable', 'true');
+                })
+
+                Dispatch.call(self, self.oncreate, 'create', {
+                    instance: self,
+                    item: item,
+                    position: position,
+                });
+            }
+        }
+
+        self.allowCreate = !! self.allowCreate;
+
+        return render => render`<div class="lm-tabs" data-position="{{self.position}}" data-round="{{self.round}}">
+            <div role="tabs" class="lm-tabs-headers">
+                <ul :ref="self.headers" :loop="self.tabs" :selected="self.selected" onclick="${open}" onkeydown="${keydown}" onfocusin="${open}"><li class="lm-tab" tabindex="0" role="tab" data-icon="{{self.icon}}">{{self.title}}</li></ul>
+                <div data-visible="{{self.allowCreate}}" class="lm-tabs-insert-button" role="insert-tab" onclick="${create}">add</div>
+            </div>
+            <div :ref="self.root" class="lm-tabs-content">${template}</div>
+        </div>`
+    }
+
+    lemonade.setComponents({ Tabs: Tabs });
+
+    lemonade.createWebComponent('tabs', Tabs);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            if (typeof(options) !== 'object') {
+                options = {};
+            }
+            // Extract DOM references
+            extract(root, options);
+            // Create the modal
+            lemonade.render(Tabs, root, options);
+            // Return self
+            return options;
+        } else {
+            return Tabs.call(this);
+        }
+    };
+})));
+
+/***/ }),
+
+/***/ 330:
+/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+
+if (!lemonade && "function" === 'function') {
+    var lemonade = __webpack_require__(966);
+}
+
+if (! Contextmenu && "function" === 'function') {
+    var Contextmenu = __webpack_require__(238);
+}
+
+; (function (global, factory) {
+     true ? module.exports = factory() :
+    0;
+}(this, (function () {
+
+    const Topmenu = function(children, { onload, onchange }) {
+        let self = this;
+
+        // Current selection
+        let currentIndex = null;
+
+        const getElementPosition = function(child) {
+            let root = self.el.children[0];
+            for (let i = 0; i < root.children.length; i++) {
+                let c = root.children[i];
+                if (c === child) {
+                    return i;
+                }
+            }
+            return -1;
+        }
+
+        const select = function(e, s) {
+            if (! self.menu.isClosed()) {
+                let index = self.options.indexOf(s);
+                if (index !== currentIndex) {
+                    open(index);
+                }
+            }
+        }
+
+        const deselect = function() {
+            if (self.options) {
+                self.options.forEach(v => v.selected = false);
+            }
+        }
+
+        const selectIndex = function(newIndex) {
+            if (self.options) {
+                let s = self.options[newIndex];
+                if (s && ! s.disabled) {
+                    deselect();
+                    // Make it selected
+                    s.selected = true;
+                    // New index
+                    currentIndex = newIndex;
+                    // Focus
+                    s.el.focus();
+                }
+            }
+        }
+
+        const open = function(index) {
+            // Update cursor position
+            selectIndex(index);
+            let s = self.options[currentIndex];
+            if (s && s.submenu) {
+                let x = s.el.offsetLeft;
+                let y = s.el.offsetTop + s.el.offsetHeight + 2;
+                self.menu.open(s.submenu, x, y);
+                s.expanded = true;
+            }
+        }
+
+        const close = function() {
+            self.menu.close(0);
+            let s = self.options[currentIndex];
+            if (s) {
+                s.el.focus();
+                s.expanded = false;
+            }
+        }
+
+        const toggle = function(e, s) {
+            if (s.submenu && ! s.disabled) {
+                let index = self.options.indexOf(s);
+                if (index === currentIndex && ! self.menu.isClosed()) {
+                    close();
+                } else {
+                    open(index);
+                }
+                cancel(e);
+            }
+        }
+
+        const findNextEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+            
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+            
+            while (attempts < maxAttempts) {
+                if (index >= self.options.length) {
+                    index = 0;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index++;
+                attempts++;
+            }
+            return null;
+        };
+
+        const findPreviousEnabledIndex = function(startIndex) {
+            if (!self.options || self.options.length === 0) {
+                return null;
+            }
+            
+            let index = startIndex;
+            let attempts = 0;
+            const maxAttempts = self.options.length;
+            
+            while (attempts < maxAttempts) {
+                if (index < 0) {
+                    index = self.options.length - 1;
+                }
+                if (!self.options[index].disabled) {
+                    return index;
+                }
+                index--;
+                attempts++;
+            }
+            return null;
+        };
+
+        const adjustOptionProperties = function() {
+            if (self.options) {
+                self.options.forEach(v => {
+                    v.haspopup = !!v.submenu;
+                    v.expanded = false;
+
+                    if (v.disabled) {
+                        v.el.removeAttribute('tabindex');
+                    } else {
+                        v.el.setAttribute('tabindex', '0');
+                    }
+                })
+            }
+        };
+
+        /**
+         * Open a submenu programaticaly. Default 0
+         * @param {number} index
+         */
+        self.open = function(index) {
+            if (typeof index === 'undefined') {
+                index = currentIndex;
+            }
+            if (! index) {
+                index = 0;
+            }
+
+            let s = self.options[index];
+            if (s) {
+                open(index);
+            }
+        }
+
+        onchange((prop) => {
+            if (prop === 'options') {
+                adjustOptionProperties();
+            }
+        });
+
+        // Keyboard event
+        onload(() => {
+            self.el.addEventListener("focusin", function(e) {
+                let index = getElementPosition(e.target);
+                if (index !== -1) {
+                    if (e.relatedTarget === self.menu.el) {
+                        close();
+                    } else {
+                        selectIndex(index);
+                    }
+                }
+            });
+
+            self.el.addEventListener("focusout", function(e) {
+                if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
+                    if (self.options[currentIndex]) {
+                        self.options[currentIndex].selected = false;
+                    }
+                }
+            });
+
+            self.el.addEventListener("keydown", function(e) {
+                let o = self.options;
+                // Select top menu
+                let select = null;
+
+                if (e.key === 'Enter') {
+                    toggle(e, o[currentIndex])
+                } else if (e.key === 'ArrowLeft') {
+                    select = findPreviousEnabledIndex(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    select = findNextEnabledIndex(currentIndex + 1);
+                }
+
+                if (select !== null) {
+                    if (self.menu.isClosed()) {
+                        selectIndex(select);
+                    } else {
+                        open(select);
+                    }
+                }
+            });
+
+            adjustOptionProperties();
+        });
+
+        const cancel = function(e) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+        }
+
+        return render => render`<div class="lm-topmenu" role="menubar" aria-orientation="horizontal" oncontextmenu="${cancel}">
+            <div class="lm-topmenu-options" :loop="self.options">
+                <div class="lm-topmenu-title" role="menuitem" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" tabindex="0" aria-haspopup="{{self.haspopup}}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" onmousedown="${toggle}" onmouseenter="${select}">{{self.title}}</div>
+            </div>
+            <Contextmenu :ref="self.menu" :root="self.el" />
+        </div>`
+    }
+
+    lemonade.setComponents({ Topmenu: Topmenu });
+
+    // Register the web component
+    lemonade.createWebComponent('topmenu', Topmenu);
+
+    return function (root, options) {
+        if (typeof (root) === 'object') {
+            lemonade.render(Topmenu, root, options)
+            return options;
+        } else {
+            return Topmenu.call(this, root)
+        }
+    }
+})));
+
+/***/ }),
+
+/***/ 966:
 /***/ (function(module) {
 
 /**
@@ -11971,258 +11962,294 @@ if (! Modal && "function" === 'function') {
 
 /***/ }),
 
-/***/ 888:
-/***/ (function(module, __unused_webpack_exports, __webpack_require__) {
+/***/ 195:
+/***/ (function(module) {
 
-if (!lemonade && "function" === 'function') {
-    var lemonade = __webpack_require__(831);
-}
+/**
+ * (c) jSuites Javascript Plugins and Web Components (v4)
+ *
+ * Website: https://jsuites.net
+ * Description: Create amazing web based applications.
+ * Plugin: Organogram
+ *
+ * MIT License
+ */
 
-if (! Contextmenu && "function" === 'function') {
-    var Contextmenu = __webpack_require__(691);
-}
-
-; (function (global, factory) {
+;(function (global, factory) {
      true ? module.exports = factory() :
     0;
 }(this, (function () {
 
-    const Topmenu = function(children, { onload, onchange }) {
-        let self = this;
-
-        // Current selection
-        let currentIndex = null;
-
-        const getElementPosition = function(child) {
-            let root = self.el.children[0];
-            for (let i = 0; i < root.children.length; i++) {
-                let c = root.children[i];
-                if (c === child) {
-                    return i;
-                }
-            }
-            return -1;
+    return (function(str) {
+        function int64(msint_32, lsint_32) {
+            this.highOrder = msint_32;
+            this.lowOrder = lsint_32;
         }
 
-        const select = function(e, s) {
-            if (! self.menu.isClosed()) {
-                let index = self.options.indexOf(s);
-                if (index !== currentIndex) {
-                    open(index);
-                }
+        var H = [new int64(0x6a09e667, 0xf3bcc908), new int64(0xbb67ae85, 0x84caa73b),
+            new int64(0x3c6ef372, 0xfe94f82b), new int64(0xa54ff53a, 0x5f1d36f1),
+            new int64(0x510e527f, 0xade682d1), new int64(0x9b05688c, 0x2b3e6c1f),
+            new int64(0x1f83d9ab, 0xfb41bd6b), new int64(0x5be0cd19, 0x137e2179)];
+
+        var K = [new int64(0x428a2f98, 0xd728ae22), new int64(0x71374491, 0x23ef65cd),
+            new int64(0xb5c0fbcf, 0xec4d3b2f), new int64(0xe9b5dba5, 0x8189dbbc),
+            new int64(0x3956c25b, 0xf348b538), new int64(0x59f111f1, 0xb605d019),
+            new int64(0x923f82a4, 0xaf194f9b), new int64(0xab1c5ed5, 0xda6d8118),
+            new int64(0xd807aa98, 0xa3030242), new int64(0x12835b01, 0x45706fbe),
+            new int64(0x243185be, 0x4ee4b28c), new int64(0x550c7dc3, 0xd5ffb4e2),
+            new int64(0x72be5d74, 0xf27b896f), new int64(0x80deb1fe, 0x3b1696b1),
+            new int64(0x9bdc06a7, 0x25c71235), new int64(0xc19bf174, 0xcf692694),
+            new int64(0xe49b69c1, 0x9ef14ad2), new int64(0xefbe4786, 0x384f25e3),
+            new int64(0x0fc19dc6, 0x8b8cd5b5), new int64(0x240ca1cc, 0x77ac9c65),
+            new int64(0x2de92c6f, 0x592b0275), new int64(0x4a7484aa, 0x6ea6e483),
+            new int64(0x5cb0a9dc, 0xbd41fbd4), new int64(0x76f988da, 0x831153b5),
+            new int64(0x983e5152, 0xee66dfab), new int64(0xa831c66d, 0x2db43210),
+            new int64(0xb00327c8, 0x98fb213f), new int64(0xbf597fc7, 0xbeef0ee4),
+            new int64(0xc6e00bf3, 0x3da88fc2), new int64(0xd5a79147, 0x930aa725),
+            new int64(0x06ca6351, 0xe003826f), new int64(0x14292967, 0x0a0e6e70),
+            new int64(0x27b70a85, 0x46d22ffc), new int64(0x2e1b2138, 0x5c26c926),
+            new int64(0x4d2c6dfc, 0x5ac42aed), new int64(0x53380d13, 0x9d95b3df),
+            new int64(0x650a7354, 0x8baf63de), new int64(0x766a0abb, 0x3c77b2a8),
+            new int64(0x81c2c92e, 0x47edaee6), new int64(0x92722c85, 0x1482353b),
+            new int64(0xa2bfe8a1, 0x4cf10364), new int64(0xa81a664b, 0xbc423001),
+            new int64(0xc24b8b70, 0xd0f89791), new int64(0xc76c51a3, 0x0654be30),
+            new int64(0xd192e819, 0xd6ef5218), new int64(0xd6990624, 0x5565a910),
+            new int64(0xf40e3585, 0x5771202a), new int64(0x106aa070, 0x32bbd1b8),
+            new int64(0x19a4c116, 0xb8d2d0c8), new int64(0x1e376c08, 0x5141ab53),
+            new int64(0x2748774c, 0xdf8eeb99), new int64(0x34b0bcb5, 0xe19b48a8),
+            new int64(0x391c0cb3, 0xc5c95a63), new int64(0x4ed8aa4a, 0xe3418acb),
+            new int64(0x5b9cca4f, 0x7763e373), new int64(0x682e6ff3, 0xd6b2b8a3),
+            new int64(0x748f82ee, 0x5defb2fc), new int64(0x78a5636f, 0x43172f60),
+            new int64(0x84c87814, 0xa1f0ab72), new int64(0x8cc70208, 0x1a6439ec),
+            new int64(0x90befffa, 0x23631e28), new int64(0xa4506ceb, 0xde82bde9),
+            new int64(0xbef9a3f7, 0xb2c67915), new int64(0xc67178f2, 0xe372532b),
+            new int64(0xca273ece, 0xea26619c), new int64(0xd186b8c7, 0x21c0c207),
+            new int64(0xeada7dd6, 0xcde0eb1e), new int64(0xf57d4f7f, 0xee6ed178),
+            new int64(0x06f067aa, 0x72176fba), new int64(0x0a637dc5, 0xa2c898a6),
+            new int64(0x113f9804, 0xbef90dae), new int64(0x1b710b35, 0x131c471b),
+            new int64(0x28db77f5, 0x23047d84), new int64(0x32caab7b, 0x40c72493),
+            new int64(0x3c9ebe0a, 0x15c9bebc), new int64(0x431d67c4, 0x9c100d4c),
+            new int64(0x4cc5d4be, 0xcb3e42b6), new int64(0x597f299c, 0xfc657e2a),
+            new int64(0x5fcb6fab, 0x3ad6faec), new int64(0x6c44198c, 0x4a475817)];
+
+        var W = new Array(64);
+        var a, b, c, d, e, f, g, h, i, j;
+        var T1, T2;
+        var charsize = 8;
+
+        function utf8_encode(str) {
+            return unescape(encodeURIComponent(str));
+        }
+
+        function str2binb(str) {
+            var bin = [];
+            var mask = (1 << charsize) - 1;
+            var len = str.length * charsize;
+
+            for (var i = 0; i < len; i += charsize) {
+                bin[i >> 5] |= (str.charCodeAt(i / charsize) & mask) << (32 - charsize - (i % 32));
+            }
+
+            return bin;
+        }
+
+        function binb2hex(binarray) {
+            var hex_tab = "0123456789abcdef";
+            var str = "";
+            var length = binarray.length * 4;
+            var srcByte;
+
+            for (var i = 0; i < length; i += 1) {
+                srcByte = binarray[i >> 2] >> ((3 - (i % 4)) * 8);
+                str += hex_tab.charAt((srcByte >> 4) & 0xF) + hex_tab.charAt(srcByte & 0xF);
+            }
+
+            return str;
+        }
+
+        function safe_add_2(x, y) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (x.lowOrder & 0xFFFF) + (y.lowOrder & 0xFFFF);
+            msw = (x.lowOrder >>> 16) + (y.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (x.highOrder & 0xFFFF) + (y.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (x.highOrder >>> 16) + (y.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function safe_add_4(a, b, c, d) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF);
+            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function safe_add_5(a, b, c, d, e) {
+            var lsw, msw, lowOrder, highOrder;
+
+            lsw = (a.lowOrder & 0xFFFF) + (b.lowOrder & 0xFFFF) + (c.lowOrder & 0xFFFF) + (d.lowOrder & 0xFFFF) + (e.lowOrder & 0xFFFF);
+            msw = (a.lowOrder >>> 16) + (b.lowOrder >>> 16) + (c.lowOrder >>> 16) + (d.lowOrder >>> 16) + (e.lowOrder >>> 16) + (lsw >>> 16);
+            lowOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            lsw = (a.highOrder & 0xFFFF) + (b.highOrder & 0xFFFF) + (c.highOrder & 0xFFFF) + (d.highOrder & 0xFFFF) + (e.highOrder & 0xFFFF) + (msw >>> 16);
+            msw = (a.highOrder >>> 16) + (b.highOrder >>> 16) + (c.highOrder >>> 16) + (d.highOrder >>> 16) + (e.highOrder >>> 16) + (lsw >>> 16);
+            highOrder = ((msw & 0xFFFF) << 16) | (lsw & 0xFFFF);
+
+            return new int64(highOrder, lowOrder);
+        }
+
+        function maj(x, y, z) {
+            return new int64(
+                (x.highOrder & y.highOrder) ^ (x.highOrder & z.highOrder) ^ (y.highOrder & z.highOrder),
+                (x.lowOrder & y.lowOrder) ^ (x.lowOrder & z.lowOrder) ^ (y.lowOrder & z.lowOrder)
+            );
+        }
+
+        function ch(x, y, z) {
+            return new int64(
+                (x.highOrder & y.highOrder) ^ (~x.highOrder & z.highOrder),
+                (x.lowOrder & y.lowOrder) ^ (~x.lowOrder & z.lowOrder)
+            );
+        }
+
+        function rotr(x, n) {
+            if (n <= 32) {
+                return new int64(
+                    (x.highOrder >>> n) | (x.lowOrder << (32 - n)),
+                    (x.lowOrder >>> n) | (x.highOrder << (32 - n))
+                );
+            } else {
+                return new int64(
+                    (x.lowOrder >>> n) | (x.highOrder << (32 - n)),
+                    (x.highOrder >>> n) | (x.lowOrder << (32 - n))
+                );
             }
         }
 
-        const deselect = function() {
-            if (self.options) {
-                self.options.forEach(v => v.selected = false);
+        function sigma0(x) {
+            var rotr28 = rotr(x, 28);
+            var rotr34 = rotr(x, 34);
+            var rotr39 = rotr(x, 39);
+
+            return new int64(
+                rotr28.highOrder ^ rotr34.highOrder ^ rotr39.highOrder,
+                rotr28.lowOrder ^ rotr34.lowOrder ^ rotr39.lowOrder
+            );
+        }
+
+        function sigma1(x) {
+            var rotr14 = rotr(x, 14);
+            var rotr18 = rotr(x, 18);
+            var rotr41 = rotr(x, 41);
+
+            return new int64(
+                rotr14.highOrder ^ rotr18.highOrder ^ rotr41.highOrder,
+                rotr14.lowOrder ^ rotr18.lowOrder ^ rotr41.lowOrder
+            );
+        }
+
+        function gamma0(x) {
+            var rotr1 = rotr(x, 1), rotr8 = rotr(x, 8), shr7 = shr(x, 7);
+
+            return new int64(
+                rotr1.highOrder ^ rotr8.highOrder ^ shr7.highOrder,
+                rotr1.lowOrder ^ rotr8.lowOrder ^ shr7.lowOrder
+            );
+        }
+
+        function gamma1(x) {
+            var rotr19 = rotr(x, 19);
+            var rotr61 = rotr(x, 61);
+            var shr6 = shr(x, 6);
+
+            return new int64(
+                rotr19.highOrder ^ rotr61.highOrder ^ shr6.highOrder,
+                rotr19.lowOrder ^ rotr61.lowOrder ^ shr6.lowOrder
+            );
+        }
+
+        function shr(x, n) {
+            if (n <= 32) {
+                return new int64(
+                    x.highOrder >>> n,
+                    x.lowOrder >>> n | (x.highOrder << (32 - n))
+                );
+            } else {
+                return new int64(
+                    0,
+                    x.highOrder << (32 - n)
+                );
             }
         }
 
-        const selectIndex = function(newIndex) {
-            if (self.options) {
-                let s = self.options[newIndex];
-                if (s && ! s.disabled) {
-                    deselect();
-                    // Make it selected
-                    s.selected = true;
-                    // New index
-                    currentIndex = newIndex;
-                    // Focus
-                    s.el.focus();
-                }
-            }
-        }
+        var str = utf8_encode(str);
+        var strlen = str.length*charsize;
+        str = str2binb(str);
 
-        const open = function(index) {
-            // Update cursor position
-            selectIndex(index);
-            let s = self.options[currentIndex];
-            if (s && s.submenu) {
-                let x = s.el.offsetLeft;
-                let y = s.el.offsetTop + s.el.offsetHeight + 2;
-                self.menu.open(s.submenu, x, y);
-                s.expanded = true;
-            }
-        }
+        str[strlen >> 5] |= 0x80 << (24 - strlen % 32);
+        str[(((strlen + 128) >> 10) << 5) + 31] = strlen;
 
-        const close = function() {
-            self.menu.close(0);
-            let s = self.options[currentIndex];
-            if (s) {
-                s.el.focus();
-                s.expanded = false;
-            }
-        }
+        for (var i = 0; i < str.length; i += 32) {
+            a = H[0];
+            b = H[1];
+            c = H[2];
+            d = H[3];
+            e = H[4];
+            f = H[5];
+            g = H[6];
+            h = H[7];
 
-        const toggle = function(e, s) {
-            if (s.submenu && ! s.disabled) {
-                let index = self.options.indexOf(s);
-                if (index === currentIndex && ! self.menu.isClosed()) {
-                    close();
+            for (var j = 0; j < 80; j++) {
+                if (j < 16) {
+                    W[j] = new int64(str[j*2 + i], str[j*2 + i + 1]);
                 } else {
-                    open(index);
+                    W[j] = safe_add_4(gamma1(W[j - 2]), W[j - 7], gamma0(W[j - 15]), W[j - 16]);
                 }
-                cancel(e);
+
+                T1 = safe_add_5(h, sigma1(e), ch(e, f, g), K[j], W[j]);
+                T2 = safe_add_2(sigma0(a), maj(a, b, c));
+                h = g;
+                g = f;
+                f = e;
+                e = safe_add_2(d, T1);
+                d = c;
+                c = b;
+                b = a;
+                a = safe_add_2(T1, T2);
             }
+
+            H[0] = safe_add_2(a, H[0]);
+            H[1] = safe_add_2(b, H[1]);
+            H[2] = safe_add_2(c, H[2]);
+            H[3] = safe_add_2(d, H[3]);
+            H[4] = safe_add_2(e, H[4]);
+            H[5] = safe_add_2(f, H[5]);
+            H[6] = safe_add_2(g, H[6]);
+            H[7] = safe_add_2(h, H[7]);
         }
 
-        const findNextEnabledIndex = function(startIndex) {
-            if (!self.options || self.options.length === 0) {
-                return null;
-            }
-            
-            let index = startIndex;
-            let attempts = 0;
-            const maxAttempts = self.options.length;
-            
-            while (attempts < maxAttempts) {
-                if (index >= self.options.length) {
-                    index = 0;
-                }
-                if (!self.options[index].disabled) {
-                    return index;
-                }
-                index++;
-                attempts++;
-            }
-            return null;
-        };
-
-        const findPreviousEnabledIndex = function(startIndex) {
-            if (!self.options || self.options.length === 0) {
-                return null;
-            }
-            
-            let index = startIndex;
-            let attempts = 0;
-            const maxAttempts = self.options.length;
-            
-            while (attempts < maxAttempts) {
-                if (index < 0) {
-                    index = self.options.length - 1;
-                }
-                if (!self.options[index].disabled) {
-                    return index;
-                }
-                index--;
-                attempts++;
-            }
-            return null;
-        };
-
-        const adjustOptionProperties = function() {
-            if (self.options) {
-                self.options.forEach(v => {
-                    v.haspopup = !!v.submenu;
-                    v.expanded = false;
-
-                    if (v.disabled) {
-                        v.el.removeAttribute('tabindex');
-                    } else {
-                        v.el.setAttribute('tabindex', '0');
-                    }
-                })
-            }
-        };
-
-        /**
-         * Open a submenu programaticaly. Default 0
-         * @param {number} index
-         */
-        self.open = function(index) {
-            if (typeof index === 'undefined') {
-                index = currentIndex;
-            }
-            if (! index) {
-                index = 0;
-            }
-
-            let s = self.options[index];
-            if (s) {
-                open(index);
-            }
+        var binarray = [];
+        for (var i = 0; i < H.length; i++) {
+            binarray.push(H[i].highOrder);
+            binarray.push(H[i].lowOrder);
         }
 
-        onchange((prop) => {
-            if (prop === 'options') {
-                adjustOptionProperties();
-            }
-        });
+        return binb2hex(binarray);
+    });
 
-        // Keyboard event
-        onload(() => {
-            self.el.addEventListener("focusin", function(e) {
-                let index = getElementPosition(e.target);
-                if (index !== -1) {
-                    if (e.relatedTarget === self.menu.el) {
-                        close();
-                    } else {
-                        selectIndex(index);
-                    }
-                }
-            });
-
-            self.el.addEventListener("focusout", function(e) {
-                if (! (e.relatedTarget && self.el.contains(e.relatedTarget))) {
-                    if (self.options[currentIndex]) {
-                        self.options[currentIndex].selected = false;
-                    }
-                }
-            });
-
-            self.el.addEventListener("keydown", function(e) {
-                let o = self.options;
-                // Select top menu
-                let select = null;
-
-                if (e.key === 'Enter') {
-                    toggle(e, o[currentIndex])
-                } else if (e.key === 'ArrowLeft') {
-                    select = findPreviousEnabledIndex(currentIndex - 1);
-                } else if (e.key === 'ArrowRight') {
-                    select = findNextEnabledIndex(currentIndex + 1);
-                }
-
-                if (select !== null) {
-                    if (self.menu.isClosed()) {
-                        selectIndex(select);
-                    } else {
-                        open(select);
-                    }
-                }
-            });
-
-            adjustOptionProperties();
-        });
-
-        const cancel = function(e) {
-            e.preventDefault();
-            e.stopImmediatePropagation();
-        }
-
-        return render => render`<div class="lm-topmenu" role="menubar" aria-orientation="horizontal" oncontextmenu="${cancel}">
-            <div class="lm-topmenu-options" :loop="self.options">
-                <div class="lm-topmenu-title" role="menuitem" data-disabled="{{self.disabled}}" data-selected="{{self.selected}}" tabindex="0" aria-haspopup="{{self.haspopup}}" aria-expanded="{{self.expanded}}" aria-label="{{self.title}}" onmousedown="${toggle}" onmouseenter="${select}">{{self.title}}</div>
-            </div>
-            <Contextmenu :ref="self.menu" :root="self.el" />
-        </div>`
-    }
-
-    lemonade.setComponents({ Topmenu: Topmenu });
-
-    // Register the web component
-    lemonade.createWebComponent('topmenu', Topmenu);
-
-    return function (root, options) {
-        if (typeof (root) === 'object') {
-            lemonade.render(Topmenu, root, options)
-            return options;
-        } else {
-            return Topmenu.call(this, root)
-        }
-    }
 })));
+
 
 /***/ })
 
@@ -12284,7 +12311,7 @@ if (! Contextmenu && "function" === 'function') {
 /******/ 	
 /************************************************************************/
 var __webpack_exports__ = {};
-// This entry needs to be wrapped in an IIFE because it needs to be in strict mode.
+// This entry need to be wrapped in an IIFE because it need to be in strict mode.
 !function() {
 "use strict";
 
@@ -12293,7 +12320,7 @@ __webpack_require__.d(__webpack_exports__, {
   "default": function() { return /* binding */ jsuites; }
 });
 
-;// ./src/utils/dictionary.js
+;// CONCATENATED MODULE: ./src/utils/dictionary.js
 // Update dictionary
 const setDictionary = function(d) {
     if (! document.dictionary) {
@@ -12317,7 +12344,7 @@ const translate = function(t) {
 
 
 /* harmony default export */ var dictionary = ({ setDictionary, translate });
-;// ./src/utils/tracking.js
+;// CONCATENATED MODULE: ./src/utils/tracking.js
  const Tracking = function(component, state) {
     if (state === true) {
         window['jSuitesStateControl'] = window['jSuitesStateControl'].filter(function(v) {
@@ -12338,7 +12365,7 @@ const translate = function(t) {
 }
 
 /* harmony default export */ var tracking = (Tracking);
-;// ./src/utils/helpers.js
+;// CONCATENATED MODULE: ./src/utils/helpers.js
 const Helpers = {};
 
 // Two digits
@@ -12509,7 +12536,7 @@ Helpers.findElement = function(element, condition) {
 }
 
 /* harmony default export */ var helpers = (Helpers);
-;// ./src/utils/path.js
+;// CONCATENATED MODULE: ./src/utils/path.js
 const isValidPathObj = function(o) {
     return o !== null && (typeof o === 'object' || typeof o === 'function');
 }
@@ -12593,7 +12620,7 @@ function Path(pathString, value, remove) {
     currentObject[finalKey] = value;
     return true;
 }
-;// ./src/utils/sorting.js
+;// CONCATENATED MODULE: ./src/utils/sorting.js
 function Sorting(el, options) {
     var obj = {};
     obj.options = {};
@@ -12750,7 +12777,7 @@ function Sorting(el, options) {
 
     return el;
 }
-;// ./src/utils/lazyloading.js
+;// CONCATENATED MODULE: ./src/utils/lazyloading.js
 function LazyLoading(el, options) {
     var obj = {}
 
@@ -12817,7 +12844,7 @@ function LazyLoading(el, options) {
 
     return obj;
 }
-;// ./src/plugins/ajax.js
+;// CONCATENATED MODULE: ./src/plugins/ajax.js
 function Ajax() {
     var Component = (function(options, complete) {
         if (Array.isArray(options)) {
@@ -13130,7 +13157,7 @@ function Ajax() {
 }
 
 /* harmony default export */ var ajax = (Ajax());
-;// ./src/plugins/animation.js
+;// CONCATENATED MODULE: ./src/plugins/animation.js
 function Animation() {
     const Component = {
         loading: {}
@@ -13263,10 +13290,10 @@ function Animation() {
 }
 
 /* harmony default export */ var animation = (Animation());
-// EXTERNAL MODULE: ./packages/utils/dist/index.js
-var dist = __webpack_require__(414);
+// EXTERNAL MODULE: ./node_modules/@jsuites/utils/dist/index.js
+var dist = __webpack_require__(791);
 var dist_default = /*#__PURE__*/__webpack_require__.n(dist);
-;// ./src/plugins/calendar.js
+;// CONCATENATED MODULE: ./src/plugins/calendar.js
 
 
 
@@ -14440,7 +14467,7 @@ function Calendar() {
 }
 
 /* harmony default export */ var calendar = (Calendar());
-;// ./src/plugins/palette.js
+;// CONCATENATED MODULE: ./src/plugins/palette.js
 // More palettes https://coolors.co/ or https://gka.github.io/palettes/#/10|s|003790,005647,ffffe0|ffffe0,ff005e,93003a|1|1
 
 function Palette() {
@@ -14503,7 +14530,7 @@ function Palette() {
 }
 
 /* harmony default export */ var palette = (Palette());
-;// ./src/plugins/tabs.js
+;// CONCATENATED MODULE: ./src/plugins/tabs.js
 
 
 
@@ -15159,7 +15186,7 @@ function Tabs(el, options) {
 
     return obj;
 }
-;// ./src/plugins/color.js
+;// CONCATENATED MODULE: ./src/plugins/color.js
 
 
 
@@ -15931,7 +15958,7 @@ function Color(el, options) {
 
     return obj;
 }
-;// ./src/plugins/contextmenu.js
+;// CONCATENATED MODULE: ./src/plugins/contextmenu.js
 
 
 
@@ -16231,7 +16258,7 @@ function Contextmenu() {
 }
 
 /* harmony default export */ var contextmenu = (Contextmenu());
-;// ./src/plugins/dropdown.js
+;// CONCATENATED MODULE: ./src/plugins/dropdown.js
 
 
 
@@ -18041,7 +18068,7 @@ function Dropdown() {
 }
 
 /* harmony default export */ var dropdown = (Dropdown());
-;// ./src/plugins/picker.js
+;// CONCATENATED MODULE: ./src/plugins/picker.js
 
 
 
@@ -18426,7 +18453,7 @@ function Picker(el, options) {
 
     return obj;
 }
-;// ./src/plugins/toolbar.js
+;// CONCATENATED MODULE: ./src/plugins/toolbar.js
 
 
 
@@ -18836,7 +18863,7 @@ function Toolbar(el, options) {
 
     return obj;
 }
-;// ./src/utils/filter.js
+;// CONCATENATED MODULE: ./src/utils/filter.js
 
 // Valid tags (removed iframe for security)
 const validTags = [
@@ -19051,7 +19078,7 @@ const filter = function(data, img) {
 }
 
 /* harmony default export */ var utils_filter = (filter);
-;// ./src/plugins/editor.js
+;// CONCATENATED MODULE: ./src/plugins/editor.js
 
 
 
@@ -20296,7 +20323,7 @@ function Editor() {
 
 /* harmony default export */ var editor = (Editor());
 
-;// ./src/plugins/floating.js
+;// CONCATENATED MODULE: ./src/plugins/floating.js
 function Floating() {
     var Component = (function (el, options) {
         var obj = {};
@@ -20443,7 +20470,7 @@ function Floating() {
 }
 
 /* harmony default export */ var floating = (Floating());
-;// ./src/plugins/validations.js
+;// CONCATENATED MODULE: ./src/plugins/validations.js
 
 
 const validations_HelpersDate = (dist_default()).Helpers;
@@ -20769,7 +20796,7 @@ function Validations() {
 }
 
 /* harmony default export */ var validations = (Validations());
-;// ./src/plugins/form.js
+;// CONCATENATED MODULE: ./src/plugins/form.js
 
 
 
@@ -21190,7 +21217,7 @@ function Form() {
 }
 
 /* harmony default export */ var plugins_form = (Form());
-;// ./src/plugins/mask.js
+;// CONCATENATED MODULE: ./src/plugins/mask.js
 /*
  Add '*' as a valid symbol
  Formats such as 'DD"th of "MMMM", "YYYY'
@@ -21207,7 +21234,7 @@ function Form() {
 
 /* harmony default export */ var mask = (dist.Mask);
 
-;// ./src/plugins/modal.js
+;// CONCATENATED MODULE: ./src/plugins/modal.js
 
 
 
@@ -21493,7 +21520,7 @@ function Modal() {
 }
 
 /* harmony default export */ var modal = (Modal());
-;// ./src/plugins/notification.js
+;// CONCATENATED MODULE: ./src/plugins/notification.js
 
 
 
@@ -21642,7 +21669,7 @@ function Notification() {
 }
 
 /* harmony default export */ var notification = (Notification());
-;// ./src/plugins/progressbar.js
+;// CONCATENATED MODULE: ./src/plugins/progressbar.js
 function Progressbar(el, options) {
     var obj = {};
     obj.options = {};
@@ -21757,7 +21784,7 @@ function Progressbar(el, options) {
 
     return obj;
 }
-;// ./src/plugins/rating.js
+;// CONCATENATED MODULE: ./src/plugins/rating.js
 function Rating(el, options) {
     // Already created, update options
     if (el.rating) {
@@ -21901,7 +21928,7 @@ function Rating(el, options) {
 
     return obj;
 }
-;// ./src/plugins/search.js
+;// CONCATENATED MODULE: ./src/plugins/search.js
 
 
 
@@ -22186,7 +22213,7 @@ function Search(el, options) {
 
     return obj;
 }
-;// ./src/plugins/slider.js
+;// CONCATENATED MODULE: ./src/plugins/slider.js
 function Slider(el, options) {
     var obj = {};
     obj.options = {};
@@ -22408,7 +22435,7 @@ function Slider(el, options) {
 
     return obj;
 }
-;// ./src/plugins/tags.js
+;// CONCATENATED MODULE: ./src/plugins/tags.js
 
 
 
@@ -23106,7 +23133,7 @@ function Tags(el, options) {
 
     return obj;
 }
-;// ./src/plugins/upload.js
+;// CONCATENATED MODULE: ./src/plugins/upload.js
 
 
 
@@ -23391,27 +23418,27 @@ function Upload(el, options) {
 }
 
 // EXTERNAL MODULE: ./packages/sha512/sha512.js
-var sha512 = __webpack_require__(794);
+var sha512 = __webpack_require__(195);
 var sha512_default = /*#__PURE__*/__webpack_require__.n(sha512);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/calendar/dist/index.js
-var calendar_dist = __webpack_require__(397);
+var calendar_dist = __webpack_require__(763);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/color/dist/index.js
-var color_dist = __webpack_require__(326);
+var color_dist = __webpack_require__(541);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/contextmenu/dist/index.js
-var contextmenu_dist = __webpack_require__(691);
+var contextmenu_dist = __webpack_require__(238);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/dropdown/dist/index.js
-var dropdown_dist = __webpack_require__(132);
+var dropdown_dist = __webpack_require__(692);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/modal/dist/index.js
-var modal_dist = __webpack_require__(124);
+var modal_dist = __webpack_require__(72);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/switch/dist/index.js
-var switch_dist = __webpack_require__(507);
+var switch_dist = __webpack_require__(539);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/tabs/dist/index.js
-var tabs_dist = __webpack_require__(519);
+var tabs_dist = __webpack_require__(560);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/topmenu/dist/index.js
-var topmenu_dist = __webpack_require__(888);
+var topmenu_dist = __webpack_require__(330);
 // EXTERNAL MODULE: ./node_modules/@lemonadejs/rating/dist/index.js
-var rating_dist = __webpack_require__(212);
-;// ./src/jsuites.js
+var rating_dist = __webpack_require__(867);
+;// CONCATENATED MODULE: ./src/jsuites.js
 
 
 
