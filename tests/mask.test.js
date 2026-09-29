@@ -182,6 +182,18 @@ describe('jSuites mask', () => {
             expect(jSuites.mask.render('1.234,50', { mask: '_-$ * #.##0,00_-;-$ * #.##0,00_-;_-$ * -??_-;_-@_-' }, true)).toBe(' 1.234,50');
         });
 
+        test('two and three section masks with comma as decimal separator', () => {
+            // The section chosen from the number holds after the value is localized
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,00;[Red]-#.##0,00' }, true)).toBe('1.234,50');
+            expect(jSuites.mask.render(-1234.5, { mask: '#.##0,00;[Red]-#.##0,00' }, true)).toBe('-1.234,50');
+            // No zero section: zero renders with the positive section
+            expect(jSuites.mask.render(0, { mask: '#.##0,00;[Red]-#.##0,00' }, true)).toBe('0,00');
+
+            expect(jSuites.mask.render(1234.5, { mask: '#.##0,00;(#.##0,00);"zero"' }, true)).toBe('1.234,50');
+            expect(jSuites.mask.render(-1234.5, { mask: '#.##0,00;(#.##0,00);"zero"' }, true)).toBe('(1.234,50)');
+            expect(jSuites.mask.render(0, { mask: '#.##0,00;(#.##0,00);"zero"' }, true)).toBe('zero');
+        });
+
         test('fraction rendering', () => {
             // Basic fractions with flexible denominators
             expect(jSuites.mask.render(0.5, { mask: '# ?/?' }, true)).toBe('1/2');

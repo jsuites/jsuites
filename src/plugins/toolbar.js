@@ -332,7 +332,11 @@ export default function Toolbar(el, options) {
 
     obj.refresh = function() {
         if (obj.options.responsive == true) {
-            // Width of the c
+            // A toolbar destroyed before the scheduled refresh runs has no parent
+            if (! el.parentNode) {
+                return;
+            }
+            // Width of the container
             var rect = el.parentNode.getBoundingClientRect();
             if (! obj.options.maxWidth) {
                 obj.options.maxWidth = rect.width;

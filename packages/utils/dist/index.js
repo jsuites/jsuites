@@ -2753,6 +2753,11 @@
                 return null;
             }
 
+            // Every date or time shape carries a digit: plain text never reaches the parsers
+            if (!/\d/.test(value)) {
+                return null;
+            }
+
             // Smart pattern detection based on the structure of the string
 
             // 1. Analyze the structure to determine possible formats
@@ -2911,6 +2916,10 @@
 
             // If no patterns detected, try some common formats as fallback
             if (candidateMasks.length === 0) {
+                // Every fallback format separates digit groups with /, - or :
+                if (!/\d[\/\-:]\d/.test(value)) {
+                    return null;
+                }
                 if (userLocale.startsWith('en-US')) {
                     candidateMasks.push(
                         'mm/dd/yyyy', 'mm-dd-yyyy', 'yyyy-mm-dd',
