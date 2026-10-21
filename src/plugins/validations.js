@@ -240,12 +240,29 @@ function Validations() {
         },
     };
 
-    component.date = function(data, options) {
-        if (isNumeric(data) && data > 0 && data < 1000000) {
-            data = HelpersDate.numToDate(data);
+    /**
+     * Timestamp of a date in local time. A number is an Excel serial, and
+     * a date without time is the local midnight, not the UTC midnight of
+     * new Date('YYYY-MM-DD'), so it compares with the date and time the
+     * calendar writes into the cell
+     */
+    const getTime = function(date) {
+        if (isNumeric(date) && date > 0 && date < 1000000) {
+            date = HelpersDate.numToDate(date);
+        } else if (typeof date === 'string') {
+            let d = date.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (d) {
+                let t = new Date(d[1], d[2] - 1, d[3]);
+                // No overflow into the next month: 2023-15-07 is not a date
+                return t.getMonth() === d[2] - 1 && t.getDate() === Number(d[3]) ? t.getTime() : NaN;
+            }
         }
 
-        if (new Date(data) == 'Invalid Date') {
+        return new Date(date).getTime();
+    }
+
+    component.date = function(data, options) {
+        if (isNaN(getTime(data))) {
             return false;
         }
 
@@ -262,10 +279,10 @@ function Validations() {
                 return relativeDates[date]().getTime();
             }
 
-            return new Date(date).getTime();
+            return getTime(date);
         });
 
-        return dateCriterias[options.criteria](new Date(data).getTime(), values);
+        return dateCriterias[options.criteria](getTime(data), values);
     }
 
     component.text = function(data, options) {
