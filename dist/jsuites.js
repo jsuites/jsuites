@@ -2766,6 +2766,11 @@ var jSuites;
                 return null;
             }
 
+            // Every date or time shape carries a digit: plain text never reaches the parsers
+            if (!/\d/.test(value)) {
+                return null;
+            }
+
             // Smart pattern detection based on the structure of the string
 
             // 1. Analyze the structure to determine possible formats
@@ -2924,6 +2929,10 @@ var jSuites;
 
             // If no patterns detected, try some common formats as fallback
             if (candidateMasks.length === 0) {
+                // Every fallback format separates digit groups with /, - or :
+                if (!/\d[\/\-:]\d/.test(value)) {
+                    return null;
+                }
                 if (userLocale.startsWith('en-US')) {
                     candidateMasks.push(
                         'mm/dd/yyyy', 'mm-dd-yyyy', 'yyyy-mm-dd',
@@ -18788,7 +18797,11 @@ function Toolbar(el, options) {
 
     obj.refresh = function() {
         if (obj.options.responsive == true) {
-            // Width of the c
+            // A toolbar destroyed before the scheduled refresh runs has no parent
+            if (! el.parentNode) {
+                return;
+            }
+            // Width of the container
             var rect = el.parentNode.getBoundingClientRect();
             if (! obj.options.maxWidth) {
                 obj.options.maxWidth = rect.width;
@@ -20713,12 +20726,29 @@ function Validations() {
         },
     };
 
-    component.date = function(data, options) {
-        if (isNumeric(data) && data > 0 && data < 1000000) {
-            data = validations_HelpersDate.numToDate(data);
+    /**
+     * Timestamp of a date in local time. A number is an Excel serial, and
+     * a date without time is the local midnight, not the UTC midnight of
+     * new Date('YYYY-MM-DD'), so it compares with the date and time the
+     * calendar writes into the cell
+     */
+    const getTime = function(date) {
+        if (isNumeric(date) && date > 0 && date < 1000000) {
+            date = validations_HelpersDate.numToDate(date);
+        } else if (typeof date === 'string') {
+            let d = date.trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (d) {
+                let t = new Date(d[1], d[2] - 1, d[3]);
+                // No overflow into the next month: 2023-15-07 is not a date
+                return t.getMonth() === d[2] - 1 && t.getDate() === Number(d[3]) ? t.getTime() : NaN;
+            }
         }
 
-        if (new Date(data) == 'Invalid Date') {
+        return new Date(date).getTime();
+    }
+
+    component.date = function(data, options) {
+        if (isNaN(getTime(data))) {
             return false;
         }
 
@@ -20735,10 +20765,10 @@ function Validations() {
                 return relativeDates[date]().getTime();
             }
 
-            return new Date(date).getTime();
+            return getTime(date);
         });
 
-        return dateCriterias[options.criteria](new Date(data).getTime(), values);
+        return dateCriterias[options.criteria](getTime(data), values);
     }
 
     component.text = function(data, options) {
@@ -23519,7 +23549,7 @@ var jSuites = {
     ...dictionary,
     ...helpers,
     /** Current version */
-    version: '6.5.0',
+    version: '6.5.1',
     /** Bind new extensions to Jsuites */
     setExtensions: function(o) {
         if (typeof(o) == 'object') {
