@@ -619,6 +619,11 @@ export default function Color(el, options) {
         }
 
         containerClickHandler = function(e) {
+            if (el.matches(':disabled')) {
+                obj.close();
+                return;
+            }
+
             if (e.target.tagName == 'TD') {
                 var value = e.target.getAttribute('data-value');
                 if (value) {
