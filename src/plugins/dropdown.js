@@ -13,9 +13,14 @@ function Dropdown() {
             return el.dropdown.setOptions(options, true);
         }
 
+        var nativeSelect = el.tagName == 'SELECT' ? el : null;
+
         // New instance
         var obj = {type: 'dropdown'};
         obj.options = {};
+        obj.isDisabled = function () {
+            return !!nativeSelect && nativeSelect.matches(':disabled');
+        }
 
         // Success
         var success = function (data, val) {
@@ -365,8 +370,8 @@ function Dropdown() {
             }
 
             // If the element is a SELECT tag, create a configuration object
-            if (el.tagName == 'SELECT') {
-                var ret = Component.extractFromDom(el, options);
+            if (nativeSelect) {
+                var ret = Component.extractFromDom(nativeSelect, options);
                 el = ret.el;
                 options = ret.options;
             }
@@ -1618,6 +1623,11 @@ function Dropdown() {
     Component.keydown = function (e) {
         var dropdown = null;
         if (dropdown = Component.current) {
+            if (dropdown.isDisabled()) {
+                dropdown.close();
+                return;
+            }
+
             if (e.which == 13 || e.which == 9) {  // enter or tab
                 if (dropdown.header.value && dropdown.currentIndex == null && dropdown.options.newOptions) {
                     // if they typed something in, but it matched nothing, and newOptions are allowed, start that flow
@@ -1681,6 +1691,11 @@ function Dropdown() {
         var element = Helpers.findElement(e.target, 'jdropdown');
         if (element) {
             var dropdown = element.dropdown;
+            if (dropdown.isDisabled()) {
+                dropdown.close();
+                return;
+            }
+
             if (e.target.classList.contains('jdropdown-header')) {
                 if (element.classList.contains('jdropdown-focus') && element.classList.contains('jdropdown-default')) {
                     var rect = element.getBoundingClientRect();
