@@ -14065,6 +14065,10 @@ function Calendar() {
             var element = helpers.findElement(e.target, 'jcalendar-container');
             if (element) {
                 var action = e.target.className;
+                if (el.matches(':disabled') && action !== 'jcalendar-backdrop') {
+                    return;
+                }
+
 
                 // Object id
                 if (action == 'jcalendar-prev') {
