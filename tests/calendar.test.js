@@ -160,3 +160,33 @@ describe('Calendar', () => {
     // due to lack of real layout/positioning support. Manual testing in browser required.
     // See public/index.html for visual test.
 });
+
+test('Calendar ignores day selection after its input becomes disabled', () => {
+    document.body.innerHTML = '<input id="calendar">';
+    const input = document.getElementById('calendar');
+    const onchange = jest.fn();
+    const calendar = jSuites.calendar(input, {
+        value: '2027-05-05',
+        format: 'YYYY-MM-DD',
+        onchange,
+    });
+    onchange.mockClear();
+    calendar.open();
+
+    const day = [...document.querySelectorAll('.jcalendar-set-day')]
+        .find(cell => String(cell.innerText ?? cell.textContent) === '12');
+    day.innerText = day.textContent;
+
+    const eventType = 'ontouchend' in document.documentElement ? 'touchend' : 'mouseup';
+    const selectDay = () => day.dispatchEvent(new Event(eventType, { bubbles: true }));
+
+    input.disabled = true;
+    selectDay();
+    expect(input.value).toBe('2027-05-05');
+    expect(onchange).not.toHaveBeenCalled();
+
+    input.disabled = false;
+    selectDay();
+    expect(input.value).toBe('2027-05-12');
+    expect(onchange).toHaveBeenCalledTimes(1);
+});
